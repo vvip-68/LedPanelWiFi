@@ -192,7 +192,7 @@
 
 Варианты схем с различным набором компонент, для микроконтроллеров **ESP8266** - NodeMCU, Wemos d1 mini, **ESP32** представлены [здесь](https://github.com/vvip-68/LedPanelWiFi/wiki/Варианты-устройств.-Схемы.).
 
-![SCHEME](https://github.com/vvip-68/LedPanelWiFi/blob/master/schemes/schemes.png)
+![SCHEME](https://github.com/vvip-68/LedPanelWiFi/blob/main/schemes/schemes.png)
 
 Вариант релизации от [Дмитрия (7918514)](https://github.com/7918514) - схемы, фотографии сборки и готового изделия, печатные платы - все материалы доступны по [ссылке](https://disk.yandex.ru/d/fIo2UEuKpR54hg) в папке "Монстр".
 
