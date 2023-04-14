@@ -1,0 +1,133 @@
+@use '../../app-theme';
+
+:host .plugger {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  grid-gap: 0;
+  border-collapse: collapse;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &.disabled {
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+
+    .mat-icon.radio-button {
+      height: 26px;
+      font-size: 26px;
+      width: 26px;
+      color: var(--radio-button-unchecked);
+
+      &.disabled {
+        color: var(--radio-button-unchecked-disabled);
+      }
+
+      &.checked {
+        color: var(--radio-button-checked);
+
+        &.disabled {
+          color: var(--radio-button-checked-disabled);
+        }
+      }
+    }
+
+    .mat-icon.arrow {
+      height: 26px;
+      font-size: 26px;
+      width: 26px;
+      color: var(--radio-button-unchecked);
+
+      &.disabled {
+        color: var(--radio-button-unchecked-disabled);
+      }
+
+      &.left {
+        rotate: 180deg;
+      }
+
+      &.right {
+
+      }
+
+      &.up {
+        rotate: -90deg;
+      }
+
+      &.down {
+        rotate: 90deg;
+      }
+
+      &.checked {
+        color: var(--radio-button-checked);
+
+        &.disabled {
+          color: var(--radio-button-checked-disabled);
+        }
+
+      }
+    }
+  }
+
+  .cell_6 {
+    width: 64px;
+    height: 64px;
+    justify-self: center;
+    grid-column: 2/4;
+    grid-row: 2/4;
+    white-space: nowrap;
+    position: relative;
+
+    &.vert {
+      rotate: 90deg;
+    }
+
+    &.horz {
+      rotate: 0deg;
+    }
+
+    &.left {
+
+    }
+
+    &.right {
+      rotate: 180deg;
+    }
+
+    &.up {
+
+    }
+
+    &.down {
+      rotate: -90deg;
+    }
+
+    .zigzag-container {
+
+      .zigzag {
+        font-size: 56px;
+        width: 56px;
+        height: 56px;
+        position: absolute;
+        left: 0;
+        color: var(--radio-button-unchecked);
+
+        &.disabled {
+          color: var(--radio-button-unchecked-disabled);
+        }
+
+        &.odd {
+          rotate: 180deg;
+        }
+      }
+    }
+  }
+}

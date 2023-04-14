@@ -1,0 +1,311 @@
+@use '../../../app-theme';
+
+:host .tab-clock {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  height: 100%;
+  width: auto;
+  position: relative;
+
+  .top-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .clock-fieldset {
+      width: 380px;
+      min-width: 380px;
+      max-width: 380px;
+      align-items: center;
+      margin: 12px 3px;
+
+      display: flex;
+      flex-direction: column;
+
+      --buttons-width: 338px;
+      --field-width: 338px;
+      --slider-field-width: 186px;
+      --slider-label-width: 152px;
+      --label-width: 160px;
+      --check-label-width: 138px;
+      --radio-label-width: 138px;
+      --date-field-width: 164px;
+      --date-label-width: 100px;
+      --ntp-field-width: 338px;
+      --ntp-label-width: 126px;
+
+      .toggler-container {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        margin: 0 12px 4px 0;
+        padding: 0 0 4px 12px;
+        align-items: baseline;
+        white-space: nowrap;
+
+        &.advanced {
+          padding: 0 0 4px 0;
+        }
+
+        .toggler {
+          display: flex;
+          align-items: center;
+        }
+
+        .toggler-label {
+          font-size: 12px;
+          margin: 3px 13px;
+        }
+
+        .set-time {
+          position: relative;
+          top: -1px;
+          flex: 1;
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-end;
+        }
+      }
+
+      .mat-mdc-icon-button {
+        font-size: 20px;
+        width: 24px;
+        height: 24px;
+        position: relative;
+        top: 0;
+        background-color: var(--play-button-container-color);
+        color: var(--play-button-label-text-color);
+
+        left: 14px;
+
+        &[disabled] {
+          background-color: var(--play-button-disabled-color);
+        }
+
+        .mat-icon {
+          color: var(--play-button-label-text-color);
+          position: relative;
+          top: -10px;
+          left: -12px;
+        }
+
+        ::ng-deep .mat-mdc-button-touch-target {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      .spacer {
+        width: var(--field-width);
+        height: 12px;
+        border-top: solid 1px var(--card-border-color);
+        margin-top: 8px;
+      }
+
+      .field-container {
+        margin: 8px 0 0 0;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        width: var(--field-width);
+        font-size: 12px;
+        white-space: nowrap;
+
+        .toggler {
+          width: 54px;
+        }
+
+        .date {
+          width: var(--date-field-width);
+
+          ::ng-deep .mdc-floating-label {
+            width: var(--date-label-width) !important;
+          }
+
+          .mat-mdc-input-element {
+            padding-left: calc(var(--date-label-width) + 4px);
+          }
+        }
+
+        &.check {
+          align-items: center;
+
+          mat-label {
+            width: var(--check-label-width) !important;
+          }
+
+          mat-checkbox {
+            margin: 0 12px 0 0;
+          }
+        }
+
+        &.slider {
+          width: var(--field-width);
+
+          mat-label {
+            width: var(--slider-label-width) !important;
+          }
+
+          .mdc-slider__input + p {
+            position: absolute;
+            right: 0;
+            top: 32px;
+            font-size: 10px;
+          }
+
+          .mat-mdc-slider {
+            width: var(--slider-field-width);
+            margin: -16px 0 0 0;
+
+            ::ng-deep .mat-mdc-slider-visual-thumb {
+              top: 0;
+            }
+          }
+        }
+
+        &.radio-buttons {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          margin-top: 16px;
+
+          mat-label {
+            width: var(--radio-label-width) !important;
+          }
+
+          ::ng-deep .mdc-radio + label {
+            margin-right: 13px;
+            padding-left: 0;
+          }
+        }
+
+        &.colors {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+
+          mat-label {
+            width: var(--slider-label-width) !important;
+          }
+
+          .night-colors {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            width: calc(var(--slider-field-width) + 24px);
+
+            .color-btn {
+              width: 26px;
+              height: 26px;
+              border: solid 1px var(--color-button-border);
+              border-radius: 50%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+
+              .tick {
+                font-size: 18px;
+                margin: 4px 0 0 3px;
+              }
+
+              &.r {
+                background-color: red;
+                color: white;
+              }
+
+              &.g {
+                background-color: green;
+                color: white;
+              }
+
+              &.b {
+                background-color: blue;
+                color: white;
+              }
+
+              &.c {
+                background-color: cyan;
+                color: black;
+              }
+
+              &.m {
+                background-color: magenta;
+                color: white;
+              }
+
+              &.y {
+                background-color: yellow;
+                color: black;
+              }
+
+              &.w {
+                background-color: white;
+                color: black;
+              }
+            }
+          }
+        }
+
+        &.ntp-serv {
+          ::ng-deep mat-form-field {
+            width: var(--ntp-field-width);
+
+            .mdc-floating-label {
+              width: var(--ntp-label-width) !important;
+            }
+
+            .mat-mdc-input-element {
+              padding-left: calc(var(--ntp-label-width) + 4px);
+              text-align: left;
+            }
+
+            .mat-mdc-input-element.right {
+              text-align: right;
+            }
+          }
+        }
+
+        .action-button {
+          width: var(--buttons-width);
+          display: flex;
+          justify-content: flex-end;
+          flex-direction: row;
+        }
+
+        ::ng-deep mat-form-field {
+          width: var(--field-width);
+
+          .mdc-floating-label {
+            background-color: var(--app-background-color);
+            width: var(--label-width);
+          }
+
+          .mat-mdc-input-element {
+            padding-left: calc(var(--label-width) + 4px);
+            text-align: end;
+            padding-right: 6px;
+          }
+
+          .mat-mdc-select {
+            top: -29px;
+            position: relative;
+            padding-left: calc(var(--label-width) + 4px);
+
+            .mat-mdc-select-arrow-wrapper {
+              position: relative;
+              top: 10px;
+            }
+          }
+
+          &.select {
+            width: var(--field-width);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+@use '../../../app-theme';
+
+:host .tab-synch {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100vh - 228px);
+  width: auto;
+  position: relative;
+
+  --field-width: 320px;
+  --label-width: 140px;
+
+  .synch-fieldset {
+    width: 100%;
+    max-width: 380px;
+    height: fit-content;
+    display: table;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0 12px 0;
+
+    .field-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+      padding: 0 12px;
+
+      .action-button {
+        width: var(--field-width);
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      ::ng-deep mat-form-field {
+        width: var(--field-width);
+
+        .mdc-floating-label {
+          background-color: var(--app-background-color);
+          width: calc(var(--label-width) + 4px);
+        }
+
+        .mat-mdc-select {
+          padding-left: calc(var(--label-width) + 4px);
+          position: relative;
+          top: -29px;
+
+          .mat-mdc-select-arrow-wrapper {
+            transform: none;
+          }
+        }
+      }
+    }
+  }
+}

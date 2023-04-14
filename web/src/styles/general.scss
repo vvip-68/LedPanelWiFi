@@ -1,0 +1,518 @@
+@use '../app/app-theme';
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'), url("./../assets/fonts/MI.woff2") format('woff2')
+}
+
+.material-icons {
+  font-family: 'Material Icons', sans-serif;
+  font-size: 20px;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: normal;
+  text-transform: none;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes breath {
+  5%, 95% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:focus {
+  outline: none;
+}
+
+// Убирает желтый background у полей с автозаполнением
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--app-background-color) inset !important;
+  -webkit-text-fill-color: var(--field-input-color) !important;
+  color: var(--field-input-color) !important;
+}
+
+/* -------------------- app components -------------------- */
+
+app-tab-alarm,
+app-tab-clock,
+app-tab-draw,
+app-tab-effects,
+app-tab-games,
+app-tab-matrix,
+app-tab-modes,
+app-tab-network,
+app-tab-other,
+app-tab-setup,
+app-tab-synch,
+app-tab-texts,
+app-tab-weather {
+  display: block;
+  width: 100%;
+}
+
+
+/* ------------------- Scrollbar style -------------------- */
+
+* {
+  scrollbar-arrow-color: #b5b8c8 !important;
+  scrollbar-base-color: #141414 !important;
+  scrollbar-face-color: #141414 !important;
+  scrollbar-darkshadow-color: #141414 !important;
+  scrollbar-highlight-color: #141414 !important;
+  scrollbar-3dlight-color: #141414 !important;
+  scrollbar-shadow-color: #b5b8c8 !important;
+  scrollbar-track-color: #141414 !important;
+  scrollbar-color: #b5b8c8 #141414;
+  scrollbar-width: thin;
+}
+
+/* Make scrollbars black-styled in chrome/opera */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 3px #b5b8c8;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+}
+
+
+@media screen and (max-width: 460px) {
+  ::-webkit-scrollbar {
+    width: 1px;
+    height: 1px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: inherit !important;
+    box-shadow: inherit !important;
+  }
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: none;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+  }
+}
+
+/* -------------------------------------------------------- */
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  background: rgba(181, 185, 200, 0.15);
+  -webkit-box-shadow: inset 0 0 3px #b5b8c8;
+}
+
+body {
+  font-family: "Roboto", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--app-foreground-color);
+  background-color: var(--app-background-color);
+  overflow: hidden;
+}
+
+h1, h2 {
+  font-weight: 400;
+}
+
+/* ----------------------- Tooltip ------------------------ */
+
+mat-tooltip-component .mdc-tooltip__surface {
+  margin: 5px;
+  max-width: 375px;
+  white-space: pre-line;
+}
+
+.mdc-tooltip--shown .mdc-tooltip__surface-animation {
+  text-align: left;
+}
+
+.dark-theme {
+  .mat-mdc-dialog-container .mdc-dialog__content {
+    color: #e1e1e1;
+  }
+}
+
+/* ------------------------ Tabs --------------------------- */
+
+:root .mat-mdc-tab-group {
+  width: 100%;
+  height: 100%;
+
+  .mat-mdc-tab-body-content {
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  .mdc-tab {
+    min-width: 95px;
+    padding: 0 6px;
+
+    .tab-icon {
+      margin-right: 3px;
+    }
+
+    .tab-icon + span {
+      padding-right: 12px;
+    }
+
+  }
+}
+
+
+@media screen and (max-width: 826px) {
+  :root .mat-mdc-tab-group {
+    .mdc-tab {
+      min-width: 32px;
+      padding: 0;
+    }
+
+    .tab-icon {
+      margin: 0 3px 0 0;
+      &:not(.show-label) {
+        min-width: 44px;
+      }
+    }
+
+    .tab-icon:not(.show-label) + span {
+      display: none;
+    }
+  }
+}
+
+.dark-theme .mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab .mdc-tab__text-label,
+.dark-theme .mat-mdc-tab-link:not(.mat-mdc-tab-disabled).mdc-tab .mdc-tab__text-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab .mdc-tab__text-label,
+.mat-mdc-tab-link:not(.mat-mdc-tab-disabled).mdc-tab .mdc-tab__text-label {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.dark-theme .mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label,
+.dark-theme .mat-mdc-tab-link:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label {
+  color: var(--card-active-color);
+}
+
+.mat-mdc-tab:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label,
+.mat-mdc-tab-link:not(.mat-mdc-tab-disabled).mdc-tab--active .mdc-tab__text-label {
+  color: var(--card-active-color);
+}
+
+.dark-theme .mat-mdc-tab:not(.mat-mdc-tab-disabled) .mdc-tab-indicator__content--underline,
+.dark-theme .mat-mdc-tab-link:not(.mat-mdc-tab-disabled) .mdc-tab-indicator__content--underline {
+  border-color: var(--card-active-color);
+}
+
+.mat-mdc-tab:not(.mat-mdc-tab-disabled) .mdc-tab-indicator__content--underline,
+.mat-mdc-tab-link:not(.mat-mdc-tab-disabled) .mdc-tab-indicator__content--underline {
+  border-color: var(--card-active-color);
+}
+
+.dark-theme {
+
+  /* ---------------------- Slider -------------------------- */
+
+  .mat-mdc-slider .mdc-slider__track--inactive {
+    background-color: #52a2f3 !important;
+    opacity: 0.55;
+  }
+
+  .mat-mdc-slider.mat-primary {
+    --mdc-slider-handle-color: #7986cb;
+    --mdc-slider-focus-handle-color: #7986cb;
+    --mdc-slider-hover-handle-color: #7986cb;
+    --mdc-slider-active-track-color: #1976d2;
+    --mdc-slider-inactive-track-color: #52a2f3;
+    --mdc-slider-with-tick-marks-active-container-color: #fff;
+    --mdc-slider-with-tick-marks-inactive-container-color: #1976d2;
+    --mat-mdc-slider-ripple-color: #1976d2;
+    --mat-mdc-slider-hover-ripple-color: rgba(25, 118, 210, 0.05);
+    --mat-mdc-slider-focus-ripple-color: rgba(25, 118, 210, 0.2);
+  }
+
+  /* ------------------- Radio buttons ---------------------- */
+
+  .mat-mdc-radio-button.mat-primary {
+    --mdc-radio-selected-focus-icon-color: #52a2f3;
+    --mdc-radio-selected-hover-icon-color: #52a2f3;
+    --mdc-radio-selected-icon-color: #52a2f3;
+    --mdc-radio-selected-pressed-icon-color: #52a2f3;
+    --mat-mdc-radio-checked-ripple-color: #1976d2;
+  }
+}
+
+/* ---------------------- Fieldset ------------------------ */
+
+.app-fieldset {
+  border: 1px solid var(--card-border-color);
+  padding: 1em;
+  border-radius: 6px;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  legend {
+    padding: 0 .5em;
+    background-color: var(--app-background-color);
+  }
+}
+
+.mdc-text-field.mdc-text-field--disabled {
+  .mat-mdc-form-field-infix {
+    .mat-mdc-input-element {
+      color: var(--field-input-disabled-color);
+    }
+  }
+}
+
+.mdc-text-field:not(.mdc-text-field--disabled) {
+  .mat-mdc-form-field-infix {
+    .mat-mdc-input-element {
+      color: var(--field-input-color);
+    }
+  }
+}
+
+.mdc-radio {
+  transform: scale(0.9);
+
+  & + label {
+    font-size: 12px;
+    color: var(--field-input-color);
+
+    &.mdc-radio--disabled {
+      color: var(--field-input-disabled-color);
+    }
+  }
+}
+
+.mat-mdc-form-field.mat-focused.mat-primary {
+  .mat-mdc-select-arrow {
+    color: var(--card-active-color) !important;
+  }
+}
+
+.mdc-text-field {
+  padding: 0 !important;
+  height: 24px !important;
+  max-height: 24px;
+
+  .mat-mdc-form-field-infix {
+    width: auto;
+    height: 1.5em;
+
+    .mat-mdc-input-element {
+      font-size: 12px;
+      position: absolute;
+      top: 2px;
+      left: 0;
+    }
+  }
+
+  .mdc-floating-label {
+    line-height: normal;
+    position: relative !important;
+    pointer-events: all;
+    top: 2px !important;
+    font-size: 12px;
+    z-index: 1;
+    display: block;
+    transform: scale(1) !important;
+    height: 2em;
+    color: var(--field-label-color);
+  }
+}
+
+::ng-deep.mat-mdc-select {
+  position: relative;
+
+  &.mat-mdc-select-disabled {
+    .mat-mdc-select-value {
+      color: var(--field-input-disabled-color);
+      font-size: 12px;
+    }
+  }
+
+  .mat-mdc-select-arrow-wrapper {
+    transform: none !important;
+  }
+}
+
+.mat-mdc-form-field-text-suffix,
+.mat-mdc-select-value {
+  color: var(--field-input-color);
+  font-size: 12px;
+  position: relative;
+  top: 1.5px;
+  margin: 0 0 0 3px;
+}
+
+.mat-mdc-form-field-hint-wrapper,
+.mat-mdc-form-field-error-wrapper {
+  padding: 0 !important;
+}
+
+mat-hint {
+  font-size: 10px;
+  color: var(--field-hint-color);
+}
+
+mat-error {
+  font-size: 10px;
+  color: var(--field-error-color);
+  margin: 0 0 0 -2px;
+}
+
+/* ------------------ Select drop list -------------------- */
+
+.cdk-overlay-container {
+  .material-select-menu,
+  .app-select-panel {
+
+    &.shift-120px {
+      margin: 0 0 0 120px;
+    }
+
+    &.shift-140px {
+      margin: 0 0 0 140px;
+    }
+
+    &.shift-160px {
+      margin: 0 0 0 160px;
+    }
+
+    .mat-mdc-option {
+      font-size: 12px;
+      min-height: 32px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      &.font-14px {
+        font-size: 14px;
+      }
+
+      &.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+        color: var(--card-active-color);
+      }
+    }
+  }
+}
+
+/* ----------------- Input type number -------------------- */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* ---------------- Confirmation dialog ------------------- */
+
+.mat-mdc-dialog-container {
+  border: solid 1px var(--app-dialog-border-color);
+  border-radius: 6px;
+
+  .mat-mdc-dialog-surface {
+    border: none;
+    background-color: var(--app-dialog-color) !important;
+    border-radius: 6px !important;
+
+    .mdc-dialog__title {
+      font-size: 18px;
+      padding: 0 18px 9px;
+      color: var(--app-dialog-title-color);
+    }
+
+    .mat-mdc-dialog-actions {
+      justify-content: flex-end;
+      padding: 18px 24px 18px 8px;
+    }
+
+    .message {
+      line-height: 1.75em;
+    }
+
+    .text-separator-top {
+      width: 100%;
+      margin: 0 0 20px 0;
+      padding-top: 10px;
+      border-bottom: solid 1px var(--app-dialog-border-color);
+    }
+
+  }
+}
+
+/* -------------------- Time picker ----------------------- */
+
+.clock-face__clock-hand_minute {
+  height: 103px !important;
+}
+
+.clock-face__center {
+  height: 8px !important;
+}
+
+.mdc-fab__ripple {
+  background-color: var(--time-picker-touch-color);
+}
+
+ngx-mat-timepicker-dialog {
+  .mat-mdc-dialog-actions {
+    .mdc-button__label {
+      color: var(--card-active-color);
+    }
+  }
+}
+
+/* -------------------- Date picker ----------------------- */
+
+.mat-datepicker-dialog {
+  .mat-datepicker-content-touch .mat-datepicker-content-container {
+    min-height: 312px;
+    max-height: 420px;
+    min-width: 250px;
+    max-width: 360px;
+  }
+}
+
+/* ------------------------ Menu -------------------------- */
+
+.mat-mdc-menu-panel {
+  .mat-mdc-menu-content {
+    .mat-mdc-menu-item {
+      min-height: 28px;
+    }
+  }
+}

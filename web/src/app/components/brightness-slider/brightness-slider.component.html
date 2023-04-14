@@ -1,0 +1,11 @@
+<div class="slider">
+  <div class="slider-wrapper">
+    <mat-slider [disableRipple]="true" color="primary"
+                [disabled]="disabled"
+                [displayWith]="formatLabel"
+                min="1" step="1" max="100">
+      <input #sl matSliderThumb [value]="percent" (valueChange)="valueChanged($event)">
+      <p>{{ sl.value === '0' ? '' : sl.value + '%' }}</p>
+    </mat-slider>
+  </div>
+</div>

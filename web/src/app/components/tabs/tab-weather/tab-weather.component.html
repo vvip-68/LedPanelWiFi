@@ -1,0 +1,65 @@
+<div class="tab-weather">
+
+  <fieldset class="app-fieldset weather-fieldset">
+    <legend>{{ L.$('Настройки погоды') }}</legend>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Сервер погоды') }}</mat-label>
+        <mat-select [(ngModel)]="weather_mode" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled()">
+          <mat-option [value]="0">{{ L.$('Выключено') }}</mat-option>
+          <mat-option [value]="1">{{ L.$('Yandex Weather') }}</mat-option>
+          <mat-option [value]="2">{{ L.$('Open Weather Map') }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field [hintLabel]="L.$('код региона для сервера Yandex')" floatLabel="always">
+        <mat-label>{{ L.$('Код региона Yandex') }}</mat-label>
+        <input matInput autocomplete="new-password" type="number"
+               [formControl]="codeYandexFormControl"
+               [disableControl]="isDisabled() || weather_mode !== 1">
+        <mat-error *ngIf="codeYandexFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field [hintLabel]="L.$('код региона для сервера OpenWeatherMap')" floatLabel="always">
+        <mat-label>{{ L.$('Код региона OpenWeatherMap') }}</mat-label>
+        <input matInput autocomplete="new-password" type="number"
+               [formControl]="codeOWMFormControl"
+               [disableControl]="isDisabled() || weather_mode !== 2">
+        <mat-error *ngIf="codeOWMFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field [hintLabel]="L.$('интервал обновления данных о погоде')" floatLabel="always">
+        <mat-label>{{ L.$('Интервал обновления') }}</mat-label>
+        <input matInput autocomplete="new-password" type="number" [min]="15" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+               [formControl]="updateIntervalFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <p matTextSuffix="">{{ L.$('минут') }}</p>
+        <mat-error *ngIf="updateIntervalFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+        <mat-error *ngIf="updateIntervalFormControl.hasError('range') && !updateIntervalFormControl.hasError('required')">
+          {{ L.$('от 15 до 240 минут') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applyWeather($event)" [disabled]="isDisabled() || !isWeatherValid()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+</div>

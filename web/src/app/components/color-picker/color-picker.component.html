@@ -1,0 +1,17 @@
+<mat-dialog-content>
+  <div class="color-picker-container">
+    <div class="color-palette" #palette>
+      <div class="picker">
+        <color-chrome id="palette" [color]="color" width="225" (onChange)="changeColor($event)"></color-chrome>
+      </div>
+      <color-hue-picker [color]="color" width="225" (onChange)="changeColor($event)"></color-hue-picker>
+    </div>
+    <div class="colors-right">
+      <div class="color-view" #colorView></div>
+      <div class="buttons">
+        <button class="select" mat-flat-button color="primary" [mat-dialog-close]="color">Выбрать</button>
+        <button class="cancel" mat-flat-button color="primary" (click)="cancel()">Отмена</button>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>

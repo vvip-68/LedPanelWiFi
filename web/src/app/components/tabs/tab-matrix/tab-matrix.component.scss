@@ -1,0 +1,125 @@
+@use '../../../app-theme';
+
+:host .tab-matrix {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100dvh - 168px);
+  width: auto;
+  position: relative;
+
+  --action-width: 320px;
+  --field-width: 152px;
+  --label-width: 100px;
+
+  .matrix-fieldset {
+    width: 100%;
+    max-width: 380px;
+    height: fit-content;
+    display: table;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0 60px 0;
+    position: relative;
+
+    .idx-files-sel {
+      position: absolute;
+      top: 17px;
+      left: 170px;
+      z-index: 1;
+      width: 175px;
+    }
+
+    .radio-buttons {
+      .mat-mdc-radio-group {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+
+    .matrix-opt {
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      align-items: center;
+    }
+
+    .divider {
+      display: flex;
+      flex-direction: column;
+      width: 316px;
+      height: 18px;
+      border: none;
+      border-top: solid 1px var(--app-dialog-border-color);
+      align-items: center;
+      margin: 12px 0 0 0;
+
+      .section {
+        display: inline-block;
+        width: auto;
+        background-color: var(--app-background-color);
+        position: relative;
+        top: -50%;
+        text-align: center;
+        white-space: nowrap;
+        padding: 0 12px;
+        font-size: 13px;
+        color: var(--card-active-color);
+      }
+    }
+
+    .divider2 {
+      width: 316px;
+      height: 6px;
+      border: none;
+      border-top: solid 1px var(--app-dialog-border-color);
+      margin: 12px 0 0 12px;
+    }
+
+    .field-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+      padding: 0 12px;
+
+      .action-button {
+        width: var(--field-width);
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .size {
+        text-align: right;
+      }
+
+      ::ng-deep mat-form-field {
+        width: var(--field-width);
+
+        .mdc-floating-label {
+          background-color: var(--app-background-color);
+          width: var(--label-width);
+        }
+
+        .mat-mdc-select {
+          padding-left: calc(var(--label-width) + 4px);
+        }
+      }
+    }
+
+    .action-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+      padding: 0 12px;
+
+      .action-button {
+        width: var(--action-width);
+        display: flex;
+        justify-content: flex-end;
+      }
+    }
+  }
+}

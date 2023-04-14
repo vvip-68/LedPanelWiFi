@@ -1,0 +1,53 @@
+<div class="tab-network-ap">
+  <fieldset class="app-fieldset network-fieldset">
+    <legend>{{ L.$('Точка доступа') }}</legend>
+
+    <div class="toggler-container">
+      <div class="toggler-label">
+        <p>{{L.$('Создавать точку доступа')}}</p>
+      </div>
+      <div class="toggler">
+        <mat-slide-toggle color="primary" class="switch" [ngModel]="createAccessPoint" (toggleChange)="createAccessPoint = !createAccessPoint" [disabled]="isDisabled()"></mat-slide-toggle>
+      </div>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field hintLabel="{{ L.$('до 10 символов') }}" floatLabel="always">
+        <mat-label>{{ L.$('Имя точки') }}</mat-label>
+        <input matInput #inputAP maxlength="10" required autocomplete="new-password"
+               [formControl]="apFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <mat-hint align="end">{{inputAP.value.length}}/10</mat-hint>
+        <mat-error *ngIf="apFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field hintLabel="{{ L.$('до 16 символов') }}" floatLabel="always">
+        <mat-label>{{ L.$('Пароль') }}</mat-label>
+        <input matInput #inputAPPass required maxlength="16" autocomplete="new-password"
+               [formControl]="passAPFormControl"
+               [type]="hideAPPassword ? 'password' : 'text'"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <button mat-icon-button matSuffix (click)="hideAPPassword = !hideAPPassword">
+          <mat-icon>{{hideAPPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+        <mat-hint align="end">{{inputAPPass.value.length}}/16</mat-hint>
+        <mat-error *ngIf="passAPFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applyAccessPoint($event)" [disabled]="isDisabled() || !isAccessPointValid()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+</div>

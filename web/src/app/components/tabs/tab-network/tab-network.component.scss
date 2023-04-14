@@ -1,0 +1,10 @@
+@use '../../../app-theme';
+
+:host .tab-network {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  width: auto;
+  position: relative;
+}

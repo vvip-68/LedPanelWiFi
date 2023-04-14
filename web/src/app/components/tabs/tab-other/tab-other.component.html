@@ -1,0 +1,80 @@
+<div class="tab-other">
+  <fieldset class="app-fieldset other-fieldset">
+    <legend>{{ L.$('Прочие настройки') }}</legend>
+
+    <div class="field-container">
+      <mat-form-field [hintLabel]="getHintForLimit()" floatLabel="always">
+        <mat-label>{{ L.$('Лимит по току') }}</mat-label>
+        <input matInput #input2 autocomplete="new-password" class="right" type="number" [min]="0" [max]="50000" [step]="500"
+               [formControl]="autoLimitFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <p matTextSuffix="">{{ L.$('миллиампер') }}</p>
+        <mat-error *ngIf="autoLimitFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+        <mat-error *ngIf="autoLimitFormControl.hasError('range') && !autoLimitFormControl.hasError('required')">
+          {{ L.$('от 0 до 50000 миллиампер') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applySettings($event)" [disabled]="isDisabled() || !isSettingsValid()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+
+  <fieldset class="app-fieldset other-fieldset" *ngIf="fs_allow || sd_allow">
+    <legend>{{ L.$('Резервная копия настроек') }}</legend>
+    <div class="field-container nomargin">
+      <div class="action-button center">
+        <button mat-raised-button color="primary" *ngIf="fs_allow && (backup_place === 1 || backup_place === 3)"
+                matTooltip="{{L.$('Загрузить с FS')}}"
+                [disabled]="isDisabled()"
+                (click)="loadFrom(0)">
+          <mat-icon matSuffix>publish</mat-icon>
+          <span>{{L.$('FS')}}</span>
+        </button>
+        <button mat-raised-button color="primary" *ngIf="sd_allow && (backup_place === 2 || backup_place === 3)"
+                matTooltip="{{L.$('Загрузить с SD')}}"
+                [disabled]="isDisabled()"
+                (click)="loadFrom(1)">
+          <mat-icon matSuffix>publish</mat-icon>
+          <span>{{L.$('SD')}}</span>
+        </button>
+        <button mat-raised-button color="primary" *ngIf="fs_allow"
+                matTooltip="{{L.$('Сохранить в FS')}}"
+                [disabled]="isDisabled()"
+                (click)="saveTo(0)">
+          <mat-icon matSuffix>save</mat-icon>
+          <span>{{L.$('FS')}}</span>
+        </button>
+        <button mat-raised-button color="primary" *ngIf="sd_allow"
+                matTooltip="{{L.$('Сохранить в SD')}}"
+                [disabled]="isDisabled()"
+                (click)="saveTo(1)">
+          <mat-icon matSuffix>save</mat-icon>
+          <span>{{L.$('SD')}}</span>
+        </button>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="app-fieldset other-fieldset">
+    <div class="field-container nomargin">
+      <div class="action-button restart-button">
+        <p class="label">{{ L.$('Перезагрузка устройства') }}</p>
+        <button mat-raised-button color="primary"
+                [disabled]="isDisabled()"
+                (click)="restart()">
+          <mat-icon matPrefix>cached</mat-icon>
+          {{L.$('Перезагрузить')}}
+        </button>
+      </div>
+    </div>
+  </fieldset>
+
+</div>

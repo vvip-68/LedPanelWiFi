@@ -1,0 +1,118 @@
+<div class="tab-matrix" [ngStyle]="{'disabled': isDisabled()}">
+  <fieldset class="app-fieldset matrix-fieldset">
+    <legend>{{ L.$('Настройки матрицы') }}</legend>
+
+    <div class="radio-buttons">
+      <mat-radio-group [(ngModel)]="radio_idx" [disableControl]="isDisabled() || index_files.length === 0" color="primary">
+        <mat-radio-button [value]="0" style="display:flex;flex-direction:row;" class="rb_index"> {{ L.$('Карта индексов') }}</mat-radio-button>
+        <mat-radio-button [value]="1">{{ L.$('Использовать сегменты') }}</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
+    <div class="idx-files-sel">
+      <mat-select [(ngModel)]="index_file" panelClass="app-select-panel" [disableControl]="isDisabled() || radio_idx !== 0 || index_files.length === 0">
+        <mat-option *ngFor="let file of index_files" [value]="file.value">
+          {{file.displayText}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="matrix-opt">
+
+      <div class="divider">
+        <div class="section">
+          <p>{{ L.$('Сегмент матрицы') }}</p>
+        </div>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always">
+          <mat-label>{{ L.$('Ширина') }}</mat-label>
+          <input matInput required minlength="4" maxlength="128" autocomplete="new-password" type="number" class="size"
+                 [formControl]="segWidthFormControl"
+                 [disableControl]="isDisabled() || radio_idx === 0"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('точ.') }}</p>
+          <mat-error *ngIf="segWidthFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="segWidthFormControl.hasError('range') && !segWidthFormControl.hasError('required')">
+            {{ L.$('от 4 до 128') }}
+          </mat-error>
+        </mat-form-field>
+        <div style="width:12px"></div>
+        <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always">
+          <mat-label>{{ L.$('Высота') }}</mat-label>
+          <input matInput required minlength="4" maxlength="128" autocomplete="new-password" type="number" class="size"
+                 [formControl]="segHeightFormControl"
+                 [disableControl]="isDisabled() || radio_idx === 0"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('точ.') }}</p>
+          <mat-error *ngIf="segHeightFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="segHeightFormControl.hasError('range') && !segHeightFormControl.hasError('required')">
+            {{ L.$('от 4 до 128') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div style="margin: 6px 0 12px 0">
+        <app-plugger #matrixPlugger [(type)]="mtx_seg_type" [(angle)]="mtx_seg_angle" [(direction)]="mtx_seg_dir" [disabled]="isDisabled() || radio_idx === 0"></app-plugger>
+      </div>
+
+      <div class="divider">
+        <div class="section">
+          <p>{{ L.$('Сборная матрица') }}</p>
+        </div>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field hintLabel="{{ L.$('от 1 до 15') }}" floatLabel="always">
+          <mat-label>{{ L.$('Ширина') }}</mat-label>
+          <input matInput required minlength="1" maxlength="15" autocomplete="new-password" type="number" class="size"
+                 [formControl]="tolWidthFormControl"
+                 [disableControl]="isDisabled() || radio_idx === 0"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('сег.') }}</p>
+          <mat-error *ngIf="tolWidthFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="tolWidthFormControl.hasError('range') && !tolWidthFormControl.hasError('required')">
+            {{ L.$('от 1 до 15') }}
+          </mat-error>
+        </mat-form-field>
+        <div style="width:12px"></div>
+        <mat-form-field hintLabel="{{ L.$('от 1 до 15') }}" floatLabel="always">
+          <mat-label>{{ L.$('Высота') }}</mat-label>
+          <input matInput required minlength="1" maxlength="15" autocomplete="new-password" type="number" class="size"
+                 [formControl]="tolHeightFormControl"
+                 [disableControl]="isDisabled() || radio_idx === 0"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('сег.') }}</p>
+          <mat-error *ngIf="tolHeightFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="tolHeightFormControl.hasError('range') && !tolHeightFormControl.hasError('required')">
+            {{ L.$('от 1 до 15') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div style="margin: 6px 0 12px 0">
+        <app-plugger #totalPlugger  [(type)]="tol_seg_type" [(angle)]="tol_seg_angle" [(direction)]="tol_seg_dir" [disabled]="isDisabled() || radio_idx === 0"></app-plugger>
+      </div>
+
+    </div>
+
+    <div class="divider2"></div>
+
+    <div class="action-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applyMatrixSettings($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+  <div style="width: 100%; height: 2px;">&nbsp;</div>
+</div>

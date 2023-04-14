@@ -1,0 +1,106 @@
+<div class="tab-modes">
+  <fieldset class="app-fieldset modes-fieldset">
+    <legend>{{ L.$('Режимы по времени') }}</legend>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Режим 1') }}</mat-label>
+        <input matInput [ngxMatTimepicker]="picker1" readonly [format]="24" [(ngModel)]="mode1_time" [disableControl]="isDisabled()">
+        <ngx-mat-timepicker #picker1></ngx-mat-timepicker>
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode1_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Режим 2') }}</mat-label>
+        <input matInput [ngxMatTimepicker]="picker2" readonly [format]="24" [(ngModel)]="mode2_time" [disableControl]="isDisabled()">
+        <ngx-mat-timepicker #picker2></ngx-mat-timepicker>
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode2_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Режим 3') }}</mat-label>
+        <input matInput [ngxMatTimepicker]="picker3" readonly [format]="24" [(ngModel)]="mode3_time" [disableControl]="isDisabled()">
+        <ngx-mat-timepicker #picker3></ngx-mat-timepicker>
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode3_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Режим 4') }}</mat-label>
+        <input matInput [ngxMatTimepicker]="picker4" readonly [format]="24" [(ngModel)]="mode4_time" [disableControl]="isDisabled()">
+        <ngx-mat-timepicker #picker4></ngx-mat-timepicker>
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode4_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label><b>{{ L.$('Рассвет') }}</b></mat-label>
+        <input matInput readonly [(ngModel)]="mode5_time" [disableControl]="isDisabled()">
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode5_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label><b>{{ L.$('Закат') }}</b></mat-label>
+        <input matInput readonly [(ngModel)]="mode6_time" [disableControl]="isDisabled()">
+      </mat-form-field>
+
+      <mat-form-field floatLabel="always" class="select">
+        <mat-select [(ngModel)]="mode6_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            {{effect.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container buttons">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applyTimeModes($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+</div>

@@ -1,0 +1,34 @@
+<div class="tab-network">
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Параметры сети')}}">settings_input_antenna</mat-icon>
+        <span>{{ L.$('Параметры сети') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-network-ssid></app-tab-network-ssid>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Точка доступа')}}">router</mat-icon>
+        <span>{{ L.$('Точка доступа') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-network-ap></app-tab-network-ap>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab *ngIf="supportMQTT">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Настройки MQTT')}}">backup</mat-icon>
+        <span>{{ L.$('Настройки MQTT') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-network-mqtt></app-tab-network-mqtt>
+      </ng-template>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

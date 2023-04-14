@@ -1,0 +1,219 @@
+@use '../../../app-theme';
+
+:host .tab-games {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100dvh - 176px);
+  width: auto;
+  position: relative;
+
+  .top-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .games-fieldset {
+      width: 380px;
+      min-width: 380px;
+      max-width: 380px;
+      align-items: center;
+      margin: 12px 3px;
+      display: flex;
+      flex-direction: column;
+
+      --field-width: 338px;
+      --label-width: 160px;
+
+      .message {
+        width: 100%;
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .field-container {
+        margin: 8px 0 0 0;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        width: var(--field-width);
+        font-size: 12px;
+        white-space: nowrap;
+
+        &.slider {
+          width: var(--field-width);
+
+          mat-label {
+            width: var(--label-width) !important;
+          }
+
+          .mdc-slider__input + p {
+            position: absolute;
+            right: 0;
+            top: 32px;
+            font-size: 10px;
+          }
+
+          .mat-mdc-slider {
+            width: var(--field-width);
+            margin: -16px 0 0 0;
+
+            ::ng-deep .mat-mdc-slider-visual-thumb {
+              top: 0;
+            }
+          }
+        }
+      }
+
+      .games {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+
+        .game-card {
+          width: 140px;
+          height: 40px;
+          margin: 4px;
+          border: solid 1px var(--card-border-color);
+          border-radius: 6px;
+          background-color: var(--card-background-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 15px;
+
+          &.active {
+            color: var(--card-active-color);
+          }
+
+          &.disabled {
+            cursor: default;
+            pointer-events: none;
+          }
+        }
+      }
+
+      .game-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(5, 1fr);
+        grid-gap: 0;
+        border-collapse: collapse;
+        -webkit-tap-highlight-color: transparent;
+        margin: 12px 0;
+        grid-template-areas:
+          "a a b c c "
+          "a a b c c"
+          "d d e f f"
+          "g g h i i"
+          "g g h i i";
+
+        .cell {
+          width: 70px;
+          height: 70px;
+          display: flex;
+          justify-items: center;
+          align-items: center;
+
+          .mat-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 70px;
+            text-align: center;
+
+            &.disabled {
+              color: var(--button-disabled-color);
+              cursor: default !important;
+              pointer-events: none !important;
+            }
+          }
+
+          &.c1 {
+            grid-area: a;
+            width: 140px;
+            height: 140px;
+          }
+
+          &.c2 {
+            grid-area: b;
+            width: 70px;
+            height: 140px;
+
+            .mat-icon {
+              transform: matrix(2, 0, 0, 1, 0, 0);
+              rotate: -90deg;
+              cursor: pointer;
+            }
+          }
+
+          &.c3 {
+            grid-area: c;
+            width: 140px;
+            height: 140px;
+          }
+
+          &.c4 {
+            grid-area: d;
+            width: 140px;
+            height: 70px;
+
+            .mat-icon {
+              transform: matrix(2, 0, 0, 1, -30, 0);
+              rotate: 180deg;
+              cursor: pointer;
+            }
+          }
+
+          &.c5 {
+            grid-area: e;
+            cursor: pointer;
+          }
+
+          &.c6 {
+            grid-area: f;
+            width: 140px;
+            height: 70px;
+
+            .mat-icon {
+              transform: matrix(2, 0, 0, 1, 37, 0);
+              cursor: pointer;
+            }
+          }
+
+          &.c7 {
+            grid-area: g;
+            width: 140px;
+            height: 140px;
+          }
+
+          &.c8 {
+            grid-area: h;
+            width: 70px;
+            height: 140px;
+
+            .mat-icon {
+              transform: matrix(2, 0, 0, 1, 0, 0);
+              rotate: 90deg;
+              cursor: pointer;
+            }
+          }
+
+          &.c9 {
+            grid-area: i;
+            width: 140px;
+            height: 140px;
+          }
+        }
+
+        &.disabled {
+          pointer-events: none;
+          cursor: default;
+        }
+      }
+
+    }
+  }
+}

@@ -1,0 +1,108 @@
+<div class="params-container">
+  <mat-dialog-content>
+    <h1 cdkDrag cdkDragHandle cdkDragRootElement=".cdk-overlay-pane" cdkDragBoundary=".app-body">{{model.name}}</h1>
+
+    <div class="params-wrapper-container">
+
+      <div class="params-loader" *ngIf="!isLoaded">
+        <p>{{L.$('Загрузка...')}}</p>
+      </div>
+
+      <div class="params-wrapper" *ngIf="isLoaded">
+
+        <div *ngIf="allowClockVisible" class="param-row">
+          <div class="param-label param-label-toggler"><p>{{L.$('Часы поверх эффекта')}}</p></div>
+          <div class="param-value-toggler">
+            <mat-slide-toggle color="primary" class="switch" [(ngModel)]="model.allowClock"
+                              (change)="toggleAllowClock($event)"></mat-slide-toggle>
+          </div>
+        </div>
+
+        <div *ngIf="allowTextVisible" class="param-row">
+          <div class="param-label param-label-toggler"><p>{{L.$('Бегущая строка поверх эффекта')}}</p>
+          </div>
+          <div class="param-value-toggler">
+            <mat-slide-toggle color="primary" class="switch" [(ngModel)]="model.allowText"
+                              (change)="toggleAllowText($event)"></mat-slide-toggle>
+          </div>
+        </div>
+        <div style="width: auto;height:8px;"></div>
+
+        <div *ngIf="contrastVisible" class="param-row">
+          <div class="param-label param-label-slider" [matTooltip]="tooltip1" matTooltipPosition="below">
+            <p>{{getContrastTitle()}}</p></div>
+          <div class="param-value">
+            <mat-slider class="slider" color="primary" min="5" step="5" max="255">
+              <input #sl1 matSliderThumb [(ngModel)]="model.contrast" (valueChange)="changeContrastValue($event)">
+              <p>{{sl1.value}}</p>
+            </mat-slider>
+          </div>
+        </div>
+
+        <div *ngIf="speedVisible" class="param-row">
+          <div class="param-label param-label-slider" [matTooltip]="tooltip2" matTooltipPosition="below">
+            <p>{{getSpeedTitle()}}</p></div>
+          <div class="param-value">
+            <mat-slider class="slider" color="primary" [disabled]="model.speed === 0" min="1" step="1" max="255">
+              <input #sl2 matSliderThumb [(ngModel)]="model.speed" (valueChange)="changeSpeedValue($event)">
+              <p>{{sl2.value}}</p>
+            </mat-slider>
+          </div>
+        </div>
+
+        <div *ngIf="param1Visible" class="param-row">
+          <div class="param-label param-label-slider" [matTooltip]="tooltip3" matTooltipPosition="below">
+            <p>{{L.$(model.paramName1)}}</p></div>
+          <div class="param-value">
+            <mat-slider class="slider" color="primary" [disabled]="model.param1 < 0" min="0" step="1" max="255">
+              <input #sl3 matSliderThumb [(ngModel)]="model.param1" (valueChange)="changeParam1Value($event)">
+              <p>{{sl3.value}}</p>
+            </mat-slider>
+          </div>
+        </div>
+
+        <div *ngIf="param2Visible && param2Control === controlType.SLIDER" class="param-row">
+          <div class="param-label param-label-slider" [matTooltip]="tooltip3" matTooltipPosition="below">
+            <p>{{L.$(model.paramName2)}}</p></div>
+          <div class="param-value">
+            <mat-slider class="slider" color="primary" [disabled]="model.param2 < 0" min="0" step="1" max="255">
+              <input #sl4 matSliderThumb [(ngModel)]="model.param2" (valueChange)="changeParam2SliderValue($event)">
+              <p>{{sl4.value}}</p>
+            </mat-slider>
+          </div>
+        </div>
+
+        <div *ngIf="param2Visible && param2Control === controlType.CHECKBOX" class="param-row">
+          <div class="param-label param-label-toggler" [matTooltip]="tooltip3" matTooltipPosition="below">
+            <p>{{L.$(model.paramName2)}}</p></div>
+          <div class="param-value-toggler">
+            <mat-slide-toggle color="primary" class="switch" [(ngModel)]="param2Flag"
+                              (toggleChange)="changeParam2ToggleValue()"></mat-slide-toggle>
+          </div>
+        </div>
+
+        <div *ngIf="param2Visible && param2Control === controlType.COMBOBOX" class="param-row">
+          <div class="param-label param-label-select" [matTooltip]="tooltip3" matTooltipPosition="below">
+            <p>{{L.$(model.paramName2)}}</p></div>
+          <div class="param-value-select">
+            <mat-form-field>
+              <mat-select panelClass="material-select-menu"
+                          [(ngModel)]="model.param2"
+                          (selectionChange)="changeParam2SelectValue($event)">
+                <mat-option *ngFor="let item of param2List" [value]="item.value">
+                  {{L.$(item.displayText)}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <div class="buttons">
+      <button mat-raised-button color="primary" (click)="close($event)" cdkFocusInitial>{{L.$('Закрыть')}}</button>
+    </div>
+  </mat-dialog-actions>
+</div>

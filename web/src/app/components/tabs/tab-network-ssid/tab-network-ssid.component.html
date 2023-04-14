@@ -1,0 +1,60 @@
+<div class="tab-network">
+  <fieldset class="app-fieldset network-fieldset">
+    <legend>{{ L.$('Параметры сети') }}</legend>
+
+    <div class="field-container">
+      <mat-form-field hintLabel="{{ L.$('до 32 символов') }}" floatLabel="always">
+        <mat-label>{{ L.$('Имя сети') }}</mat-label>
+        <input matInput #inputSsid maxlength="32" required autocomplete="new-password"
+               [formControl]="ssidFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <mat-hint align="end">{{inputSsid.value.length}}/32</mat-hint>
+        <mat-error *ngIf="ssidFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field hintLabel="{{ L.$('от 8 до 64 символов') }}" floatLabel="always">
+        <mat-label>{{ L.$('Пароль') }}</mat-label>
+        <input matInput #inputPassword required minlength="8" maxlength="64" autocomplete="new-password"
+               [formControl]="passwordFormControl"
+               [type]="hidePassword ? 'password' : 'text'"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword">
+          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+        <mat-hint align="end">{{inputPassword.value.length}}/64</mat-hint>
+        <mat-error *ngIf="passwordFormControl.hasError('required')">
+          {{ L.$('Поле не может быть пустым!') }}
+        </mat-error>
+        <mat-error *ngIf="passwordFormControl.hasError('length') && !passwordFormControl.hasError('required')">
+          {{ L.$('Длина пароля от 8 до 64 символов!') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field hintLabel="{{ L.$('IP адрес устройства') }}" floatLabel="always">
+        <mat-label>{{ L.$('IP адрес') }}</mat-label>
+        <input matInput #inputIpAddress restrict inputType="ipv4" autocomplete="new-password"
+               [formControl]="ipAddressFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        <mat-error *ngIf="ipAddressFormControl.hasError('ipv4')">
+          {{ L.$('Неверный IP адрес') }}
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applyNetwork($event)" [disabled]="isDisabled() || !isNetworkValid()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+</div>

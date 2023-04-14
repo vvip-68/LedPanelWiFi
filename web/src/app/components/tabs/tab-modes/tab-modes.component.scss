@@ -1,0 +1,88 @@
+@use '../../../app-theme';
+
+::ng-deep.clock-face__clock-hand_minute {
+  height: 103px !important;
+}
+
+::ng-deep.clock-face__center {
+  height: 8px !important;
+}
+
+::ng-deep.mdc-fab__ripple {
+  background-color: var(--time-picker-touch-color);
+}
+
+::ng-deep ngx-mat-timepicker-dialog {
+  .mat-mdc-dialog-actions {
+    .mdc-button__label {
+      color: var(--card-active-color);
+    }
+  }
+}
+
+:host .tab-modes {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  height: calc(100dvh - 228px);
+  width: auto;
+  position: relative;
+
+  .modes-fieldset {
+    max-width: 380px;
+    height: fit-content;
+    align-items: center;
+    margin: 12px 0 12px 0;
+
+    display: table;
+    flex-direction: column;
+
+    --buttons-width: 350px;
+    --field-select-width: 188px;
+    --field-width: 148px;
+    --label-width: 100px;
+
+    .field-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+
+      .action-button {
+        width: var(--buttons-width);
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      ::ng-deep mat-form-field {
+        width: var(--field-width);
+
+        &.select {
+          margin-left: 12px;
+          width: var(--field-select-width);
+
+          .mat-mdc-select-value {
+            top: -2px;
+          }
+        }
+
+        .mdc-floating-label {
+          background-color: var(--app-background-color);
+          width: var(--label-width);
+        }
+
+        .mat-mdc-input-element {
+          padding-left: calc(var(--label-width) + 4px);
+        }
+
+        .mdc-icon-button {
+          font-size: 20px;
+          width: 24px;
+          height: 24px;
+          padding: 0;
+        }
+      }
+    }
+  }
+}

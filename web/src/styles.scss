@@ -1,0 +1,86 @@
+// Custom Theming for Angular Material
+// For more information: https://material.angular.io/guide/theming
+@use '@angular/material' as mat;
+@use 'sass:map';
+
+// Plus imports for other components in your app.
+@use './app/app-theme';
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+// @include mat.all-component-typographies();
+@include mat.core();
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+$light-primary: mat.define-palette(mat.$blue-palette, 700, 400, 900);
+$light-accent: mat.define-palette(mat.$teal-palette, 500, 300, 700);
+$light-warn: mat.define-palette(mat.$red-palette, 500, 300, 700);
+
+$dark-primary: mat.define-palette(mat.$indigo-palette, 700, 500, 900);
+$dark-accent: mat.define-palette(mat.$blue-palette, 400, 200, 700);
+$dark-warn: mat.define-palette(mat.$red-palette, 700, 400, 900);
+
+// Create the theme object. A theme consists of configurations for individual
+// theming systems such as "color" or "typography".
+$light-theme: mat.define-light-theme((
+  color: (
+    primary: $light-primary,
+    accent: $light-accent,
+    warn: $light-warn,
+  ),
+  density: -2
+));
+
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary: $dark-primary,
+    accent: $dark-accent,
+    warn: $dark-warn,
+  )
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+:root {
+  //@include mat.all-component-themes($light-theme);
+  @include mat.core-theme($light-theme);
+  @include mat.button-theme($light-theme);
+  @include mat.toolbar-theme($light-theme);
+  @include mat.tooltip-theme($light-theme);
+  @include mat.slide-toggle-theme($light-theme);
+  @include mat.slider-theme($light-theme);
+  @include mat.checkbox-theme($light-theme);
+  @include mat.select-theme($light-theme);
+  @include mat.input-theme($light-theme);
+  @include mat.tabs-theme($light-theme);
+  @include mat.radio-theme($light-theme);
+  @include mat.datepicker-theme($light-theme);
+
+  // --- Application styles
+  @include app-theme.theme($light-theme, false);
+}
+
+.dark-theme {
+  //@include mat.all-component-colors($dark-theme);
+  @include mat.core-color($dark-theme);
+  @include mat.button-color($dark-theme);
+  @include mat.toolbar-color($dark-theme);
+  @include mat.tooltip-color($dark-theme);
+  @include mat.slide-toggle-color($dark-theme);
+  @include mat.slider-color($dark-theme);
+  @include mat.checkbox-color($dark-theme);
+  @include mat.select-theme($dark-theme);
+  @include mat.input-color($dark-theme);
+  @include mat.tabs-color($dark-theme);
+  @include mat.radio-color($dark-theme);
+  @include mat.datepicker-color($dark-theme);
+
+  // --- Application styles
+  @include app-theme.theme($dark-theme, true);
+}
+
+@import './styles/general';

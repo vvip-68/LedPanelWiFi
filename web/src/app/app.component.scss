@@ -1,0 +1,203 @@
+@use './app-theme';
+
+:host .main-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 8px 0;
+  }
+
+  .alarm {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    right: 24px;
+    top: 87px;
+    position: fixed;
+    background-color: var(--alarming-back);
+    border-radius: 50%;
+    z-index: 10;
+
+    .ding {
+      width: 32px;
+      height: 32px;
+      font-size: 32px;
+      color: var(--alarming-fore);
+      transition: all 0.5s ease-in-out;
+      animation: breath infinite 1s;
+      cursor: pointer;
+    }
+  }
+
+  .toolbar {
+    height: 50px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    background-color: var(--toolbar-background-color) !important;
+    color: var(--toolbar-foreground-color) !important;
+    border-bottom: 1px solid var(--card-border-color);
+
+    h1,
+    .size_panel {
+      font-family: Bradley Hand, cursive;
+      font-style: italic;
+      font-weight: 400;
+      letter-spacing: 0.075em;
+      font-size: 20px;
+    }
+
+    .size_panel {
+      text-align: center;
+    }
+
+    @media screen and (max-width: 460px) {
+      .size_panel {
+        display: none;
+      }
+    }
+
+    .lamp {
+      background: url(../assets/images/wallet.png) no-repeat center center;
+      width: 32px;
+      height: 32px;
+      margin-left: -8px;
+      margin-right: 8px;
+    }
+
+    .themes {
+      display: flex;
+      flex-direction: row;
+
+      .theme-switch {
+        font-size: 16px;
+        margin: 9px 18px 0 18px;
+      }
+
+      .light {
+        margin: 4px 0 0 0;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        font-size: 32px;
+        color: var(--toolbar-foreground-color);
+      }
+
+      .dark {
+        margin: 4px 0 0 0;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        font-size: 32px;
+        color: var(--toolbar-foreground-color);
+        transform: rotate(135deg);
+      }
+    }
+
+    .spacer {
+      flex: 1;
+    }
+  }
+
+  .connect-wrapper {
+    width: 100%;
+    height: calc(100dvh - 74px);
+    position: fixed;
+    top: 50px;
+    background-color: var(--app-tilt-color);
+    backdrop-filter: blur(3px);
+    color: var(--app-foreground-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+
+    .connect-message {
+      background-color: var(--app-dialog-color);
+      border: solid 2px var(--app-dialog-border-color);
+      border-radius: 9px;
+      max-width: 460px;
+      width: auto;
+      height: auto;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      padding: 32px 18px;
+      margin: 12px;
+      min-width: 26em;
+
+      .wifi-sign {
+        width: 68px;
+        height: 68px;
+        font-size: 52px;
+        color: var(--wifi-sign-color);
+        margin: 6px 10px 0 0;
+        transition: all 0.5s ease-in-out;
+        animation: breath infinite 2s;
+      }
+
+      h1 {
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .page-content {
+    display: flex;
+    padding: 0;
+    margin-top: 6px;
+    flex-direction: column;
+    align-items: center;
+    height: calc(100dvh - 81px);
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .footer {
+
+    display: flex;
+    width: 100%;
+    background-color: var(--toolbar-background-color) !important;
+    border-top: 1px solid var(--card-border-color);
+    font-size: 12px;
+    justify-content: center;
+    align-items: center;
+    height: 25px;
+    min-height: 25px;
+
+    .version {
+      color: var(--footer-version) !important;
+      cursor: pointer;
+    }
+
+    .stats {
+      color: var(--footer-version) !important;
+    }
+
+    .info {
+      color: var(--footer-info) !important;
+    }
+
+    .error {
+      color: var(--footer-error) !important;
+    }
+
+    .noconnect {
+      color: var(--footer-noconnect) !important;
+    }
+
+    .poweroff {
+      color: var(--footer-poveroff) !important;
+    }
+  }
+
+}

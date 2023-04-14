@@ -1,0 +1,73 @@
+<div class="tab-games">
+  <div class="top-container">
+    <fieldset class="app-fieldset games-fieldset">
+      <legend>{{ L.$('Игры') }}</legend>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Яркость') }}</mat-label>
+        <mat-slider [disableRipple]="true" color="primary"
+                    [disabled]="isDisabled()"
+                    [displayWith]="formatBrightness"
+                    min="0" step="1" max="255">
+          <input #br matSliderThumb [value]="bright" (valueChange)="brightChanged($event)">
+          <p>{{ formatBrightness(br.value) }}</p>
+        </mat-slider>
+      </div>
+
+      <div class="field-container slider" *ngIf="!managementService.state.isGameMaze()">
+        <mat-label>{{ L.$('Скорость') }}</mat-label>
+        <mat-slider [disableRipple]="true" color="primary"
+                    [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    min="0" step="1" max="255">
+          <input #sl matSliderThumb [value]="speed" (valueChange)="speedChanged($event)">
+          <p>{{ sl.value }}</p>
+        </mat-slider>
+      </div>
+
+      <div class="games">
+        <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameMaze()}" (click)="switchToMaze()">{{ L.$('Лабиринт') }}</div>
+        <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameSnake()}" (click)="switchToSnake()">{{ L.$('Змейка') }}</div>
+        <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameTetris()}" (click)="switchToTetris()">{{ L.$('Тетрис') }}</div>
+        <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameArkanoid()}" (click)="switchToArkanoid()">{{ L.$('Арканоид') }}</div>
+      </div>
+
+      <div *ngIf="!this.managementService.state.isGameRunning()" class="message">{{ L.$('Выберите игру для начала') }}</div>
+      <div *ngIf="this.managementService.state.isGameRunning()" class="message">&nbsp;</div>
+
+      <div class="game-buttons">
+        <div class="cell c1"></div>
+        <div class="cell c2">
+          <mat-icon [ngClass]="{'disabled': isDisabled()}" (mousedown)="btnPress(1)" (mouseup)="btnRelease()" (touchstart)="btnPress(1)" (touchend)="btnRelease()">forward</mat-icon>
+        </div>
+        <div class="cell c3"></div>
+        <div class="cell c4">
+          <mat-icon [ngClass]="{'disabled': isDisabled()}" (mousedown)="btnPress(4)" (mouseup)="btnRelease()" (touchstart)="btnPress(4)" (touchend)="btnRelease()">forward</mat-icon>
+        </div>
+        <div class="cell c5">
+          <mat-icon [ngClass]="{'disabled': isDisabled()}" (mousedown)="btnPress(5)" (mouseup)="btnRelease()" (touchstart)="btnPress(5)" (touchend)="btnRelease()">add_circle_outline</mat-icon>
+        </div>
+        <div class="cell c6">
+          <mat-icon [ngClass]="{'disabled': isDisabled()}" (mousedown)="btnPress(2)" (mouseup)="btnRelease()" (touchstart)="btnPress(2)" (touchend)="btnRelease()">forward</mat-icon>
+        </div>
+        <div class="cell c7"></div>
+        <div class="cell c8">
+          <mat-icon [ngClass]="{'disabled': isDisabled()}" (mousedown)="btnPress(3)" (mouseup)="btnRelease()" (touchstart)="btnPress(3)" (touchend)="btnRelease()">forward</mat-icon>
+        </div>
+        <div class="cell c9"></div>
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Скорость кнопок') }}</mat-label>
+        <mat-slider [disableRipple]="true" color="primary"
+                    [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    min="100" step="10" max="1000">
+          <input #bt matSliderThumb [value]="repeat" (valueChange)="repeatChanged($event)">
+          <p>{{ bt.value }}</p>
+        </mat-slider>
+      </div>
+
+    </fieldset>
+  </div>
+</div>

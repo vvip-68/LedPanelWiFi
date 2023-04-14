@@ -1,0 +1,78 @@
+@use '../../../app-theme';
+
+:host .tab-other {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100dvh - 228px);
+  width: auto;
+  position: relative;
+
+  .other-fieldset {
+    width: 100%;
+    max-width: 380px;
+    height: fit-content;
+    display: table;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0 12px 0;
+
+    --field-width: 340px;
+    --label-width: 200px;
+
+    .field-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+
+      &.nomargin {
+        margin: 0;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+        margin: 0 6px 0 0;
+
+        &.center {
+          justify-content: center;
+
+          .mdc-button {
+            margin: 0 3px 0 3px;
+          }
+        }
+
+        &.restart-button {
+          justify-content: space-between;
+
+          .label {
+            display: inline-block;
+          }
+        }
+      }
+
+
+      ::ng-deep mat-form-field {
+        width: var(--field-width);
+
+        .mdc-floating-label {
+          background-color: var(--app-background-color);
+          width: var(--label-width);
+        }
+
+        .mat-mdc-input-element {
+          padding-left: calc(var(--label-width) + 4px);
+        }
+
+      }
+    }
+  }
+}

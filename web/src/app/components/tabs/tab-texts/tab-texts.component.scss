@@ -1,0 +1,347 @@
+@use '../../../app-theme';
+
+:host .tab-texts {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100dvh - 176px);
+  width: auto;
+  position: relative;
+
+  .top-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .texts-fieldset {
+      width: 380px;
+      min-width: 380px;
+      max-width: 380px;
+      align-items: center;
+      margin: 12px 3px;
+      display: flex;
+      flex-direction: column;
+
+      --buttons-width: 340px;
+      --field-width: 340px;
+      --interval-field-width: 214px;
+      --slider-field-width: 340px;
+      --slider-label-width: 234px;
+      --daytime-width: 286px;
+      --label-width: 116px;
+
+      .letter {
+        display: flex !important;
+        letter-spacing: 5px;
+        margin: -2px 0 0 0 !important;
+        padding: 0 0 0 10px;
+
+        span {
+          display: inline-block;
+
+          &.r {
+            color: red !important;
+          }
+
+          &.g {
+            color: lime !important;
+          }
+
+          &.b {
+            color: #02c0ff !important;
+          }
+
+          &.m {
+            color: magenta !important;
+          }
+
+          &.y {
+            color: yellow !important;
+          }
+        }
+      }
+
+      .toggler-container {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        margin: 0 12px 4px 0;
+        padding: 0 0 4px 12px;
+
+        .toggler {
+          .switch {
+          }
+        }
+
+        .toggler-label {
+          font-size: 12px;
+          margin: 3px 13px;
+        }
+      }
+
+      .field-container {
+        margin: 8px 0 0 0;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        width: var(--field-width);
+        font-size: 12px;
+        white-space: nowrap;
+
+        &.interval {
+          width: var(--interval-field-width);
+        }
+
+        &.radio-buttons {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-items: flex-start;
+          margin: 16px 0 0 -10px;
+          height: 72px;
+
+          mat-label {
+            width: var(--radio-label-width) !important;
+          }
+
+          .select-color {
+            position: relative;
+            top: -95px;
+            right: -233px;
+
+            .sample-color {
+              position: relative;
+              top: 4px;
+              left: 0;
+              width: 100%;
+              height: 8px;
+              border: solid 1px gray;
+              border-radius: 4px;
+            }
+          }
+
+          .mat-mdc-radio-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            left: 106px;
+            top: -23px;
+
+            .mat-mdc-radio-button {
+              height: 24px;
+            }
+          }
+
+          ::ng-deep .mdc-radio + label {
+            margin-right: 13px;
+            padding-left: 0;
+          }
+        }
+
+        &.slider {
+          width: var(--slider-field-width);
+
+          mat-label {
+            width: var(--slider-label-width) !important;
+            margin: 0 0 0 -5px;
+          }
+
+          .slider-wrapper {
+            position: relative;
+            left: -30px;
+
+            .mdc-slider__input + p {
+              position: absolute;
+              right: -33px;
+              top: 16px;
+              font-size: 14px;
+            }
+
+            .mat-mdc-slider {
+              width: 180px;
+              margin: -16px -3px 0 0;
+
+              ::ng-deep .mat-mdc-slider-visual-thumb {
+                top: 0;
+              }
+            }
+          }
+        }
+
+        &.text {
+          --text-height: 6em;
+
+          .the-text {
+            &.mat-mdc-form-field {
+              height: var(--text-height) !important;
+              line-height: 1.25em;
+
+              ::ng-deep .mdc-text-field {
+                height: var(--text-height) !important;
+                max-height: var(--text-height);
+                min-height: var(--text-height);
+              }
+            }
+
+            .mat-mdc-input-element {
+              text-align: start;
+              height: var(--text-height);
+              line-height: 1.5em;
+              margin: 0;
+              overflow: hidden;
+              resize: none;
+              border: solid 1px var(--card-border-color);
+              padding: 8px;
+            }
+          }
+        }
+
+        .action-button {
+          width: var(--buttons-width);
+          display: flex;
+          justify-content: flex-end;
+
+          button {
+            margin: 0 0 0 6px;
+          }
+        }
+
+        ::ng-deep mat-form-field {
+          width: var(--field-width);
+
+          .mdc-floating-label {
+            background-color: var(--app-background-color);
+            width: var(--label-width);
+          }
+
+          .mat-mdc-input-element {
+            padding-left: calc(var(--label-width) + 4px);
+            text-align: end;
+            padding-right: 6px;
+          }
+        }
+      }
+
+      .line-container {
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        grid-template-columns: repeat(9, 1fr);
+        grid-gap: 6px;
+
+        .btn {
+          width: 32px;
+          height: 20px;
+          border: solid 1px gray;
+          border-radius: 3px;
+          cursor: pointer;
+
+          &[disabled] {
+            cursor: default;
+            color: var(--button-disabled-color);
+          }
+        }
+
+        .btn_0 {
+          background-color: var(--text-btn-bgr-0);
+          color: var(--text-btn-txt-0);
+        }
+
+        .btn_1 {
+          background-color: var(--text-btn-bgr-1);
+          color: var(--text-btn-txt-1);
+        }
+
+        .btn_2 {
+          background-color: var(--text-btn-bgr-2);
+          color: var(--text-btn-txt-2);
+        }
+
+        .btn_3 {
+          background-color: var(--text-btn-bgr-3);
+          color: var(--text-btn-txt-3);
+        }
+
+        .btn_4 {
+          background-color: var(--text-btn-bgr-4);
+          color: var(--text-btn-txt-4);
+        }
+
+        .btn_5 {
+          background-color: var(--text-btn-bgr-5);
+          color: var(--text-btn-txt-5);
+        }
+
+        .btn_6 {
+          background-color: var(--text-btn-bgr-6);
+          color: var(--text-btn-txt-6);
+        }
+      }
+
+      .macros-container {
+        display: grid;
+        grid-template-rows: repeat(3, 1fr);
+        grid-template-columns: repeat(6, 1fr);
+        grid-gap: 0 6px;
+
+        .btn {
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          align-items: center;
+          width: 56px;
+          height: 28px;
+          border: solid 1px var(--text-btn-brd);
+          border-radius: 3px;
+          cursor: pointer;
+          background-color: var(--text-btn-bgr);
+          color: var(--text-btn-text);
+
+          &[disabled] {
+            cursor: default;
+            color: var(--button-disabled-color);
+          }
+
+          .mat-icon {
+            margin: 4px 0 0 0;
+          }
+
+          span {
+            font-weight: bold;
+            display: block;
+            font-size: 15px;
+            margin: 0 0 0 -3px;
+          }
+        }
+
+        .mat-mdc-form-field {
+          width: 100%;
+          position: relative;
+          top: 3px;
+
+          .mat-mdc-input-element {
+            text-align: right;
+          }
+        }
+      }
+
+      .free_mem {
+        width: 100%;
+        font-size: 10px;
+        color: var(--field-input-disabled-color);
+        text-align: right;
+        padding: 4px 8px;
+      }
+
+      &.mac {
+        &.disabled {
+          filter: grayscale(1);
+          color: var(--button-disabled-color);
+        }
+
+        padding: 12px 12px 0 12px;
+      }
+    }
+  }
+}

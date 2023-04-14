@@ -1,0 +1,208 @@
+<div class="tab-alarm">
+  <div class="top-container">
+    <fieldset class="app-fieldset alarms-fieldset">
+      <legend>{{ L.$('Будильники') }}</legend>
+
+      <div class="field-container">
+        <mat-form-field floatLabel="always" class="select">
+          <mat-label>{{ L.$('Эффект рассвета') }}</mat-label>
+          <mat-select [(ngModel)]="alarm_effect" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()">
+            <mat-option *ngFor="let effect of managementService.effects;" [value]="effect.id">
+              {{effect.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field hintLabel="{{ L.$('Продолжительность рассвета') }} {{input.value}} {{ L.$('минут') }}" floatLabel="always">
+          <mat-label>{{ L.$('Время рассвета') }}</mat-label>
+          <input matInput #input autocomplete="new-password" type="number" [min]="1" [max]="30" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="dawnTimeFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('минут') }}</p>
+          <mat-error *ngIf="dawnTimeFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="dawnTimeFormControl.hasError('range') && !dawnTimeFormControl.hasError('required')">
+            {{ L.$('от 1 до 30 минут') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field hintLabel="{{ L.$('Продолжительность звучания будильника') }} {{input2.value}} {{ L.$('минут') }}" floatLabel="always">
+          <mat-label>{{ L.$('Время будильника') }}</mat-label>
+          <input matInput #input2 autocomplete="new-password" type="number" [min]="0" [max]="5" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="alarmTimeFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          <p matTextSuffix="">{{ L.$('минут') }}</p>
+          <mat-error *ngIf="alarmTimeFormControl.hasError('required')">
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+          <mat-error *ngIf="alarmTimeFormControl.hasError('range') && !alarmTimeFormControl.hasError('required')">
+            {{ L.$('от 1 до 5 минут') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div style="height: 12px"></div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day1_On" (toggleChange)="day1_On = !day1_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Понедельник') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker1" readonly [format]="24" [(ngModel)]="day1_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker1></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day2_On" (toggleChange)="day2_On = !day2_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Вторник') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker2" readonly [format]="24" [(ngModel)]="day2_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker2></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day3_On" (toggleChange)="day3_On = !day3_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Среда') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker3" readonly [format]="24" [(ngModel)]="day3_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker3></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day4_On" (toggleChange)="day4_On = !day4_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Четверг') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker4" readonly [format]="24" [(ngModel)]="day4_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker4></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day5_On" (toggleChange)="day5_On = !day5_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Пятница') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker5" readonly [format]="24" [(ngModel)]="day5_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker5></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day6_On" (toggleChange)="day6_On = !day6_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Суббота') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker6" readonly [format]="24" [(ngModel)]="day6_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker6></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="day7_On" (toggleChange)="day7_On = !day7_On" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+
+        <mat-form-field floatLabel="always" class="daytime">
+          <mat-label>{{ L.$('Воскресенье') }}</mat-label>
+          <input matInput [ngxMatTimepicker]="picker7" readonly [format]="24" [(ngModel)]="day7_time" [disableControl]="isDisabled()">
+          <ngx-mat-timepicker #picker7></ngx-mat-timepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container buttons">
+        <div class="action-button">
+          <button mat-raised-button color="primary" (click)="applyAlarmModes($event)" [disabled]="isDisabled() || !isValid()">{{L.$('Применить')}}</button>
+        </div>
+      </div>
+
+    </fieldset>
+
+    <fieldset *ngIf="managementService.state.supportMP3" class="app-fieldset alarms-fieldset">
+      <legend>{{ L.$('Настройки звука') }}</legend>
+
+      <div class="toggler-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="alarm_use_sound" (toggleChange)="alarm_use_sound = !alarm_use_sound" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label">
+          <p>{{L.$('Использовать звук')}}</p>
+        </div>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field floatLabel="always" class="select-sound">
+          <mat-label>{{ L.$('Звук рассвета') }}</mat-label>
+          <mat-select [(ngModel)]="dawn_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="downSoundChanged($event)">
+            <mat-option *ngFor="let sound of dawn_sounds;" [value]="sound.value">
+              {{sound.displayText}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button matSuffix (click)="toggleDawnSound()" [disabled]="isDisabled() || dawn_sound <= 2">
+          <mat-icon>{{isDawnPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
+        </button>
+      </div>
+
+      <div class="field-container">
+        <mat-form-field floatLabel="always" class="select-sound">
+          <mat-label>{{ L.$('Звук будильника') }}</mat-label>
+          <mat-select [(ngModel)]="alarm_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="alarmSoundChanged($event)">
+            <mat-option *ngFor="let sound of alarm_sounds;" [value]="sound.value">
+              {{sound.displayText}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button matSuffix (click)="toggleAlarmSound()" [disabled]="isDisabled() || alarm_sound <= 2">
+          <mat-icon>{{isAlarmPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
+        </button>
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Громкость') }}</mat-label>
+        <mat-slider [disableRipple]="true" color="primary"
+                    [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    min="1" step="0" max="30">
+          <input #sl matSliderThumb [value]="alarm_volume" (valueChange)="volumeChanged($event)">
+          <p>{{ sl.value === '0' ? 'Выкл.' : sl.value.toString() }}</p>
+        </mat-slider>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <div class="field-container buttons">
+        <div class="action-button">
+          <button mat-raised-button color="primary" (click)="applySounds($event)" [disabled]="isDisabled() || !isValid()">{{L.$('Применить')}}</button>
+        </div>
+      </div>
+
+    </fieldset>
+
+  </div>
+  <div style="min-height:54px">&nbsp;</div>
+</div>

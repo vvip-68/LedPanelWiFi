@@ -1,0 +1,85 @@
+@use './../../app-theme';
+
+.card {
+  border-radius: 4px;
+  border: 1px solid var(--card-border-color);
+  background-color: var(--card-background-color);
+  height: 54px;
+  width: 184px;
+  margin: 0 6px 12px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  line-height: 24px;
+  cursor: pointer;
+  pointer-events: auto;
+
+  &.choosing {
+    cursor: move;
+    width: 164px;
+    pointer-events: unset;
+  }
+
+  &.disabled {
+    cursor: default !important;
+    pointer-events: none;
+  }
+
+  &.active:not(.disabled) {
+    color: var(--card-active-color);
+  }
+
+  &.active:not(.disabled, .choosing),
+  &:hover:not(.choosing) {
+    filter: drop-shadow(0px 0px 9px var(--card-box-shadow));
+  }
+
+  &:hover:not(.choosing) {
+    transform: translateY(-3px);
+  }
+
+  .card-content {
+    display: flex;
+    width: 100%;
+    position: relative;
+    flex-direction: row;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+
+    .card-name {
+      width: 100%;
+      height: 100%;
+      text-align: start;
+      margin: 4px 38px 4px 12px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      line-height: 1em;
+    }
+
+    .settings {
+      position: absolute;
+      right: 11px;
+      top: calc(50% - 12px);
+      cursor: pointer;
+      color: var(--toolbar-foreground-color);
+      width: 24px;
+      height: 24px;
+      font-size: 24px;
+    }
+  }
+
+}
+
+@media screen and (max-width: 460px) {
+  .card {
+    width: 160px;
+
+    .card-name {
+      font-size: 13px !important;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+<div class="tab-synch">
+  <fieldset class="app-fieldset synch-fieldset">
+    <legend>{{ L.$('Синхронизация устройств') }}</legend>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Режим работы') }}</mat-label>
+        <mat-select [(ngModel)]="e131_mode" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled()">
+          <mat-option *ngFor="let mode of e131_modes" [value]="mode.value">
+            {{mode.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Тип синхронизации') }}</mat-label>
+        <mat-select [(ngModel)]="e131_type" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled() || e131_mode === 0">
+          <mat-option *ngFor="let type of e131_types" [value]="type.value">
+            {{type.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Группа синхронизации') }}</mat-label>
+        <mat-select [(ngModel)]="e131_group" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled() || e131_mode === 0">
+          <mat-option *ngFor="let group of e131_groups" [value]="group.value">
+            {{group.displayText}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applySyncSettings($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+
+  </fieldset>
+
+</div>

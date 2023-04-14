@@ -1,0 +1,55 @@
+<div class="tab-setup">
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center">
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Матрица ')}}">settings_overscan</mat-icon>
+        <span>{{ L.$('Матрица ') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-matrix></app-tab-matrix>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab *ngIf="supportE131">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Группы ')}}">cast_connected</mat-icon>
+        <span>{{ L.$('Группы ') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-synch></app-tab-synch>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Сеть ')}}">wifi</mat-icon>
+        <span>{{ L.$('Сеть ') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-network></app-tab-network>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab *ngIf="supportWeather">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Погода ')}}">filter_drama</mat-icon>
+        <span>{{ L.$('Погода ') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-weather></app-tab-weather>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Прочее ')}}">file_download_done</mat-icon>
+        <span>{{ L.$('Прочее ') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-other></app-tab-other>
+      </ng-template>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

@@ -1,0 +1,26 @@
+<div class="tab-setup">
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center">
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon show-label" matTooltip="{{L.$('Бегущая строка')}}">text_fields</mat-icon>
+        <span>{{ L.$('Бегущая строка') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-texts></app-tab-texts>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon show-label" matTooltip="{{L.$('Справка')}}">help_outline</mat-icon>
+        <span>{{ L.$('Справка') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-texts-help></app-tab-texts-help>
+      </ng-template>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>

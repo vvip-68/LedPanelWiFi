@@ -1,0 +1,223 @@
+<div class="tab-texts">
+  <div class="top-container">
+    <fieldset class="app-fieldset texts-fieldset">
+      <legend>{{ L.$('Бегущая строка') }}</legend>
+
+      <div class="toggler-container">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="text_use_overlay" (toggleChange)="toggleTextOverEffects()" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label">
+          <p>{{L.$('Текст поверх эффектов')}}</p>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:row;width: 100%">
+        <div class="field-container interval">
+          <mat-form-field hintLabel="{{ L.$('показывать очередную строку через') }} {{input.value}} {{ L.$('секунд') }}" floatLabel="always">
+            <mat-label>{{ L.$('Интервал') }}</mat-label>
+            <input matInput #input autocomplete="new-password" type="number" [min]="1" [max]="64000" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                   [formControl]="textIntervalFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            <p matTextSuffix="">{{ L.$('секунд') }}</p>
+            <mat-error *ngIf="textIntervalFormControl.hasError('required')">
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+            <mat-error *ngIf="textIntervalFormControl.hasError('range') && !textIntervalFormControl.hasError('required')">
+              {{ L.$('не более 64000 секунд') }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div style="flex:1"></div>
+
+        <div class="action-container" style="margin: 0 6px 0 0;">
+          <button mat-raised-button color="primary" (click)="applyInterval($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+        </div>
+      </div>
+
+      <div class="field-container radio-buttons">
+        <mat-label>{{ L.$('Цвет текста') }}</mat-label>
+        <mat-radio-group [(ngModel)]="text_color_mode" [disableControl]="isDisabled()" color="primary" (change)="setColorMode()">
+          <mat-radio-button [value]="0">{{ L.$('Одноцветный') }}</mat-radio-button>
+          <mat-radio-button [value]="1">{{ L.$('Радуга') }}</mat-radio-button>
+          <mat-radio-button [value]="2">{{ L.$('Каждая буква свой цвет') }}</mat-radio-button>
+        </mat-radio-group>
+
+        <div class="select-color">
+          <button mat-raised-button color="primary" (click)="showColorSelector()" [disabled]="isDisabled()">{{L.$('Выбрать цвет')}}</button>
+          <div *ngIf="sample_color_visible" class="sample-color" [style.background-color]="getTextSampleColor()"></div>
+        </div>
+
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Скорость прокрутки') }}</mat-label>
+        <div class="slider-wrapper">
+          <mat-slider [disableRipple]="true" color="primary"
+                      [disabled]="isDisabled()"
+                      [displayWith]="formatLabel"
+                      min="0" step="1" max="255">
+            <input #sl matSliderThumb [value]="text_scroll_speed" (valueChange)="speedChanged($event)">
+            <p>{{ sl.value }}</p>
+          </mat-slider>
+        </div>
+      </div>
+
+    </fieldset>
+
+    <fieldset class="app-fieldset texts-fieldset">
+      <legend>{{ L.$('Текст бегущей строки') }}</legend>
+      <div class="line-container">
+        <button *ngFor="let btn of buttons; let i = index" [matTooltip]="getTextButtonTooltip(i)" [disabled]="isDisabled()" (click)="textAction(i)" [class]="getTextButtonClass(i)">{{btn.label}}</button>
+      </div>
+
+      <div class="field-container text">
+        <mat-form-field class="the-text">
+          <textarea #text matInput autocomplete="off" [ngModel]="text_edit" [disableControl]="isDisabled2()"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="field-container buttons">
+        <div class="action-button">
+          <button mat-raised-button color="primary" (click)="clearText()" [disabled]="isDisabled2() || text.value.length == 0"
+                  [matTooltip]="L.$('Очистить текст')">
+            {{L.$('Очистить')}}
+          </button>
+          <div [matTooltip]="this.managementService.state.isNightClockRunnung() ? L.$('В режиме ночных часов просмотр недоступен') : L.$('Просмотр строки без сохранения')">
+            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabled2() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
+              {{L.$('Просмотр')}}
+            </button>
+          </div>
+          <button mat-raised-button color="primary" (click)="saveText()" [disabled]="isDisabled2() || this.text_index >= buttons.length"
+                  [matTooltip]="L.$('Сохранить текст')">
+            {{L.$('Сохранить')}}
+          </button>
+        </div>
+      </div>
+
+    </fieldset>
+
+    <fieldset class="app-fieldset texts-fieldset mac" [ngClass]="{'disabled': isDisabled2()}">
+      <legend>{{ L.$('Макросы бегущей строки') }}</legend>
+      <div class="macros-container">
+        <button [matTooltip]="L.$('Цвет текста')" [disabled]="isDisabled2()" (click)="macrosTextColor()" class="btn">
+          <mat-icon matSuffix>palette</mat-icon>
+          <span>A</span>
+        </button>
+        <button [matTooltip]="L.$('Цвет фона')" [disabled]="isDisabled2()" (click)="macrosBackColor()" class="btn">
+          <mat-icon matSuffix>palette</mat-icon>
+          <span>B</span>
+        </button>
+        <button [matTooltip]="L.$('Эффект')" [matMenuTriggerFor]="menuEffect" [disabled]="isDisabled2()" class="btn">
+          <mat-icon matSuffix>blur_on</mat-icon>
+        </button>
+        <button [matTooltip]="L.$('Погода')" [disabled]="isDisabled2()" (click)="macrosWeather()" class="btn">
+          <mat-icon matSuffix>wb_sunny</mat-icon>
+          <mat-icon matSuffix>cloud</mat-icon>
+        </button>
+        <button [matTooltip]="L.$('Показать текущую дату')" [disabled]="isDisabled2()" (click)="macrosDate()" class="btn">
+          <mat-icon matSuffix>date_range</mat-icon>
+        </button>
+        <button [matTooltip]="L.$('Дней до события')" [disabled]="isDisabled2()" (click)="pickerR.open()" class="btn">
+          <mat-icon matSuffix>event</mat-icon>
+          <span>R</span>
+          <input #dateR style="display:none" matInput [matDatepicker]="pickerR">
+          <mat-datepicker touchUi #pickerR (opened)="clearDateApplied()" (closed)="setDateR()">
+            <mat-datepicker-actions>
+              <button mat-button matDatepickerCancel>{{L.$('Отмена')}}</button>
+              <button mat-raised-button color="primary" matDatepickerApply (click)="setDateApply()">{{L.$('Применить')}}</button>
+            </mat-datepicker-actions>
+          </mat-datepicker>
+        </button>
+        <button [matTooltip]="L.$('Повтор - количество')" [disabled]="isDisabled()" (click)="macrosRepeatNum(inputNum.value)" class="btn">
+          <mat-icon matSuffix>refresh</mat-icon>
+          <span class="small">{{L.$('раз')}}</span>
+        </button>
+        <div>
+          <mat-form-field>
+            <input #inputNum matInput class="shortInput" autocomplete="new-password" type="number" [min]="1" [max]="99" (keydown)="commonService.checkLength($event, 2)" (keyup)="commonService.checkLength($event, 2)"
+                   [ngModel]="repeatNum"
+                   [disableControl]="isDisabled2()">
+          </mat-form-field>
+        </div>
+        <button [matTooltip]="L.$('Повтор - время')" [disabled]="isDisabled2()" (click)="macrosRepeatTime(inputTime.value)" class="btn">
+          <mat-icon matSuffix>refresh</mat-icon>
+          <span class="small">{{L.$('сек')}}</span>
+        </button>
+        <div>
+          <mat-form-field>
+            <input #inputTime matInput class="shortInput" autocomplete="new-password" type="number" [min]="5" [max]="600" (keydown)="commonService.checkLength($event, 3)" (keyup)="commonService.checkLength($event, 3)"
+                   [ngModel]="repeatTime"
+                   [disableControl]="isDisabled2()">
+          </mat-form-field>
+        </div>
+        <button [matTooltip]="L.$('Ссылка на другую строку')" [matMenuTriggerFor]="menuLineNumber" [disabled]="isDisabled2()" class="btn">
+          <span>№</span>
+        </button>
+        <button [matTooltip]="L.$('Часов до события')" [disabled]="isDisabled2()" (click)="pickerP.open()" class="btn">
+          <mat-icon matSuffix>event</mat-icon>
+          <span>P</span>
+          <input #dateP style="display:none" matInput [matDatepicker]="pickerP">
+          <mat-datepicker touchUi #pickerP (opened)="clearDateApplied()" (closed)="setDateP()">
+            <mat-datepicker-actions>
+              <button mat-button matDatepickerCancel>{{L.$('Отмена')}}</button>
+              <button mat-raised-button color="primary" matDatepickerApply (click)="setDateApply()">{{L.$('Применить')}}</button>
+            </mat-datepicker-actions>
+          </mat-datepicker>
+        </button>
+        <button [matTooltip]="L.$('Формат даты')" [matMenuTriggerFor]="menuDateFormat" [disabled]="isDisabled2()" class="btn">
+          <span>dd.MM</span>
+        </button>
+        <button *ngIf="managementService.state.supportMP3" [matTooltip]="L.$('Звук в сообщении')" [matMenuTriggerFor]="menuSounds" [disabled]="isDisabled2()" class="btn">
+          <mat-icon matSuffix>audiotrack</mat-icon>
+        </button>
+        <button *ngIf="!managementService.state.supportMP3" [matTooltip]="L.$('Звук в сообщении')" [disabled]="true" class="btn">
+          <mat-icon matSuffix>audiotrack</mat-icon>
+        </button>
+        <button [matTooltip]="L.$('Радуга')" [disabled]="isDisabled2()" (click)="putMacrosInText('{C#000001}')" class="btn">
+          <span class="letter"><span class="r">a</span><span class="g">b</span><span class="y">c</span></span>
+        </button>
+        <button [matTooltip]="L.$('Цветные буквы')" [disabled]="isDisabled2()" (click)="putMacrosInText('{C#000002}')" class="btn">
+          <span class="letter"><span class="b">a</span><span class="y">b</span><span class="m">c</span></span>
+        </button>
+        <button [matTooltip]="L.$('Отключить строку')" [disabled]="isDisabled2()" (click)="macrosDisableString()" class="btn">
+          <span>{{ '{'}}-}</span>
+        </button>
+        <button [matTooltip]="L.$('Период показа строки')" [disabled]="isDisabled2()" (click)="pickerS.open()" class="btn">
+          <mat-icon matSuffix>event</mat-icon>
+          <span>S</span>
+          <mat-date-range-input [rangePicker]="pickerS" style="display:none">
+            <input #dateS1 matStartDate>
+            <input #dateS2 matEndDate>
+          </mat-date-range-input>
+          <mat-date-range-picker touchUi #pickerS (opened)="clearDateApplied()" (closed)="setDateS()">
+            <mat-date-range-picker-actions>
+              <button mat-button matDateRangePickerCancel>{{L.$('Отмена')}}</button>
+              <button mat-raised-button color="primary" matDateRangePickerApply (click)="setDateApply()">{{L.$('Применить')}}</button>
+            </mat-date-range-picker-actions>
+          </mat-date-range-picker>
+        </button>
+      </div>
+    </fieldset>
+
+    <mat-menu #menuDateFormat="matMenu">
+      <button *ngFor="let item of date_fmt" (click)="putMacrosInText(item.value)" mat-menu-item>{{item.displayText}}</button>
+    </mat-menu>
+
+    <mat-menu #menuEffect="matMenu">
+      <button *ngFor="let item of managementService.effects" (click)="putEffect(item.id)" mat-menu-item>{{item.name}}</button>
+    </mat-menu>
+
+    <mat-menu #menuSounds="matMenu">
+      <button *ngFor="let item of managementService.notify_sounds" (click)="putNotifySound(item.value)" mat-menu-item>{{item.displayText}}</button>
+    </mat-menu>
+
+    <mat-menu #menuLineNumber="matMenu">
+      <button *ngFor="let item of filterButtons()" (click)="linkToLine(item.label)" mat-menu-item>{{getLineText(item.index)}}</button>
+    </mat-menu>
+
+    <div style="height: 54px">&nbsp;</div>
+  </div>
+</div>

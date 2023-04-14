@@ -1,0 +1,97 @@
+@use './../../app-theme';
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  border: 1px solid var(--card-border-color);
+  background-color: var(--card-background-color);
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+
+  &.active,
+  &:hover {
+    filter: drop-shadow(0px 0px 6px var(--card-box-shadow));
+  }
+
+  &.card_ps {
+    height: 50px;
+    width: 50px;
+  }
+
+  &.card_br {
+    height: 50px;
+    width: 50px;
+  }
+
+  @media screen and (max-width: 460px) {
+    &.card_ps {
+      height: 44px;
+      width: 44px;
+    }
+
+    &.card_br {
+      height: 44px;
+      width: 44px;
+    }
+  }
+
+  .power {
+    width: 30px;
+    height: 30px;
+    font-size: 30px;
+
+    &.state_ON {
+      color: var(--power-ON);
+    }
+  }
+
+  .bright {
+    position: relative;
+    top: -2px;
+
+    &.bright {
+      width: 30px;
+      height: 30px;
+      font-size: 30px;
+    }
+
+    &.bright_5 {
+      color: var(--bright_5);
+    }
+
+    &.bright_25 {
+      color: var(--bright_25);
+    }
+
+    &.bright_50 {
+      color: var(--bright_50);
+    }
+
+    &.bright_75 {
+      color: var(--bright_75);
+    }
+
+    &.bright_100 {
+      color: var(--bright_100);
+    }
+  }
+
+  .indicator {
+    position: absolute;
+    bottom: 3px;
+    width: 90%;
+    height: 4px;
+    border-radius: 2px;
+
+    &.state_ON {
+      background-color: var(--indicator-ON);
+    }
+
+    &.state_OFF {
+      background-color: var(--indicator-OFF);
+    }
+  }
+}

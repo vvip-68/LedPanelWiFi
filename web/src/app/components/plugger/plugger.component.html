@@ -1,0 +1,44 @@
+<div class="plugger" [ngClass]="{'disabled': disabled}">
+  <div class="cell cell_1">
+    <mat-icon class="radio-button" [ngClass]="{'checked': angle === 1, 'disabled': disabled}" (click)="setAngle(1)">{{angle === 1 ? 'check_circle_outline' : 'radio_button_unchecked'}}</mat-icon>
+  </div>
+  <div class="cell cell_2">
+    <mat-icon class="arrow right" [ngClass]="{'checked': angle === 1 && direction === 0, 'disabled': disabled}" (click)="setDirectionAndAngle(0, 1)">forward</mat-icon>
+  </div>
+  <div class="cell cell_3">
+    <mat-icon class="arrow left" [ngClass]="{'checked': angle === 2 && direction === 2, 'disabled': disabled}" (click)="setDirectionAndAngle(2, 2)">forward</mat-icon>
+  </div>
+  <div class="cell cell_4">
+    <mat-icon class="radio-button" [ngClass]="{'checked': angle === 2, 'disabled': disabled}" (click)="setAngle(2)">{{angle == 2 ? 'check_circle_outline' : 'radio_button_unchecked'}}</mat-icon>
+  </div>
+  <div class="cell cell_5">
+    <mat-icon class="arrow down" [ngClass]="{'checked': angle === 1 && direction === 3, 'disabled': disabled}" (click)="setDirectionAndAngle(3, 1)">forward</mat-icon>
+  </div>
+  <div class="cell cell_6" [ngClass]="getMatrixTypeClass()" [matTooltip]="L.$('Нажмите для переключения типа матрицы')" (click)="setMatrixType()">
+    <div class="zigzag-container" style="display: flex; flex-direction: column">
+      <mat-icon class="zigzag" [ngClass]="{'even': type !== 1, 'odd': type ===1, 'disabled': disabled}" style="top: -8px">arrow_right_alt</mat-icon>
+      <mat-icon class="zigzag odd" [ngClass]="{'disabled': disabled}" style="top: 16px">arrow_right_alt</mat-icon>
+    </div>
+  </div>
+  <div class="cell cell_7">
+    <mat-icon class="arrow down" [ngClass]="{'checked': angle === 2 && direction === 3, 'disabled': disabled}" (click)="setDirectionAndAngle(3, 2)">forward</mat-icon>
+  </div>
+  <div class="cell cell_8">
+    <mat-icon class="arrow up" [ngClass]="{'checked': angle === 0 && direction === 1, 'disabled': disabled}" (click)="setDirectionAndAngle(1, 0)">forward</mat-icon>
+  </div>
+  <div class="cell cell_9">
+    <mat-icon class="arrow up" [ngClass]="{'checked': angle === 3 && direction === 1, 'disabled': disabled}" (click)="setDirectionAndAngle(1, 3)">forward</mat-icon>
+  </div>
+  <div class="cell cell_10">
+    <mat-icon class="radio-button" [ngClass]="{'checked': angle === 0, 'disabled': disabled}" (click)="setAngle(0)">{{angle == 0 ? 'check_circle_outline' : 'radio_button_unchecked'}}</mat-icon>
+  </div>
+  <div class="cell cell_11">
+    <mat-icon class="arrow right" [ngClass]="{'checked': angle === 0 && direction === 0, 'disabled': disabled}" (click)="setDirectionAndAngle(0, 0)">forward</mat-icon>
+  </div>
+  <div class="cell cell_12">
+    <mat-icon class="arrow left" [ngClass]="{'checked': angle === 3 && direction === 2, 'disabled': disabled}" (click)="setDirectionAndAngle(2, 3)">forward</mat-icon>
+  </div>
+  <div class="cell cell_13">
+    <mat-icon class="radio-button" [ngClass]="{'checked': angle === 3, 'disabled': disabled}" (click)="setAngle(3)">{{angle == 3 ? 'check_circle_outline' : 'radio_button_unchecked'}}</mat-icon>
+  </div>
+</div>

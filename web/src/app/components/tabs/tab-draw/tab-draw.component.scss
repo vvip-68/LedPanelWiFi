@@ -1,0 +1,296 @@
+@use '../../../app-theme';
+
+:host .tab-draw {
+  align-items: flex-start;
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  flex-wrap: wrap;
+  padding: 0 6px;
+
+  .draw-fieldset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1em 6px 9px 6px;
+    margin: 12px 0 0 0;
+    overflow: visible;
+    max-width: 960px;
+
+    .canvas-container {
+      max-width: 960px;
+      .canvas {
+        max-width: 960px;
+        cursor: crosshair;
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 870px;
+    flex: 1;
+
+    @media screen and (max-width: 1420px) {
+      flex: unset;
+    }
+
+    @media screen and (max-width: 420px) {
+      justify-content: center;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: 6px;
+      margin: 19px 0 0 0;
+
+      .btn {
+        width: 28px;
+        height: 28px;
+        border: solid 1px #aaaaaa;
+        border-radius: 4px;
+        margin: 0 6px;
+        cursor: pointer;
+        background-color: var(--app-background-color);
+        transition: background-color 0.15s ease-in-out;
+
+        &.active {
+          border: solid 2px var(--card-active-color);
+          mat-icon {
+            margin: 3px 0 0 2px;
+          }
+        }
+
+        &.clicked {
+          background-color: chartreuse;
+        }
+
+        mat-icon {
+          margin: 4px 0 0 3px;
+        }
+      }
+    }
+
+    .ctrl {
+      display: flex;
+      flex-direction: column;
+      width: 150px;
+
+      .title {
+        width: 100%;
+        text-align: center;
+        margin: -2px 0 3px 0;
+      }
+
+      .reflectors {
+        display: flex;
+        flex-direction: row;
+        gap: 4px;
+        justify-content: space-around;
+        align-items: center;
+
+        span {
+          text-align: center;
+          font-size: 10px;
+          white-space: nowrap;
+          width: 100%;
+          display: inline-block;
+        }
+
+        .reflector {
+          width: 28px;
+          height: 28px;
+          border: solid 1px #aaaaaa;
+          border-radius: 4px;
+          cursor: pointer;
+
+          mat-icon {
+            height: 28px;
+            width: 28px;
+
+            &.horiz {
+              transform: rotate(90deg);
+              margin: 3px 0 0 -5px;
+            }
+            &.vert {
+              margin: 3px 0 0 2px;
+            }
+            &.diag {
+              transform: rotate(45deg);
+              margin: 5px 0 0 -1px;
+            }
+          }
+
+          &.active {
+            border: solid 2px var(--card-active-color);
+            mat-icon {
+              &.horiz {
+                margin: 2px 0 0 -6px;
+              }
+
+              &.vert {
+                margin: 2px 0 0 1px;
+              }
+
+              &.diag {
+                margin: 4px 0 0 -2px;
+              }
+            }
+          }
+
+        }
+      }
+
+      color-circle {
+        margin: 18px 0 12px 12px;
+
+        ::ng-deep .circle-picker {
+          .swatch {
+            border: solid 1px #aaaaaa;
+          }
+        }
+      }
+    }
+
+    color-photoshop {
+      margin: 8px 0 12px 0;
+    }
+
+
+    ::ng-deep .photoshop-picker {
+      width: 220px;
+      height: 220px;
+      padding-bottom: 12px;
+      overflow: hidden;
+      margin: 12px;
+
+      .photoshop-body {
+        padding: 6px;
+
+        .photoshop-saturation,
+        .photoshop-hue {
+          height: 195px;
+        }
+      }
+
+      .photoshop-controls {
+        display: none;
+      }
+    }
+
+    .storage-fieldset {
+      flex: 1;
+      margin: 8px 12px 24px 12px;
+      max-width: 340px;
+      min-width: 340px;
+      padding: 0.35em 6px 9px 6px;
+
+      .storage-container {
+        width: 100%;
+
+        .field-container {
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+
+          mat-label {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: -1px 0 0 4px;
+            width: 120px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+
+          mat-radio-group {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+
+            mat-radio-button {
+              width: 65px;
+            }
+          }
+
+          &.radio-buttons {
+            margin: 0 0 12px 0;
+          }
+
+          --field-width: 240px;
+          --label-width: 120px;
+
+          ::ng-deep mat-form-field {
+            width: var(--field-width);
+
+            .mdc-floating-label {
+              background-color: var(--app-background-color);
+              width: var(--label-width);
+              font-size: 14px;
+            }
+
+            .mat-mdc-input-element {
+              padding-left: calc(var(--label-width) + 4px);
+              text-align: start;
+              padding-right: 6px;
+              font-size: 14px;
+            }
+
+            .mat-mdc-form-field-hint {
+              margin: 0 0 0 4px;
+            }
+
+            .mat-mdc-select {
+              top: -29px;
+              position: relative;
+              padding-left: calc(var(--label-width) + 4px);
+
+              .mat-mdc-select-value {
+                font-size: 14px;
+                margin: -5px 0 0 0;
+              }
+
+              .mat-mdc-select-arrow-wrapper {
+                position: relative;
+                top: 6px;
+              }
+            }
+          }
+
+          .storage-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            flex: 1;
+
+            .act_btn {
+              width: 36px;
+              height: 24px;
+              margin: 0 0 0 6px;
+              min-width: 36px;
+
+              &.save {
+                width: 78px;
+              }
+
+              .mat-icon {
+                font-size: 19px;
+                margin: 0 0 0 0;
+                height: 20px;
+                min-width: 24px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+}

@@ -1,0 +1,98 @@
+<div class="tab-draw">
+  <fieldset class="app-fieldset draw-fieldset">
+    <legend>{{ L.$('Рисование') }}</legend>
+    <div #canvas_container class="canvas-container">
+      <canvas #canvas class="canvas" (click)="canvasClick($event)">
+
+      </canvas>
+    </div>
+  </fieldset>
+
+  <div class="actions">
+    <color-photoshop [header]="L.$('Выбор цвета кисти')" [(color)]="brushColor"></color-photoshop>
+    <div class="buttons">
+      <div class="btn" (mousedown)="click($event)"><mat-icon [matTooltip]="L.$('Загрузить из матрицы')" matTooltipPosition="after" (click)="loadFromMatrix()">file_download</mat-icon></div>
+      <div class="btn" [ngClass]="{'active': active_tool === 0}" (click)="active_tool = 0"><mat-icon [matTooltip]="L.$('Считать цвет')" matTooltipPosition="after">colorize</mat-icon></div>
+      <div class="btn" [ngClass]="{'active': active_tool === 1}" (click)="active_tool = 1"><mat-icon [matTooltip]="L.$('Рисовать точку')" matTooltipPosition="after">brush</mat-icon></div>
+      <div class="btn" [ngClass]="{'active': active_tool === 2}" (click)="active_tool = 2"><mat-icon [matTooltip]="L.$('Стереть точку')" matTooltipPosition="after">edit_off</mat-icon></div>
+      <div class="btn" (mousedown)="click($event)"><mat-icon [matTooltip]="L.$('Залить цветом')" matTooltipPosition="after" (click)="fillMatrix()">format_color_fill</mat-icon></div>
+      <div class="btn" (mousedown)="click($event)"><mat-icon [matTooltip]="L.$('Очистить матрицу')" matTooltipPosition="after" (click)="clearMatrix()">apps</mat-icon></div>
+      <div class="btn" (mousedown)="click($event)"><mat-icon [matTooltip]="L.$('Отправить в матрицу')" matTooltipPosition="after" (click)="sendToMatrix()">file_upload</mat-icon></div>
+    </div>
+
+    <div class="ctrl">
+      <color-circle [(color)]="brushColor" [width]="150" [circleSpacing]="5" [colors]="swatch"></color-circle>
+      <span class="title">{{L.$('Отражение')}}</span>
+      <div class="reflectors">
+        <div>
+          <span>{{L.$('гориз.')}}</span>
+          <div class="reflector" [ngClass]="{'active': reflect_horiz}" (click)="reflect_horiz = !reflect_horiz">
+            <mat-icon class="horiz" [matTooltip]="L.$('По горизонтали')" matTooltipPosition="below">height</mat-icon>
+          </div>
+        </div>
+        <div>
+          <span>{{L.$('верт.')}}</span>
+          <div class="reflector" [ngClass]="{'active': reflect_vert}" (click)="reflect_vert = !reflect_vert">
+            <mat-icon class="vert" [matTooltip]="L.$('По вертикали')" matTooltipPosition="below">height</mat-icon>
+          </div>
+        </div>
+        <div>
+          <span>{{L.$('диаг.')}}</span>
+          <div class="reflector" [ngClass]="{'active': reflect_diag}" (click)="reflect_diag = !reflect_diag">
+            <mat-icon class="diag" [matTooltip]="L.$('По диагонали')" matTooltipPosition="below">height</mat-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <fieldset *ngIf="fs_allow || sd_allow" class="app-fieldset draw-fieldset storage-fieldset">
+      <legend>{{ L.$('Хранение') }}</legend>
+      <div class="storage-container">
+
+        <div *ngIf="fs_allow && sd_allow" class="field-container radio-buttons">
+          <mat-label>{{ L.$('Место хранения:') }}</mat-label>
+          <mat-radio-group [(ngModel)]="storage" [disableControl]="isDisabled()" (change)="changeStorage()" color="primary">
+            <mat-radio-button labelPosition="before" [value]="0" class="rb"> {{ L.$('FS') }}</mat-radio-button>
+            <mat-radio-button labelPosition="before" [value]="1" class="rb"> {{ L.$('SD') }}</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <div class="field-container">
+          <mat-form-field floatLabel="always" class="select">
+            <mat-label>{{ L.$('Картинка') }}</mat-label>
+            <mat-select [(ngModel)]="picture_file" panelClass="app-select-panel shift-120px" [disableOptionCentering]="true" [disableControl]="isDisabled()">
+              <mat-option class="font-14px" *ngFor="let picture of managementService.picture_list;" [value]="picture.value">
+                {{picture.displayText}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="storage-buttons">
+            <button class="act_btn" mat-raised-button color="primary" (click)="loadPicture()" [disabled]="isDisabled() || picture_file < 0">
+              <mat-icon>folder</mat-icon>
+            </button>
+            <button class="act_btn" mat-raised-button color="primary" (click)="deletePicture()" [disabled]="isDisabled() || picture_file < 0">
+              <mat-icon>delete_forever</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-container">
+          <mat-form-field floatLabel="always" hintLabel="{{ L.$('Не более 16 символов') }}">
+            <mat-label>{{ L.$('Сохранить') }}</mat-label>
+            <input #fileName matInput autocomplete="new-password" type="text" [(ngModel)]="file_name" maxlength="16" [disableControl]="isDisabled()">
+          </mat-form-field>
+          <div class="storage-buttons">
+            <button  class="act_btn save" mat-raised-button color="primary" (click)="savePicture(fileName.value)" [disabled]="isDisabled() || !isValidFileName(fileName.value)">
+              <mat-icon>save</mat-icon>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </fieldset>
+
+  </div>
+
+
+</div>
+<div style="height: 54px">&nbsp;</div>

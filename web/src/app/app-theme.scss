@@ -1,0 +1,187 @@
+@use '@angular/material' as mat;
+@use 'sass:map';
+
+// Styles for the docs app that are based on the current theme.
+@mixin theme($theme, $isDark: false) {
+  $primary: map.get($theme, primary);
+  $accent: map.get($theme, accent);
+  $warn: map.get($theme, warn);
+  $background: map.get($theme, background);
+  $foreground: map.get($theme, foreground);
+
+  $background-color: mat.get-color-from-palette($background, background);
+  $foreground-color: mat.get-color-from-palette($foreground, text);
+  @if $isDark {
+    --app-background-color: #{darken($background-color, 10%)};
+    --app-foreground-color: #{darken($foreground-color, 10%)};
+  } @else {
+    --app-background-color: #{$background-color};
+    --app-foreground-color: #{$foreground-color};
+  }
+
+  $toolbar-background-color: mat.get-color-from-palette($primary, 800);
+  $toolbar-foreground-color: mat.get-color-from-palette($primary, '800-contrast');
+  @if $isDark {
+    --toolbar-background-color: #393939;
+  } @else {
+    --toolbar-background-color: #{$toolbar-background-color};
+  }
+  --toolbar-foreground-color: #{darken($toolbar-foreground-color, 15%)};
+
+  --mdc-plain-tooltip-supporting-text-size: 13px;
+
+  $card-icon-fill-color: #888;
+
+  :root .mat-mdc-slider.mat-primary {
+    --mdc-slider-handle-color: #42a5f5;
+    --mdc-slider-focus-handle-color: #42a5f5;
+    --mdc-slider-hover-handle-color: #42a5f5;
+    --mdc-slider-active-track-color: #007af1;
+    --mdc-slider-inactive-track-color: #007af1;
+    --mdc-slider-with-tick-marks-active-container-color: #fff;
+    --mdc-slider-with-tick-marks-inactive-container-color: #42a5f5;
+    --mat-mdc-slider-ripple-color: #42a5f5;
+    --mat-mdc-slider-hover-ripple-color: rgba(25, 118, 210, 0);
+    --mat-mdc-slider-focus-ripple-color: rgba(25, 118, 210, 0);
+  }
+
+  @if $isDark {
+    --card-border-color: #858585;
+    --card-background-color: #393939;
+    --card-active-color: #03afef;
+    --card-box-shadow: #aaa;
+    --card-icon-fill-color: #{$card-icon-fill-color};
+    --card-icon-fill-highlight-color: #{lighten($card-icon-fill-color, 20%)}; // rgb(105, 103, 103);
+    --card-icon-normal-color: #{darken($toolbar-foreground-color, 15%)};
+    --card-icon-active-color: #ffa4a4;
+    --color-picker-background: #464646;
+    --color-picker-border: #8b8b8b;
+    --power-ON: #00dcff;
+    --power-OFF: rgba(255, 255, 255, .5);
+    --bright_5: rgba(255, 255, 255, .4);
+    --bright_25: rgba(255, 255, 255, .5);
+    --bright_50: rgba(255, 255, 255, .6);
+    --bright_75: rgba(255, 255, 255, .7);
+    --bright_100: rgba(255, 255, 255, .8);
+    --indicator-ON: #22d722;
+    --indicator-OFF: rgba(255, 255, 255, .5);
+    --wifi-sign-color: #03afef;
+    --app-tilt-color: rgba(72, 72, 72, .25);
+    --app-dialog-color: #1e1d1d;
+    --app-dialog-border-color: #888;
+    --app-dialog-title-color: rgba(255, 255, 255, 0.9);
+    --color-button-border: #afafaf;
+    --footer-poveroff: #03afef;
+    --dialog-secondary-text: #979797;
+    --field-hint-color: #979797;
+    --field-error-color: #ffa4a4;
+    --field-label-color: rgba(255, 255, 255, 0.9);
+    --field-input-color: rgba(255, 255, 255, 0.9);
+    --field-input-disabled-color: rgba(255, 255, 255, 0.6);
+    --radio-button-checked: #14e114;
+    --radio-button-unchecked: rgba(255, 255, 255, 0.9);
+    --radio-button-checked-disabled: #059d05;
+    --radio-button-unchecked-disabled: rgba(255, 255, 255, 0.6);
+    --time-picker-touch-color: #303F9F;
+    --play-button-container-color: #303F9F;
+    --play-button-disabled-color: #646464;
+    --play-button-label-text-color: #fff;
+    --night-back-color: #393939;
+    --night-fore-color: rgba(255, 255, 255, 0.9);
+    --night-active-back-color: #393939;
+    --night-active-fore-color: rgb(255, 255, 0);
+    --button-disabled-color: #969696;
+    // @formatter:off
+    --text-btn-bgr: rgba(44, 44, 44, 0.9);            // кнопки макросов
+    --text-btn-txt: rgba(255, 255, 255, 0.8);         // кнопки макросов
+    --text-btn-brd: rgba(204, 204, 204, 0.9);         // кнопки макросов
+    --text-btn-bgr-0: rgba(160, 160, 160, 0.8);       // - 0 - серый - пустая
+    --text-btn-txt-0: rgba(255, 255, 255, 0.8);       // - 0 - серый - пустая
+    --text-btn-bgr-1: rgba(44, 44, 44, 0.9);          // - 1 - черный - отключена
+    --text-btn-txt-1: rgba(255, 255, 255, 0.8);       // - 1 - черный - отключена
+    --text-btn-bgr-2: #14e114;                        // - 2 - зеленый - активна - просто текст, без макросов
+    --text-btn-txt-2: rgba(255, 255, 255, 0.8);       // - 2 - зеленый - активна - просто текст, без макросов
+    --text-btn-bgr-3: #03afef;                        // - 3 - голубой - активна, содержит макросы кроме даты
+    --text-btn-txt-3: rgba(255, 255, 255, 0.8);       // - 3 - голубой - активна, содержит макросы кроме даты
+    --text-btn-bgr-4: #1976d2;                        // - 4 - синий - активная, содержит макрос даты
+    --text-btn-txt-4: rgba(255, 255, 255, 0.8);       // - 4 - синий - активная, содержит макрос даты
+    --text-btn-bgr-5: #fd2727;                        // - 5 - красный - для строки 0 - это управляющая строка
+    --text-btn-txt-5: rgba(255, 255, 255, 0.8);       // - 5 - красный - для строки 0 - это управляющая строка
+    --text-btn-bgr-6: rgba(232, 204, 32, 0.9);        // - 6 - желтый - текущая редактируемая ячейка
+    --text-btn-txt-6: rgba(0, 0, 0, 0.8);             // - 6 - желтый - текущая редактируемая ячейка
+    // @formatter:oN
+  } @else {
+    --card-border-color: #8a8a8a;
+    --card-background-color: #fdfdfd;
+    --card-active-color: #1976d2;
+    --card-box-shadow: #ccc;
+    --card-icon-fill-color: #{$card-icon-fill-color};
+    --card-icon-fill-highlight-color: #{darken($card-icon-fill-color, 20%)}; // rgb(105, 103, 103);
+    --card-icon-normal-color: #{darken($toolbar-foreground-color, 15%)};
+    --card-icon-active-color: #ffa4a4;
+    --color-picker-background: #ааа;
+    --color-picker-border: rgba(0, 0, 0, .2);
+    --power-ON: #00dcff;
+    --power-OFF: rgba(0, 0, 0, .5);
+    --bright_5: rgba(0, 0, 0, .1);
+    --bright_25: rgba(0, 0, 0, .2);
+    --bright_50: rgba(0, 0, 0, .3);
+    --bright_75: rgba(0, 0, 0, .4);
+    --bright_100: rgba(0, 0, 0, .5);
+    --indicator-ON: #03ab03;
+    --indicator-OFF: rgba(0, 0, 0, .1);
+    --wifi-sign-color: #03afef;
+    --app-tilt-color: rgba(175, 175, 175, .5);
+    --app-dialog-color: #efefef;
+    --app-dialog-border-color: #545454;
+    --app-dialog-title-color: rgba(0, 0, 0, 0.9);
+    --color-button-border: #afafaf;
+    --footer-poveroff: #72d9ff;
+    --dialog-secondary-text: #979797;
+    --field-hint-color: #979797;
+    --field-error-color: #fd2727;
+    --field-label-color: rgba(0, 0, 0, 0.9);
+    --field-input-color: rgba(0, 0, 0, 0.9);
+    --field-input-disabled-color: rgba(0, 0, 0, 0.4);
+    --radio-button-checked: #059d05;
+    --radio-button-unchecked: rgba(0, 0, 0, 0.6);
+    --radio-button-checked-disabled: #a0d7a0;
+    --radio-button-unchecked-disabled: rgba(0, 0, 0, 0.3);
+    --time-picker-touch-color: #1976d2;
+    --play-button-container-color: #1976d2;
+    --play-button-disabled-color: #ccc;
+    --play-button-label-text-color: #fff;
+    --night-back-color: rgba(255, 255, 255, 0.9);
+    --night-fore-color: rgba(0, 0, 0, 0.9);
+    --night-active-back-color: rgba(255, 255, 255, 0.9);
+    --night-active-fore-color: rgba(255, 27, 27, 0.9);
+    --button-disabled-color: #888;
+    // @formatter:off
+    --text-btn-bgr: rgba(204, 204, 204, 0.8);         // кнопки макросов
+    --text-btn-txt: rgba(0, 0, 0, 0.9);               // кнопки макросов
+    --text-btn-brd: rgba(128, 128, 128, 0.9);         // кнопки макросов
+    --text-btn-bgr-0: rgba(204, 204, 204, 0.8);       // - 0 - серый - пустая
+    --text-btn-txt-0: rgba(0, 0, 0, 0.9);             // - 0 - серый - пустая
+    --text-btn-bgr-1: rgba(0, 0, 0, 0.9);             // - 1 - черный - отключена
+    --text-btn-txt-1: rgba(255, 255, 255, 0.8);       // - 1 - черный - отключена
+    --text-btn-bgr-2: #14e114;                        // - 2 - зеленый - активна - просто текст, без макросов
+    --text-btn-txt-2: rgba(255, 255, 255, 0.8);       // - 2 - зеленый - активна - просто текст, без макросов
+    --text-btn-bgr-3: #03afef;                        // - 3 - голубой - активна, содержит макросы кроме даты
+    --text-btn-txt-3: rgba(255, 255, 255, 0.8);       // - 3 - голубой - активна, содержит макросы кроме даты
+    --text-btn-bgr-4: #1976d2;                        // - 4 - синий - активная, содержит макрос даты
+    --text-btn-txt-4: rgba(255, 255, 255, 0.8);       // - 4 - синий - активная, содержит макрос даты
+    --text-btn-bgr-5: #fd2727;                        // - 5 - красный - для строки 0 - это управляющая строка
+    --text-btn-txt-5: rgba(255, 255, 255, 0.8);       // - 5 - красный - для строки 0 - это управляющая строка
+    --text-btn-bgr-6: rgba(232, 204, 32, 0.9);        // - 6 - желтый - текущая редактируемая ячейка
+    --text-btn-txt-6: rgba(0, 0, 0, 0.8);             // - 6 - желтый - текущая редактируемая ячейка
+    // @formatter:oN
+  }
+
+  --footer-version: #{darken($toolbar-foreground-color, 15%)};
+  --footer-info: #14e114;
+  --footer-error: #ffa4a4;
+  --footer-noconnect: #ffa4a4;
+
+  --alarming-back: #fd2727;
+  --alarming-fore: #ffff00;
+}
