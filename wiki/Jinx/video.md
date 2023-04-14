@@ -12,12 +12,12 @@
 4. Появится новое окошко: **Capture Screen** с кнопкой **Close**
 5. Это окошко тянется за углы, это и есть площадь видеозахвата, т.е. как только вы растянете его на размер окна ролика с Ютуба или видеоплеера, жмёте **Close**, окошко пропадёт. 
 
-![image](https://user-images.githubusercontent.com/35148990/144759082-7e979a01-b447-4a21-9b50-217defbcef09.png)
+![image](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Jinx/video-1.jpg)
 
 6. Вы увидите в программе (окно с размерами Вашей гирлянды) то что она захватывает.  
 Саму JINX утяните вниз экрана, чтобы она не попадала в видеозахват.
 
-![image](https://user-images.githubusercontent.com/35148990/144759104-18a46962-eb80-4dd9-b6d9-2dea7918f3d3.png)
+![image](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Jinx/video-02.png)
 
 Вот ещё видео, с отображением видеозахвата на панели в режиме реального времени
 
