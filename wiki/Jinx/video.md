@@ -12,7 +12,7 @@
 4. Появится новое окошко: **Capture Screen** с кнопкой **Close**
 5. Это окошко тянется за углы, это и есть площадь видеозахвата, т.е. как только вы растянете его на размер окна ролика с Ютуба или видеоплеера, жмёте **Close**, окошко пропадёт. 
 
-![image](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Jinx/video-1.jpg)
+![image](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Jinx/video-01.png)
 
 6. Вы увидите в программе (окно с размерами Вашей гирлянды) то что она захватывает.  
 Саму JINX утяните вниз экрана, чтобы она не попадала в видеозахват.
@@ -28,7 +28,6 @@
 Я Джинксом граблю видео с ютюба. Нахожу какую-нибудь анимацию компьютерную и в Джинксе включаю захват экрана.  
 Некоторые получаются  даже ничего...  
 
-https://youtu.be/aqfzA8PqgVA  
 https://youtu.be/zngPoLK_IGE  
 https://youtu.be/iatlzfjluHQ  
 https://youtu.be/pwcmANSvtu4  
@@ -38,6 +37,7 @@ https://youtu.be/lbgPHWONVQg
 https://youtu.be/msnYBMdaB08  
 https://youtu.be/Opymy0DXPcI  
 https://youtu.be/MW2OVIdGT0o  
-https://youtu.be/RoCct_L2RJI  
 
 ну и так далее, справа в подборке ещё много вылазит.
+
+Точно таким же способом можно выполнять захват кадров из мультиков или захват различных анимированных GIF-картинок, коих находится великое множество поисковиками Яндекс или Google
