@@ -7,8 +7,10 @@
 [Пошаговая инструкция подготовки среды для проекта](https://github.com/vvip-68/LedPanelWiFi/wiki/Пошаговая-инструкция-подготовки-среды-для-проекта)  
 [Настройка скетча для вашего устройства](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-скетча-для-вашего-устройства)  
 [Настройка параметров в приложении](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-параметров-в-приложении)  
+[Настройка языка интерфейса](https://github.com/vvip-68/LedPanelWiFi/wiki/Язык-интерфейса)
 [Настройка получения информации о погоде](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-получения-информации-о-погоде)  
 [Настройка бегущей строки](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-бегущей-строки)  
+
 
 [JinxFramer - редактор анимации, роликов, картинок пользователя](https://github.com/vvip-68/LedPanelWiFi/wiki/JinxFramer---редактор-анимации,-роликов,-картинок)  
 [Загрузка данных в файловую систему МК](https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК)  
@@ -18,6 +20,7 @@
 
 [API управления устройством](https://github.com/vvip-68/LedPanelWiFi/wiki/API-управления-устройством)  
 [Большие буквы в бегущей строке](https://github.com/vvip-68/LedPanelWiFi/wiki/Большие-буквы-в-бегущей-строке)  
+[OTA - обновление по воздуху](https://github.com/vvip-68/LedPanelWiFi/wiki/OTA---обновление-по-воздуху)
 
 #### [Синхронизация устройств](https://github.com/vvip-68/LedPanelWiFi/wiki/Синхронизация-устройств)  
 - [Общие понятия](https://github.com/vvip-68/LedPanelWiFi/wiki/Синхронизация-устройств#Общие-понятия)  
