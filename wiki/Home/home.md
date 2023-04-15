@@ -7,7 +7,7 @@
 [Пошаговая инструкция подготовки среды для проекта](https://github.com/vvip-68/LedPanelWiFi/wiki/Пошаговая-инструкция-подготовки-среды-для-проекта)  
 [Настройка скетча для вашего устройства](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-скетча-для-вашего-устройства)  
 [Настройка параметров в приложении](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-параметров-в-приложении)  
-[Настройка языка интерфейса](https://github.com/vvip-68/LedPanelWiFi/wiki/Язык-интерфейса)
+[Настройка языка интерфейса](https://github.com/vvip-68/LedPanelWiFi/wiki/Язык-интерфейса)  
 [Настройка получения информации о погоде](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-получения-информации-о-погоде)  
 [Настройка бегущей строки](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-бегущей-строки)  
 
