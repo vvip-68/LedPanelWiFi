@@ -438,6 +438,13 @@ input[type=number] {
   -moz-appearance: textfield;
 }
 
+/* -------------------- Color picker ---------------------- */
+.color-dialog-panel {
+  .mdc-dialog .mdc-dialog__content {
+    padding: 12px 11px 12px 11px;
+  }
+}
+
 /* ---------------- Confirmation dialog ------------------- */
 
 .mat-mdc-dialog-container {

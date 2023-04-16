@@ -1,3 +1,5 @@
+[**ЧаВо / FAQ**](https://github.com/vvip-68/LedPanelWiFi/wiki/FAQ)  
+
 [Варианты устройств. Схемы.](https://github.com/vvip-68/LedPanelWiFi/wiki/Варианты-устройств.-Схемы.)  
 [Сборная матрица](https://github.com/vvip-68/LedPanelWiFi/wiki/Сборная-матрица)   
 [Сборная матрица, состоящая из матриц разного типа и размера](https://github.com/vvip-68/LedPanelWiFi/wiki/Сборная-матрица,-состоящая-из-матриц-разного-типа-и-размера)   
@@ -10,7 +12,9 @@
 [Настройка языка интерфейса](https://github.com/vvip-68/LedPanelWiFi/wiki/Язык-интерфейса)  
 [Настройка получения информации о погоде](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-получения-информации-о-погоде)  
 [Настройка бегущей строки](https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-бегущей-строки)  
+[Подготовка звуковых файлов](https://github.com/vvip-68/LedPanelWiFi/wiki/Звуки-будильника)  
 
+[Управление приложением](https://github.com/vvip-68/LedPanelWiFi/wiki/Управление-приложением)  
 
 [JinxFramer - редактор анимации, роликов, картинок пользователя](https://github.com/vvip-68/LedPanelWiFi/wiki/JinxFramer---редактор-анимации,-роликов,-картинок)  
 [Загрузка данных в файловую систему МК](https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК)  
@@ -31,6 +35,4 @@
 
 
 [Продвинутый уровень. Использование портов МК](https://github.com/vvip-68/LedPanelWiFi/wiki/Продвинутый-уровень.-Использование-портов-микроконтроллера.) 
-
-[FAQ](https://github.com/vvip-68/LedPanelWiFi/wiki/FAQ)  
 
