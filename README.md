@@ -1,5 +1,5 @@
 ![PROJECT_PHOTO](https://github.com/vvip-68/LedPanelWiFi/blob/main/proj_img.jpg)
-# Крутая WiFi панель / гирлянда на esp8266 своими руками
+# WiFi панель или гирлянда на esp8266 с Web-интерфейсом
 * [Описание проекта](#chapter-0)
 * [Папки проекта](#chapter-1)
 * [Схемы подключения](#chapter-2)
