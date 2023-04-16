@@ -45,7 +45,6 @@
 Замените сигнатуру RUS здесь и в определении значения константы `LANG` на соответствующую вашему языку, 
 выполните перевод строк внутри скопированного блока.  
 
-![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p01.png)  
 ![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p02.png)  
 ![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p03.png)  
 ![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p04.png)  
@@ -55,7 +54,7 @@
 
 ## Язык в Web-приложении
 
-В папке ***web/src/assets/lang*** найдите файл rus.json и скопируйте его в файл, с именем, соответствующем вашему языку,
+В папке проекта ***web/src/assets/lang*** найдите файл rus.json и скопируйте его в файл, с именем, соответствующем вашему языку,
 с буквами той же сигнатуры, которую вы задали шагом выше, только в строчном регистре.  
 
 ![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p08.png)  
@@ -67,7 +66,7 @@
 После того, как перевод будет выполнен - сожмите файл языка архиватором ***gzip*** и поместите сжатый файл
 в папку ***/data/web/assets/langs***.
 
-![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p08.png)  
+![Web-приложение](https://github.com/vvip-68/LedPanelWiFi/blob/main/wiki/Lang/p09.png)  
 
 После [загрузки](https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК) исправленного 
 Web-интерфейса в файловую систему микроконтроллера Web-интерфейс будет отображаться на вашем языке.  
