@@ -72,12 +72,15 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
             case 'M2':
               this.radio_idx = this.managementService.state.mtx_seg_type == 2 ? 0 : 1;
               this.mtx_seg_type = this.managementService.state.mtx_seg_type;
+              this.matrixPlugger.type = this.mtx_seg_type;
               break;
             case 'M3':
               this.mtx_seg_angle = this.managementService.state.mtx_seg_angle;
+              this.matrixPlugger.angle = this.mtx_seg_angle;
               break;
             case 'M4':
               this.mtx_seg_dir = this.managementService.state.mtx_seg_dir;
+              this.matrixPlugger.direction = this.mtx_seg_dir;
               break;
             case 'M5':
               this.tolWidthFormControl.setValue(this.managementService.state.tol_seg_width);
@@ -87,12 +90,15 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
               break;
             case 'M7':
               this.tol_seg_type = this.managementService.state.tol_seg_type;
+              this.totalPlugger.type = this.tol_seg_type;
               break;
             case 'M8':
               this.tol_seg_angle = this.managementService.state.tol_seg_angle;
+              this.totalPlugger.angle = this.tol_seg_angle;
               break;
             case 'M9':
               this.tol_seg_dir = this.managementService.state.tol_seg_dir;
+              this.totalPlugger.direction = this.tol_seg_dir;
               break;
             case 'M10':
               this.index_files = this.managementService.state.map_idx_list;
@@ -110,7 +116,7 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
       - $2 M0 M1 M2 M3 M4 M5 M6 M7 M8 M9 M11
          M0  - ширина сегмента матрицы 1..127
          M1  - высота сегмента матрицы 1..127
-         M2  - тип сегмента матрицы - 0 - зигзаг; 1 _ параллельная
+         M2  - тип сегмента матрицы - 0 - зигзаг; 1 - параллельная
          M3  - угол подключения диодов в сегменте: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3
          M4  - направление ленты из угла сегмента: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
          M5  - количество сегментов в ширину составной матрицы
@@ -123,15 +129,15 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
 
     const M0 = this.managementService.state.mtx_seg_width = this.segWidthFormControl.value as number;
     const M1 = this.managementService.state.mtx_seg_height = this.segHeightFormControl.value as number;
-    const M2 = this.managementService.state.mtx_seg_type = this.radio_idx == 0 ? 2 : (this.mtx_seg_type === 2 ? this.matrixPlugger.type : this.mtx_seg_type);
-    const M3 = this.managementService.state.mtx_seg_angle = this.mtx_seg_angle;
-    const M4 = this.managementService.state.mtx_seg_dir = this.mtx_seg_dir;
+    const M2 = this.managementService.state.mtx_seg_type = this.radio_idx == 0 ? 2 : this.matrixPlugger.type;
+    const M3 = this.managementService.state.mtx_seg_angle = this.matrixPlugger.angle;
+    const M4 = this.managementService.state.mtx_seg_dir = this.matrixPlugger.direction;
 
     const M5 = this.managementService.state.tol_seg_width = this.tolWidthFormControl.value as number;
     const M6 = this.managementService.state.tol_seg_height = this.tolHeightFormControl.value as number;
-    const M7 = this.managementService.state.tol_seg_type = this.tol_seg_type;
-    const M8 = this.managementService.state.tol_seg_angle = this.tol_seg_angle;
-    const M9 = this.managementService.state.tol_seg_dir = this.tol_seg_dir;
+    const M7 = this.managementService.state.tol_seg_type = this.totalPlugger.type;
+    const M8 = this.managementService.state.tol_seg_angle = this.totalPlugger.angle;
+    const M9 = this.managementService.state.tol_seg_dir = this.totalPlugger.direction;
 
     const M11 = this.managementService.state.map_idx = this.index_file;
 

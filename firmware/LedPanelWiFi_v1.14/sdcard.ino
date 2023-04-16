@@ -38,7 +38,8 @@ void InitializeSD2() {
   #else
     file_name = F("t.t");
   #endif
-  
+
+  #if (USE_SD == 1 && FS_AS_SD == 0)
   file = SD.open(file_name, FILE_WRITE);
   ok = file != 0;
   if (ok) {    
@@ -49,6 +50,7 @@ void InitializeSD2() {
   if (ok) {    
     DEBUGLN(F("SD-карта только для чтения"));    
   }
+  #endif
 
   DEBUGLN(F("Поиск файлов эффектов Jinx!.."));
   if (sd_card_ok) {
@@ -173,7 +175,9 @@ void loadDirectory() {
       }
       entry.close();
     }        
+    #if defined(ESP32)
     folder.close();
+    #endif
   #endif
 
   if (countFiles == 0) {
