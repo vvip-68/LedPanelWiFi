@@ -15,6 +15,8 @@
 [Подготовка звуковых файлов](https://github.com/vvip-68/LedPanelWiFi/wiki/Звуки-будильника)  
 
 [Управление приложением](https://github.com/vvip-68/LedPanelWiFi/wiki/Управление-приложением)  
+[Игры](https://github.com/vvip-68/LedPanelWiFi/wiki/Игры)  
+[Рисование](https://github.com/vvip-68/LedPanelWiFi/wiki/Рисование)  
 
 [JinxFramer - редактор анимации, роликов, картинок пользователя](https://github.com/vvip-68/LedPanelWiFi/wiki/JinxFramer---редактор-анимации,-роликов,-картинок)  
 [Загрузка данных в файловую систему МК](https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК)  
