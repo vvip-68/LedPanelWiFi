@@ -511,7 +511,7 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isValidFileName(value: string): boolean {
-    return value.length > 0 && value.length < 16 && !(/[^a-zA-Z0-9!\-]/.test(value));
+    return value.length > 0 && value.length < 16 && !(/[^a-zA-Z0-9_!\-]/.test(value));
   }
 
   click($event: MouseEvent) {
