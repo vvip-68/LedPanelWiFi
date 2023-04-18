@@ -35,6 +35,7 @@ void handleRoot(AsyncWebServerRequest *request) {
     DEBUGLN(String(F("web -> '")) + gz_file + String(F("' -> send (text/html)")));
     AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), F("text/html"), false);
     response->addHeader(F("Content-Encoding"), F("gzip"));
+    response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
     request->send(response);
     return;
   }
@@ -114,6 +115,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
       DEBUGLN(String(F("web -> '")) + gz_file + String(F("' -> send (")) + type + ')');
       AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), type.c_str(), false);
       response->addHeader(F("Content-Encoding"), F("gzip"));
+      response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
 
       // +++ При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
       DEBUG(F("FM: "));
