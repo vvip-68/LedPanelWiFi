@@ -1,6 +1,7 @@
 [**ЧаВо / FAQ**](https://github.com/vvip-68/LedPanelWiFi/wiki/FAQ)  
 
-[Варианты устройств. Схемы.](https://github.com/vvip-68/LedPanelWiFi/wiki/Варианты-устройств.-Схемы.)  
+[Варианты устройств. Схемы.](https://github.com/vvip-68/LedPanelWiFi/wiki/Варианты-устройств.-Схемы.)     
+[Типы матриц, способы подключения](https://github.com/vvip-68/LedPanelWiFi/wiki/Сборная-матрица#тип-матрицы)   
 [Сборная матрица](https://github.com/vvip-68/LedPanelWiFi/wiki/Сборная-матрица)   
 [Сборная матрица, состоящая из матриц разного типа и размера](https://github.com/vvip-68/LedPanelWiFi/wiki/Сборная-матрица,-состоящая-из-матриц-разного-типа-и-размера)   
 [Всё собрал, ничего не работает.](https://github.com/vvip-68/LedPanelWiFi/wiki/Всё-собрал,-ничего-не-работает.)  
