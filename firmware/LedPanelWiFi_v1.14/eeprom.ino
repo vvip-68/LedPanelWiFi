@@ -709,12 +709,12 @@ void putEffectTextOverlayUsage(uint8_t effect, bool use) {
 
 bool getEffectClockOverlayUsage(uint8_t effect) {
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
-  return (value & 0x02) != 0;                                  // b2 - использовать в эффекте часы поверх эффекта
+  return (value & 0x02) != 0;                                            // b2 - использовать в эффекте часы поверх эффекта
 }
 
 void putEffectClockOverlayUsage(uint8_t effect, bool use) {
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
-  uint8_t new_value = use ? (value | 0x04) : (value & ~0x02);
+  uint8_t new_value = use ? (value | 0x02) : (value & ~0x02);
   if (value != new_value) {
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 1, new_value);               // b2 - использовать в эффекте часы поверх эффекта
   }
