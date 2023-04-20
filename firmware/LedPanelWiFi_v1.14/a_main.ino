@@ -1110,6 +1110,9 @@ void parsing() {
                 saveTextLine(c, str);
               }
               textStates[tmp_eff] = getTextStateChar(tmp_eff, str);
+              
+              preparedTextIdx = tmp_eff;
+              preparedText = str;
 
               // Если сохраняемая строка содержит макрос {P} - зависящий от времени - выполнить перерасчет времени наблюдаемых событий
               if (str.indexOf("{P") >= 0) {          

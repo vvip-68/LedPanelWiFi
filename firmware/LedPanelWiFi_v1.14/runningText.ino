@@ -518,8 +518,9 @@ int8_t getNextLine(int8_t currentIdx) {
   //                   в этом случае sequenceIdx = 1..textIndecies.length() и показывает на символ в строке, содержащий индекс следующей строки к отображению
   //                   Если извлеченный символ - '#' - брать случайную строку из массива
   int8_t nextLineIdx = currentIdx;
+  int8_t cnt = 0;
+  bool found = false;
   if (sequenceIdx < 1) {
-    int8_t cnt = 0;
     while (cnt < TEXTS_MAX_COUNT) {
       nextLineIdx++; cnt++;
       if (nextLineIdx >= TEXTS_MAX_COUNT) nextLineIdx = 0;
@@ -536,85 +537,71 @@ int8_t getNextLine(int8_t currentIdx) {
       // перемотать на начало последовательности
       sequenceIdx = isFirstLineControl() ? 1 : -1;
     }
-    char c = textIndecies.charAt(sequenceIdx);
-    if (c == '#') {
-      // textIndecies == "##", sequenceIdx всегда 1; textIndecies.charAt(1) == '#';
-      // Это значит надо выбрать случайную строку из тех, что заполнены
-      uint8_t arr[TEXTS_MAX_COUNT + 1], cnt = 0;
-      memset(arr, '\0', TEXTS_MAX_COUNT + 1);
-      // Перебрать весь массив строк, выбрать только заполненные, у заполненных проверить, что они не отключены, не содержат макроса {P},
-      // а если содержат макрос {S}, то текущая дата попадает в диапазон разрешенных дат.
-      for (uint8_t i = 0; i < textsNotEmpty.length(); i++) {
-        char c_idx = textsNotEmpty[i];
-        int8_t t_idx = getTextIndex(c_idx);
-        if (t_idx < 0) continue;
-        
-        String text = textsNotEmpty.indexOf(c_idx) >= 0 ? getTextByIndex(t_idx) : "";
-        // Строка пустая? 
-        // Отключена - в первом символе или наличие макроса {-}?
-        // Нулевая строка - строка управления ('#' или '##')?
-        // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
-        // Если строка содержит макрос {S} - текущая дата должна попадать в диапазон доступных для показа дат
-        bool disabled = (text.length() == 0) || (t_idx == 0 && text[0] == '#') || (text[0] == '-') || (text.indexOf("{-}") >= 0) || (text.indexOf("{P") >= 0);
-        bool wrong_date = (text.indexOf("{S") >= 0) && !forThisDate(text);
-        if (disabled || wrong_date) continue;
-        arr[cnt++] = t_idx;
-      }
-
-      // Массив arr содержит индексы строк, которые доступны к отображению.
-      // Если массив пустой - cnt == 0 - нет строки для отображения, ничего не показывать
-      if (cnt == 0) {
-        // Нет строки для отображения
-        nextLineIdx = -1;
-        textLastTime = millis();
+    int8_t att = 0;
+    cnt = textsNotEmpty.length();
+    if (cnt > 0) {
+      char c = textIndecies.charAt(sequenceIdx);
+      if (c == '#') {
+        // textIndecies == "##", sequenceIdx всегда 1; textIndecies.charAt(1) == '#';
+        while (!found && att < cnt) {
+          att++;
+          uint8_t idx = random8(0,cnt - 1);
+          char c_idx = textsNotEmpty[idx];
+          int8_t t_idx = getTextIndex(c_idx);
+          if (t_idx < 0) continue;        
+          // Проверить - доступен ли текст в указанной строке к отображению?
+          String text = getTextByIndex(t_idx);
+          // Строка должна быть не пустая,
+          // Не отключена - в первом символе или наличие макроса {-}?
+          // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
+          // Если строка содержит макрос {S} - текущая дата должна попадать в диапазон доступных для показа дат
+          bool disabled = (text.length() == 0) || (t_idx == 0 && text[0] == '#') || (text[0] == '-') || (text.indexOf("{-}") >= 0) || (text.indexOf("{P") >= 0);
+          bool wrong_date = (text.indexOf("{S") >= 0) && !forThisDate(text);
+          // Если строка не отключена и доступна к отображению - брать ее
+          if (!(disabled || wrong_date)) {
+            found = true;
+            nextLineIdx = t_idx;
+            break;
+          }        
+        }      
       } else {
-        uint8_t att = 0;
-        uint8_t idx = random8(0,cnt - 1);
-        // Выбрать случайную строку. Если выбранная совпадает с текущей - выбрать другую.
-        // Если другой нет (в массиве одна строка) - показать её
-        while (arr[idx] == nextLineIdx && att < cnt) {
-          att++; idx++;
-          if (idx >= cnt) idx = 0;
-        }        
-        nextLineIdx = arr[idx];
-      }
-    } else {
-      // Последовательное отображение строк как указано в последовательности в textIndecies - '#12345'
-      // здесь 'c' - char - индекс, выдернутый из указанной последовательности в очередной позиции
-      nextLineIdx = getTextIndex(c); 
-      uint8_t c_idx = sequenceIdx;
-      bool found = false;
-      while (!found) {
-        // Проверить - доступен ли текст в указанной строке к отображению?
-        String text = getTextByIndex(nextLineIdx);
-        // Строка должна быть не пустая,
-        // Не отключена - в первом символе или наличие макроса {-}?
-        // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
-        // Если строка содержит макрос {S} - текущая дата должна попадать в диапазон доступных для показа дат
-        bool disabled = (text.length() == 0) || (nextLineIdx == 0 && text[0] == '#') || (text[0] == '-') || (text.indexOf("{-}") >= 0) || (text.indexOf("{P") >= 0);
-        bool wrong_date = (text.indexOf("{S") >= 0) && !forThisDate(text);
-        // Если строка не отключена и доступна к отображению - брать ее
-        if (!(disabled || wrong_date)) {
-          found = true;
-          break;
-        }
-        // Строка недоступна - брать следующий номер в последовательности
-        sequenceIdx++;
-        if (sequenceIdx >= (int16_t)textIndecies.length()) {
-          // перемотать на начало последовательности
-          sequenceIdx = isFirstLineControl() ? 1 : -1;
-        }
-        if (c_idx == sequenceIdx) break;
-        // Если после перемотки вернулись в позицию с которой начали - строк доступных к показу нет
-        c = textIndecies.charAt(sequenceIdx);
+        // Последовательное отображение строк как указано в последовательности в textIndecies - '#12345'
+        // здесь 'c' - char - индекс, выдернутый из указанной последовательности в очередной позиции
         nextLineIdx = getTextIndex(c); 
+        uint8_t c_idx = sequenceIdx;
+        while (!found) {
+          // Проверить - доступен ли текст в указанной строке к отображению?
+          String text = getTextByIndex(nextLineIdx);
+          // Строка должна быть не пустая,
+          // Не отключена - в первом символе или наличие макроса {-}?
+          // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
+          // Если строка содержит макрос {S} - текущая дата должна попадать в диапазон доступных для показа дат
+          bool disabled = (text.length() == 0) || (nextLineIdx == 0 && text[0] == '#') || (text[0] == '-') || (text.indexOf("{-}") >= 0) || (text.indexOf("{P") >= 0);
+          bool wrong_date = (text.indexOf("{S") >= 0) && !forThisDate(text);
+          // Если строка не отключена и доступна к отображению - брать ее
+          if (!(disabled || wrong_date)) {
+            found = true;
+            break;
+          }
+          // Строка недоступна - брать следующий номер в последовательности
+          sequenceIdx++;
+          if (sequenceIdx >= (int16_t)textIndecies.length()) {
+            // перемотать на начало последовательности
+            sequenceIdx = isFirstLineControl() ? 1 : -1;
+          }
+          if (c_idx == sequenceIdx) break;
+          // Если после перемотки вернулись в позицию с которой начали - строк доступных к показу нет
+          c = textIndecies.charAt(sequenceIdx);
+          nextLineIdx = getTextIndex(c); 
+        }
+        if (found) {
+          sequenceIdx++;
+        }
       }
-      if (found) {
-        sequenceIdx++;
-      } else {
-        nextLineIdx = -1;
-        textLastTime = millis();
-      }
+    }
+    if (!found) {
+      nextLineIdx = -1;
+      textLastTime = millis();
     }
   }
   return nextLineIdx;
@@ -1755,6 +1742,10 @@ String getTextByAZIndex(char c) {
 String getTextByIndex(uint8_t idx) {
   if (idx >= TEXTS_MAX_COUNT) return "";
 
+  // preparedTextIdx - индекс строки, которая находится в preparedText
+  // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
+  if (preparedTextIdx == idx) return preparedText;
+
   // Загрузить текст из файловой стистемы микроконтроллера
   char c = getAZIndex(idx);
   String text = "";
@@ -1762,6 +1753,9 @@ String getTextByIndex(uint8_t idx) {
   String directoryName = TEXT_STORAGE;
   String fileName = directoryName + '/' + c;
   if (LittleFS.exists(fileName)) {
+
+    //long t1 = millis();
+    
     File file = LittleFS.open(fileName, "r");
     if (file) {
       // считываем содержимое файла ssid
@@ -1769,7 +1763,15 @@ String getTextByIndex(uint8_t idx) {
       memset(buf, '\0', 512); 
       size_t len = file.read((uint8_t*)buf, 512);
       file.close();
-      if (len > 0) text = String(buf);
+      if (len > 0) {
+        text = String(buf);
+        preparedText = text;
+        preparedTextIdx = idx;
+      }
+
+      //long t2 = millis();
+      //DEBUGLN("Строка file='" + fileName + "' t=" + String(t2-t1)+ "мc; ['" + text + "']" ); // +++!!!!
+      
     } else {
       DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    
     }    
