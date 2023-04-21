@@ -2992,14 +2992,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // Оверлей бегущей строки
   if (key == "UT") {
     if (value) {
-      if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK) {
+      if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
         value->set("X");
         return "X";
       }
       value->set(getEffectTextOverlayUsage(effect));
       return String(getEffectTextOverlayUsage(effect));
     }
-    return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK
+    return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID 
          ? "X":
          String(getEffectTextOverlayUsage(effect)));
   }

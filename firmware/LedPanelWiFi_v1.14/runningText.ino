@@ -505,7 +505,7 @@ bool prepareNextText(String text) {
   if (currentText.length() == 0) {
     nextTextLineIdx = -1;
   }
-  
+
   return currentText.length() > 0;
 }
 

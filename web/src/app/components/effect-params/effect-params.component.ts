@@ -78,8 +78,8 @@ export class EffectParamsComponent implements OnInit {
           //    "paramName2": "Выбор",
           // }
 
-          this.allowClockVisible = this.model.id !== 0;  // 0 - эффект "Часы" - галка "Часы поверх эффекта" недоступны
-          this.allowTextVisible = this.model.id !== 0;   // 0 - эффект "Часы" - галка "Текст поверх эффекта" недоступны
+          this.allowClockVisible = this.model.id !== 0;      // 0 - эффект "Часы" - галка "Часы поверх эффекта" недоступны
+          this.allowTextVisible = data['allowText'] !== 'X';
           this.contrastVisible = data['contrast'] !== 'X';
           this.speedVisible = data['speed'] !== 'X';
           this.param1Visible = data['param1'] !== 'X';

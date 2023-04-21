@@ -58,7 +58,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   }
 
   // Оверлей нужен для всех эффектов, иначе при малой скорости эффекта и большой скорости часов поверх эффекта буквы-цифры "смазываются"
-  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT && thisMode != MC_CLOCK;
+  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
   String out;
@@ -273,7 +273,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   checkCalendarState();
   
   // Если время инициализировали и пришло время его показать - нарисовать часы поверх эффекта
-  if (init_time && ((clockOvEn && !showTextNow && aMode != MC_TEXT && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE) || aMode == MC_CLOCK)) {    
+  if (init_time && (((clockOvEn || aMode == MC_CLOCK) && !showTextNow && aMode != MC_TEXT && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE))) {    
     overlayDelayed = needOverlay;
     setOverlayColors();
     if (needOverlay) {
@@ -345,7 +345,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       #endif
     }
     
-  } else if (showTextNow && aMode != MC_CLOCK && aMode != MC_TEXT) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
+  } else if (showTextNow && aMode != MC_TEXT && !isNightClock) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
     // Нарисовать оверлеем текст бегущей строки
     // Нарисовать текст в текущей позиции
     overlayDelayed = needOverlay;
