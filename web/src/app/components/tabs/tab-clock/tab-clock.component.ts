@@ -17,8 +17,7 @@ import {FormControl, Validators} from "@angular/forms";
 export class TabClockComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
-  supportWeather: boolean = false;
-
+  public supportWeather: boolean = false;
   public clock_use_overlay = false;
   public clock_orientation: number = -1;
   public orient_list: ComboBoxItem[] = [];

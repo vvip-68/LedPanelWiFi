@@ -49,6 +49,8 @@ export class TabTextsComponent implements OnInit, OnDestroy {
   public sample_color_visible = false;
   // @formatter:on
 
+  public supportWeather: boolean = false;
+
   public buttons: Array<TextButtonItem> = [];
   public date_fmt: ComboBoxItem[] = [];
 
@@ -99,7 +101,7 @@ export class TabTextsComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          const request = 'CT|TE|TI|ST|TS|C2|MX';
+          const request = 'CT|TE|TI|ST|TS|C2|MX|WZ';
           this.managementService.getKeys(request);
         }
       });
@@ -158,6 +160,9 @@ export class TabTextsComponent implements OnInit, OnDestroy {
               if (this.managementService.state.supportMP3) {
                 this.managementService.getKeys('S3');
               }
+              break;
+            case 'WZ':
+              this.supportWeather = this.managementService.state.supportWeather;
               break;
           }
         }

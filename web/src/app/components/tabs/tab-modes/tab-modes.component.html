@@ -66,7 +66,7 @@
       </mat-form-field>
     </div>
 
-    <div class="field-container">
+    <div *ngIf="supportWeather" class="field-container">
       <mat-form-field floatLabel="always">
         <mat-label><b>{{ L.$('Рассвет') }}</b></mat-label>
         <input matInput readonly [(ngModel)]="mode5_time" [disableControl]="isDisabled()">
@@ -81,7 +81,7 @@
       </mat-form-field>
     </div>
 
-    <div class="field-container">
+    <div *ngIf="supportWeather" class="field-container">
       <mat-form-field floatLabel="always">
         <mat-label><b>{{ L.$('Закат') }}</b></mat-label>
         <input matInput readonly [(ngModel)]="mode6_time" [disableControl]="isDisabled()">

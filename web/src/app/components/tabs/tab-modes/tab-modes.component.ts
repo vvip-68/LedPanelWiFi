@@ -30,7 +30,9 @@ export class TabModesComponent implements OnInit, OnDestroy {
   public mode6_time: string = '00:00';
   public mode6_effect = -3;
 
-  effects: ComboBoxItem[] = [];
+  public effects: ComboBoxItem[] = [];
+
+  public supportWeather: boolean = false;
 
   constructor(
     public socketService: WebsocketService,
@@ -46,7 +48,7 @@ export class TabModesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'AM1T|AM1A|AM2T|AM2A|AM3T|AM3A|AM4T|AM4A|T1|AM5A|T2|AM6A';
+          const request = 'WZ|AM1T|AM1A|AM2T|AM2A|AM3T|AM3A|AM4T|AM4A|T1|AM5A|T2|AM6A';
           this.managementService.getKeys(request);
         }
       });
@@ -96,6 +98,10 @@ export class TabModesComponent implements OnInit, OnDestroy {
             }
             case 'T2': {
               this.mode6_time = this.managementService.state.time_sunset
+              break;
+            }
+            case 'WZ': {
+              this.supportWeather = this.managementService.state.supportWeather;
               break;
             }
           }

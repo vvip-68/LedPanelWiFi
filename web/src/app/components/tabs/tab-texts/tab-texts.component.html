@@ -113,7 +113,7 @@
         <button [matTooltip]="L.$('Эффект')" [matMenuTriggerFor]="menuEffect" [disabled]="isDisabled2()" class="btn">
           <mat-icon matSuffix>blur_on</mat-icon>
         </button>
-        <button [matTooltip]="L.$('Погода')" [disabled]="isDisabled2()" (click)="macrosWeather()" class="btn">
+        <button [matTooltip]="L.$('Погода')" [disabled]="isDisabled2() || !supportWeather" (click)="macrosWeather()" class="btn">
           <mat-icon matSuffix>wb_sunny</mat-icon>
           <mat-icon matSuffix>cloud</mat-icon>
         </button>
