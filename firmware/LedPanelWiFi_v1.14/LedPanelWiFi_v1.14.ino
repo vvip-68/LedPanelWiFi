@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0418")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0422")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -330,8 +330,8 @@ void setup() {
   // Это пример, как выводить на две матрицы 16х16 (сборная матрица 32х16) через два пина D2 и D3
   // Чтобы вывод был именно на D2 и D3 - в меню Инструменты - плату выбирать "Wemos D1 mini pro" - при выбранной плате NodeMCU назначение пинов куда-то "съезжает" на другие - нужно искать куда. 
   // Убедитесь в правильном назначении адресации диодов матриц в сборной матрице используя индексные файлы или сьорную матрицу из матриц одного размера и подключения сегментов.
-  FastLED.addLeds<WS2812, D2, COLOR_ORDER>(leds, 256).setCorrection( TypicalLEDStrip );
-  FastLED.addLeds<WS2812, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_CHIP, D2, COLOR_ORDER>(leds, 256).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
   
   FastLED.setBrightness(globalBrightness);
   if (CURRENT_LIMIT > 0) {
@@ -629,7 +629,7 @@ void startWiFi(uint32_t waitTime) {
     uint32_t last_wifi_check = 0;
     int16_t  cnt = 0;
     while (!(stop_waiting || wifi_connected)) {
-      delay(0);
+      delay(1);
       if (millis() - last_wifi_check > 250) {
         last_wifi_check = millis();
         set_wifi_connected(WiFi.status() == WL_CONNECTED); 
@@ -650,8 +650,8 @@ void startWiFi(uint32_t waitTime) {
         // Время ожидания подключения к сети вышло
         break;
       }
-      delay(0);
       // Опрос состояния кнопки
+      delay(1);
       butt.tick();
       if (butt.hasClicks()) {
         butt.getClicks();
@@ -660,7 +660,7 @@ void startWiFi(uint32_t waitTime) {
         stop_waiting = true;
         break;
       }
-      delay(0);
+      delay(1);
     }
     DEBUGLN();
 

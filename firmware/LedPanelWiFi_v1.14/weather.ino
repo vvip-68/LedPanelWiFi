@@ -17,11 +17,11 @@ bool getWeather() {
   if (useWeather == 1) {
     if (!w_client.connect("yandex.com",443)) return false;                 // Устанавливаем соединение с указанным хостом (Порт 443 для https)
     // Отправляем запрос
-    w_client.println(String(F("GET /time/sync.json?geo=")) + String(regionID) + String(F(" HTTP/1.1\r\nHost: yandex.com\r\n\r\n"))); 
+    w_client.println(String(F("GET /time/sync.json?geo=")) + String(regionID) + String(F("&lang=")) +  String(WTR_LANG_YA) + String(F(" HTTP/1.1\r\nHost: yandex.com\r\n\r\n"))); 
   } else if (useWeather == 2) {
     if (!w_client.connect("api.openweathermap.org",80)) return false;      // Устанавливаем соединение с указанным хостом (Порт 80 для http)
     // Отправляем запрос    
-    w_client.println(String(F("GET /data/2.5/weather?id=")) + String(regionID2) + String(F("&units=metric&lang=ru&appid=")) + String(WEATHER_API_KEY) + String(F(" HTTP/1.1\r\nHost: api.openweathermap.org\r\n\r\n")));     
+    w_client.println(String(F("GET /data/2.5/weather?id=")) + String(regionID2) + String(F("&units=metric&lang=")) + String(WTR_LANG_OWM) + String(F("&appid=")) + String(WEATHER_API_KEY) + String(F(" HTTP/1.1\r\nHost: api.openweathermap.org\r\n\r\n")));     
   }  
 
   String out;

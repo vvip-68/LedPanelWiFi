@@ -952,7 +952,7 @@ void allocateLeds() {
   DEBUG(F("Выделение памяти для LEDS   : "));
   leds =  new CRGB[NUM_LEDS];            
   if (leds != NULL) {
-    FastLED.addLeds<WS2812, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.addLeds<LED_CHIP, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   }
   int32_t freeMemory2 = ESP.getFreeHeap();
   int32_t freeMemory3 = freeMemory1 - freeMemory2;

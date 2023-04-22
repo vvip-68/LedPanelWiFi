@@ -17,6 +17,8 @@ import {FormControl, Validators} from "@angular/forms";
 export class TabClockComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
+  supportWeather: boolean = false;
+
   public clock_use_overlay = false;
   public clock_orientation: number = -1;
   public orient_list: ComboBoxItem[] = [];
@@ -65,7 +67,7 @@ export class TabClockComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          let request = 'CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NS|NT|NZ|SC|WC|WN';
+          let request = 'CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NS|NT|NZ|SC|WC|WN|WZ';
           if (this.managementService.state.supportTM1637) {
             request += '|OF';
           }
@@ -134,6 +136,9 @@ export class TabClockComponent implements OnInit, OnDestroy {
               break;
             case 'SC':
               this.clock_scroll_speed = this.managementService.state.clock_scroll_speed;
+              break;
+            case 'WZ':
+              this.supportWeather = this.managementService.state.supportWeather;
               break;
           }
         }

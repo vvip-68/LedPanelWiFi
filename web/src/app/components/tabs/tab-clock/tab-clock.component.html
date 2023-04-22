@@ -94,10 +94,10 @@
       </div>
 
       <div *ngIf="(managementService.state.clock_allow_horizontal || managementService.state.clock_allow_vertical) && clock_orientation === 0">
-        <div class="spacer">
+        <div *ngIf="supportWeather" class="spacer">
         </div>
 
-        <div class="toggler-container advanced">
+        <div *ngIf="supportWeather" class="toggler-container advanced">
           <div class="toggler">
             <mat-slide-toggle color="primary" class="switch" [ngModel]="clock_show_temp" (toggleChange)="toggleTemperatureInClock()" [disabled]="isDisabled()"></mat-slide-toggle>
           </div>
@@ -106,7 +106,7 @@
           </div>
         </div>
 
-        <div class="field-container check" *ngIf="isLargeClockAvailable()">
+        <div *ngIf="supportWeather" class="field-container check">
           <mat-label>{{ L.$('Цветная температура') }}</mat-label>
           <mat-checkbox class="example-margin" [checked]="clock_temp_color_day" color="primary" (change)="setTempUseDayColor($event.checked)">
             {{ L.$('Днем') }}

@@ -308,6 +308,9 @@
   #define MODE_LOAD_PICTURE       F("Загрузка изображения")
   #define MODE_DRAW               F("Рисование")
   #define MODE_DAWN               F("Рассвет")
+
+  #define WTR_LANG_YA             F("ru")      // Яндекс.Погода - кажется понимает только "ru" и "en"
+  #define WTR_LANG_OWM            F("ru")      // OpenWeatherMap = 2-[ бкувенный код языка - ru,en,de,fr,it и так далее. Если язык не знает - возвращает как для en
   
 #endif
 
@@ -572,6 +575,9 @@
   #define MODE_LOAD_PICTURE       F("Load picture")
   #define MODE_DRAW               F("Draw")
   #define MODE_DAWN               F("Dawn")
+
+  #define WTR_LANG_YA             F("en")      // Yandex.Weather seems know only "ru" and "en"
+  #define WTR_LANG_OWM            F("en")      // OpenWeatherMap - 2-letter language code "ru", "en", "de", "fr", "it" and so on. For unknown code returns same as "en"
 
 #endif
 
