@@ -181,14 +181,14 @@ export class ManagementService implements OnDestroy {
 
       this.stateValues.set(key, true);
 
-      const cmd = key.toUpperCase();
+      const cmd = key;
       const args = obj[cmd].trim();
 
       if (cmd.length === 0) continue;
 
       // console.log('cmd=\'%s\'; args=\'%s\'', cmd, args);
 
-      switch (cmd) {
+      switch (cmd.toUpperCase()) {
 
         // Язык из прошивки - 'RUS', 'ENG' или что в прошивке еще определено.
         // Встроенные языки - 'RUS', 'ENG' изначально присутствуют в прошивке в сервисе languageService,

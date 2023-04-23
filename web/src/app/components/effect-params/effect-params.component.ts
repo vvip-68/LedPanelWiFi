@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatSlideToggleChange} from '@angular/material/slide-toggle';
-import {Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
 import {ComboBoxItem} from '../../models/combo-box.model';
 import {EffectModel} from '../../models/effect.model';
 import {isNullOrUndefined} from '../../services/helper';
@@ -42,6 +42,11 @@ export class EffectParamsComponent implements OnInit {
   public param2Control: ControlType = ControlType.NONE;
   public param2Flag = false;
   public param2List: Array<ComboBoxItem> = [];
+
+  private contrastChanged$ = new BehaviorSubject(this.model.contrast);
+  private speedChanged$ = new BehaviorSubject(this.model.speed);
+  private param1Changed$ = new BehaviorSubject(this.model.param1);
+  private param2Changed$ = new BehaviorSubject(this.model.param1);
 
   private destroy$ = new Subject();
 
@@ -131,7 +136,47 @@ export class EffectParamsComponent implements OnInit {
             }
           }
 
-          this.isLoaded = true;
+          setTimeout(() => { this.isLoaded = true; }, 500);
+        }
+      });
+
+    this.contrastChanged$
+      .pipe(takeUntil(this.destroy$), debounceTime(100))
+      .subscribe((value) => {
+        if (this.isLoaded) {
+          this.model.contrast = value;
+          // $8 6 N D; D -> контрастность эффекта N;
+          this.socketService.sendText(`$8 6 ${this.model.id} ${this.model.contrast};`);
+        }
+      });
+
+    this.speedChanged$
+      .pipe(takeUntil(this.destroy$), debounceTime(100))
+      .subscribe((value) => {
+        if (this.isLoaded) {
+          this.model.speed = value;
+          // $8 8 N D; D -> скорость эффекта N;
+          this.socketService.sendText(`$8 8 ${this.model.id} ${this.model.speed};`);
+        }
+      });
+
+    this.param1Changed$
+      .pipe(takeUntil(this.destroy$), debounceTime(100))
+      .subscribe((value) => {
+        if (this.isLoaded) {
+          this.model.param1 = value;
+          // $8 1 N D; D -> параметр #1 для эффекта N;
+          this.socketService.sendText(`$8 1 ${this.model.id} ${this.model.param1};`);
+        }
+      });
+
+    this.param2Changed$
+      .pipe(takeUntil(this.destroy$), debounceTime(100))
+      .subscribe((value) => {
+        if (this.isLoaded) {
+          this.model.param2 = value;
+          // $8 3 N D; D -> параметр #2 для эффекта N;
+          this.socketService.sendText(`$8 3 ${this.model.id} ${this.model.param2};`);
         }
       });
 
@@ -168,27 +213,19 @@ export class EffectParamsComponent implements OnInit {
   }
 
   changeContrastValue(item: number | null) {
-    this.model.contrast = Number(item);
-    // $8 6 N D; D -> контрастность эффекта N;
-    this.socketService.sendText(`$8 6 ${this.model.id} ${this.model.contrast};`);
+    this.contrastChanged$.next(Number(item));
   }
 
   changeSpeedValue(item: number | null) {
-    this.model.speed = Number(item);
-    // $8 8 N D; D -> скорость эффекта N;
-    this.socketService.sendText(`$8 8 ${this.model.id} ${this.model.speed};`);
+    this.speedChanged$.next(Number(item));
   }
 
   changeParam1Value(item: number | null) {
-    this.model.param1 = Number(item);
-    // $8 1 N D; D -> параметр #1 для эффекта N;
-    this.socketService.sendText(`$8 1 ${this.model.id} ${this.model.param1};`);
+    this.param1Changed$.next(Number(item));
   }
 
   changeParam2SliderValue(item: number | null) {
-    this.model.param2 = Number(item);
-    // $8 3 N D; D -> параметр #2 для эффекта N;
-    this.socketService.sendText(`$8 3 ${this.model.id} ${this.model.param2};`);
+    this.param2Changed$.next(Number(item));
   }
 
   changeParam2SelectValue(item: any) {

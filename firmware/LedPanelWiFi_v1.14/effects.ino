@@ -363,7 +363,7 @@ void rainbowRoutine() {
     rainbow_type = (specialTextEffectParam >= 0) ? specialTextEffectParam : getEffectScaleParamValue2(MC_RAINBOW);
     // Если авто - генерировать один из типов - 1-Вертикальная радуга, 2-Горизонтальная радуга, 3-Диагональная радуга, 4-Вращающаяся радуга
     if (rainbow_type == 0 || rainbow_type > 4) {
-      rainbow_type = random8(1,4);
+      rainbow_type = random8(1,5);
     }     
     FastLED.clear();  // очистить
   }
@@ -380,13 +380,14 @@ void rainbowRoutine() {
 
 void rainbowDiagonal() {
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
-  hue += 2;
+  uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1, maxDim);
+  hue += 2;  
   for (uint8_t x = 0; x < pWIDTH; x++) {
     for (uint8_t y = 0; y < pHEIGHT; y++) {
       float dx = (pWIDTH >= pHEIGHT)
          ? (float)(pWIDTH / pHEIGHT * x + y)
          : (float)(pHEIGHT / pWIDTH * y + x);
-      CRGB thisColor = CHSV((uint8_t)(hue + dx * (float)(255 / maxDim)), 255, effectBrightness);
+      CRGB thisColor = CHSV((uint8_t)(hue + dx * koef), 255, effectBrightness);
       drawPixelXY(x, y, thisColor); 
     }
   }
@@ -396,9 +397,10 @@ void rainbowDiagonal() {
 
 void rainbowHorizontal() {
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1,pWIDTH);
   hue += 2;
   for (uint8_t j = 0; j < pHEIGHT; j++) {
-    CHSV thisColor = CHSV((uint8_t)(hue + j * map8(getEffectScaleParamValue(MC_RAINBOW),1,pWIDTH)), 255, effectBrightness);
+    CHSV thisColor = CHSV((uint8_t)(hue + j * koef), 255, effectBrightness);
     for (uint8_t i = 0; i < pWIDTH; i++)
       drawPixelXY(i, j, thisColor);
   }
@@ -408,9 +410,10 @@ void rainbowHorizontal() {
 
 void rainbowVertical() {
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1,pHEIGHT);
   hue += 2;
   for (uint8_t i = 0; i < pWIDTH; i++) {
-    CHSV thisColor = CHSV((uint8_t)(hue + i * map8(getEffectScaleParamValue(MC_RAINBOW),1,pHEIGHT)), 255, effectBrightness);
+    CHSV thisColor = CHSV((uint8_t)(hue + i * koef), 255, effectBrightness);
     for (uint8_t j = 0; j < pHEIGHT; j++)
       drawPixelXY(i, j, thisColor);
   }
@@ -1024,8 +1027,6 @@ void ballsRoutine() {
 #define TAIL_STEP  80     // длина хвоста кометы (чем больше цифра, тем хвост короче)
 #define SATURATION 150    // насыщенность кометы (от 0 до 255)
 
-int8_t STAR_DENSE;     // плотность комет 30..90
-
 void starfallRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
@@ -1034,7 +1035,7 @@ void starfallRoutine() {
   }
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
-  STAR_DENSE = map8(getEffectScaleParamValue(MC_SPARKLES),30,90);
+  int8_t STAR_DENSE = map8(255-getEffectScaleParamValue(MC_STARFALL),10,120);
   
   // заполняем головами комет левую и верхнюю линию
   for (uint8_t i = 4; i < pHEIGHT; i++) {
@@ -1049,7 +1050,7 @@ void starfallRoutine() {
   
   for (uint8_t i = 0; i < pWIDTH-4; i++) {
     if (getPixColorXY(i, pHEIGHT - 1) == 0
-        && (random8(0, map8(getEffectScaleParamValue(MC_STARFALL),10,120)) == 0)
+        && (random8(0, STAR_DENSE) == 0)
         && getPixColorXY(i + 1, pHEIGHT - 1) == 0
         && getPixColorXY(i - 1, pHEIGHT - 1) == 0) {
           idx = getPixelNumber(i, pHEIGHT - 1);           
@@ -2444,8 +2445,8 @@ void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool s
                   lightning[(lx+1) + (ly-1) * pWIDTH] = 255; // move down and right
                 break;
                 case 1:
-                  leds[XY(lx,ly-1)] = CRGB(128,128,128);   // я без понятия, почему у верхней молнии один оттенок, а у остальных - другой
-                  lightning[lx + (ly-1) * pWIDTH] = 255;    // move down
+                  leds[XY(lx,ly-1)] = CRGB(128,128,128);     // я без понятия, почему у верхней молнии один оттенок, а у остальных - другой
+                  lightning[lx + (ly-1) * pWIDTH] = 255;     // move down
                 break;
                 case 2:
                   leds[XY(lx-1,ly-1)] = CRGB(128,128,128);
