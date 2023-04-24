@@ -24,9 +24,10 @@
 [Экспорт эффектов анимации из ПО «Jinx!»](https://github.com/vvip-68/LedPanelWiFi/wiki/Экспорт-эффектов-анимации-из-ПО-«Jinx!»)  
 [Захват видео программой «Jinx!»](https://github.com/vvip-68/LedPanelWiFi/wiki/Захват-видео-программой-«Jinx!»)  
 [Как добавить свою анимацию](https://github.com/vvip-68/LedPanelWiFi/wiki/Добавление-своей-анимации--к-эффекту-«Анимация»)  
+[Большие буквы в бегущей строке](https://github.com/vvip-68/LedPanelWiFi/wiki/Большие-буквы-в-бегущей-строке)  
+[Добавление своих букв](https://github.com/vvip-68/LedPanelWiFi/wiki/Добавление-своих-символов-в-шрифт)  
 
 [API управления устройством](https://github.com/vvip-68/LedPanelWiFi/wiki/API-управления-устройством)  
-[Большие буквы в бегущей строке](https://github.com/vvip-68/LedPanelWiFi/wiki/Большие-буквы-в-бегущей-строке)  
 [OTA - обновление по воздуху](https://github.com/vvip-68/LedPanelWiFi/wiki/OTA---обновление-по-воздуху)
 
 #### [Синхронизация устройств](https://github.com/vvip-68/LedPanelWiFi/wiki/Синхронизация-устройств)  
