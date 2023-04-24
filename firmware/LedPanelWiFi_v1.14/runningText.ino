@@ -202,8 +202,15 @@ uint8_t getTextY() {
   int8_t LH = LET_HEIGHT;
   if (LH > pHEIGHT) LH = pHEIGHT;
   int8_t offset_y = (pHEIGHT - LH) / 2;     // по центру матрицы по высоте
+  #if (BIG_FONT == 2)
+   offset_y--;                              // на 1 строку ниже для большого шрифта, иначе шрифт 8x13 не влазит по вертикали диакритич. символы на матрице 16x16
+  #endif
   return offset_y; 
 }
+
+// -----------------------------------------------------------------------
+// Отрисовка букв алфавита на матрице
+// -----------------------------------------------------------------------
 
 void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, uint32_t color) {
   int8_t LH = LET_HEIGHT;
@@ -270,11 +277,6 @@ void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
   }
 }
 
-// Сдвинуть позицию отображения строки
-void shiftTextPosition() {
-  offset--;
-}
-
 #if (BIG_FONT == 0)
  // Шрифт меньше/равно 8 точек - достаточно байта
  #define read_char pgm_read_byte
@@ -283,11 +285,13 @@ void shiftTextPosition() {
  #define read_char pgm_read_word
 #endif
 
-// ------------- СЛУЖЕБНЫЕ ФУНКЦИИ --------------
 
 // интерпретатор кода символа в массиве fontHEX (для Arduino IDE 1.8.* и выше)
 uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
   font = font - '0' + 16;   // перевод код символа из таблицы ASCII в номер согласно нумерации массива  
+
+  // DEBUGLN("modif=" + String(modif) + "; font=" + String(font));
+  
   if (font <= 94) {
     return read_char(&(fontHEX[font][row]));       // для английских букв и символов
   } else if (modif == 209 && font == 116) {        // є
@@ -312,15 +316,27 @@ uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
     return read_char(&(fontHEX[font + 47][row]));
   } else if (modif == 194 && font == 144) {                                          // Знак градуса '°'
     return read_char(&(fontHEX[159][row]));
-  } else if (modif == 195) {                                          // ß
+  } else if (modif == 195) {
     switch (font) {
-      case 127: return read_char(&(fontHEX[163][row])); // ß - 195 127 - 163
+      case 127: return read_char(&(fontHEX[163][row])); // ß - 195 127 - 163         // Индекс строки в массиве fontHex - 163
       case 100: return read_char(&(fontHEX[33][row]));  // Ä - 195 100 - 33
       case 118: return read_char(&(fontHEX[47][row]));  // Ö - 195 118 - 47
       case 124: return read_char(&(fontHEX[53][row]));  // Ü - 195 124 - 53
       case 132: return read_char(&(fontHEX[65][row]));  // ä - 195 132 - 65
       case 150: return read_char(&(fontHEX[79][row]));  // ö - 195 150 - 79
       case 156: return read_char(&(fontHEX[85][row]));  // ü - 195 156 - 85    
+      case 97:  return read_char(&(fontHEX[33][row]));  // Á - 195 97  - 33          
+      case 105: return read_char(&(fontHEX[37][row]));  // É - 195 105 - 37          
+      case 109: return read_char(&(fontHEX[41][row]));  // Í - 195 109 - 41          
+      case 115: return read_char(&(fontHEX[47][row]));  // Ó - 195 115 - 47          
+      case 122: return read_char(&(fontHEX[53][row]));  // Ú - 195 122 - 53          
+      case 113: return read_char(&(fontHEX[46][row]));  // Ñ - 195 114 - 46          
+      case 129: return read_char(&(fontHEX[65][row]));  // á - 195 129 - 65
+      case 137: return read_char(&(fontHEX[69][row]));  // é - 195 137 - 69
+      case 141: return read_char(&(fontHEX[164][row])); // í - 195 141 - 164
+      case 147: return read_char(&(fontHEX[79][row]));  // ó - 195 147 - 79
+      case 154: return read_char(&(fontHEX[85][row]));  // ú - 195 154 - 85    
+      case 145: return read_char(&(fontHEX[78][row]));  // ñ - 195 145 - 78      
     }
   } else if (modif == 196 || modif == 197) {                                         // Буквы литовского алфавита  Ą Č Ę Ė Į Š Ų Ū Ž ą č ę ė į š ų ū ž
     switch (font) {
@@ -349,20 +365,37 @@ uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
 
 uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
   font = font - '0' + 16;   // перевод код символа из таблицы ASCII в номер согласно нумерации массива
+    // 0 - Ё - две точки над буквой Ё Ä Ö Ü ё ä,ö,ü
+    // 1 - Č - перевернутая крышечка над заглавной буквой Č Ž č ž
+    // 2 - Ė - точка над заглавной буквой Ė ė
+    // 3 - Ū - надстрочная черта над заглавной буквой Ū ū
+    // 4 - Ą - хвостик снизу букв Ą ą Ę ę ų - смещение к правому краю буквы
+    // 5 - Į - хвостик снизу букв Į į Ų     - по центру буквы    
+    // 6 - Á - ударение над буквами Á, É, Í, Ó, Ú, á, é, í, ó, ú - по центру буквы    
+    // 7 - Ñ - тильда над буквой Ñ  - по центру буквы    
   if ((modif == 208 && font == 97) || (modif == 195 && (font == 100 || font == 118 || font == 124))) {         // Ё, немец. Ä,Ö,Ü
     return read_char(&(diasHEX[0][row])); 
   } else if ((modif == 209 && font == 113) || (modif == 195 && (font == 132 || font == 150 || font == 156))) { // ё, немец. ä,ö,ü
     return read_char(&(diasHEX[0][row])); 
   } else if ((modif == 208) && font == 103) {      // Ї
     return read_char(&(diasHEX[0][row])); 
-  } else if (modif == 196 || modif == 197) {                                           // Буквы литовского алфавита  Ą Č Ę Ė Į Š Ų Ū Ž ą č ę ė į š ų ū ž
-    // 0 - Č - перевернутая крышечка над заглавной буквой Č Ž č ž
-    // 1 - Ė - точка над заглавной буквой Ė ė
-    // 2 - Ū - надстрочная черта над заглавной буквой Ū ū
-    // 3 - Ą - хвостик снизу букв Ą ą Ę ę ų - смещение к правому краю буквы
-    // 4 - Į - хвостик снизу букв Į į Ų     - по центру буквы    
+  } else if (modif == 195) {                                                          // Буквы испанского алфавита  Á, É, Í, Ó, Ú, Ü, Ñ, á, é, í, ó, ú, ü, ñ
     switch (font) {
-      case 100: return read_char(&(diasHEX[4][row])); //Ą 196   100  -     33
+      case 97:  return read_char(&(diasHEX[6][row])); //Á 195    97  -     33          
+      case 105: return read_char(&(diasHEX[6][row])); //É 195    105 -     37          
+      case 109: return read_char(&(diasHEX[6][row])); //Í 195    109 -     41          
+      case 115: return read_char(&(diasHEX[6][row])); //Ó 195    115 -     47          
+      case 122: return read_char(&(diasHEX[6][row])); //Ú 195    122 -     53          
+      case 113: return read_char(&(diasHEX[7][row])); //Ñ 195    114 -     46          
+      case 129: return read_char(&(diasHEX[6][row])); //á 195    129 -     65
+      case 137: return read_char(&(diasHEX[6][row])); //é 195    137 -     69
+      case 147: return read_char(&(diasHEX[6][row])); //ó 195    147 -     79
+      case 154: return read_char(&(diasHEX[6][row])); //ú 195    154 -     85    
+      case 145: return read_char(&(diasHEX[7][row])); //ñ 195    145 -     78      
+    }
+  } else if (modif == 196 || modif == 197) {                                           // Буквы литовского алфавита  Ą Č Ę Ė Į Š Ų Ū Ž ą č ę ė į š ų ū ž
+    switch (font) {
+      case 100: return read_char(&(diasHEX[4][row])); //Ą 196   100  -     33 
       case 108: return read_char(&(diasHEX[1][row])); //Č 196   108  -     35
       case 120: return read_char(&(diasHEX[4][row])); //Ę 196   120  -     37
       case 118: return read_char(&(diasHEX[2][row])); //Ė 196   118  -     37
@@ -379,7 +412,7 @@ uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
       case 129: return read_char(&(diasHEX[1][row])); //š 197   129  -     83
       case 147: return read_char(&(diasHEX[4][row])); //ų 197   147  -     85
       case 139: return read_char(&(diasHEX[3][row])); //ū 197   139  -     85
-      case 158: return read_char(&(diasHEX[1][row])); //ž 197   158  -     90
+      case 158: return read_char(&(diasHEX[1][row])); //ž 197   158  -     90      
     }
   }
   return 0;
@@ -397,6 +430,36 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
     #endif  
   } else if ((modif == 208) && font == 103) {      // Ї
     return 3; 
+  } else if (modif == 195) {                       // Буквы испанского алфавита  Á, É, Í, Ó, Ú, Ü, Ñ, á, é, í, ó, ú, ü, ñ
+    #if (BIG_FONT == 0)
+      switch (font) {
+        case 97:  return 2; //Á 195    97  -     33          
+        case 105: return 2; //É 195    105 -     37          
+        case 109: return 2; //Í 195    109 -     41          
+        case 115: return 2; //Ó 195    115 -     47          
+        case 122: return 2; //Ú 195    122 -     53          
+        case 113: return 3; //Ñ 195    114 -     46          
+        case 129: return 1; //á 195    129 -     65
+        case 137: return 1; //é 195    137 -     69
+        case 147: return 1; //ó 195    147 -     79
+        case 154: return 0; //ú 195    154 -     85    
+        case 145: return 1; //ñ 195    145 -     78      
+      }
+    #else
+      switch (font) {
+        case 97:  return 3; //Á 195    97  -     33          
+        case 105: return 3; //É 195    105 -     37          
+        case 109: return 3; //Í 195    109 -     41          
+        case 115: return 3; //Ó 195    115 -     47          
+        case 122: return 3; //Ú 195    122 -     53          
+        case 113: return 3; //Ñ 195    114 -     46          
+        case 129: return 0; //á 195    129 -     65
+        case 137: return 0; //é 195    137 -     69
+        case 147: return 0; //ó 195    147 -     79
+        case 154: return 0; //ú 195    154 -     85    
+        case 145: return 0; //ñ 195    145 -     78      
+      }
+    #endif
   } else if (modif == 196 || modif == 197) {       // Буквы литовского алфавита  Ą Č Ę Ė Į Š Ų Ū Ž ą č ę ė į š ų ū ž
     // Смещение надстрочных заглавных - 3
     // Смещение надстрочных маленьких букв - 0 или 1
@@ -446,6 +509,13 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
     #endif
   }
   return 0;
+}
+
+// ------------- СЛУЖЕБНЫЕ ФУНКЦИИ --------------
+
+// Сдвинуть позицию отображения строки
+void shiftTextPosition() {
+  offset--;
 }
 
 // Получить / установить настройки отображения очередного текста бегущей строки
