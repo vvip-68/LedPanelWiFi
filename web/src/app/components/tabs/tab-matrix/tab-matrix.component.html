@@ -28,7 +28,7 @@
       <div class="field-container">
         <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always">
           <mat-label>{{ L.$('Ширина') }}</mat-label>
-          <input matInput required minlength="4" maxlength="128" autocomplete="new-password" type="number" class="size"
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
                  [formControl]="segWidthFormControl"
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
@@ -43,7 +43,7 @@
         <div style="width:12px"></div>
         <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always">
           <mat-label>{{ L.$('Высота') }}</mat-label>
-          <input matInput required minlength="4" maxlength="128" autocomplete="new-password" type="number" class="size"
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
                  [formControl]="segHeightFormControl"
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
@@ -70,7 +70,7 @@
       <div class="field-container">
         <mat-form-field hintLabel="{{ L.$('от 1 до 15') }}" floatLabel="always">
           <mat-label>{{ L.$('Ширина') }}</mat-label>
-          <input matInput required minlength="1" maxlength="15" autocomplete="new-password" type="number" class="size"
+          <input matInput required autocomplete="new-password" type="number" class="size"  [min]="1" [max]="15" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
                  [formControl]="tolWidthFormControl"
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
@@ -85,7 +85,7 @@
         <div style="width:12px"></div>
         <mat-form-field hintLabel="{{ L.$('от 1 до 15') }}" floatLabel="always">
           <mat-label>{{ L.$('Высота') }}</mat-label>
-          <input matInput required minlength="1" maxlength="15" autocomplete="new-password" type="number" class="size"
+          <input matInput required autocomplete="new-password" type="number" class="size"  [min]="1" [max]="15" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
                  [formControl]="tolHeightFormControl"
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">

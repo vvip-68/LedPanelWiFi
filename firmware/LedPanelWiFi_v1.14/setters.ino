@@ -984,4 +984,15 @@ void set_SyncGroup(uint8_t value) {
   addKeyToChanged("E3");  
 }
 
+void set_SyncViewport(int8_t masterX, int8_t masterY, int8_t localX, int8_t localY, int8_t localW, int8_t localH) {
+  putSyncViewport(masterX, masterY, localX, localY, localW, localH);
+  loadSyncViewport();
+  addKeyToChanged("EMX");  
+  addKeyToChanged("EMY");  
+  addKeyToChanged("ELX");  
+  addKeyToChanged("ELY");  
+  addKeyToChanged("ELW");  
+  addKeyToChanged("ELH");  
+}
+
 #endif

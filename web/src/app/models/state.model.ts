@@ -119,6 +119,12 @@ export interface IStateModel {
   text_edit: string;               // TY  - TY:[I:Z > текст]  - текст для строки, с указанным индексом I 0..35, Z 0..9,A..Z. Ограничители [] обязательны; текст ответа в формате: 'I:Z > текст';
   text_color: string;              // C2 - C2:цвет - цвет режима "монохром" бегущей строки; цвет: 192,96,96 - R,G,B
   image_line: string;              // IR - IR N|RRGGBB,RRGGBB,...,RRGGBB - прием строки изображения; IC - IC N|RRGGBB,RRGGBB,...,RRGGBB - прием колонки изображения
+  sync_master_x: number;           // EMX - EMX:X - позиция X левого верхнего угла мастера, откуда на приемнике идет захват изображения с Мастера
+  sync_master_y: number;           // EMY - EMY:X - позиция Y левого верхнего угла мастера, откуда на приемнике идет захват изображения с Мастера
+  sync_local_x: number;            // ELX - ELX:X - позиция X левого верхнего угла окна приемника, куда идет вывод изображения с Мастера
+  sync_local_y: number;            // ELY - ELY:X - позиция Y левого верхнего угла окна приемника, куда идет вывод изображения с Мастера
+  sync_local_w: number;            // ELW - ELW:X - ширина окна приемника, куда идет вывод изображения с Мастера
+  sync_local_h: number;            // ELH - ELH:X - высота окна приемника, куда идет вывод изображения с Мастера
 }
 
 export class StateModel implements IStateModel {
@@ -234,6 +240,12 @@ export class StateModel implements IStateModel {
   public text_edit = '';
   public text_color = '';
   public image_line = '';
+  public sync_master_x = 0;
+  public sync_master_y = 0;
+  public sync_local_x = 0;
+  public sync_local_y = 0;
+  public sync_local_w = 16;
+  public sync_local_h = 16;
 
   constructor() {
   }
@@ -362,6 +374,12 @@ export class StateModel implements IStateModel {
       case 'TS':   return this.text_cells_type;
       case 'TY':   return this.text_edit;
       case 'C2':   return this.text_color;
+      case 'EMX':  return this.sync_master_x;
+      case 'EMY':  return this.sync_master_y;
+      case 'ELX':  return this.sync_local_x;
+      case 'ELY':  return this.sync_local_y;
+      case 'ELW':  return this.sync_local_w;
+      case 'ELH':  return this.sync_local_h;
     }
     // @formatter:on
     return null;
@@ -494,6 +512,12 @@ export class StateModel implements IStateModel {
       case 'TS':   this.text_cells_type = '' + value;                             break;
       case 'TY':   this.text_edit = '' + value;                                   break;
       case 'C2':   this.text_color = '' + value;                                  break;
+      case 'EMX':  this.sync_master_x = Number(value);                            break;
+      case 'EMY':  this.sync_master_y = Number(value);                            break;
+      case 'ELX':  this.sync_local_x = Number(value);                             break;
+      case 'ELY':  this.sync_local_y = Number(value);                             break;
+      case 'ELW':  this.sync_local_w = Number(value);                             break;
+      case 'ELH':  this.sync_local_h = Number(value);                             break;
     }
     // @formatter:on
   }

@@ -13,8 +13,7 @@
 #define STATE_KEYS F("|W|H|VR|HN|DM|PS|PD|IT|AL|RM|PW|BR|WU|WT|WR|WS|WC|WN|WZ|EF|EN|UT|UC|SE|SS|SQ|BE|CE|CC|CO|CH|CK|CV|NC|SC|C1|DC|DD|DI" \
                      "|NP|NT|NZ|NM|NS|DW|OF|TM|AW|AT|AD|AE|MX|MU|MD|MV|MA|MB|MP|AN|AB|AU|NW|NX|IP|QZ|QA|QP|QS|QU|QR|TE|TI|TS|CT|C2|CL|ST|TY|LG" \
                      "|AM1T|AM1A|AM2T|AM2A|AM3T|AM3A|AM4T|AM4A|AM5A|AM6A|UP|FM|T1|T2|M0|M1|M2|M3|M4|M5|M6|M7|M8|M9|M10|M11" \
-                     "|QW|E0|E1|E2|E3|LE|FV|S1|S2|S3|SD|SX|FS|EE|SM|BS|FL0|FL1|")  // !!! завершающая "|" - обязательна !!!                     
-
+                     "|QW|E0|E1|E2|E3|LE|FV|S1|S2|S3|SD|SX|FS|EE|SM|BS|FL0|FL1|EMX|EMY|ELX|ELY|ELW|ELH|")  // !!! завершающая "|" - обязательна !!!        
 #if (USE_MQTT == 1)
 
 // ------------------ MQTT CALLBACK -------------------

@@ -67,6 +67,9 @@ void InitializeE131() {
     END_UNIVERSE = START_UNIVERSE + UNIVERSE_COUNT - 1;
 
     last_fps_time = millis();
+
+    // Считываем из EEPROM параметры viewport на который будет выполняться трансляция с МАСТЕРА
+    loadSyncViewport();
     
     // Инициализировать слушатель E1.31 пакетов
     e131 = new ESPAsyncE131(UNIVERSE_COUNT);
@@ -155,21 +158,24 @@ bool drawE131frame(e131_packet_t *packet, eSyncModes syncMode) {
     uint16_t len = (170 + offset > NUM_LEDS) ? (NUM_LEDS - offset) * 3 : 510;  
     memmove(&leds[offset], data, len);
   } else {
-    // Режим вывода LOGIC - начало картинки X,Y = 0,0; Далее по строке слева направо, затем строки сверху вниз
-    // Порядок следования светодиодов на матрице должен соответствовать порядку следования пикселей на MASTER-устройстве
+    // Режим вывода LOGIC - начало картинки X,Y = localX,localY; Далее по строке слева направо, затем строки сверху вниз
+    // Принимаемая позиция viewport МАСТЕРА - с masterX, masterY, ширина докального viewport - localW, localH
     uint8_t w = masterWidth == 0 ? pWIDTH : masterWidth;
     uint8_t h = masterHeight == 0 ? pHEIGHT : masterHeight;
     uint16_t numLeds = w * h;
     uint16_t len = (170 + offset > numLeds) ? (numLeds - offset) : 170;  
-    int8_t offset_x = (pWIDTH - w) / 2;
-    int8_t offset_y = (pHEIGHT - h) / 2;
+
     for (uint16_t i = 0; i < len; i++) {
       uint16_t idx = offset + i;
-      int8_t  x = idx % w;
-      int8_t  y = h - idx / w - 1;
-      uint16_t n = i * 3;
-      CRGB color = CRGB(data[n], data[n+1], data[n+2]);
-      drawPixelXY(offset_x + x, offset_y + y, color);
+      int8_t  x = idx % w;                // Позиция точки X с экрана МАСТЕРА
+      int8_t  y = h - idx / w - 1;        // Позиция точки Y с экрана МАСТЕРА
+
+      // Если X,Y попадают в оболасть трансляции - вывести точку на матрицу, если не попадает - пропустить
+      if (x >= masterX && x < (masterX + localW) && y >= masterY && y < (masterY + localH)) {
+        uint16_t n = i * 3;
+        CRGB color = CRGB(data[n], data[n+1], data[n+2]);      
+        drawPixelXY(localX + x - masterX, localY + y - masterY, color);
+      }
     } 
   }
   return true;
@@ -709,4 +715,5 @@ void commandSetClockSpeed(uint8_t value) {
   free(packet);      
   //DEBUGLN("SEND CMD_CLOCKSPEED");
 }
+
 #endif

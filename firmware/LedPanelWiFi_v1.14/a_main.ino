@@ -756,6 +756,13 @@ void parsing() {
                                   2 - payload пакета - строка команды
              E3 - группа синхронизации 0..9                      
        - $23 4; - перезапуск устройства (reset/restart/reboot)
+       - $23 5 MX, MY, LX, LY, LW, LH; - настройка окна отображения трансляции с MASTER на SLAVE
+             MX - логическая координата X мастера с которого начинается вывод на локальную матрицу    X,Y - левый верхний угол начала трансляции мастера
+             MY - логическая координата Y мастера с которого начинается вывод на локальную матрицу
+             LX - логическая координата X приемника на которую начинается вывод на локальную матрицу  X,Y - левый верхний угол начала отображения на приемнике
+             MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
+             LW - ширина окна отображения на локальной матрице
+             LH - высота окна отображения на локальной матрице
   */  
 
   // Если прием данных завершен и управляющая команда в intData[0] распознана
@@ -2314,6 +2321,13 @@ void parsing() {
       //                            2 - payload пакета - строка команды
       //       E3 - группа синхронизации 0..9                      
       // - $23 4; - перезагрузить устройство
+      // - $23 5 MX, MY, LX, LY, LW, LH; - настройуа окна отображения трансляции с MASTER на SLAVE
+      //       MX - логическая координата X мастера с которого начинается вывод на локальную матрицу    X,Y - левый верхний угол начала трансляции мастера
+      //       MY - логическая координата Y мастера с которого начинается вывод на локальную матрицу
+      //       LX - логическая координата X приемника на которую начинается вывод на локальную матрицу  X,Y - левый верхний угол начала отображения на приемнике
+      //       MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
+      //       LW - ширина окна отображения на локальной матрице
+      //       LH - высота окна отображения на локальной матрице
       // ----------------------------------------------------
 
       case 23:
@@ -2401,6 +2415,28 @@ void parsing() {
             FastLED.clear();
             FastLED.show();
             ESP.restart();
+            break;
+          case 5:
+            #if (USE_E131 == 1)
+            {
+              masterX = intData[2];
+              masterY = intData[3];
+              localX  = intData[4];
+              localY  = intData[5];
+              localW  = intData[6];
+              localH  = intData[7];
+
+              // Сохранить настройки Viewport
+              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);
+                    
+              if (cmdSource == UDP) {
+                sendAcknowledge();
+              } else {
+                str = MSG_OP_SUCCESS;
+                SendWebInfo(str);
+              }
+            }
+            #endif
             break;
           default:
             notifyUnknownCommand(incomeBuffer, cmdSource);
@@ -2629,6 +2665,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // E1:X        режим работы 0 - STANDALONE, 1 - MASTER, 2 - SLAVE  
   // E2:X        тип данных работы 0 - PHYSIC, 1 - LOGIC, 2 - COMMAND
   // E3:X        группа синхронизации 0..9
+  // EMX:X       X-позиция окна захвата изображения с мастера
+  // EMY:X       Y-позиция окна захвата изображения с мастера
+  // ELX:X       X-позиция окна вывода изображения с мастера в локальный viewport
+  // ELY:X       Y-позиция окна вывода изображения с мастера в локальный viewport
+  // ELW:X       ширина окна вывода изображения с мастера в локальный viewport
+  // ELH:X       высота окна вывода изображения с мастера в локальный viewport  
   // EE:X        Наличие сохраненных настроек EEPROM на SD-карте или в файловой системе МК: 0 - нет 1 - есть в FS; 2 - есть на SD; 3 - есть в FS и на SD
   // EF:число    текущий эффект - id
   // EN:[текст]  текущий эффект - название
@@ -4014,6 +4056,66 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       return tmp;
     }
     return str + "E3:" + tmp;
+  }
+
+  // Позиция X окна трансляции мастера
+  if (key == "EMX") {
+    tmp = String(masterX);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "EMX:" + tmp;
+  }
+  
+  // Позиция Y окна трансляции мастера
+  if (key == "EMY") {
+    tmp = String(masterY);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "EMY:" + tmp;
+  }
+  
+  // Позиция X локального окна окна приема трансляции с мастера
+  if (key == "ELX") {
+    tmp = String(localX);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "ELX:" + tmp;
+  }
+  
+  // Позиция Y локального окна окна приема трансляции с мастера
+  if (key == "ELY") {
+    tmp = String(localY);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "ELX:" + tmp;
+  }
+  
+  // Ширина локального окна окна приема трансляции с мастера
+  if (key == "ELW") {
+    tmp = String(localW);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "ELW:" + tmp;
+  }
+  
+  // Высота локального окна окна приема трансляции с мастера
+  if (key == "ELH") {
+    tmp = String(localH);
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "ELH:" + tmp;
   }
   
   #endif

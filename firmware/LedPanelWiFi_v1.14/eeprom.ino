@@ -73,7 +73,13 @@ void loadSettings() {
   //   95 - полная высота матрицы при использовании карты индексов
   //   96 - time zone UTC+X - минуты                                                                         // getTimeZoneMinutes();          // putTimeZoneMinutes(timeZoneOffsetMinutes)
   //   97 - время задержки повтора нажатия кнопки в играх 10..100                                            // getGameButtonSpeed();          // putGameButtonSpeed(val)
-  //**98-119  - не используется
+  //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
+  //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
+  //  100 - localX  - трансляция экрана с MASTER - локальная координата X куда начинается вывод изображения
+  //  101 - localY  - трансляция экрана с MASTER - локальная координата Y куда начинается вывод изображения
+  //  102 - localW  - трансляция экрана с MASTER - ширина окна вывода изображения
+  //  103 - localH  - трансляция экрана с MASTER - высота окна вывода изображения
+  //**104-119  - не используется
   //  120-149 - имя NTP сервера      - 30 байт                                                               // getNtpServer().toCharArray(ntpServerName, 31) // putNtpServer(String(ntpServerName)) // char ntpServerName[31] = ""
   //  150,151 - лимит по току в миллиамперах                                                                 // getPowerLimit()                // putPowerLimit(CURRENT_LIMIT)
   //  152 - globalClockColor.r -  цвет часов в режиме MC_COLOR, режим цвета "Монохром"                       // getGlobalClockColor()          // putGlobalClockColor(globalClockColor)              // uint32_t globalClockColor
@@ -1944,6 +1950,39 @@ void saveEffectOrder() {
       putEffectOrder((uint8_t)eff_idx, i);
     }
   }
+}
+
+void putSyncViewport(int8_t masterX, int8_t masterY, int8_t localX, int8_t localY, int8_t localW, int8_t localH) {
+  if (masterX < 0) masterX = 0;
+  if (masterY < 0) masterY = 0;
+  if (localX < 0 || localX >= pWIDTH) localX = 0;
+  if (localY < 0 || localY >= pHEIGHT) localY = 0;
+  if (localW < 4 || localW > pWIDTH) localW = pWIDTH;
+  if (localH < 4 || localH > pHEIGHT) localW = pHEIGHT;  
+  
+  EEPROMwrite(98, masterX); //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
+  EEPROMwrite(99, masterY); //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
+  EEPROMwrite(100, localX); //  100 - localX  - трансляция экрана с MASTER - локальная координата X куда начинается вывод изображения
+  EEPROMwrite(101, localY); //  101 - localY  - трансляция экрана с MASTER - локальная координата Y куда начинается вывод изображения
+  EEPROMwrite(102, localW); //  102 - localW  - трансляция экрана с MASTER - ширина окна вывода изображения
+  EEPROMwrite(103, localX); //  103 - localH  - трансляция экрана с MASTER - высота окна вывода изображения
+}
+
+void loadSyncViewport() {
+  masterX = EEPROMread(98);  //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
+  masterY = EEPROMread(99);  //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
+  localX  = EEPROMread(100); //  100 - localX  - трансляция экрана с MASTER - локальная координата X куда начинается вывод изображения
+  localY  = EEPROMread(101); //  101 - localY  - трансляция экрана с MASTER - локальная координата Y куда начинается вывод изображения
+  localW  = EEPROMread(102); //  102 - localW  - трансляция экрана с MASTER - ширина окна вывода изображения
+  localH  = EEPROMread(103); //  103 - localH  - трансляция экрана с MASTER - высота окна вывода изображения
+
+  // Проверка на корректность
+  if (masterX < 0) masterX = 0;
+  if (masterY < 0) masterY = 0;
+  if (localX < 0 || localX >= pWIDTH) localX = 0;
+  if (localY < 0 || localY >= pHEIGHT) localY = 0;
+  if (localW < 4 || localW > pWIDTH) localW = pWIDTH;
+  if (localH < 4 || localH > pHEIGHT) localW = pHEIGHT;  
 }
 
 // ---------------------------------------------------------------------------------------------------------

@@ -435,5 +435,11 @@
   "По горизонтали": "Reflect horizontal",
   "По вертикали": "Reflect vertical",
   "По диагонали": "Reflect diagonal",
-  "Не более 16 символов": "1..16 letters"
+  "Не более 16 символов": "1..16 letters",
+  "Угол окна мастера: X": "Master corner: X",
+  "Угол окна вывода: X": "Viewport pos.: X",
+  "Размер окна вывода: W": "Viewport size: W",
+  "Y": "",
+  "H": "",
+  "от 0 до 127": "from 0 to 127"
 }
