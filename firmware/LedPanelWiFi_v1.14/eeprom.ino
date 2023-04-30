@@ -1953,22 +1953,25 @@ void saveEffectOrder() {
 }
 
 void putSyncViewport(int8_t masterX, int8_t masterY, int8_t localX, int8_t localY, int8_t localW, int8_t localH) {
+#if (USE_E131 == 1)
   if (masterX < 0) masterX = 0;
   if (masterY < 0) masterY = 0;
   if (localX < 0 || localX >= pWIDTH) localX = 0;
   if (localY < 0 || localY >= pHEIGHT) localY = 0;
   if (localW < 4 || localW > pWIDTH) localW = pWIDTH;
-  if (localH < 4 || localH > pHEIGHT) localW = pHEIGHT;  
+  if (localH < 4 || localH > pHEIGHT) localH = pHEIGHT;  
   
   EEPROMwrite(98, masterX); //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
   EEPROMwrite(99, masterY); //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
   EEPROMwrite(100, localX); //  100 - localX  - трансляция экрана с MASTER - локальная координата X куда начинается вывод изображения
   EEPROMwrite(101, localY); //  101 - localY  - трансляция экрана с MASTER - локальная координата Y куда начинается вывод изображения
   EEPROMwrite(102, localW); //  102 - localW  - трансляция экрана с MASTER - ширина окна вывода изображения
-  EEPROMwrite(103, localX); //  103 - localH  - трансляция экрана с MASTER - высота окна вывода изображения
+  EEPROMwrite(103, localH); //  103 - localH  - трансляция экрана с MASTER - высота окна вывода изображения
+#endif  
 }
 
 void loadSyncViewport() {
+#if (USE_E131 == 1)
   masterX = EEPROMread(98);  //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
   masterY = EEPROMread(99);  //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
   localX  = EEPROMread(100); //  100 - localX  - трансляция экрана с MASTER - локальная координата X куда начинается вывод изображения
@@ -1982,7 +1985,8 @@ void loadSyncViewport() {
   if (localX < 0 || localX >= pWIDTH) localX = 0;
   if (localY < 0 || localY >= pHEIGHT) localY = 0;
   if (localW < 4 || localW > pWIDTH) localW = pWIDTH;
-  if (localH < 4 || localH > pHEIGHT) localW = pHEIGHT;  
+  if (localH < 4 || localH > pHEIGHT) localH = pHEIGHT;  
+#endif
 }
 
 // ---------------------------------------------------------------------------------------------------------
