@@ -1,8 +1,6 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
-
-#include "progmem_emulation.hpp"
 
 #define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
 #define ARDUINOJSON_ENABLE_PROGMEM 1

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -74,21 +74,21 @@ TEST_CASE("Custom converter with overloading") {
 
 class Complex {
  public:
-  explicit Complex(double r, double i) : _real(r), _imag(i) {}
+  explicit Complex(double r, double i) : real_(r), imag_(i) {}
 
   double real() const {
-    return _real;
+    return real_;
   }
 
   double imag() const {
-    return _imag;
+    return imag_;
   }
 
  private:
-  double _real, _imag;
+  double real_, imag_;
 };
 
-namespace ARDUINOJSON_NAMESPACE {
+namespace ArduinoJson {
 template <>
 struct Converter<Complex> {
   static void toJson(const Complex& src, JsonVariant dst) {
@@ -104,7 +104,7 @@ struct Converter<Complex> {
     return src["real"].is<double>() && src["imag"].is<double>();
   }
 };
-}  // namespace ARDUINOJSON_NAMESPACE
+}  // namespace ArduinoJson
 
 TEST_CASE("Custom converter with specialization") {
   DynamicJsonDocument doc(4096);
@@ -142,7 +142,7 @@ TEST_CASE("Custom converter with specialization") {
 }
 
 TEST_CASE("ConverterNeedsWriteableRef") {
-  using namespace ARDUINOJSON_NAMESPACE;
+  using namespace ArduinoJson::detail;
   CHECK(ConverterNeedsWriteableRef<int>::value == false);
   CHECK(ConverterNeedsWriteableRef<float>::value == false);
   CHECK(ConverterNeedsWriteableRef<JsonVariant>::value == true);

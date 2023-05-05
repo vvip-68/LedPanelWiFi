@@ -1,20 +1,18 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
-#define ARDUINOJSON_ENABLE_PROGMEM 1
-#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
-
-#include "custom_string.hpp"
-#include "progmem_emulation.hpp"
-#include "weird_strcmp.hpp"
+#include <Arduino.h>
 
 #include <ArduinoJson/Strings/IsString.hpp>
 #include <ArduinoJson/Strings/StringAdapters.hpp>
 
 #include <catch.hpp>
 
-using namespace ARDUINOJSON_NAMESPACE;
+#include "custom_string.hpp"
+#include "weird_strcmp.hpp"
+
+using namespace ArduinoJson::detail;
 
 TEST_CASE("ZeroTerminatedRamString") {
   SECTION("null") {
@@ -91,13 +89,13 @@ struct EmptyStruct {};
 
 TEST_CASE("IsString<T>") {
   CHECK(IsString<std::string>::value == true);
-  CHECK(IsString<std::basic_string<wchar_t> >::value == false);
+  CHECK(IsString<std::basic_string<wchar_t>>::value == false);
   CHECK(IsString<custom_string>::value == true);
   CHECK(IsString<const __FlashStringHelper*>::value == true);
   CHECK(IsString<const char*>::value == true);
   CHECK(IsString<const char[8]>::value == true);
-  CHECK(IsString< ::String>::value == true);
-  CHECK(IsString< ::StringSumHelper>::value == true);
+  CHECK(IsString<::String>::value == true);
+  CHECK(IsString<::StringSumHelper>::value == true);
   CHECK(IsString<const EmptyStruct*>::value == false);
 }
 

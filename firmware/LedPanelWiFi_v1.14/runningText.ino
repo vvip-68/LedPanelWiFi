@@ -1,7 +1,5 @@
 // --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 
-int16_t offset;
-
 void InitializeTexts() {
 
   String directoryName = TEXT_STORAGE;
@@ -130,6 +128,12 @@ void runningText() {
     else
       text = String(FIRMWARE_VER);
   } else {
+    // Обычно отображаемые буквы - UTF-8 состоят из двух байт. Исключение из поддерживаемых символов - символ евро '€', который состоит из 4 байт - [226, 98, 0, 140] - занимает 4 позиции в строке.
+    // Два лишних байта отображаются как пробел - пустое место. Если их не отображать (пропускать) - отображение бегущей строки обрывается (заканчивается) до того как последний символ скроется с экрана
+    // Временное решение - заменить символ евро на двухбайтовый UTF-8, но который отсутствует в шрифте и отображать вместо него знак евро.
+    if (currentText.indexOf("€") >= 0) {
+      currentText.replace("€", "¶");
+    }
     // Вывод текста оверлея бегущей строки
     textHasDateTime = init_time && (currentText.indexOf("{D") >= 0 || currentText.indexOf("{R") >= 0 || currentText.indexOf("{P") >= 0 || currentText.indexOf("{S") >= 0);  
     if (textHasDateTime) {
@@ -167,7 +171,7 @@ void fillString(String text) {
     // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
     if (textHasMultiColor) {
       if (pos < (MAX_COLORS - 1) && i >= textColorPos[pos+1]) {      
-          pos++;
+        pos++;
       }      
       color = pos < MAX_COLORS ? textColor[pos] : globalTextColor;
     } else {
@@ -181,13 +185,12 @@ void fillString(String text) {
     // Определились с цветом - выводим очередную букву  
     if ((uint8_t)text[i] > 191) {    // работаем с русскими буквами!
       modif = (uint8_t)text[i];
-      i++;
-    } else {      
+    } else {
       drawLetter(j, text[i], modif, offset + j * (LET_WIDTH + SPACE), color);
-      modif = 0;
-      i++;
       j++;
+      modif = 0;
     }
+    i++;
   }
   fullTextFlag = false;
 
@@ -203,7 +206,7 @@ uint8_t getTextY() {
   if (LH > pHEIGHT) LH = pHEIGHT;
   int8_t offset_y = (pHEIGHT - LH) / 2;     // по центру матрицы по высоте
   #if (BIG_FONT == 2)
-   offset_y--;                              // на 1 строку ниже для большого шрифта, иначе шрифт 8x13 не влазит по вертикали диакритич. символы на матрице 16x16
+    offset_y--;                             // на 1 строку ниже для большого шрифта, иначе шрифт 8x13 не влазит по вертикали диакритич. символы на матрице 16x16
   #endif
   return offset_y; 
 }
@@ -212,7 +215,8 @@ uint8_t getTextY() {
 // Отрисовка букв алфавита на матрице
 // -----------------------------------------------------------------------
 
-void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, uint32_t color) {
+bool drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, uint32_t color) {
+  
   int8_t LH = LET_HEIGHT;
   if (LH > HEIGHT) LH = pHEIGHT;
 
@@ -224,12 +228,12 @@ void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
   else if (color == 2) letterColor = CHSV(uint8_t(index * 30), 255, 255);
   else letterColor = color;
 
-  if (offset < -LET_WIDTH || offset > pWIDTH) return;
+  if (offset < -LET_WIDTH || offset > pWIDTH) return false;
   if (offset < 0) start_pos = -offset;
   if (offset > (pWIDTH - LET_WIDTH)) finish_pos = pWIDTH - offset;
 
   for (uint8_t i = start_pos; i < finish_pos; i++) {
-    uint16_t thisByte; // байт колонки i отображаемого символа шрифта
+    int32_t  thisByte; // байт колонки i отображаемого символа шрифта или -1 если такого символа нет в шрифте
     uint16_t diasByte; // байт колонки i отображаемого диакритического символа
     int8_t   diasOffs; // смещение по Y отображения диакритического символа: diasOffs > 0 - позиция над основной буквой; diasOffs < 0 - позиция ниже основной буквы
     uint16_t pn;       // номер пикселя в массиве leds[]
@@ -241,6 +245,10 @@ void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
       thisByte = getFont(letter, modif, i);
       diasByte = getDiasByte(letter, modif, i);
     }
+
+    // Если такого символа нет в шрифте - ничего не рисовать
+    if (thisByte < 0) return false;
+    
     diasOffs = getDiasOffset(letter, modif);
 
     for (uint8_t j = 0; j < LH; j++) {
@@ -275,6 +283,7 @@ void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
       }
     }
   }
+  return true;
 }
 
 #if (BIG_FONT == 0)
@@ -287,11 +296,11 @@ void drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
 
 
 // интерпретатор кода символа в массиве fontHEX (для Arduino IDE 1.8.* и выше)
-uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
-  font = font - '0' + 16;   // перевод код символа из таблицы ASCII в номер согласно нумерации массива  
+int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
+  font = font - '0' + 16;   // перевод код символа из таблицы ASCII в номер согласно нумерации массива    
 
-  // DEBUGLN("modif=" + String(modif) + "; font=" + String(font));
-  
+  //DEBUGLN("modif=" + String(modif) + "; font=" + String(font));
+
   if (font <= 94) {
     return read_char(&(fontHEX[font][row]));       // для английских букв и символов
   } else if (modif == 209 && font == 116) {        // є
@@ -316,6 +325,8 @@ uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
     return read_char(&(fontHEX[font + 47][row]));
   } else if (modif == 194 && font == 144) {                                          // Знак градуса '°'
     return read_char(&(fontHEX[159][row]));
+  } else if (modif == 194 && font == 150) {                                          // Знак евро '€' - реально '¶' - замена в runningText(), т.к. работает с оно-двух-байтовыми символами UTF-8
+    return read_char(&(fontHEX[165][row]));                                          // а евро - 4 байта, что ломает алгоритм
   } else if (modif == 195) {
     switch (font) {
       case 127: return read_char(&(fontHEX[163][row])); // ß - 195 127 - 163         // Индекс строки в массиве fontHex - 163
@@ -360,7 +371,7 @@ uint16_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
       case 158: return read_char(&(fontHEX[90][row])); //ž 197   158  -     90
     }
   }
-  return 0;
+  return -1;
 }
 
 uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {

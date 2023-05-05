@@ -75,7 +75,7 @@
 
       <div class="field-container text">
         <mat-form-field class="the-text">
-          <textarea #text matInput autocomplete="off" [ngModel]="text_edit" [disableControl]="isDisabled2()"></textarea>
+          <textarea #text matInput autocomplete="off" [ngModel]="text_edit" [disableControl]="isDisabled()"></textarea>
         </mat-form-field>
       </div>
 
@@ -86,7 +86,7 @@
             {{L.$('Очистить')}}
           </button>
           <div [matTooltip]="this.managementService.state.isNightClockRunnung() ? L.$('В режиме ночных часов просмотр недоступен') : L.$('Просмотр строки без сохранения')">
-            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabled2() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
+            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabled() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
               {{L.$('Просмотр')}}
             </button>
           </div>

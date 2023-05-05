@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -22,6 +22,30 @@ TEST_CASE("deserializeJson(char*)") {
     CHECK(doc.as<JsonVariant>().memoryUsage() ==
           JSON_OBJECT_SIZE(1));  // issue #1318
   }
+}
+
+TEST_CASE("deserializeJson(unsigned char*, unsigned int)") {  // issue #1897
+  StaticJsonDocument<1024> doc;
+
+  unsigned char input[] = "{\"hello\":\"world\"}";
+  unsigned char* input_ptr = input;
+  unsigned int size = sizeof(input);
+
+  DeserializationError err = deserializeJson(doc, input_ptr, size);
+
+  REQUIRE(err == DeserializationError::Ok);
+}
+
+TEST_CASE("deserializeJson(uint8_t*, size_t)") {  // issue #1898
+  StaticJsonDocument<1024> doc;
+
+  uint8_t input[] = "{\"hello\":\"world\"}";
+  uint8_t* input_ptr = input;
+  size_t size = sizeof(input);
+
+  DeserializationError err = deserializeJson(doc, input_ptr, size);
+
+  REQUIRE(err == DeserializationError::Ok);
 }
 
 TEST_CASE("deserializeJson(const std::string&)") {

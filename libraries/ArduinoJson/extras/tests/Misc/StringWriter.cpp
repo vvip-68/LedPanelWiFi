@@ -1,14 +1,17 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
-#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
+#include <Arduino.h>
+
 #define ARDUINOJSON_STRING_BUFFER_SIZE 5
 #include <ArduinoJson.h>
+
 #include <catch.hpp>
+
 #include "custom_string.hpp"
 
-using namespace ARDUINOJSON_NAMESPACE;
+using namespace ArduinoJson::detail;
 
 template <typename StringWriter>
 static size_t print(StringWriter& writer, const char* s) {
@@ -65,7 +68,7 @@ TEST_CASE("Writer<std::string>") {
 
 TEST_CASE("Writer<String>") {
   ::String output;
-  Writer< ::String> writer(output);
+  Writer<::String> writer(output);
 
   SECTION("write(char)") {
     SECTION("writes to temporary buffer") {

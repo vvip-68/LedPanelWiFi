@@ -1,11 +1,9 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2022, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #define ARDUINO
 #define memcpy_P(dest, src, n) memcpy((dest), (src), (n))
-
-#include "progmem_emulation.hpp"
 
 #include <ArduinoJson.h>
 

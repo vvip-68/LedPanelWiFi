@@ -378,144 +378,150 @@ void process() {
     checkAutoMode6Time();
     #endif  
 
-    butt.tick();  // обязательная функция отработки. Должна постоянно опрашиваться
-    uint8_t clicks = 0;
+    // --------------------- Опрос нажатий кнопки -------------------------
 
-    // Один клик
-    if (butt.isSingle()) clicks = 1;    
-    // Двойной клик
-    if (butt.isDouble()) clicks = 2;
-    // Тройной клик
-    if (butt.isTriple()) clicks = 3;
-    // Четверной и более клик
-    if (butt.hasClicks()) clicks = butt.getClicks();
-
-    // Максимальное количество нажатий - 5-кратный клик
-    // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
-    // getClicks() возвращает 179, что абсолютная ерунда
-    if (clicks > 4) clicks = 0;
-    
-    if (butt.isPress()) {
-      // Состояние - кнопку нажали  
-    }
-    
-    if (butt.isRelease()) {
-      // Состояние - кнопку отпустили
-      isButtonHold = false;
-    }
-    
-    if (butt.isHolded()) {
-      isButtonHold = true;
-      if (globalBrightness == 255)
-        brightDirection = false;
-      else if (globalBrightness == 0)  
-        brightDirection = true;
-      else  
-        brightDirection = !brightDirection;
-    }
-
-    if (clicks > 0) {
-      DEBUG(F("Кнопка нажата "));  
-      DEBUG(clicks);
-      DEBUGLN(F(" раз"));  
-    }
-
-    // Любое нажатие кнопки останавливает будильник
-    if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
-      DEBUG(F("Выключение будильника кнопкой."));  
-      stopAlarm();
-      clicks = 0;
-    }
-
-    // Одинарный клик - включить . выключить панель
-    if (clicks == 1) {
-      turnOnOff();
-    }
-    
-    // Прочие клики работают только если не выключено
-    if (isTurnedOff) {
-      // Выключить питание матрицы
-      #if (USE_POWER == 1)
-        if (!isAlarming) {
-          digitalWrite(POWER_PIN, POWER_OFF);
-        } else {
+    #if (USE_BUTTON == 1)
+      butt.tick();  // обязательная функция отработки. Должна постоянно опрашиваться
+      uint8_t clicks = 0;
+  
+      // Один клик
+      if (butt.isSingle()) clicks = 1;    
+      // Двойной клик
+      if (butt.isDouble()) clicks = 2;
+      // Тройной клик
+      if (butt.isTriple()) clicks = 3;
+      // Четверной и более клик
+      if (butt.hasClicks()) clicks = butt.getClicks();
+  
+      // Максимальное количество нажатий - 5-кратный клик
+      // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
+      // getClicks() возвращает 179, что абсолютная ерунда
+      if (clicks > 4) clicks = 0;
+      
+      if (butt.isPress()) {
+        // Состояние - кнопку нажали  
+      }
+      
+      if (butt.isRelease()) {
+        // Состояние - кнопку отпустили
+        isButtonHold = false;
+      }
+      
+      if (butt.isHolded()) {
+        isButtonHold = true;
+        if (globalBrightness == 255)
+          brightDirection = false;
+        else if (globalBrightness == 0)  
+          brightDirection = true;
+        else  
+          brightDirection = !brightDirection;
+      }
+  
+      if (clicks > 0) {
+        DEBUG(F("Кнопка нажата "));  
+        DEBUG(clicks);
+        DEBUGLN(F(" раз"));  
+      }
+  
+      // Любое нажатие кнопки останавливает будильник
+      if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
+        DEBUG(F("Выключение будильника кнопкой."));  
+        stopAlarm();
+        clicks = 0;
+      }
+  
+      // Одинарный клик - включить . выключить панель
+      if (clicks == 1) {
+        turnOnOff();
+      }
+      
+      // Прочие клики работают только если не выключено
+      if (isTurnedOff) {
+        // Выключить питание матрицы
+        #if (USE_POWER == 1)
+          if (!isAlarming) {
+            digitalWrite(POWER_PIN, POWER_OFF);
+          } else {
+            digitalWrite(POWER_PIN, POWER_ON);
+          }
+        #endif      
+        //  - длительное нажатие кнопки включает яркий белый свет
+        #if (DEVICE_TYPE == 0)
+          if (isButtonHold) {
+            // Включить панель - белый цвет
+            set_specialBrightness(255);
+            set_globalBrightness(255);
+            set_globalColor(0xFFFFFF);
+            isButtonHold = false;
+            setSpecialMode(1);
+            FastLED.setBrightness(globalBrightness);
+          }
+        #else
+          // Удержание кнопки повышает / понижает яркость панели (лампы)
+          if (isButtonHold && butt.isStep()) {
+            processButtonStep();
+          }
+        #endif      
+        
+      } else {
+        
+        // Включить питание матрицы
+        #if (USE_POWER == 1)
           digitalWrite(POWER_PIN, POWER_ON);
+        #endif
+        
+        // Был двойной клик - следующий эффект, сброс автоматического переключения
+        if (clicks == 2) {
+          bool tmpSaveSpecial = specialMode;
+          resetModes();  
+          setManualModeTo(true);
+          if (tmpSaveSpecial) 
+            setRandomMode();        
+          else 
+            nextMode();
         }
-      #endif      
-      //  - длительное нажатие кнопки включает яркий белый свет
-      #if (DEVICE_TYPE == 0)
-        if (isButtonHold) {
-          // Включить панель - белый цвет
-          set_specialBrightness(255);
-          set_globalBrightness(255);
-          set_globalColor(0xFFFFFF);
-          isButtonHold = false;
-          setSpecialMode(1);
-          FastLED.setBrightness(globalBrightness);
+  
+        // Тройное нажатие - включить случайный режим с автосменой
+        else if (clicks == 3) {
+          // Включить демо-режим
+          resetModes();          
+          setManualModeTo(false);        
+          setRandomMode();
         }
-      #else
-        // Удержание кнопки повышает / понижает яркость панели (лампы)
-        if (isButtonHold && butt.isStep()) {
+  
+        // Если устройство - лампа
+        #if (DEVICE_TYPE == 0)
+          // Четверное нажатие - включить белую лампу независимо от того была она выключена или включен любой другой режим
+          if (clicks == 4) {
+            // Включить лампу - белый цвет
+            set_specialBrightness(255);
+            set_globalBrightness(255);
+            set_globalColor(0xFFFFFF);
+            setSpecialMode(1);
+            FastLED.setBrightness(globalBrightness);
+          }      
+          // Пятикратное нажатие - показать текущий IP WiFi-соединения            
+          else if (clicks == 5) {
+            showCurrentIP(false);
+          }      
+        #else      
+          // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
+          else if (clicks == 4) {
+            showCurrentIP(false);
+          }      
+        #endif
+        // ... и т.д.
+        
+        // Обработка нажатой и удерживаемой кнопки
+        else if (isButtonHold && butt.isStep() && thisMode != MC_DAWN_ALARM) {      
+          // Удержание кнопки повышает / понижает яркость панели (лампы)
           processButtonStep();
-        }
-      #endif      
-      
-    } else {
-      
-      // Включить питание матрицы
-      #if (USE_POWER == 1)
-        digitalWrite(POWER_PIN, POWER_ON);
-      #endif
-      
-      // Был двойной клик - следующий эффект, сброс автоматического переключения
-      if (clicks == 2) {
-        bool tmpSaveSpecial = specialMode;
-        resetModes();  
-        setManualModeTo(true);
-        if (tmpSaveSpecial) 
-          setRandomMode();        
-        else 
-          nextMode();
+        }            
       }
+    #endif
 
-      // Тройное нажатие - включить случайный режим с автосменой
-      else if (clicks == 3) {
-        // Включить демо-режим
-        resetModes();          
-        setManualModeTo(false);        
-        setRandomMode();
-      }
+    // ------------------------------------------------------------------------
 
-      // Если устройство - лампа
-      #if (DEVICE_TYPE == 0)
-        // Четверное нажатие - включить белую лампу независимо от того была она выключена или включен любой другой режим
-        if (clicks == 4) {
-          // Включить лампу - белый цвет
-          set_specialBrightness(255);
-          set_globalBrightness(255);
-          set_globalColor(0xFFFFFF);
-          setSpecialMode(1);
-          FastLED.setBrightness(globalBrightness);
-        }      
-        // Пятикратное нажатие - показать текущий IP WiFi-соединения            
-        else if (clicks == 5) {
-          showCurrentIP(false);
-        }      
-      #else      
-        // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
-        else if (clicks == 4) {
-          showCurrentIP(false);
-        }      
-      #endif
-      // ... и т.д.
-      
-      // Обработка нажатой и удерживаемой кнопки
-      else if (isButtonHold && butt.isStep() && thisMode != MC_DAWN_ALARM) {      
-        // Удержание кнопки повышает / понижает яркость панели (лампы)
-        processButtonStep();
-      }            
-    }
-    
     // Проверить - если долгое время не было ручного управления - переключиться в автоматический режим
     if (!(isAlarming || isPlayAlarmSound)) checkIdleState();
 
@@ -564,6 +570,7 @@ String getEffectName(int8_t mode) {
   return ef_name;
 }
 
+#if (USE_BUTTON == 1)
 void processButtonStep() {
   if (brightDirection) {
     if (globalBrightness < 10) set_globalBrightness(globalBrightness + 1);
@@ -581,6 +588,7 @@ void processButtonStep() {
   set_specialBrightness(globalBrightness);
   if (!isTurnedOff) FastLED.setBrightness(globalBrightness);    
 }
+#endif
 
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
 

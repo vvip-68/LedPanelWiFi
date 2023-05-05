@@ -2,7 +2,7 @@
 // ----------------------------------------------------
 
 uint8_t  lastOverlayX, lastOverlayY, lastOverlayW, lastOverlayH;
-uint32_t xxx;
+uint32_t xxx = millis();
 
 void customRoutine(uint8_t aMode) {
   doEffectWithOverlay(aMode); 
@@ -29,6 +29,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   // Если нет - после проверки  momentTextIdx = -1 и momentIdx = -1
   // Если есть - momentTextIdx - индекс текста для вывода в зависимости от ДО или ПОСЛЕ события текущее время; momentIdx - активная позиция в массиве событий moments[] 
   if (init_time) {
+
     checkMomentText();
     if (momentTextIdx >= 0 && currentTextLineIdx != momentTextIdx) {
       // В момент смены стоки с ДО на ПОСЛЕ - строка ПОСЛЕ извлеченная из массива содержит признак отключенности - '-' в начале или "{-}" в любом месте
@@ -237,7 +238,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   }
 
   // Смещение бегущей строки
-  if (textReady) {
+  if (textReady && (showTextNow || aMode == MC_TEXT)) {
     // Сдвинуть позицию отображения бегущей строки
     shiftTextPosition();
   }
@@ -345,7 +346,9 @@ void doEffectWithOverlay(uint8_t aMode) {
       #endif
     }
     
-  } else if (showTextNow && aMode != MC_TEXT && !isNightClock) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
+  }
+  
+  if ((showTextNow || aMode == MC_TEXT) && !isNightClock) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
     // Нарисовать оверлеем текст бегущей строки
     // Нарисовать текст в текущей позиции
     overlayDelayed = needOverlay;
@@ -731,7 +734,10 @@ void setTimersForMode(uint8_t aMode) {
     if (textScrollSpeed < D_TEXT_SPEED_MIN) set_textScrollSpeed(D_TEXT_SPEED_MIN); // Если textScrollSpeed == 0 - бегущая строка начинает дергаться.
     if (textScrollSpeed > D_TEXT_SPEED_MAX) set_textScrollSpeed(D_TEXT_SPEED_MAX);
   }
-  textTimer.setInterval(textScrollSpeed);
+  // Спеднее время цикла loop 25мс. Иногда когда нет другой работы цикл может завершаться за 7-8мс.
+  // Если время таймера сдвига бегущей строки меньше времени цикла - на таких "быстрых" итерациях происходит сдвиг строки быстрее чем в среднем - 
+  // что визуально смотрится как подергивание. Поэтому время сдвига строки ставить не чаще среднего времени цикла   
+  textTimer.setInterval(constrain(textScrollSpeed,25,255));
 }
 
 void checkIdleState() {

@@ -1155,8 +1155,10 @@ void checkAlarmTime() {
          set_CurrentSpecialMode(-1);
          set_isAlarming(true);
          set_isAlarmStopped(false);
-         loadingFlag = true;         
+         loadingFlag = true;  
+         #if (USE_BUTTON == 1 || USE_TM1637 == 1)       
          isButtonHold = false;
+         #endif
          set_thisMode(MC_DAWN_ALARM);
          setTimersForMode(thisMode);
          // Реальная продолжительность рассвета
