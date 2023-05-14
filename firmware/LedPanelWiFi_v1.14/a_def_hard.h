@@ -497,11 +497,11 @@
 #endif
 
 #include "FS.h"                  // Работа с внутренней файловой системой чипа ESP8266/ESP32
-#if defined(ESP32)
-#include "LITTLEFS.h"            // Формат файловой системы - LittleFS
+#if defined(ESP32) and defined(ARDUINO_ESP32_RELEASE_1_0_6)
+#include "LITTLEFS.h"            // Формат файловой системы - LittleFS - в библиотеке LittleFS_esp32 (v1.0.6)
 #define LittleFS LITTLEFS
 #else
-#include <LittleFS.h>            // Формат файловой системы - LittleFS
+#include <LittleFS.h>            // Формат файловой системы - LittleFS - в ядре 2.0.9
 #endif
 
 // =======================================================

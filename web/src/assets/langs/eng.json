@@ -476,5 +476,6 @@
   "DIO:": "",
   "MISO:": "",
   "MOSI:": "",
-  "TM1637": ""
+  "TM1637": "",
+  "matrix_warning": "Changing size of matrix may require change length of led-segment line in section 'Setup' - 'Wiring', otherwise image on matrix will not be display fully, only partially."
 }
