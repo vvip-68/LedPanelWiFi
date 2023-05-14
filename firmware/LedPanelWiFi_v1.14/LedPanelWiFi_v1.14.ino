@@ -319,6 +319,9 @@ void setup() {
         int8_t   led_pin = getLedLinePin(i);
         int16_t  led_start = getLedLineStartIndex(i);
         int16_t  led_count = getLedLineLength(i);
+        if (led_start + led_count > NUM_LEDS) {
+          led_count = NUM_LEDS - led_start;
+        }        
         DEBUGLN(String(F("  Линия ")) + String(i) + " PIN=" + pinName(led_pin) + String(F(", START=")) + String(led_start) + String(F(", COUNT=")) + String(led_count) );        
       }
     }
@@ -432,6 +435,16 @@ void setup() {
   allocateOverlay();      // overlayLEDs = new CRGB[OVERLAY_SIZE];
   DEBUGLN();
 
+  FastLED.setBrightness(globalBrightness);
+  if (CURRENT_LIMIT > 0) {
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
+  }
+
+  if (leds != nullptr) {
+    FastLED.clear();
+    FastLED.show();
+  }
+
   // Распечатать список активных эффектов
   printEffectUsage();
   DEBUGLN();
@@ -443,20 +456,6 @@ void setup() {
     putMatrixSegmentType(sMATRIX_TYPE);
   }
   
-  /*
-  // Это пример, как выводить на две матрицы 16х16 (сборная матрица 32х16) через два пина D2 и D3
-  // Чтобы вывод был именно на D2 и D3 - в меню Инструменты - плату выбирать "Wemos D1 mini pro" - при выбранной плате NodeMCU назначение пинов куда-то "съезжает" на другие - нужно искать куда. 
-  // Убедитесь в правильном назначении адресации диодов матриц в сборной матрице используя индексные файлы или сьорную матрицу из матриц одного размера и подключения сегментов.
-  FastLED.addLeds<LED_CHIP, D2, COLOR_ORDER>(leds, 256).setCorrection( TypicalLEDStrip );
-  FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
-  
-  FastLED.setBrightness(globalBrightness);
-  if (CURRENT_LIMIT > 0) {
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
-  }
-  FastLED.clear();
-  FastLED.show();
-  */
 
   // Инициализация SD-карты
   #if (USE_SD == 1)
@@ -492,12 +491,21 @@ void setup() {
       pinMode(vPOWER_PIN, OUTPUT);
     }
   #endif
-     
-  // Первый этап инициализации плеера - подключение и основные настройки
-  #if (USE_MP3 == 1)
-    InitializeDfPlayer1();
-  #endif
 
+  #if (USE_MP3 == 1)
+    // Первый этап инициализации плеера - подключение и основные настройки
+    InitializeDfPlayer1();
+  // Второй этап инициализации плеера - проверка наличия файлов звуков на SD карте
+    if (isDfPlayerOk) {
+      InitializeDfPlayer2();
+      if (!isDfPlayerOk) {
+        DEBUGLN(F("MP3 плеер недоступен."));
+      }
+    } else {
+        DEBUGLN(F("MP3 плеер недоступен."));
+    }
+  #endif
+     
   #if defined(ESP8266)
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
   #endif
@@ -515,17 +523,6 @@ void setup() {
       butt->setStepTimeout(100);
       butt->setClickTimeout(500);
     }
-  #endif
-
-  // Второй этап инициализации плеера - проверка наличия файлов звуков на SD карте
-  #if (USE_MP3 == 1)
-    if (isDfPlayerOk) {
-      InitializeDfPlayer2();
-      if (!isDfPlayerOk) {
-        DEBUGLN(F("MP3 плеер недоступен."));
-      }
-    } else
-        DEBUGLN(F("MP3 плеер недоступен."));
   #endif
 
   InitializeTexts();
@@ -763,11 +760,14 @@ void startWiFi(uint32_t waitTime) {
         if (butt != nullptr) {
           butt->tick();
           if (butt->hasClicks()) {
-            butt->getClicks();
-            DEBUGLN();
-            DEBUGLN(F("Нажата кнопка.\nОжидание подключения к сети WiFi прервано."));  
-            stop_waiting = true;
-            break;
+            int8_t clicks = butt->getClicks();
+            // Двойной клик прерывает ожидание подключения к локальной сети
+            if (clicks == 2) {
+              DEBUGLN();
+              DEBUGLN(F("Дважды нажата кнопка.\nОжидание подключения к сети WiFi прервано."));  
+              stop_waiting = true;            
+              break;
+            }
           }
         }
       #endif

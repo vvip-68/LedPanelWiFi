@@ -4117,7 +4117,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2306") {
-    tmp = String(getLedLineUsage(1) ? 1 : 0) + ' ' + String(getLedLinePin(1)) + ' ' + String(getLedLineStartIndex(1)) + ' ' + String(getLedLineLength(1));
+    int16_t led_start = getLedLineStartIndex(1);
+    int16_t led_count = getLedLineLength(1);
+    if (led_start + led_count > NUM_LEDS) {
+      led_count = NUM_LEDS - led_start;
+    }
+    tmp = String(getLedLineUsage(1) ? 1 : 0) + ' ' + String(getLedLinePin(1)) + ' ' + String(led_start) + ' ' + String(led_count);
     if (value) {
       value->set(tmp);
       return tmp;
@@ -4127,7 +4132,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2307") {
-    tmp = String(getLedLineUsage(2) ? 1 : 0) + ' ' + String(getLedLinePin(2)) + ' ' + String(getLedLineStartIndex(2)) + ' ' + String(getLedLineLength(2));
+    int16_t led_start = getLedLineStartIndex(2);
+    int16_t led_count = getLedLineLength(2);
+    if (led_start + led_count > NUM_LEDS) {
+      led_count = NUM_LEDS - led_start;
+    }
+    tmp = String(getLedLineUsage(2) ? 1 : 0) + ' ' + String(getLedLinePin(2)) + ' ' + String(led_start) + ' ' + String(led_count);
     if (value) {
       value->set(tmp);
       return tmp;
@@ -4137,7 +4147,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2308") {
-    tmp = String(getLedLineUsage(3) ? 1 : 0) + ' ' + String(getLedLinePin(3)) + ' ' + String(getLedLineStartIndex(3)) + ' ' + String(getLedLineLength(3));
+    int16_t led_start = getLedLineStartIndex(3);
+    int16_t led_count = getLedLineLength(3);
+    if (led_start + led_count > NUM_LEDS) {
+      led_count = NUM_LEDS - led_start;
+    }
+    tmp = String(getLedLineUsage(3) ? 1 : 0) + ' ' + String(getLedLinePin(3)) + ' ' + String(led_start) + ' ' + String(led_count);
     if (value) {
       value->set(tmp);
       return tmp;
@@ -4147,7 +4162,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2309") {
-    tmp = String(getLedLineUsage(4) ? 1 : 0) + ' ' + String(getLedLinePin(4)) + ' ' + String(getLedLineStartIndex(4)) + ' ' + String(getLedLineLength(4));
+    int16_t led_start = getLedLineStartIndex(4);
+    int16_t led_count = getLedLineLength(4);
+    if (led_start + led_count > NUM_LEDS) {
+      led_count = NUM_LEDS - led_start;
+    }
+    tmp = String(getLedLineUsage(4) ? 1 : 0) + ' ' + String(getLedLinePin(4)) + ' ' + String(led_start) + ' ' + String(led_count);
     if (value) {
       value->set(tmp);
       return tmp;

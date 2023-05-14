@@ -928,6 +928,10 @@ void allocateLeds() {
       int16_t  led_start = getLedLineStartIndex(i);
       int16_t  led_count = getLedLineLength(i);
 
+      if (led_start + led_count > NUM_LEDS) {
+        led_count = NUM_LEDS - led_start;
+      }
+
       isLineUsed &= led_pin >= 0 && led_start >= 0 && led_start < NUM_LEDS && led_count > 0 && led_start <= NUM_LEDS;
       
       if (isLineUsed) {
