@@ -1,32 +1,31 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Namespace.hpp>
-#include <ArduinoJson/Polyfills/utility.hpp>
 
 #include <stdlib.h>  // for size_t
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 // The default reader is a simple wrapper for Readers that are not copiable
 template <typename TSource, typename Enable = void>
 struct Reader {
  public:
-  Reader(TSource& source) : source_(&source) {}
+  Reader(TSource& source) : _source(&source) {}
 
   int read() {
-    return source_->read();  // Error here? You passed an unsupported input type
+    return _source->read();  // Error here? You passed an unsupported input type
   }
 
   size_t readBytes(char* buffer, size_t length) {
-    return source_->readBytes(buffer, length);
+    return _source->readBytes(buffer, length);
   }
 
  private:
-  TSource* source_;
+  TSource* _source;
 };
 
 template <typename TSource, typename Enable = void>
@@ -34,8 +33,7 @@ struct BoundedReader {
   // no default implementation because we need to pass the size to the
   // constructor
 };
-
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE
 
 #include <ArduinoJson/Deserialization/Readers/IteratorReader.hpp>
 #include <ArduinoJson/Deserialization/Readers/RamReader.hpp>
@@ -56,18 +54,3 @@ ARDUINOJSON_END_PRIVATE_NAMESPACE
 #if ARDUINOJSON_ENABLE_STD_STREAM
 #  include <ArduinoJson/Deserialization/Readers/StdStreamReader.hpp>
 #endif
-
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
-
-template <typename TInput>
-Reader<typename remove_reference<TInput>::type> makeReader(TInput&& input) {
-  return Reader<typename remove_reference<TInput>::type>{
-      detail::forward<TInput>(input)};
-}
-
-template <typename TChar>
-BoundedReader<TChar*> makeReader(TChar* input, size_t inputSize) {
-  return BoundedReader<TChar*>{input, inputSize};
-}
-
-ARDUINOJSON_END_PRIVATE_NAMESPACE

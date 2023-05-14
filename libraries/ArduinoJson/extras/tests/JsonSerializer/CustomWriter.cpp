@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -8,25 +8,26 @@
 class CustomWriter {
  public:
   CustomWriter() {}
-  CustomWriter(const CustomWriter&) = delete;
-  CustomWriter& operator=(const CustomWriter&) = delete;
 
   size_t write(uint8_t c) {
-    str_.append(1, static_cast<char>(c));
+    _str.append(1, static_cast<char>(c));
     return 1;
   }
 
-  size_t write(const uint8_t* s, size_t n) {
-    str_.append(reinterpret_cast<const char*>(s), n);
+  size_t write(const uint8_t *s, size_t n) {
+    _str.append(reinterpret_cast<const char *>(s), n);
     return n;
   }
 
-  const std::string& str() const {
-    return str_;
+  const std::string &str() const {
+    return _str;
   }
 
  private:
-  std::string str_;
+  CustomWriter(const CustomWriter &);  // non-copiable
+  CustomWriter &operator=(const CustomWriter &);
+
+  std::string _str;
 };
 
 TEST_CASE("CustomWriter") {

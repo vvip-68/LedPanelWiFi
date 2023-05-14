@@ -1,11 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson/Memory/MemoryPool.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("MemoryPool::allocVariant()") {
   char buffer[4096];

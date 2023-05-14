@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -10,7 +10,7 @@
 
 TEST_CASE("Compare JsonVariant with value") {
   StaticJsonDocument<256> doc;
-  JsonVariant a = doc.add();
+  JsonVariant a = doc.addElement();
 
   SECTION("null vs (char*)0") {
     char* b = 0;
@@ -38,8 +38,8 @@ TEST_CASE("Compare JsonVariant with value") {
 
 TEST_CASE("Compare JsonVariant with JsonVariant") {
   StaticJsonDocument<256> doc;
-  JsonVariant a = doc.add();
-  JsonVariant b = doc.add();
+  JsonVariant a = doc.addElement();
+  JsonVariant b = doc.addElement();
 
   SECTION("'abc' vs 'abc'") {
     a.set("abc");

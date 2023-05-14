@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -74,37 +74,37 @@ TEST_CASE("Custom converter with overloading") {
 
 class Complex {
  public:
-  explicit Complex(double r, double i) : real_(r), imag_(i) {}
+  explicit Complex(double r, double i) : _real(r), _imag(i) {}
 
   double real() const {
-    return real_;
+    return _real;
   }
 
   double imag() const {
-    return imag_;
+    return _imag;
   }
 
  private:
-  double real_, imag_;
+  double _real, _imag;
 };
 
-namespace ArduinoJson {
+namespace ARDUINOJSON_NAMESPACE {
 template <>
 struct Converter<Complex> {
-  static void toJson(const Complex& src, JsonVariant dst) {
+  static void toJson(const Complex& src, VariantRef dst) {
     dst["real"] = src.real();
     dst["imag"] = src.imag();
   }
 
-  static Complex fromJson(JsonVariantConst src) {
+  static Complex fromJson(VariantConstRef src) {
     return Complex(src["real"], src["imag"]);
   }
 
-  static bool checkJson(JsonVariantConst src) {
+  static bool checkJson(VariantConstRef src) {
     return src["real"].is<double>() && src["imag"].is<double>();
   }
 };
-}  // namespace ArduinoJson
+}  // namespace ARDUINOJSON_NAMESPACE
 
 TEST_CASE("Custom converter with specialization") {
   DynamicJsonDocument doc(4096);
@@ -139,16 +139,4 @@ TEST_CASE("Custom converter with specialization") {
     REQUIRE(doc["value"]["real"] == 19);
     REQUIRE(doc["value"]["imag"] == 3);
   }
-}
-
-TEST_CASE("ConverterNeedsWriteableRef") {
-  using namespace ArduinoJson::detail;
-  CHECK(ConverterNeedsWriteableRef<int>::value == false);
-  CHECK(ConverterNeedsWriteableRef<float>::value == false);
-  CHECK(ConverterNeedsWriteableRef<JsonVariant>::value == true);
-  CHECK(ConverterNeedsWriteableRef<JsonVariantConst>::value == false);
-  CHECK(ConverterNeedsWriteableRef<JsonObject>::value == true);
-  CHECK(ConverterNeedsWriteableRef<JsonObjectConst>::value == false);
-  CHECK(ConverterNeedsWriteableRef<JsonArray>::value == true);
-  CHECK(ConverterNeedsWriteableRef<JsonArrayConst>::value == false);
 }

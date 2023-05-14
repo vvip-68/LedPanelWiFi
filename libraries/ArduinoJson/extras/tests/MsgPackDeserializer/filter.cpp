@@ -1,13 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
-#include <sstream>
-
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("deserializeMsgPack() filter") {
   StaticJsonDocument<4096> doc;
@@ -1029,20 +1027,6 @@ TEST_CASE("deserializeMsgPack() filter") {
   }
 }
 
-TEST_CASE("Zero-copy mode") {  // issue #1697
-  char input[] = "\x82\xA7include\x01\xA6ignore\x02";
-
-  StaticJsonDocument<256> filter;
-  filter["include"] = true;
-
-  StaticJsonDocument<256> doc;
-  DeserializationError err =
-      deserializeMsgPack(doc, input, 18, DeserializationOption::Filter(filter));
-
-  CHECK(err == DeserializationError::Ok);
-  CHECK(doc.as<std::string>() == "{\"include\":1}");
-}
-
 TEST_CASE("Overloads") {
   StaticJsonDocument<256> doc;
   StaticJsonDocument<256> filter;
@@ -1070,7 +1054,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], Filter") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeMsgPack(doc, vla, Filter(filter));
@@ -1098,7 +1082,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], Filter, NestingLimit") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeMsgPack(doc, vla, Filter(filter), NestingLimit(5));
@@ -1126,7 +1110,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], NestingLimit, Filter") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeMsgPack(doc, vla, NestingLimit(5), Filter(filter));

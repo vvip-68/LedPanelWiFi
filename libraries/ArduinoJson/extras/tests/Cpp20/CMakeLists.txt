@@ -1,5 +1,5 @@
 # ArduinoJson - https://arduinojson.org
-# Copyright © 2014-2023, Benoit BLANCHON
+# Copyright Benoit Blanchon 2014-2021
 # MIT License
 
 if(MSVC_VERSION LESS 1910)
@@ -25,5 +25,5 @@ add_test(Cpp20 Cpp20Tests)
 
 set_tests_properties(Cpp20
 	PROPERTIES
-		LABELS "Catch"
+		LABELS 		"Catch"
 )

@@ -1,48 +1,45 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Namespace.hpp>
 
-ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
-namespace DeserializationOption {
 class Filter {
  public:
-  explicit Filter(JsonVariantConst v) : variant_(v) {}
+  explicit Filter(VariantConstRef v) : _variant(v) {}
 
   bool allow() const {
-    return variant_;
+    return _variant;
   }
 
   bool allowArray() const {
-    return variant_ == true || variant_.is<JsonArrayConst>();
+    return _variant == true || _variant.is<ArrayConstRef>();
   }
 
   bool allowObject() const {
-    return variant_ == true || variant_.is<JsonObjectConst>();
+    return _variant == true || _variant.is<ObjectConstRef>();
   }
 
   bool allowValue() const {
-    return variant_ == true;
+    return _variant == true;
   }
 
   template <typename TKey>
   Filter operator[](const TKey& key) const {
-    if (variant_ == true)  // "true" means "allow recursively"
+    if (_variant == true)  // "true" means "allow recursively"
       return *this;
-    JsonVariantConst member = variant_[key];
-    return Filter(member.isNull() ? variant_["*"] : member);
+    VariantConstRef member = _variant[key];
+    return Filter(member.isNull() ? _variant["*"] : member);
   }
 
  private:
-  JsonVariantConst variant_;
+  VariantConstRef _variant;
 };
-}  // namespace DeserializationOption
 
-namespace detail {
 struct AllowAllFilter {
   bool allow() const {
     return true;
@@ -65,6 +62,5 @@ struct AllowAllFilter {
     return AllowAllFilter();
   }
 };
-}  // namespace detail
 
-ARDUINOJSON_END_PUBLIC_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

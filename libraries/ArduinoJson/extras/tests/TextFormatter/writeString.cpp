@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <catch.hpp>
@@ -7,7 +7,7 @@
 #include <ArduinoJson/Json/TextFormatter.hpp>
 #include <ArduinoJson/Serialization/Writers/StaticStringWriter.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 void check(const char* input, std::string expected) {
   char output[64] = {0};

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
@@ -10,7 +10,7 @@
 #include "is_integral.hpp"
 #include "is_same.hpp"
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <typename T>
 struct is_enum {
@@ -19,4 +19,4 @@ struct is_enum {
                             !is_floating_point<T>::value;
 };
 
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

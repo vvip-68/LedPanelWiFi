@@ -3090,8 +3090,8 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       return String(getEffectTextOverlayUsage(effect));
     }
     return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID 
-         ? "X":
-         String(getEffectTextOverlayUsage(effect)));
+         ? "X"
+         : String(getEffectTextOverlayUsage(effect)));
   }
 
   // Оверлей часов   

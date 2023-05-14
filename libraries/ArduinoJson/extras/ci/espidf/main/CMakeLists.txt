@@ -1,8 +1,6 @@
 # ArduinoJson - https://arduinojson.org
-# Copyright © 2014-2023, Benoit BLANCHON
+# Copyright Benoit Blanchon 2014-2021
 # MIT License
 
-idf_component_register(
-	SRCS "main.cpp"
-	INCLUDE_DIRS ""
-)
+idf_component_register(SRCS "main.cpp"
+                       INCLUDE_DIRS "")

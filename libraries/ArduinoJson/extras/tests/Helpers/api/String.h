@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
@@ -32,17 +32,6 @@ class String {
     return _str == s;
   }
 
-  String& operator=(const char* s) {
-    _str.assign(s);
-    return *this;
-  }
-
-  char operator[](unsigned int index) const {
-    if (index >= _str.size())
-      return 0;
-    return _str[index];
-  }
-
   friend std::ostream& operator<<(std::ostream& lhs, const ::String& rhs) {
     lhs << rhs._str;
     return lhs;
@@ -62,7 +51,7 @@ class String {
   size_t _maxCapacity;
 };
 
-class StringSumHelper : public ::String {};
+class StringSumHelper;
 
 inline bool operator==(const std::string& lhs, const ::String& rhs) {
   return lhs == rhs.c_str();

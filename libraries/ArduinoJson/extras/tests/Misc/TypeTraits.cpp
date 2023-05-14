@@ -1,13 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
-#include <sstream>
-
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 class EmptyClass {};
 enum EmptyEnum {};
@@ -21,9 +19,9 @@ TEST_CASE("Polyfills/type_traits") {
   }
 
   SECTION("is_array") {
-    REQUIRE_FALSE(is_array<const char*>::value);
-    REQUIRE(is_array<const char[]>::value);
-    REQUIRE(is_array<const char[10]>::value);
+    REQUIRE_FALSE((is_array<const char*>::value));
+    REQUIRE((is_array<const char[]>::value));
+    REQUIRE((is_array<const char[10]>::value));
   }
 
   SECTION("is_const") {
@@ -82,7 +80,7 @@ TEST_CASE("Polyfills/type_traits") {
     CHECK(is_integral<const volatile unsigned long>::value == true);
     CHECK(is_integral<const volatile unsigned short>::value == true);
 
-    CHECK(is_integral<JsonUInt>::value == true);
+    CHECK(is_integral<UInt>::value == true);
   }
 
   SECTION("is_signed") {
@@ -174,35 +172,18 @@ TEST_CASE("Polyfills/type_traits") {
   }
 
   SECTION("is_convertible") {
-    CHECK(is_convertible<short, int>::value == true);
-    CHECK(is_convertible<int, int>::value == true);
-    CHECK(is_convertible<EmptyEnum, int>::value == true);
-    CHECK(is_convertible<int*, int>::value == false);
-    CHECK(is_convertible<EmptyClass, int>::value == false);
-
-    CHECK(is_convertible<DeserializationError, JsonVariantConst>::value ==
-          false);
-    CHECK(is_convertible<JsonPair, JsonVariantConst>::value == false);
-    CHECK(is_convertible<JsonVariant, JsonVariantConst>::value == true);
-    CHECK(is_convertible<JsonVariantConst, JsonVariantConst>::value == true);
-    CHECK(is_convertible<JsonArray, JsonVariantConst>::value == true);
-    CHECK(is_convertible<ElementProxy<JsonArray>, JsonVariantConst>::value ==
-          true);
-    CHECK(is_convertible<JsonArrayConst, JsonVariantConst>::value == true);
-    CHECK(is_convertible<JsonObject, JsonVariantConst>::value == true);
-    CHECK(is_convertible<MemberProxy<JsonObject, const char*>,
-                         JsonVariantConst>::value == true);
-    CHECK(is_convertible<JsonObjectConst, JsonVariantConst>::value == true);
-    CHECK(is_convertible<DynamicJsonDocument, JsonVariantConst>::value == true);
-    CHECK(is_convertible<StaticJsonDocument<10>, JsonVariantConst>::value ==
-          true);
+    CHECK((is_convertible<short, int>::value == true));
+    CHECK((is_convertible<int, int>::value == true));
+    CHECK((is_convertible<EmptyEnum, int>::value == true));
+    CHECK((is_convertible<int*, int>::value == false));
+    CHECK((is_convertible<EmptyClass, int>::value == false));
   }
 
   SECTION("is_class") {
-    CHECK(is_class<int>::value == false);
-    CHECK(is_class<EmptyEnum>::value == false);
-    CHECK(is_class<int*>::value == false);
-    CHECK(is_class<EmptyClass>::value == true);
+    CHECK((is_class<int>::value == false));
+    CHECK((is_class<EmptyEnum>::value == false));
+    CHECK((is_class<int*>::value == false));
+    CHECK((is_class<EmptyClass>::value == true));
   }
 
   SECTION("is_enum") {
@@ -212,5 +193,20 @@ TEST_CASE("Polyfills/type_traits") {
     CHECK(is_enum<EmptyClass>::value == false);
     CHECK(is_enum<bool>::value == false);
     CHECK(is_enum<double>::value == false);
+  }
+
+  SECTION("IsVisitable") {
+    CHECK(IsVisitable<DeserializationError>::value == false);
+    CHECK(IsVisitable<JsonPair>::value == false);
+    CHECK(IsVisitable<VariantRef>::value == true);
+    CHECK(IsVisitable<VariantConstRef>::value == true);
+    CHECK(IsVisitable<ArrayRef>::value == true);
+    CHECK(IsVisitable<ElementProxy<ArrayRef> >::value == true);
+    CHECK(IsVisitable<ArrayConstRef>::value == true);
+    CHECK(IsVisitable<ObjectRef>::value == true);
+    CHECK((IsVisitable<MemberProxy<ObjectRef, const char*> >::value == true));
+    CHECK(IsVisitable<ObjectConstRef>::value == true);
+    CHECK(IsVisitable<DynamicJsonDocument>::value == true);
+    CHECK(IsVisitable<StaticJsonDocument<10> >::value == true);
   }
 }

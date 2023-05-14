@@ -1,20 +1,20 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Collection/CollectionData.hpp>
-#include <ArduinoJson/Numbers/JsonFloat.hpp>
-#include <ArduinoJson/Numbers/JsonInteger.hpp>
+#include <ArduinoJson/Numbers/Float.hpp>
+#include <ArduinoJson/Numbers/Integer.hpp>
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <typename TResult>
 struct Visitor {
   typedef TResult result_type;
 
-  TResult visitArray(const CollectionData&) {
+  TResult visitArray(const CollectionData &) {
     return TResult();
   }
 
@@ -22,11 +22,11 @@ struct Visitor {
     return TResult();
   }
 
-  TResult visitFloat(JsonFloat) {
+  TResult visitFloat(Float) {
     return TResult();
   }
 
-  TResult visitSignedInteger(JsonInteger) {
+  TResult visitSignedInteger(Integer) {
     return TResult();
   }
 
@@ -34,21 +34,21 @@ struct Visitor {
     return TResult();
   }
 
-  TResult visitObject(const CollectionData&) {
+  TResult visitObject(const CollectionData &) {
     return TResult();
   }
 
-  TResult visitUnsignedInteger(JsonUInt) {
+  TResult visitUnsignedInteger(UInt) {
     return TResult();
   }
 
-  TResult visitRawJson(const char*, size_t) {
+  TResult visitRawJson(const char *, size_t) {
     return TResult();
   }
 
-  TResult visitString(const char*, size_t) {
+  TResult visitString(const char *) {
     return TResult();
   }
 };
 
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

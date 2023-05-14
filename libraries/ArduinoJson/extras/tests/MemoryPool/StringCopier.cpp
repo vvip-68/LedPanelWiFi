@@ -1,64 +1,55 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson/StringStorage/StringCopier.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("StringCopier") {
   char buffer[4096];
 
   SECTION("Works when buffer is big enough") {
-    MemoryPool pool(buffer, addPadding(JSON_STRING_SIZE(5)));
-    StringCopier str(&pool);
+    MemoryPool pool(buffer, addPadding(JSON_STRING_SIZE(6)));
+    StringCopier str(pool);
 
     str.startString();
     str.append("hello");
+    str.append('\0');
 
     REQUIRE(str.isValid() == true);
-    REQUIRE(str.str() == "hello");
-    REQUIRE(pool.overflowed() == false);
+    REQUIRE(str.c_str() == std::string("hello"));
   }
 
   SECTION("Returns null when too small") {
     MemoryPool pool(buffer, sizeof(void*));
-    StringCopier str(&pool);
+    StringCopier str(pool);
 
     str.startString();
     str.append("hello world!");
 
     REQUIRE(str.isValid() == false);
-    REQUIRE(pool.overflowed() == true);
   }
 
   SECTION("Increases size of memory pool") {
     MemoryPool pool(buffer, addPadding(JSON_STRING_SIZE(6)));
-    StringCopier str(&pool);
+    StringCopier str(pool);
 
     str.startString();
+    str.append('h');
     str.save();
 
     REQUIRE(1 == pool.size());
-    REQUIRE(pool.overflowed() == false);
-  }
-
-  SECTION("Works when memory pool is 0 bytes") {
-    MemoryPool pool(buffer, 0);
-    StringCopier str(&pool);
-
-    str.startString();
-    REQUIRE(str.isValid() == false);
-    REQUIRE(pool.overflowed() == true);
   }
 }
 
 static const char* addStringToPool(MemoryPool& pool, const char* s) {
-  StringCopier str(&pool);
+  StringCopier str(pool);
   str.startString();
   str.append(s);
-  return str.save().c_str();
+  str.append('\0');
+  return str.save();
 }
 
 TEST_CASE("StringCopier::save() deduplicates strings") {

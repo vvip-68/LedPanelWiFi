@@ -1,17 +1,14 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
-#include <Arduino.h>
-
+#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
 #define ARDUINOJSON_STRING_BUFFER_SIZE 5
 #include <ArduinoJson.h>
-
 #include <catch.hpp>
-
 #include "custom_string.hpp"
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 template <typename StringWriter>
 static size_t print(StringWriter& writer, const char* s) {
@@ -68,7 +65,7 @@ TEST_CASE("Writer<std::string>") {
 
 TEST_CASE("Writer<String>") {
   ::String output;
-  Writer<::String> writer(output);
+  Writer< ::String> writer(output);
 
   SECTION("write(char)") {
     SECTION("writes to temporary buffer") {
@@ -136,6 +133,20 @@ TEST_CASE("Writer<custom_string>") {
 
   REQUIRE(4 == print(writer, "ABCD"));
   REQUIRE("ABCD" == output);
+}
+
+TEST_CASE("IsWriteableString") {
+  SECTION("std::string") {
+    REQUIRE(IsWriteableString<std::string>::value == true);
+  }
+
+  SECTION("custom_string") {
+    REQUIRE(IsWriteableString<custom_string>::value == true);
+  }
+
+  SECTION("basic_string<wchar_t>") {
+    REQUIRE(IsWriteableString<std::basic_string<wchar_t> >::value == false);
+  }
 }
 
 TEST_CASE("serializeJson(doc, String)") {

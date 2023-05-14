@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <Arduino.h>
@@ -29,21 +29,21 @@ struct PrintAllAtOnce {
 
 template <typename PrintPolicy>
 struct PrintableString : public Printable {
-  PrintableString(const char* s) : str_(s), total_(0) {}
+  PrintableString(const char* s) : _str(s), _total(0) {}
 
   virtual size_t printTo(Print& p) const {
-    size_t result = PrintPolicy::printStringTo(str_, p);
-    total_ += result;
+    size_t result = PrintPolicy::printStringTo(_str, p);
+    _total += result;
     return result;
   }
 
   size_t totalBytesWritten() const {
-    return total_;
+    return _total;
   }
 
  private:
-  std::string str_;
-  mutable size_t total_;
+  std::string _str;
+  mutable size_t _total;
 };
 
 TEST_CASE("Printable") {
@@ -60,7 +60,6 @@ TEST_CASE("Printable") {
       CHECK(printable.totalBytesWritten() == 7);
       CHECK(doc.overflowed() == false);
       CHECK(doc.memoryUsage() == 8);
-      CHECK(doc.as<JsonVariant>().memoryUsage() == 8);
     }
 
     SECTION("Via Print::write(const char* size_t)") {
@@ -70,7 +69,6 @@ TEST_CASE("Printable") {
       CHECK(printable.totalBytesWritten() == 7);
       CHECK(doc.overflowed() == false);
       CHECK(doc.memoryUsage() == 8);
-      CHECK(doc.as<JsonVariant>().memoryUsage() == 8);
     }
   }
 

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
@@ -7,18 +7,20 @@
 #include <sstream>
 
 class CustomReader {
-  std::stringstream stream_;
+  std::stringstream _stream;
 
  public:
-  CustomReader(const char* input) : stream_(input) {}
-  CustomReader(const CustomReader&) = delete;
+  CustomReader(const char* input) : _stream(input) {}
 
   int read() {
-    return stream_.get();
+    return _stream.get();
   }
 
   size_t readBytes(char* buffer, size_t length) {
-    stream_.read(buffer, static_cast<std::streamsize>(length));
-    return static_cast<size_t>(stream_.gcount());
+    _stream.read(buffer, static_cast<std::streamsize>(length));
+    return static_cast<size_t>(_stream.gcount());
   }
+
+ private:
+  CustomReader(const CustomReader&);
 };

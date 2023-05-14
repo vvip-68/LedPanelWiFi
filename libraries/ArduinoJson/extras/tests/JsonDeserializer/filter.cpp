@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #define ARDUINOJSON_ENABLE_COMMENTS 1
@@ -72,15 +72,6 @@ TEST_CASE("Filtering") {
       JSON_OBJECT_SIZE(1) + 8
     },
     {
-      // Member is a number, but filter wants an array
-      "{\"example\":42}",
-      "{\"example\":[true]}",
-      10,
-      DeserializationError::Ok,
-      "{\"example\":null}",
-      JSON_OBJECT_SIZE(1) + 8
-    },
-    {
       // Input is an array, but filter wants an object
       "[\"hello\",\"world\"]",
       "{}",
@@ -126,26 +117,8 @@ TEST_CASE("Filtering") {
       JSON_OBJECT_SIZE(1) + 8
     },
     {
-      // skip false
+      // can skip a boolean
       "{\"a_bool\":false,example:42}",
-      "{\"example\":true}",
-      10,
-      DeserializationError::Ok,
-      "{\"example\":42}",
-      JSON_OBJECT_SIZE(1) + 8
-    },
-    {
-      // skip true
-      "{\"a_bool\":true,example:42}",
-      "{\"example\":true}",
-      10,
-      DeserializationError::Ok,
-      "{\"example\":42}",
-      JSON_OBJECT_SIZE(1) + 8
-    },
-    {
-      // skip null
-      "{\"a_bool\":null,example:42}",
       "{\"example\":true}",
       10,
       DeserializationError::Ok,
@@ -393,7 +366,7 @@ TEST_CASE("Filtering") {
       0
     },
     {
-      // bubble up element error even if array is skipped
+      // bubble up element error even if array is skipped 
       "[1,'2,3]",
       "false",
       10,
@@ -402,7 +375,7 @@ TEST_CASE("Filtering") {
       0
     },
     {
-      // bubble up member error even if object is skipped
+      // bubble up member error even if object is skipped 
       "{'hello':'worl}",
       "false",
       10,
@@ -411,7 +384,7 @@ TEST_CASE("Filtering") {
       0
     },
     {
-      // bubble up colon error even if object is skipped
+      // bubble up colon error even if object is skipped 
       "{'hello','world'}",
       "false",
       10,
@@ -420,7 +393,7 @@ TEST_CASE("Filtering") {
       0
     },
     {
-      // bubble up key error even if object is skipped
+      // bubble up key error even if object is skipped 
       "{'hello:1}",
       "false",
       10,
@@ -431,7 +404,7 @@ TEST_CASE("Filtering") {
     {
       // detect invalid value in skipped object
       "{'hello':!}",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
       "null",
@@ -440,244 +413,235 @@ TEST_CASE("Filtering") {
     {
       // ignore invalid value in skipped object
       "{'hello':\\}",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
       // check nesting limit even for ignored objects
       "{}",
-      "false",
+      "false", 
       0,
       DeserializationError::TooDeep,
-      "null",
+      "null", 
       0
     },
     {
       // check nesting limit even for ignored objects
       "{'hello':{}}",
-      "false",
+      "false", 
       1,
       DeserializationError::TooDeep,
-      "null",
+      "null", 
       0
     },
     {
       // check nesting limit even for ignored values in objects
       "{'hello':{}}",
-      "{}",
+      "{}", 
       1,
       DeserializationError::TooDeep,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // check nesting limit even for ignored arrays
       "[]",
-      "false",
+      "false", 
       0,
       DeserializationError::TooDeep,
-      "null",
+      "null", 
       0
     },
     {
       // check nesting limit even for ignored arrays
       "[[]]",
-      "false",
+      "false", 
       1,
       DeserializationError::TooDeep,
-      "null",
+      "null", 
       0
     },
     {
       // check nesting limit even for ignored values in arrays
       "[[]]",
-      "[]",
+      "[]", 
       1,
       DeserializationError::TooDeep,
-      "[]",
+      "[]", 
       JSON_ARRAY_SIZE(0)
     },
     {
       // supports back-slash at the end of skipped string
       "\"hell\\",
-      "false",
+      "false", 
       1,
       DeserializationError::IncompleteInput,
-      "null",
+      "null", 
       0
     },
     {
       // invalid comment at after an element in a skipped array
       "[1/]",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
       // incomplete comment at after an element in a skipped array
       "[1/*]",
-      "false",
+      "false", 
       10,
       DeserializationError::IncompleteInput,
-      "null",
+      "null", 
       0
     },
     {
       // missing comma in a skipped array
       "[1 2]",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
       // invalid comment at the beginning of array
       "[/1]",
-      "[false]",
+      "[false]", 
       10,
       DeserializationError::InvalidInput,
-      "[]",
+      "[]", 
       JSON_ARRAY_SIZE(0)
     },
     {
       // incomplete comment at the begining of an array
       "[/*]",
-      "[false]",
+      "[false]", 
       10,
       DeserializationError::IncompleteInput,
-      "[]",
+      "[]", 
       JSON_ARRAY_SIZE(0)
     },
     {
       // invalid comment before key
       "{/1:2}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::InvalidInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // incomplete comment before key
       "{/*:2}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::IncompleteInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // invalid comment after key
       "{\"example\"/1:2}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::InvalidInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // incomplete comment after key
       "{\"example\"/*:2}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::IncompleteInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // invalid comment after colon
       "{\"example\":/12}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::InvalidInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // incomplete comment after colon
       "{\"example\":/*2}",
-      "{}",
+      "{}", 
       10,
       DeserializationError::IncompleteInput,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // comment next to an integer
       "{\"ignore\":1//,\"example\":2\n}",
-      "{\"example\":true}",
+      "{\"example\":true}", 
       10,
       DeserializationError::Ok,
-      "{}",
+      "{}", 
       JSON_OBJECT_SIZE(0)
     },
     {
       // invalid comment after opening brace of a skipped object
       "{/1:2}",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
       // incomplete after opening brace of a skipped object
       "{/*:2}",
-      "false",
+      "false", 
       10,
       DeserializationError::IncompleteInput,
-      "null",
+      "null", 
       0
     },
     {
       // invalid comment after key of a skipped object
       "{\"example\"/:2}",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
-      // incomplete comment after key of a skipped object
+      // incomplete after after key of a skipped object
       "{\"example\"/*:2}",
-      "false",
+      "false", 
       10,
       DeserializationError::IncompleteInput,
-      "null",
+      "null", 
       0
     },
     {
       // invalid comment after value in a skipped object
       "{\"example\":2/}",
-      "false",
+      "false", 
       10,
       DeserializationError::InvalidInput,
-      "null",
+      "null", 
       0
     },
     {
-      // incomplete comment after value of a skipped object
+      // incomplete after after value of a skipped object
       "{\"example\":2/*}",
-      "false",
+      "false", 
       10,
       DeserializationError::IncompleteInput,
-      "null",
-      0
-    },
-     {
-      // incomplete comment after comma in skipped object
-      "{\"example\":2,/*}",
-      "false",
-      10,
-      DeserializationError::IncompleteInput,
-      "null",
+      "null", 
       0
     },
   };  // clang-format on
@@ -701,20 +665,6 @@ TEST_CASE("Filtering") {
     CHECK(doc.as<std::string>() == tc.output);
     CHECK(doc.memoryUsage() == tc.memoryUsage);
   }
-}
-
-TEST_CASE("Zero-copy mode") {  // issue #1697
-  char input[] = "{\"include\":42,\"exclude\":666}";
-
-  StaticJsonDocument<256> filter;
-  filter["include"] = true;
-
-  StaticJsonDocument<256> doc;
-  DeserializationError err =
-      deserializeJson(doc, input, DeserializationOption::Filter(filter));
-
-  REQUIRE(err == DeserializationError::Ok);
-  CHECK(doc.as<std::string>() == "{\"include\":42}");
 }
 
 TEST_CASE("Overloads") {
@@ -744,7 +694,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], Filter") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeJson(doc, vla, Filter(filter));
@@ -772,7 +722,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], Filter, NestingLimit") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeJson(doc, vla, Filter(filter), NestingLimit(5));
@@ -800,7 +750,7 @@ TEST_CASE("Overloads") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("char[n], NestingLimit, Filter") {
-    size_t i = 4;
+    int i = 4;
     char vla[i];
     strcpy(vla, "{}");
     deserializeJson(doc, vla, NestingLimit(5), Filter(filter));

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #define ARDUINOJSON_USE_DOUBLE 1
@@ -9,7 +9,7 @@
 #include <ArduinoJson.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 void checkDouble(const char* input, double expected) {
   CAPTURE(input);

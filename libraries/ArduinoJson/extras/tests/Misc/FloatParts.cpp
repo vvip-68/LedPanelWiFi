@@ -1,11 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson/Numbers/FloatParts.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("FloatParts<double>") {
   SECTION("1.7976931348623157E+308") {

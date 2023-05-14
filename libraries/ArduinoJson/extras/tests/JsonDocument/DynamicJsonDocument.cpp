@@ -1,11 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
-using ArduinoJson::detail::addPadding;
+using ARDUINOJSON_NAMESPACE::addPadding;
 
 static void REQUIRE_JSON(JsonDocument& doc, const std::string& expected) {
   std::string json;
@@ -138,26 +138,27 @@ TEST_CASE("DynamicJsonDocument constructor") {
 }
 
 TEST_CASE("DynamicJsonDocument assignment") {
-  SECTION("Copy assignment reallocates when capacity is smaller") {
+  SECTION("Copy assignment preserves the buffer when capacity is sufficient") {
     DynamicJsonDocument doc1(1234);
     deserializeJson(doc1, "{\"hello\":\"world\"}");
-    DynamicJsonDocument doc2(8);
 
+    DynamicJsonDocument doc2(doc1.capacity());
     doc2 = doc1;
 
     REQUIRE_JSON(doc2, "{\"hello\":\"world\"}");
     REQUIRE(doc2.capacity() == doc1.capacity());
   }
 
-  SECTION("Copy assignment reallocates when capacity is larger") {
-    DynamicJsonDocument doc1(100);
+  SECTION("Copy assignment realloc the buffer when capacity is insufficient") {
+    DynamicJsonDocument doc1(1234);
     deserializeJson(doc1, "{\"hello\":\"world\"}");
-    DynamicJsonDocument doc2(1234);
+    DynamicJsonDocument doc2(8);
 
+    REQUIRE(doc2.capacity() < doc1.memoryUsage());
     doc2 = doc1;
+    REQUIRE(doc2.capacity() >= doc1.memoryUsage());
 
     REQUIRE_JSON(doc2, "{\"hello\":\"world\"}");
-    REQUIRE(doc2.capacity() == doc1.capacity());
   }
 
   SECTION("Assign from StaticJsonDocument") {
@@ -201,28 +202,6 @@ TEST_CASE("DynamicJsonDocument assignment") {
 
     DynamicJsonDocument doc2(4096);
     doc2 = doc1.as<JsonVariant>();
-
-    REQUIRE_JSON(doc2, "42");
-    REQUIRE(doc2.capacity() == 4096);
-  }
-
-  SECTION("Assign from MemberProxy") {
-    StaticJsonDocument<200> doc1;
-    doc1["value"] = 42;
-
-    DynamicJsonDocument doc2(4096);
-    doc2 = doc1["value"];
-
-    REQUIRE_JSON(doc2, "42");
-    REQUIRE(doc2.capacity() == 4096);
-  }
-
-  SECTION("Assign from ElementProxy") {
-    StaticJsonDocument<200> doc1;
-    doc1[0] = 42;
-
-    DynamicJsonDocument doc2(4096);
-    doc2 = doc1[0];
 
     REQUIRE_JSON(doc2, "42");
     REQUIRE(doc2.capacity() == 4096);

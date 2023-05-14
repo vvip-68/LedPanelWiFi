@@ -1,12 +1,12 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Document/JsonDocument.hpp>
 
-ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 // Helper to implement the "base-from-member" idiom
 // (we need to store the allocator before constructing JsonDocument)
@@ -14,31 +14,30 @@ template <typename TAllocator>
 class AllocatorOwner {
  public:
   AllocatorOwner() {}
-  AllocatorOwner(TAllocator a) : allocator_(a) {}
+  AllocatorOwner(const AllocatorOwner& src) : _allocator(src._allocator) {}
+  AllocatorOwner(TAllocator a) : _allocator(a) {}
 
   void* allocate(size_t size) {
-    return allocator_.allocate(size);
+    return _allocator.allocate(size);
   }
 
   void deallocate(void* ptr) {
     if (ptr)
-      allocator_.deallocate(ptr);
+      _allocator.deallocate(ptr);
   }
 
   void* reallocate(void* ptr, size_t new_size) {
-    return allocator_.reallocate(ptr, new_size);
+    return _allocator.reallocate(ptr, new_size);
   }
 
   TAllocator& allocator() {
-    return allocator_;
+    return _allocator;
   }
 
  private:
-  TAllocator allocator_;
+  TAllocator _allocator;
 };
 
-// A JsonDocument that uses the provided allocator to allocate its memory pool.
-// https://arduinojson.org/v6/api/basicjsondocument/
 template <typename TAllocator>
 class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
  public:
@@ -52,9 +51,11 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
   }
 
   // Move-constructor
+#if ARDUINOJSON_HAS_RVALUE_REFERENCES
   BasicJsonDocument(BasicJsonDocument&& src) : AllocatorOwner<TAllocator>(src) {
     moveAssignFrom(src);
   }
+#endif
 
   BasicJsonDocument(const JsonDocument& src) {
     copyAssignFrom(src);
@@ -62,20 +63,19 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
 
   // Construct from variant, array, or object
   template <typename T>
-  BasicJsonDocument(const T& src,
-                    typename detail::enable_if<
-                        detail::is_same<T, JsonVariant>::value ||
-                        detail::is_same<T, JsonVariantConst>::value ||
-                        detail::is_same<T, JsonArray>::value ||
-                        detail::is_same<T, JsonArrayConst>::value ||
-                        detail::is_same<T, JsonObject>::value ||
-                        detail::is_same<T, JsonObjectConst>::value>::type* = 0)
+  BasicJsonDocument(
+      const T& src,
+      typename enable_if<
+          is_same<T, VariantRef>::value || is_same<T, VariantConstRef>::value ||
+          is_same<T, ArrayRef>::value || is_same<T, ArrayConstRef>::value ||
+          is_same<T, ObjectRef>::value ||
+          is_same<T, ObjectConstRef>::value>::type* = 0)
       : JsonDocument(allocPool(src.memoryUsage())) {
     set(src);
   }
 
   // disambiguate
-  BasicJsonDocument(JsonVariant src)
+  BasicJsonDocument(VariantRef src)
       : JsonDocument(allocPool(src.memoryUsage())) {
     set(src);
   }
@@ -89,44 +89,41 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
     return *this;
   }
 
+#if ARDUINOJSON_HAS_RVALUE_REFERENCES
   BasicJsonDocument& operator=(BasicJsonDocument&& src) {
     moveAssignFrom(src);
     return *this;
   }
+#endif
 
   template <typename T>
   BasicJsonDocument& operator=(const T& src) {
-    size_t requiredSize = src.memoryUsage();
-    if (requiredSize > capacity())
-      reallocPool(requiredSize);
+    reallocPoolIfTooSmall(src.memoryUsage());
     set(src);
     return *this;
   }
 
-  // Reduces the capacity of the memory pool to match the current usage.
-  // https://arduinojson.org/v6/api/basicjsondocument/shrinktofit/
   void shrinkToFit() {
-    ptrdiff_t bytes_reclaimed = pool_.squash();
+    ptrdiff_t bytes_reclaimed = _pool.squash();
     if (bytes_reclaimed == 0)
       return;
 
-    void* old_ptr = pool_.buffer();
-    void* new_ptr = this->reallocate(old_ptr, pool_.capacity());
+    void* old_ptr = _pool.buffer();
+    void* new_ptr = this->reallocate(old_ptr, _pool.capacity());
 
     ptrdiff_t ptr_offset =
         static_cast<char*>(new_ptr) - static_cast<char*>(old_ptr);
 
-    pool_.movePointers(ptr_offset);
-    data_.movePointers(ptr_offset, ptr_offset - bytes_reclaimed);
+    _pool.movePointers(ptr_offset);
+    _data.movePointers(ptr_offset, ptr_offset - bytes_reclaimed);
   }
 
-  // Reclaims the memory leaked when removing and replacing values.
-  // https://arduinojson.org/v6/api/jsondocument/garbagecollect/
   bool garbageCollect() {
     // make a temporary clone and move assign
     BasicJsonDocument tmp(*this);
     if (!tmp.capacity())
       return false;
+    tmp.set(*this);
     moveAssignFrom(tmp);
     return true;
   }
@@ -134,35 +131,34 @@ class BasicJsonDocument : AllocatorOwner<TAllocator>, public JsonDocument {
   using AllocatorOwner<TAllocator>::allocator;
 
  private:
-  detail::MemoryPool allocPool(size_t requiredSize) {
-    size_t capa = detail::addPadding(requiredSize);
-    return {reinterpret_cast<char*>(this->allocate(capa)), capa};
+  MemoryPool allocPool(size_t requiredSize) {
+    size_t capa = addPadding(requiredSize);
+    return MemoryPool(reinterpret_cast<char*>(this->allocate(capa)), capa);
   }
 
-  void reallocPool(size_t requiredSize) {
-    size_t capa = detail::addPadding(requiredSize);
-    if (capa == pool_.capacity())
+  void reallocPoolIfTooSmall(size_t requiredSize) {
+    if (requiredSize <= capacity())
       return;
     freePool();
-    replacePool(allocPool(detail::addPadding(requiredSize)));
+    replacePool(allocPool(addPadding(requiredSize)));
   }
 
   void freePool() {
-    this->deallocate(getPool()->buffer());
+    this->deallocate(memoryPool().buffer());
   }
 
   void copyAssignFrom(const JsonDocument& src) {
-    reallocPool(src.capacity());
+    reallocPoolIfTooSmall(src.capacity());
     set(src);
   }
 
   void moveAssignFrom(BasicJsonDocument& src) {
     freePool();
-    data_ = src.data_;
-    pool_ = src.pool_;
-    src.data_.setNull();
-    src.pool_ = {0, 0};
+    _data = src._data;
+    _pool = src._pool;
+    src._data.setNull();
+    src._pool = MemoryPool(0, 0);
   }
 };
 
-ARDUINOJSON_END_PUBLIC_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

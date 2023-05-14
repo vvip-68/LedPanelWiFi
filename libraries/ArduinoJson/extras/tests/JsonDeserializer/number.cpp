@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #define ARDUINOJSON_USE_LONG_LONG 0
@@ -11,8 +11,8 @@
 #include <catch.hpp>
 
 namespace my {
-using ArduinoJson::detail::isinf;
-using ArduinoJson::detail::isnan;
+using ARDUINOJSON_NAMESPACE::isinf;
+using ARDUINOJSON_NAMESPACE::isnan;
 }  // namespace my
 
 TEST_CASE("deserialize an integer") {

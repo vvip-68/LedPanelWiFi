@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -9,7 +9,7 @@ TEST_CASE("JsonVariant::operator[]") {
   DynamicJsonDocument doc(4096);
   JsonVariant var = doc.to<JsonVariant>();
 
-  SECTION("The JsonVariant is null") {
+  SECTION("The JsonVariant is undefined") {
     REQUIRE(0 == var.size());
     REQUIRE(var["0"].isNull());
     REQUIRE(var[0].isNull());
@@ -108,7 +108,7 @@ TEST_CASE("JsonVariant::operator[]") {
 #if defined(HAS_VARIABLE_LENGTH_ARRAY) && \
     !defined(SUBSCRIPT_CONFLICTS_WITH_BUILTIN_OPERATOR)
   SECTION("key is a VLA") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "hello");
 
@@ -119,7 +119,7 @@ TEST_CASE("JsonVariant::operator[]") {
   }
 
   SECTION("key is a VLA, const JsonVariant") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "hello");
 
@@ -136,7 +136,7 @@ TEST_CASE("JsonVariantConst::operator[]") {
   JsonVariant var = doc.to<JsonVariant>();
   JsonVariantConst cvar = var;
 
-  SECTION("The JsonVariant is null") {
+  SECTION("The JsonVariant is undefined") {
     REQUIRE(0 == cvar.size());
     REQUIRE(cvar["0"].isNull());
     REQUIRE(cvar[0].isNull());

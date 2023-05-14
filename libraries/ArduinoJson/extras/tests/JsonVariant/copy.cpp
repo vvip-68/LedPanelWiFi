@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -89,7 +89,7 @@ TEST_CASE("JsonVariant::set(JsonVariant)") {
 
     unboundVariant.set(var1);
 
-    REQUIRE(unboundVariant.isUnbound());
+    REQUIRE(unboundVariant.isUndefined());
     REQUIRE(unboundVariant.isNull());
   }
 }

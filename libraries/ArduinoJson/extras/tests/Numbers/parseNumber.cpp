@@ -1,18 +1,19 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.hpp>
 #include <catch.hpp>
 
-using namespace ArduinoJson;
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("Test unsigned integer overflow") {
   VariantData first, second;
+  first.init();
+  second.init();
 
   // Avoids MSVC warning C4127 (conditional expression is constant)
-  size_t integerSize = sizeof(JsonInteger);
+  size_t integerSize = sizeof(Integer);
 
   if (integerSize == 8) {
     parseNumber("18446744073709551615", first);
@@ -28,9 +29,11 @@ TEST_CASE("Test unsigned integer overflow") {
 
 TEST_CASE("Test signed integer overflow") {
   VariantData first, second;
+  first.init();
+  second.init();
 
   // Avoids MSVC warning C4127 (conditional expression is constant)
-  size_t integerSize = sizeof(JsonInteger);
+  size_t integerSize = sizeof(Integer);
 
   if (integerSize == 8) {
     parseNumber("-9223372036854775808", first);
@@ -46,6 +49,7 @@ TEST_CASE("Test signed integer overflow") {
 
 TEST_CASE("Invalid value") {
   VariantData result;
+  result.init();
 
   parseNumber("6a3", result);
 

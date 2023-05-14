@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <catch.hpp>
@@ -11,13 +11,13 @@
 #include <ArduinoJson/Json/TextFormatter.hpp>
 #include <ArduinoJson/Serialization/Writer.hpp>
 
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 template <typename TFloat>
 void check(TFloat input, const std::string& expected) {
   std::string output;
   Writer<std::string> sb(output);
-  TextFormatter<Writer<std::string>> writer(sb);
+  TextFormatter<Writer<std::string> > writer(sb);
   writer.writeFloat(input);
   REQUIRE(writer.bytesWritten() == output.size());
   CHECK(expected == output);

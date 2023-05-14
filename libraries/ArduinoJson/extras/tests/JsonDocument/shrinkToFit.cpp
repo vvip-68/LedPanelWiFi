@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -8,38 +8,40 @@
 #include <stdlib.h>  // malloc, free
 #include <string>
 
+using ARDUINOJSON_NAMESPACE::addPadding;
+
 class ArmoredAllocator {
  public:
-  ArmoredAllocator() : ptr_(0), size_(0) {}
+  ArmoredAllocator() : _ptr(0), _size(0) {}
 
   void* allocate(size_t size) {
-    ptr_ = malloc(size);
-    size_ = size;
-    return ptr_;
+    _ptr = malloc(size);
+    _size = size;
+    return _ptr;
   }
 
   void deallocate(void* ptr) {
-    REQUIRE(ptr == ptr_);
+    REQUIRE(ptr == _ptr);
     free(ptr);
-    ptr_ = 0;
-    size_ = 0;
+    _ptr = 0;
+    _size = 0;
   }
 
   void* reallocate(void* ptr, size_t new_size) {
-    REQUIRE(ptr == ptr_);
+    REQUIRE(ptr == _ptr);
     // don't call realloc, instead alloc a new buffer and erase the old one
     // this way we make sure we support relocation
     void* new_ptr = malloc(new_size);
-    memcpy(new_ptr, ptr_, std::min(new_size, size_));
-    memset(ptr_, '#', size_);  // erase
-    free(ptr_);
-    ptr_ = new_ptr;
+    memcpy(new_ptr, _ptr, std::min(new_size, _size));
+    memset(_ptr, '#', _size);  // erase
+    free(_ptr);
+    _ptr = new_ptr;
     return new_ptr;
   }
 
  private:
-  void* ptr_;
-  size_t size_;
+  void* _ptr;
+  size_t _size;
 };
 
 typedef BasicJsonDocument<ArmoredAllocator> ShrinkToFitTestDocument;

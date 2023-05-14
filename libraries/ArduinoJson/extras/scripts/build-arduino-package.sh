@@ -18,6 +18,6 @@ rm -f "$OUTPUT"
 	src \
 	keywords.txt \
 	library.properties \
-	LICENSE.txt \
+	LICENSE.md \
 	README.md \
 	ArduinoJson.h

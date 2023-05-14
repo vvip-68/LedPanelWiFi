@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -9,30 +9,30 @@ TEST_CASE("JsonVariant::operator|()") {
   DynamicJsonDocument doc(4096);
   JsonVariant variant = doc["value"].to<JsonVariant>();
 
-  SECTION("null") {
-    SECTION("null | const char*") {
+  SECTION("undefined") {
+    SECTION("undefined | const char*") {
       std::string result = variant | "default";
       REQUIRE(result == "default");
     }
 
-    SECTION("null | int") {
+    SECTION("undefined | int") {
       int result = variant | 42;
       REQUIRE(result == 42);
     }
 
-    SECTION("null | bool") {
+    SECTION("undefined | bool") {
       bool result = variant | true;
       REQUIRE(result == true);
     }
 
-    SECTION("null | ElementProxy") {
+    SECTION("undefined | ElementProxy") {
       doc["array"][0] = 42;
 
       JsonVariantConst result = variant | doc["array"][0];
       REQUIRE(result == 42);
     }
 
-    SECTION("null | MemberProxy") {
+    SECTION("undefined | MemberProxy") {
       doc["other"] = 42;
 
       JsonVariantConst result = variant | doc["other"];

@@ -1,20 +1,20 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <Arduino.h>
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <>
-class Writer<::String, void> {
+class Writer< ::String, void> {
   static const size_t bufferCapacity = ARDUINOJSON_STRING_BUFFER_SIZE;
 
  public:
-  explicit Writer(::String& str) : destination_(&str) {
-    size_ = 0;
+  explicit Writer(::String &str) : _destination(&str) {
+    _size = 0;
   }
 
   ~Writer() {
@@ -22,14 +22,14 @@ class Writer<::String, void> {
   }
 
   size_t write(uint8_t c) {
-    if (size_ + 1 >= bufferCapacity)
+    if (_size + 1 >= bufferCapacity)
       if (flush() != 0)
         return 0;
-    buffer_[size_++] = static_cast<char>(c);
+    _buffer[_size++] = static_cast<char>(c);
     return 1;
   }
 
-  size_t write(const uint8_t* s, size_t n) {
+  size_t write(const uint8_t *s, size_t n) {
     for (size_t i = 0; i < n; i++) {
       write(s[i]);
     }
@@ -37,17 +37,17 @@ class Writer<::String, void> {
   }
 
   size_t flush() {
-    ARDUINOJSON_ASSERT(size_ < bufferCapacity);
-    buffer_[size_] = 0;
-    if (destination_->concat(buffer_))
-      size_ = 0;
-    return size_;
+    ARDUINOJSON_ASSERT(_size < bufferCapacity);
+    _buffer[_size] = 0;
+    if (_destination->concat(_buffer))
+      _size = 0;
+    return _size;
   }
 
  private:
-  ::String* destination_;
-  char buffer_[bufferCapacity];
-  size_t size_;
+  ::String *_destination;
+  char _buffer[bufferCapacity];
+  size_t _size;
 };
 
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -60,7 +60,7 @@ TEST_CASE("JsonObject::remove()") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("key is a vla") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "b");
     obj.remove(vla);

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -100,7 +100,7 @@ TEST_CASE("deserialize JSON object") {
       REQUIRE(obj["key"] == "value");
     }
 
-    SECTION("Before the comma") {
+    SECTION("Before the colon") {
       DeserializationError err =
           deserializeJson(doc, "{\"key1\":\"value1\" ,\"key2\":\"value2\"}");
       JsonObject obj = doc.as<JsonObject>();
@@ -112,9 +112,9 @@ TEST_CASE("deserialize JSON object") {
       REQUIRE(obj["key2"] == "value2");
     }
 
-    SECTION("After the comma") {
+    SECTION("After the colon") {
       DeserializationError err =
-          deserializeJson(doc, "{\"key1\":\"value1\", \"key2\":\"value2\"}");
+          deserializeJson(doc, "{\"key1\":\"value1\" ,\"key2\":\"value2\"}");
       JsonObject obj = doc.as<JsonObject>();
 
       REQUIRE(err == DeserializationError::Ok);
@@ -278,22 +278,6 @@ TEST_CASE("deserialize JSON object") {
 
       REQUIRE(err == DeserializationError::Ok);
       REQUIRE(doc["a"] == 2);
-    }
-
-    SECTION("Repeated key with zero copy mode") {  // issue #1697
-      char input[] = "{a:{b:{c:1}},a:2}";
-      DeserializationError err = deserializeJson(doc, input);
-
-      REQUIRE(err == DeserializationError::Ok);
-      REQUIRE(doc["a"] == 2);
-    }
-
-    SECTION("NUL in keys") {  // we don't support NULs in keys
-      DeserializationError err =
-          deserializeJson(doc, "{\"x\\u0000a\":1,\"x\\u0000b\":2}");
-
-      REQUIRE(err == DeserializationError::Ok);
-      REQUIRE(doc.as<std::string>() == "{\"x\":2}");
     }
   }
 

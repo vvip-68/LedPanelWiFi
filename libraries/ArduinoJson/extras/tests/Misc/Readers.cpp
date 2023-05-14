@@ -1,14 +1,12 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <Arduino.h>
 #include <ArduinoJson.hpp>
 #include <catch.hpp>
 
-#include <sstream>
-
-using namespace ArduinoJson::detail;
+using namespace ARDUINOJSON_NAMESPACE;
 
 TEST_CASE("Reader<std::istringstream>") {
   SECTION("read()") {
@@ -170,19 +168,19 @@ TEST_CASE("IteratorReader") {
 
 class StreamStub : public Stream {
  public:
-  StreamStub(const char* s) : stream_(s) {}
+  StreamStub(const char* s) : _stream(s) {}
 
   int read() {
-    return stream_.get();
+    return _stream.get();
   }
 
   size_t readBytes(char* buffer, size_t length) {
-    stream_.read(buffer, static_cast<std::streamsize>(length));
-    return static_cast<size_t>(stream_.gcount());
+    _stream.read(buffer, static_cast<std::streamsize>(length));
+    return static_cast<size_t>(_stream.gcount());
   }
 
  private:
-  std::istringstream stream_;
+  std::istringstream _stream;
 };
 
 TEST_CASE("Reader<Stream>") {

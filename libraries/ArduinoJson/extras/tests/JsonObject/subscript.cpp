@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #include <ArduinoJson.h>
@@ -141,13 +141,13 @@ TEST_CASE("JsonObject::operator[]") {
   }
 
   SECTION("should duplicate a non-static JsonString key") {
-    obj[JsonString("hello", JsonString::Copied)] = "world";
+    obj[JsonString("hello", false)] = "world";
     const size_t expectedSize = JSON_OBJECT_SIZE(1) + JSON_STRING_SIZE(5);
     REQUIRE(expectedSize == doc.memoryUsage());
   }
 
   SECTION("should not duplicate a static JsonString key") {
-    obj[JsonString("hello", JsonString::Linked)] = "world";
+    obj[JsonString("hello", true)] = "world";
     const size_t expectedSize = JSON_OBJECT_SIZE(1);
     REQUIRE(expectedSize == doc.memoryUsage());
   }
@@ -172,7 +172,7 @@ TEST_CASE("JsonObject::operator[]") {
 #if defined(HAS_VARIABLE_LENGTH_ARRAY) && \
     !defined(SUBSCRIPT_CONFLICTS_WITH_BUILTIN_OPERATOR)
   SECTION("obj[VLA] = str") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "hello");
 
@@ -182,7 +182,7 @@ TEST_CASE("JsonObject::operator[]") {
   }
 
   SECTION("obj[str] = VLA") {  // issue #416
-    size_t i = 32;
+    int i = 32;
     char vla[i];
     strcpy(vla, "world");
 
@@ -192,7 +192,7 @@ TEST_CASE("JsonObject::operator[]") {
   }
 
   SECTION("obj.set(VLA, str)") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "hello");
 
@@ -202,7 +202,7 @@ TEST_CASE("JsonObject::operator[]") {
   }
 
   SECTION("obj.set(str, VLA)") {
-    size_t i = 32;
+    int i = 32;
     char vla[i];
     strcpy(vla, "world");
 
@@ -212,7 +212,7 @@ TEST_CASE("JsonObject::operator[]") {
   }
 
   SECTION("obj[VLA]") {
-    size_t i = 16;
+    int i = 16;
     char vla[i];
     strcpy(vla, "hello");
 

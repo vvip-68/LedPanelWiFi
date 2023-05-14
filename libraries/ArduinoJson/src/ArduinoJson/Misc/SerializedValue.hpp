@@ -1,54 +1,54 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Strings/StringAdapters.hpp>
 
-ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 // A special type of data that can be used to insert pregenerated JSON portions.
 template <typename T>
 class SerializedValue {
  public:
-  explicit SerializedValue(T str) : str_(str) {}
+  explicit SerializedValue(T str) : _str(str) {}
   operator T() const {
-    return str_;
+    return _str;
   }
 
   const char* data() const {
-    return str_.c_str();
+    return _str.c_str();
   }
 
   size_t size() const {
     // CAUTION: the old Arduino String doesn't have size()
-    return str_.length();
+    return _str.length();
   }
 
  private:
-  T str_;
+  T _str;
 };
 
 template <typename TChar>
 class SerializedValue<TChar*> {
  public:
-  explicit SerializedValue(TChar* p, size_t n) : data_(p), size_(n) {}
+  explicit SerializedValue(TChar* p, size_t n) : _data(p), _size(n) {}
   operator TChar*() const {
-    return data_;
+    return _data;
   }
 
   TChar* data() const {
-    return data_;
+    return _data;
   }
 
   size_t size() const {
-    return size_;
+    return _size;
   }
 
  private:
-  TChar* data_;
-  size_t size_;
+  TChar* _data;
+  size_t _size;
 };
 
 template <typename T>
@@ -58,12 +58,11 @@ inline SerializedValue<T> serialized(T str) {
 
 template <typename TChar>
 inline SerializedValue<TChar*> serialized(TChar* p) {
-  return SerializedValue<TChar*>(p, detail::adaptString(p).size());
+  return SerializedValue<TChar*>(p, adaptString(p).size());
 }
 
 template <typename TChar>
 inline SerializedValue<TChar*> serialized(TChar* p, size_t n) {
   return SerializedValue<TChar*>(p, n);
 }
-
-ARDUINOJSON_END_PUBLIC_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

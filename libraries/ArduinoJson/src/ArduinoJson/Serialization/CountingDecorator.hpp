@@ -1,33 +1,33 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Namespace.hpp>
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <typename TWriter>
 class CountingDecorator {
  public:
-  explicit CountingDecorator(TWriter& writer) : writer_(writer), count_(0) {}
+  explicit CountingDecorator(TWriter& writer) : _writer(writer), _count(0) {}
 
   void write(uint8_t c) {
-    count_ += writer_.write(c);
+    _count += _writer.write(c);
   }
 
   void write(const uint8_t* s, size_t n) {
-    count_ += writer_.write(s, n);
+    _count += _writer.write(s, n);
   }
 
   size_t count() const {
-    return count_;
+    return _count;
   }
 
  private:
-  TWriter writer_;
-  size_t count_;
+  TWriter _writer;
+  size_t _count;
 };
 
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

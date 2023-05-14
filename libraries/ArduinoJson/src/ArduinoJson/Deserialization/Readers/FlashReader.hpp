@@ -1,56 +1,53 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
-#include <ArduinoJson/Polyfills/pgmspace.hpp>
-
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <>
 struct Reader<const __FlashStringHelper*, void> {
-  const char* ptr_;
+  const char* _ptr;
 
  public:
   explicit Reader(const __FlashStringHelper* ptr)
-      : ptr_(reinterpret_cast<const char*>(ptr)) {}
+      : _ptr(reinterpret_cast<const char*>(ptr)) {}
 
   int read() {
-    return pgm_read_byte(ptr_++);
+    return pgm_read_byte(_ptr++);
   }
 
   size_t readBytes(char* buffer, size_t length) {
-    memcpy_P(buffer, ptr_, length);
-    ptr_ += length;
+    memcpy_P(buffer, _ptr, length);
+    _ptr += length;
     return length;
   }
 };
 
 template <>
 struct BoundedReader<const __FlashStringHelper*, void> {
-  const char* ptr_;
-  const char* end_;
+  const char* _ptr;
+  const char* _end;
 
  public:
   explicit BoundedReader(const __FlashStringHelper* ptr, size_t size)
-      : ptr_(reinterpret_cast<const char*>(ptr)), end_(ptr_ + size) {}
+      : _ptr(reinterpret_cast<const char*>(ptr)), _end(_ptr + size) {}
 
   int read() {
-    if (ptr_ < end_)
-      return pgm_read_byte(ptr_++);
+    if (_ptr < _end)
+      return pgm_read_byte(_ptr++);
     else
       return -1;
   }
 
   size_t readBytes(char* buffer, size_t length) {
-    size_t available = static_cast<size_t>(end_ - ptr_);
+    size_t available = static_cast<size_t>(_end - _ptr);
     if (available < length)
       length = available;
-    memcpy_P(buffer, ptr_, length);
-    ptr_ += length;
+    memcpy_P(buffer, _ptr, length);
+    _ptr += length;
     return length;
   }
 };
-
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

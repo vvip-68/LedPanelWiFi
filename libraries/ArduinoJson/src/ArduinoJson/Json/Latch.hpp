@@ -1,56 +1,56 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Polyfills/assert.hpp>
 
-ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
+namespace ARDUINOJSON_NAMESPACE {
 
 template <typename TReader>
 class Latch {
  public:
-  Latch(TReader reader) : reader_(reader), loaded_(false) {
+  Latch(TReader reader) : _reader(reader), _loaded(false) {
 #if ARDUINOJSON_DEBUG
-    ended_ = false;
+    _ended = false;
 #endif
   }
 
   void clear() {
-    loaded_ = false;
+    _loaded = false;
   }
 
   int last() const {
-    return current_;
+    return _current;
   }
 
   FORCE_INLINE char current() {
-    if (!loaded_) {
+    if (!_loaded) {
       load();
     }
-    return current_;
+    return _current;
   }
 
  private:
   void load() {
-    ARDUINOJSON_ASSERT(!ended_);
-    int c = reader_.read();
+    ARDUINOJSON_ASSERT(!_ended);
+    int c = _reader.read();
 #if ARDUINOJSON_DEBUG
     if (c <= 0)
-      ended_ = true;
+      _ended = true;
 #endif
-    current_ = static_cast<char>(c > 0 ? c : 0);
-    loaded_ = true;
+    _current = static_cast<char>(c > 0 ? c : 0);
+    _loaded = true;
   }
 
-  TReader reader_;
-  char current_;  // NOLINT(clang-analyzer-optin.cplusplus.UninitializedObject)
+  TReader _reader;
+  char _current;  // NOLINT(clang-analyzer-optin.cplusplus.UninitializedObject)
                   // Not initialized in constructor (+10 bytes on AVR)
-  bool loaded_;
+  bool _loaded;
 #if ARDUINOJSON_DEBUG
-  bool ended_;
+  bool _ended;
 #endif
 };
 
-ARDUINOJSON_END_PRIVATE_NAMESPACE
+}  // namespace ARDUINOJSON_NAMESPACE

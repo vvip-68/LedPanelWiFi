@@ -1,8 +1,8 @@
 # ArduinoJson - https://arduinojson.org
-# Copyright © 2014-2023, Benoit BLANCHON
+# Copyright Benoit Blanchon 2014-2021
 # MIT License
 
-add_executable(MemoryPoolTests
+add_executable(MemoryPoolTests 
 	allocVariant.cpp
 	clear.cpp
 	saveString.cpp
@@ -14,5 +14,5 @@ add_test(MemoryPool MemoryPoolTests)
 
 set_tests_properties(MemoryPool
 	PROPERTIES
-		LABELS "Catch"
+		LABELS 		"Catch"
 )

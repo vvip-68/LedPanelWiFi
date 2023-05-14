@@ -1,11 +1,11 @@
-#define ARDUINOJSON_VERSION_NAMESPACE NoAlignment
+#define ARDUINOJSON_NAMESPACE ArduinoJson_NoAlignment
 #define ARDUINOJSON_ENABLE_ALIGNMENT 0
 #include <ArduinoJson.h>
 
 #include <catch.hpp>
 
 TEST_CASE("ARDUINOJSON_ENABLE_ALIGNMENT == 0") {
-  using namespace ArduinoJson::detail;
+  using namespace ARDUINOJSON_NAMESPACE;
 
   const size_t N = sizeof(void*);
 

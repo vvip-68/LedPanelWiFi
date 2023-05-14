@@ -1,8 +1,8 @@
 # ArduinoJson - https://arduinojson.org
-# Copyright © 2014-2023, Benoit BLANCHON
+# Copyright Benoit Blanchon 2014-2021
 # MIT License
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 98)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(catch)
@@ -10,6 +10,7 @@ add_subdirectory(catch)
 link_libraries(ArduinoJson catch)
 
 include_directories(Helpers)
+add_subdirectory(Cpp11)
 add_subdirectory(Cpp17)
 add_subdirectory(Cpp20)
 add_subdirectory(FailingBuilds)
