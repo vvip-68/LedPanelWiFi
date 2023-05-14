@@ -1,4 +1,4 @@
-// Для поддержки работы MQTT нужно знать какой параметр изменился, чтобы отправить изменения на сервер
+// Для поддержки работы Web нужно знать какой параметр изменился, чтобы отправить изменения на сервер
 // По этой причине нельзя напрямую присваивать новое значение переменной, нужно выполнить дополнительные действия,
 // чтобы зафиксировать изменение значения. Для этой цели данная страница содержит функции - сеттеры, 
 // устанавливающие значения переменных.
@@ -6,12 +6,9 @@
 // Добавление ключа в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
 void addKeyToChanged(String key) {
   String search = "|" + key + "|";
-  // Добавляемый ключ есть в списке ключей, которыми интересуется клиент (STATE_KEYS)?
-  if (String(STATE_KEYS).indexOf(search) >= 0) {
-    // Если ключа еще нет в строке измененных параметров - добавить 
-    if      (changed_keys.length() == 0)       changed_keys = search;
-    else if (changed_keys.indexOf(search) < 0) changed_keys += key + "|";
-  }
+  // Если ключа еще нет в строке измененных параметров - добавить 
+  if      (changed_keys.length() == 0)       changed_keys = search;
+  else if (changed_keys.indexOf(search) < 0) changed_keys += key + "|";
 }
 
 // Добавление списка ключей в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
@@ -899,63 +896,6 @@ void set_isSdCardReady(bool value) {
   isSdCardReady = value;
   addKeyToChanged("SD");
 }
-#endif
-
-#if (USE_MQTT == 1)
-// QA useMQTT
-void set_useMQTT(bool value) {
-  if (useMQTT == value) return;  
-  if (useMQTT || value) stopMQTT = false;
-  putUseMqtt(value);
-  useMQTT = getUseMqtt();
-  
-  addKeyToChanged("QA");
-}
-
-// QP mqtt_port
-void set_mqtt_port(int16_t value) {
-  if (mqtt_port == value) return;  
-  putMqttPort(value);
-  mqtt_port = getMqttPort();
-  addKeyToChanged("QP");
-}
-
-// QS mqtt_server
-void set_MqttServer(String value) {
-  if (getMqttServer() == value) return;
-  putMqttServer(value);
-  memset(mqtt_server, '\0', 25);
-  getMqttServer().toCharArray(mqtt_server, 24);
-  addKeyToChanged("QS");
-}
-
-// QU mqtt_user
-void set_MqttUser(String value) {
-  if (getMqttUser() == value) return;
-  putMqttUser(value);
-  memset(mqtt_user, '\0', 15);
-  getMqttUser().toCharArray(mqtt_user, 14);
-  addKeyToChanged("QU");
-}
-
-// QW mqtt_pass
-void set_MqttPass(String value) {
-  if (getMqttPass() == value) return;
-  putMqttPass(value);
-  memset(mqtt_pass, '\0', 15);
-  getMqttPass().toCharArray(mqtt_pass, 14);
-  addKeyToChanged("QW");
-}
-
-// QR mqtt_prefix
-void set_MqttPrefix(String value) {
-  if (getMqttPrefix() == value) return;
-  putMqttPrefix(value);
-  memset(mqtt_prefix, '\0', 31);
-  getMqttPrefix().toCharArray(mqtt_prefix, 30);
-  addKeyToChanged("QR");
-}
-
 #endif
 
 #if (USE_E131 == 1)

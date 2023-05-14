@@ -389,7 +389,6 @@ void sdcardRoutine() {
     }
     doc["file"] = fileName;
     serializeJson(doc, out);    
-    SendMQTT(out, TOPIC_SDC);
     SendWeb(out, TOPIC_SDC);
 
     FastLED.clear();

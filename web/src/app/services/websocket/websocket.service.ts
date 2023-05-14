@@ -4,8 +4,6 @@ import {distinctUntilChanged, filter, map, share} from 'rxjs/operators';
 import {WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {environment} from "../../../environments/environment";
 
-// https://github.com/vvip-68/GyverPanelWiFi/wiki/API-управления-устройством-по-каналу-MQTT
-
 export const WS = {
   // 'Топики' получения состояния из устройства
   ON: {

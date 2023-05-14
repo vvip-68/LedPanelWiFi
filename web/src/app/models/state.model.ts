@@ -7,11 +7,13 @@ export interface IStateModel {
   last_error: string;              // ER - Последнее сообщение об ошибке
   width: number;                   // W - Ширина матрицы (полная, в точках)
   height: number;                  // H - высота матрицы (полная, в точках)
-  supportMQTT: boolean;            // QZ - устройство поддерживает Mqtt
-  supportTM1637: boolean;          // TM - устройство поддерживает TM1637
-  supportWeather: boolean;         // WZ - устройство поддерживает получение погоды
-  supportMP3: boolean;             // MX	- MX:X	MP3 плеер доступен для использования 0-нет, 1-да
-  supportE131: boolean;            // E0 - устройство поддерживает групповую синхронизацию по протоколу E1.31
+  supportTM1637: boolean;          // TM - устройство поддерживает TM1637 - USE_TM1637
+  supportWeather: boolean;         // WZ - устройство поддерживает получение погоды - USE_WEATHER
+  supportMP3: boolean;             // MX - MX:X	MP3 плеер доступен для использования 0-нет, 1-да - USE_MP3
+  supportE131: boolean;            // E0 - устройство поддерживает групповую синхронизацию по протоколу E1.31 - USE_E131
+  supportSD: boolean;              // SZ - устройство поддерживает SD-карту - USE_SD
+  supportButton: boolean;          // UB - устройство поддерживает кнопку USE_BUTTON
+  supportPower: boolean;           // PZ - устройство поддерживает кнопку USE_POWER
   brightness: number;              // BR - Текущая яркость
   game_speed: number;              // SE - Текущая скорость эффекта (игры)
   game_button_speed: number;       // BS - Текущая скорость повтора нажатия кнопки (игры)
@@ -30,12 +32,6 @@ export interface IStateModel {
   apName: string;                  // AN - имя точки доступа
   apPass: string;                  // AB - пароль подключения к точке доступа
   useAP: boolean;                  // AU - создавать точку доступа даже при подключении к сети
-  useMQTT: boolean;                // QA - использовать канал MQTT
-  mqttServerName: string;          // QS - имя сервера MQTT
-  mqttUserName: string;            // QU - пользователь MQTT (login)
-  mqttPassword: string;            // QW - пароль к NQTT
-  mqttPrefix: string;              // QR - префикс топика MQTT
-  mqttPort: number;                // QP - порт сервера MQTT
   e131_mode: number;               // E1 - режим - 0 - автономный, 1 - вещатель, 2 - слушатель
   e131_type: number;               // E2 - тип потока 0 - физический; 1 - логический, 2 - команды
   e131_group: number;              // E3 - номер группы синхронизации
@@ -125,6 +121,24 @@ export interface IStateModel {
   sync_local_y: number;            // ELY - ELY:X - позиция Y левого верхнего угла окна приемника, куда идет вывод изображения с Мастера
   sync_local_w: number;            // ELW - ELW:X - ширина окна приемника, куда идет вывод изображения с Мастера
   sync_local_h: number;            // ELH - ELH:X - высота окна приемника, куда идет вывод изображения с Мастера
+
+  controller: string;              // MC	MC:[текст]	тип микроконтроллера "ESP32", "NodeMCU", "Wemos d1 mini"
+  led_line_1: string;              // 2306:U P S L     подключение матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  led_line_2: string;              // 2307:U P S L     подключение матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  led_line_3: string;              // 2308:U P S L     подключение матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  led_line_4: string;              // 2309:U P S L     подключение матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  device_type: number;             // 2310:X           тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
+  button_type: number;             // 2311:X Y         X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+  button_pin: number;              // 2311:X Y         X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+  power_level: number;             // 2312:X Y         X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+  power_pin: number;               // 2312:X Y         X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+  wait_play_finished: boolean;     // 2313:X Y         X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+  repeat_play: boolean;            // 2313:X Y         X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+  debug_serial: boolean;           // 2314:X           vDEBUG_SERIAL
+  player_tx_pin: number;           // 2315:X Y         X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+  player_rx_pin: number;           // 2315:X Y         X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+  tm1637_dio_pin: number;          // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
+  tm1637_clk_pin: number;          // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
 }
 
 export class StateModel implements IStateModel {
@@ -134,11 +148,13 @@ export class StateModel implements IStateModel {
   public last_info = '';
   public width = 0;
   public height = 0;
-  public supportMQTT = false;
   public supportTM1637 = false;
   public supportWeather = false;
   public supportMP3 = false;
   public supportE131 = false;
+  public supportSD = false;
+  public supportButton = false;
+  public supportPower = false;
   public brightness = 25;
   public game_speed = 127;
   public game_button_speed = 50;
@@ -157,12 +173,6 @@ export class StateModel implements IStateModel {
   public apName = '';
   public apPass = '';
   public useAP = false;
-  public useMQTT = false;
-  public mqttServerName = 'mqtt.by';
-  public mqttUserName = '';
-  public mqttPassword = '';
-  public mqttPrefix = '';
-  public mqttPort = 1883;
   public e131_mode = 0;
   public e131_type = 0;
   public e131_group = 0;
@@ -246,6 +256,23 @@ export class StateModel implements IStateModel {
   public sync_local_y = 0;
   public sync_local_w = 16;
   public sync_local_h = 16;
+  public controller = "";
+  public led_line_1 = "";
+  public led_line_2 = "";
+  public led_line_3 = "";
+  public led_line_4 = "";
+  public device_type = 1;
+  public button_type = 1;
+  public button_pin = -1;
+  public power_level = -1;
+  public power_pin = -1;
+  public wait_play_finished = true;
+  public repeat_play = true;
+  public debug_serial = true;
+  public player_tx_pin = -1;
+  public player_rx_pin = -1;
+  public tm1637_dio_pin = -1;
+  public tm1637_clk_pin = -1;
 
   constructor() {
   }
@@ -269,9 +296,11 @@ export class StateModel implements IStateModel {
       case 'ER':   return this.last_error;
       case 'NF':   return this.last_info;
       case 'TM':   return this.supportTM1637;
-      case 'QZ':   return this.supportMQTT;
       case 'WZ':   return this.supportWeather;
       case 'MX':   return this.supportMP3;
+      case 'SZ':   return this.supportSD;
+      case 'UB':   return this.supportButton;
+      case 'PZ':   return this.supportPower;
       case 'BR':   return this.brightness;
       case 'BS':   return this.game_button_speed;
       case 'SE':   return this.game_speed;
@@ -291,12 +320,6 @@ export class StateModel implements IStateModel {
       case 'AN':   return this.apName;
       case 'AB':   return this.apPass;
       case 'AU':   return this.useAP;
-      case 'QA':   return this.useMQTT;
-      case 'QS':   return this.mqttServerName;
-      case 'QU':   return this.mqttUserName;
-      case 'QW':   return this.mqttPassword;
-      case 'QR':   return this.mqttPrefix;
-      case 'QP':   return this.mqttPort;
       case 'E0':   return this.supportE131;
       case 'E1':   return this.e131_mode;
       case 'E2':   return this.e131_type;
@@ -380,6 +403,19 @@ export class StateModel implements IStateModel {
       case 'ELY':  return this.sync_local_y;
       case 'ELW':  return this.sync_local_w;
       case 'ELH':  return this.sync_local_h;
+
+      case 'MC':   return this.controller
+      case '2306': return this.led_line_1;
+      case '2307': return this.led_line_2;
+      case '2308': return this.led_line_3;
+      case '2309': return this.led_line_4;
+      case '2310': return this.device_type;
+      case '2311': return `${this.button_pin} ${this.button_type}`;             // 2311:X Y  -> X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+      case '2312': return `${this.power_pin} ${this.power_level}`;              // 2312:X Y  -> X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+      case '2313': return `${this.wait_play_finished} ${this.repeat_play}`;     // 2313:X Y  -> X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+      case '2314': return this.debug_serial;
+      case '2315': return `${this.player_tx_pin} ${this.player_rx_pin}`;        // 2315:X Y  -> X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+      case '2316': return `${this.tm1637_dio_pin} ${this.tm1637_clk_pin}`;      // 2316:X Y  -> X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
     }
     // @formatter:on
     return null;
@@ -399,9 +435,11 @@ export class StateModel implements IStateModel {
       case 'ER':   this.last_error = '' + value;                                  break;
       case 'NF':   this.last_info = '' + value;                                   break;
       case 'TM':   this.supportTM1637 = ('' + value).toLowerCase() === 'true';    break;
-      case 'QZ':   this.supportMQTT = ('' + value).toLowerCase() === 'true';      break;
       case 'WZ':   this.supportWeather = ('' + value).toLowerCase() === 'true';   break;
       case 'MX':   this.supportMP3 = ('' + value).toLowerCase() === 'true';       break;
+      case 'SZ':   this.supportSD = ('' + value).toLowerCase() === 'true';        break;
+      case 'UB':   this.supportButton = ('' + value).toLowerCase() === 'true';    break;
+      case 'PZ':   this.supportPower = ('' + value).toLowerCase() === 'true';    break;
       case 'BR':   this.brightness = Number(value);                               break;
       case 'BS':   this.game_button_speed = Number(value);                        break;
       case 'SE':   this.game_speed = Number(value);                               break;
@@ -421,12 +459,6 @@ export class StateModel implements IStateModel {
       case 'AN':   this.apName = '' + value;                                      break;
       case 'AB':   this.apPass = '' + value;                                      break;
       case 'AU':   this.useAP = ('' + value).toLowerCase() === 'true';            break;
-      case 'QA':   this.useMQTT = ('' + value).toLowerCase() === 'true';          break;
-      case 'QS':   this.mqttServerName = '' + value;                              break;
-      case 'QU':   this.mqttUserName = '' + value;                                break;
-      case 'QW':   this.mqttPassword = '' + value;                                break;
-      case 'QR':   this.mqttPrefix = '' + value;                                  break;
-      case 'QP':   this.mqttPort = Number(value);                                 break;
       case 'E0':   this.supportE131 = ('' + value).toLowerCase() === 'true';      break;
       case 'E1':   this.e131_mode = Number(value);                                break;
       case 'E2':   this.e131_type = Number(value);                                break;
@@ -441,14 +473,15 @@ export class StateModel implements IStateModel {
       case 'M7':   this.tol_seg_type = Number(value);                             break;
       case 'M8':   this.tol_seg_angle = Number(value);                            break;
       case 'M9':   this.tol_seg_dir = Number(value);                              break;
-      case 'M10':
-        this.map_idx_list = new Array<ComboBoxItem>();
-        const parts = ('' + value).split(',');
-        let idx = 0;
-        parts.forEach(val => {
-          const itm = new ComboBoxItem(val, idx++);
-          this.map_idx_list.push(itm);
-        });
+      case 'M10': {
+          this.map_idx_list = new Array<ComboBoxItem>();
+          const parts = ('' + value).split(',');
+          let idx = 0;
+          parts.forEach(val => {
+            const itm = new ComboBoxItem(val, idx++);
+            this.map_idx_list.push(itm);
+          });
+        }
         break;
       case 'M11':  this.map_idx = Number(value);                                  break;
       case 'PD':   this.effect_time = Number(value);                              break;
@@ -518,6 +551,49 @@ export class StateModel implements IStateModel {
       case 'ELY':  this.sync_local_y = Number(value);                             break;
       case 'ELW':  this.sync_local_w = Number(value);                             break;
       case 'ELH':  this.sync_local_h = Number(value);                             break;
+
+      case 'MC':   this.controller = '' + value;                                  break;
+      case '2306': this.led_line_1 = '' + value;                                  break;
+      case '2307': this.led_line_2 = '' + value;                                  break;
+      case '2308': this.led_line_3 = '' + value;                                  break;
+      case '2309': this.led_line_4 = '' + value;                                  break;
+      case '2310': this.device_type = Number(value);                              break;
+      case '2311': {
+          // 2311:X Y         X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+          const parts = ('' + value).split(' ');
+          this.button_pin = Number(parts[0]);
+          this.button_type = Number(parts[1]);
+        }
+        break;
+      case '2312': {
+          // 2312:X Y         X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+          const parts = ('' + value).split(' ');
+          this.power_pin = Number(parts[0]);
+          this.power_level = Number(parts[1]);
+        }
+        break;
+      case '2313': {
+          // 2313:X Y         X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+          const parts = ('' + value).split(' ');
+          this.wait_play_finished = parts[0].trim().toLowerCase() === 'true' || parts[0].trim() === '1';
+          this.repeat_play = parts[1].trim().toLowerCase() === 'true' || parts[1].trim() == '1';
+        }
+        break;
+      case '2314':   this.debug_serial = ('' + value).toLowerCase() === 'true'; break;
+      case '2315': {
+          // 2315:X Y         X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+          const parts = ('' + value).split(' ');
+          this.player_tx_pin = Number(parts[0]);
+          this.player_rx_pin = Number(parts[1]);
+        }
+        break;
+      case '2316': {
+          // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
+          const parts = ('' + value).split(' ');
+          this.tm1637_dio_pin = Number(parts[0]);
+          this.tm1637_clk_pin = Number(parts[1]);
+        }
+        break;
     }
     // @formatter:on
   }

@@ -1834,8 +1834,6 @@ String getTextByIndex(uint8_t idx) {
   String directoryName = TEXT_STORAGE;
   String fileName = directoryName + '/' + c;
   if (LittleFS.exists(fileName)) {
-
-    //long t1 = millis();
     
     File file = LittleFS.open(fileName, "r");
     if (file) {
@@ -1849,9 +1847,6 @@ String getTextByIndex(uint8_t idx) {
         preparedText = text;
         preparedTextIdx = idx;
       }
-
-      //long t2 = millis();
-      //DEBUGLN("Строка file='" + fileName + "' t=" + String(t2-t1)+ "мc; ['" + text + "']" ); // +++!!!!
       
     } else {
       DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    

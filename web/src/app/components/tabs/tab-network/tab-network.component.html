@@ -20,15 +20,5 @@
       </ng-template>
     </mat-tab>
 
-    <mat-tab *ngIf="supportMQTT">
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon" matTooltip="{{L.$('Настройки MQTT')}}">backup</mat-icon>
-        <span>{{ L.$('Настройки MQTT') }}</span>
-      </ng-template>
-      <ng-template matTabContent>
-        <app-tab-network-mqtt></app-tab-network-mqtt>
-      </ng-template>
-    </mat-tab>
-
   </mat-tab-group>
 </div>

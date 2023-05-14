@@ -1,0 +1,381 @@
+@use '../../../app-theme';
+
+:host .tab-wiring {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0;
+  height: calc(100dvh - 228px);
+  width: auto;
+  position: relative;
+
+  .mcu {
+    .esp32,
+    .nodemcu,
+    .wemos {
+      .mark {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: none;
+        color: white;
+        position: absolute;
+
+        .mat-icon {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 11px;
+          width: 16px;
+          height: 16px;
+        }
+
+        &.ok {
+          background-color: #14e114;
+        }
+
+        &.warn {
+          background-color: gold;
+          cursor: help;
+        }
+      }
+
+      .markp {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 24px;
+        height: 16px;
+        border-radius: 4px;
+        border: solid 1px darkslategray;
+        color: black;
+        background-color: var(--mcu-back-color);
+        position: absolute;
+        font-size: 8px;
+
+        &.set {
+          background-color: #03a9f4;
+        }
+      }
+
+      .markc {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 50px;
+        height: 16px;
+        border-radius: 4px;
+        border: solid 1px darkslategray;
+        color: black;
+        background-color: #acd77b;
+        position: absolute;
+        font-size: 8px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 0 4px;
+      }
+    }
+
+    .wemos {
+      .mark {
+        &.d0  { top: 111px; left:  80px; }
+        &.d5  { top: 128px; left:  80px; }
+        &.d6  { top: 145px; left:  80px; }
+        &.d7  { top: 162px; left:  80px; }
+        &.d8  { top: 180px; left:  80px; }
+        &.tx  { top:  77px; left: 274px; }
+        &.rx  { top:  94px; left: 274px; }
+        &.d1  { top: 111px; left: 274px; }
+        &.d2  { top: 128px; left: 274px; }
+        &.d3  { top: 145px; left: 274px; }
+        &.d4  { top: 162px; left: 274px; }
+      }
+      .markp {
+        &.d0 { top: 111px; left:  52px; }
+        &.d5 { top: 128px; left:  52px; }
+        &.d6 { top: 145px; left:  52px; }
+        &.d7 { top: 162px; left:  52px; }
+        &.d8 { top: 180px; left:  52px; }
+        &.tx { top:  77px; left: 294px; width: 36px; }
+        &.rx { top:  94px; left: 294px; width: 36px; }
+        &.d1 { top: 111px; left: 294px; }
+        &.d2 { top: 128px; left: 294px; }
+        &.d3 { top: 145px; left: 294px; }
+        &.d4 { top: 162px; left: 294px; }
+      }
+      .markc {
+        &.d0 { top: 111px; right: 324px; }
+        &.d5 { top: 128px; right: 324px; }
+        &.d6 { top: 145px; right: 324px; }
+        &.d7 { top: 162px; right: 324px; }
+        &.d8 { top: 180px; right: 324px; }
+        &.tx { top:  77px; left:  334px; }
+        &.rx { top:  94px; left:  334px; }
+        &.d1 { top: 111px; left:  320px; }
+        &.d2 { top: 128px; left:  320px; }
+        &.d3 { top: 145px; left:  320px; }
+        &.d4 { top: 162px; left:  320px; }
+      }
+    }
+
+    .nodemcu {
+      .mark {
+        &.d0  { top:  60px; left: 278px; }
+        &.d5  { top: 190px; left: 278px; }
+        &.d6  { top: 209px; left: 278px; }
+        &.d7  { top: 228px; left: 278px; }
+        &.d8  { top: 247px; left: 278px; }
+        &.tx  { top: 284px; left: 278px; }
+        &.rx  { top: 265px; left: 278px; }
+        &.d1  { top:  79px; left: 278px; }
+        &.d2  { top:  97px; left: 278px; }
+        &.d3  { top: 116px; left: 278px; }
+        &.d4  { top: 134px; left: 278px; }
+      }
+      .markp {
+        &.d0 { top:  60px; left: 298px; }
+        &.d5 { top: 190px; left: 298px; }
+        &.d6 { top: 209px; left: 298px; }
+        &.d7 { top: 228px; left: 298px; }
+        &.d8 { top: 247px; left: 298px; }
+        &.tx { top: 284px; left: 298px; width: 36px; }
+        &.rx { top: 265px; left: 298px; width: 36px; }
+        &.d1 { top:  79px; left: 298px; }
+        &.d2 { top:  97px; left: 298px; }
+        &.d3 { top: 116px; left: 298px; }
+        &.d4 { top: 134px; left: 298px; }
+      }
+      .markc {
+        &.d0 { top:  60px; left: 324px; }
+        &.d5 { top: 190px; left: 324px; }
+        &.d6 { top: 209px; left: 324px; }
+        &.d7 { top: 228px; left: 324px; }
+        &.d8 { top: 247px; left: 324px; }
+        &.tx { top: 284px; left: 338px; }
+        &.rx { top: 265px; left: 338px; }
+        &.d1 { top:  79px; left: 324px; }
+        &.d2 { top:  97px; left: 324px; }
+        &.d3 { top: 116px; left: 324px; }
+        &.d4 { top: 134px; left: 324px; }
+      }
+    }
+
+    .esp32 {
+      .mark {
+        &.tx  { top: 105px; left: 278px; }
+        &.rx  { top: 123px; left: 278px; }
+        &.d2  { top: 273px; left: 278px; }
+        &.d4  { top: 254px; left: 278px; }
+        &.d5  { top: 198px; left: 278px; }
+        &.d12  { top: 273px; left: 82px; }
+        &.d13  { top: 292px; left: 82px; }
+        &.d14  { top: 254px; left: 82px; }
+        &.d15  { top: 292px; left: 278px; }
+        &.d16  { top: 235px; left: 278px; }
+        &.d17  { top: 216px; left: 278px; }
+        &.d18  { top: 180px; left: 278px; }
+        &.d19  { top: 161px; left: 278px; }
+        &.d21  { top: 142px; left: 278px; }
+        &.d22  { top:  86px; left: 278px; }
+        &.d23  { top:  68px; left: 278px; }
+        &.d25  { top: 198px; left: 82px; }
+        &.d26  { top: 217px; left: 82px; }
+        &.d27  { top: 235px; left: 82px; }
+        &.d32  { top: 161px; left: 82px; }
+        &.d33  { top: 179px; left: 82px; }
+      }
+      .markp {
+        &.tx { top: 105px; left: 298px; width: 36px; }
+        &.rx { top: 123px; left: 298px; width: 36px; }
+        &.d2 { top: 273px; left: 298px; }
+        &.d4 { top: 254px; left: 298px; }
+        &.d5 { top: 198px; left: 298px; }
+        &.d12 { top: 273px; left: 54px; }
+        &.d13 { top: 292px; left: 54px; }
+        &.d14 { top: 254px; left: 54px; }
+        &.d15 { top: 292px; left: 298px; }
+        &.d16 { top: 235px; left: 298px; }
+        &.d17 { top: 216px; left: 298px; }
+        &.d18 { top: 180px; left: 298px; }
+        &.d19 { top: 161px; left: 298px; }
+        &.d21 { top: 142px; left: 298px; }
+        &.d22 { top:  86px; left: 298px; }
+        &.d23 { top:  68px; left: 298px; }
+        &.d25 { top: 198px; left: 54px; }
+        &.d26 { top: 217px; left: 54px; }
+        &.d27 { top: 235px; left: 54px; }
+        &.d32 { top: 161px; left: 54px; }
+        &.d33 { top: 179px; left: 54px; }
+      }
+      .markc {
+        &.tx { top: 105px; left: 338px; }
+        &.rx { top: 123px; left: 338px; }
+        &.d2 { top: 273px; left: 324px; }
+        &.d4 { top: 254px; left: 324px; }
+        &.d5 { top: 198px; left: 324px; }
+        &.d12 { top: 273px; right: 322px; }
+        &.d13 { top: 292px; right: 322px; }
+        &.d14 { top: 254px; right: 322px; }
+        &.d15 { top: 292px; left: 324px; }
+        &.d16 { top: 235px; left: 324px; }
+        &.d17 { top: 216px; left: 324px; }
+        &.d18 { top: 180px; left: 324px; }
+        &.d19 { top: 161px; left: 324px; }
+        &.d21 { top: 142px; left: 324px; }
+        &.d22 { top:  86px; left: 324px; }
+        &.d23 { top:  68px; left: 324px; }
+        &.d25 { top: 198px; right: 322px; }
+        &.d26 { top: 217px; right: 322px; }
+        &.d27 { top: 235px; right: 322px; }
+        &.d32 { top: 161px; right: 322px; }
+        &.d33 { top: 179px; right: 322px; }
+      }
+    }
+  }
+
+  .link {
+    color: #02c0ff;
+    cursor: pointer;
+  }
+
+  .wiring-fieldset {
+    width: 100%;
+    max-width: 368px;
+    height: fit-content;
+    display: table;
+    flex-direction: column;
+    align-items: center;
+    margin: 12px 0 12px 0;
+
+    .section-header {
+      border-top: solid 1px var(--card-border-color);
+      margin: 12px 0 0 0;
+      padding: 12px 0 0 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .toggler-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin: 0 4px 4px 0;
+
+      &.spacer {
+        border-top: solid 1px var(--card-border-color);
+      }
+
+      &.led-lines {
+        padding-top: 4px;
+        margin-top: 0;
+        justify-content: start;
+
+        ::ng-deep mat-select.mat-mdc-select {
+          width: 64px;
+          margin: -5px 6px 0 0;
+          &.error {
+            .mat-mdc-select-value {
+              color: red;
+            }
+          }
+          &.wide {
+            width: 116px;
+            ::ng-deep mat-form-field.mat-mdc-form-field {
+              width: 116px;
+              margin-left: 8px;
+            }
+          }
+          &.narrow {
+            width: 36px;
+            ::ng-deep mat-form-field.mat-mdc-form-field {
+              width: 36px;
+              margin-left: 8px;
+            }
+          }
+        }
+
+        ::ng-deep mat-form-field.mat-mdc-form-field {
+          width: 64px;
+          margin-left: 8px;
+
+          mat-hint.mat-mdc-form-field-hint {
+            width: 66px;
+          }
+
+          .mat-mdc-form-field-hint-spacer {
+            display: none;
+          }
+
+          .mdc-floating-label {
+            font-size: 12px;
+            width: 34px;
+            .mat-mdc-form-field-required-marker {
+              display: none;
+            }
+          }
+
+          .mat-mdc-input-element {
+            padding-left: 34px;
+            text-align: right;
+          }
+        }
+      }
+
+      .toggler {
+        .switch {
+        }
+      }
+
+      .toggler-label {
+        font-size: 12px;
+        margin: 2px 6px 0 0;
+        white-space: nowrap;
+
+        &.error {
+          color: red;
+        }
+        &.left-space {
+          margin-left: 18px;
+        }
+        &.left-space2 {
+          margin-left: 8px;
+        }
+        &.sd {
+          width: 28px;
+        }
+        &.info {
+          font-size: 10px;
+          white-space: break-spaces;
+          color: #03afef;
+        }
+        &.info2 {
+          white-space: break-spaces;
+        }
+      }
+    }
+
+    .field-container {
+      margin: 8px 0 0 0;
+      display: flex;
+      flex-direction: row;
+      position: relative;
+      padding: 0 12px 0 0;
+      border-top: solid 1px var(--card-border-color);
+
+      .action-button {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+
+        button {
+          margin: 0 -13px 0 0;
+        }
+      }
+    }
+  }
+}

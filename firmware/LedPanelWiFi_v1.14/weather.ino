@@ -40,7 +40,6 @@ bool getWeather() {
     doc["result"] = F("ERROR");
     doc["status"] = status;
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_WTR);
     SendWeb(out, TOPIC_WTR);
 
     return false;
@@ -54,7 +53,6 @@ bool getWeather() {
     doc["result"] = F("ERROR");
     doc["status"] = F("unexpected answer");
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_WTR);
     SendWeb(out, TOPIC_WTR);
 
     return false;                                                           // и пора прекращать всё это дело
@@ -72,7 +70,6 @@ bool getWeather() {
     doc["result"] = F("ERROR");
     doc["status"] = F("json error");
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_WTR);
     SendWeb(out, TOPIC_WTR);
     
     return false;
@@ -192,7 +189,6 @@ bool getWeather() {
     doc["result"] = F("ERROR");
     doc["status"] = F("no data");
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_WTR);
     SendWeb(out, TOPIC_WTR);
     return false;
   }
@@ -248,7 +244,6 @@ bool getWeather() {
   doc["sunrise"]  = sunrise;
   doc["sunset"]   = sunset;
   serializeJson(doc, out);      
-  SendMQTT(out, TOPIC_WTR);
   SendWeb(out, TOPIC_WTR);
 
   if (thisMode == MC_WEATHER) {
@@ -590,11 +585,10 @@ void weatherRoutine() {
         temp_width -= 4;
         pos_x += 2;
       }
-      #if (DEVICE_TYPE == 0)
+      if (vDEVICE_TYPE == 0)
         weather_text_x = pos_x + (image_desc.frame_width / 2) - 2 - (big_font ? (edc_t != 1 ? 0 : -1) : (edc_t != 1 ? 0 : 1)); 
-      #else
-        weather_text_x = pos_x + image_desc.frame_width - (big_font ? (edc_t != 1 ? 0 : -1) : (edc_t != 1 ? 0 : 1)); 
-      #endif
+      else
+        weather_text_x = pos_x + image_desc.frame_width - (big_font ? (edc_t != 1 ? 0 : -1) : (edc_t != 1 ? 0 : 1));        
       if (!big_font && dec_t != 0) weather_text_x--;
       if (!big_font && edc_t == 0) weather_text_x--;
       weather_text_x -= (big_font ? 1 : 0);

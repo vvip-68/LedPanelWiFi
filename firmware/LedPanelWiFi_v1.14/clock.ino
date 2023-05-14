@@ -115,7 +115,6 @@ void parseNTP() {
   doc["time"] = secsSince1900;
   doc["s_time2"] = t2;
   serializeJson(doc, out);      
-  SendMQTT(out, TOPIC_TME);
   SendWeb(out, TOPIC_TME);
 }
 
@@ -147,7 +146,6 @@ void getNTP() {
   doc["server_ip"] = timeServerIP.toString();
   doc["result"] = F("REQUEST");
   serializeJson(doc, out);
-  SendMQTT(out, TOPIC_TME);
   SendWeb(out, TOPIC_TME);
 }
 
@@ -252,11 +250,7 @@ uint8_t getClockSizeType() {
 
 // Вычисление позиции отрисовки пикселя для часов, сдвигающихся по кругу.
 int8_t getClockX(int8_t x) {
-#if (DEVICE_TYPE == 0)
-  return x<0 ? pWIDTH + x : x;
-#else
-  return x;
-#endif
+  return vDEVICE_TYPE == 1 ? x : (x < 0 ? pWIDTH + x : x);
 }
 
 // нарисовать часы
@@ -884,8 +878,10 @@ void clockTicker() {
 
   if (isTurnedOff && needTurnOffClock && init_time) {
     #if (USE_TM1637 == 1)
-    display.displayByte(_empty, _empty, _empty, _empty);
-    display.point(false);
+    if (display != nullptr) {
+      display->displayByte(_empty, _empty, _empty, _empty);
+      display->point(false);
+    }
     #endif
     return;
   }
@@ -899,70 +895,72 @@ void clockTicker() {
 
 #if (USE_TM1637 == 1)
 
-  if (isButtonHold || bCounter > 0) {
-    // Удержание кнопки - изменение яркости + 2 сек после того как кнопка отпущена - 
-    // отображать показание текущего значения яркости в процентах 0..99
-    if (isButtonHold) bCounter = 4;
-    if (!isButtonHold && bCounter > 0 && halfSec) bCounter--;
-    uint8_t prcBrightness = map8(globalBrightness,0,99);
-    uint8_t m10 = getByteForDigit(prcBrightness / 10);
-    uint8_t m01 = getByteForDigit(prcBrightness % 10);
-    display.displayByte(_b_, _r_, m10, m01);
-    display.point(false);
-  } else if (wifi_print_ip) {
-    // Четырехкратное нажатие кнопки запускает отображение по частям текущего IP лампы  
-    if (dotFlag && halfSec) {
-      if (wifi_print_idx<=3) {
-        String  ip = WiFi.localIP().toString();
-        int16_t value = atoi(GetToken(ip, wifi_print_idx + 1, '.').c_str()); 
-        display.displayInt(value);
-        display.point(false);
-        wifi_print_idx++;
-      } else {
-        wifi_print_idx = 0; 
-        wifi_print_ip = false;
-      }
-    }
-  } else {
-    // Если время еще не получено - отображать прочерки
-    if (!init_time) {
-      if (halfSec) display.displayByte(_dash, _dash, _dash, _dash);
-    } else if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
-      // Сработал будильник (звук) - плавное мерцание текущего времени      
-      if (halfSec) display.displayClock(hour(),minute());
-      if (millis() - fade_time > 65) {
-        fade_time = millis();
-        display.setBrightness(aCounter);        
-        if (aDirection) aCounter++; else aCounter--;
-        if (aCounter > 7) {
-          aDirection = false;
-          aCounter = 7;
-        }
-        if (aCounter == 0) {
-          aDirection = true;
+  if (display != nullptr) {
+    if (isButtonHold || bCounter > 0) {
+      // Удержание кнопки - изменение яркости + 2 сек после того как кнопка отпущена - 
+      // отображать показание текущего значения яркости в процентах 0..99
+      if (isButtonHold) bCounter = 4;
+      if (!isButtonHold && bCounter > 0 && halfSec) bCounter--;
+      uint8_t prcBrightness = map8(globalBrightness,0,99);
+      uint8_t m10 = getByteForDigit(prcBrightness / 10);
+      uint8_t m01 = getByteForDigit(prcBrightness % 10);
+      display->displayByte(_b_, _r_, m10, m01);
+      display->point(false);
+    } else if (wifi_print_ip) {
+      // Четырехкратное нажатие кнопки запускает отображение по частям текущего IP лампы  
+      if (dotFlag && halfSec) {
+        if (wifi_print_idx<=3) {
+          String  ip = WiFi.localIP().toString();
+          int16_t value = atoi(GetToken(ip, wifi_print_idx + 1, '.').c_str()); 
+          display->displayInt(value);
+          display->point(false);
+          wifi_print_idx++;
+        } else {
+          wifi_print_idx = 0; 
+          wifi_print_ip = false;
         }
       }
     } else {
-      // Время получено - отображать часы:минуты  
-      #if (USE_WEATHER == 1)
-      // RailWar Evgeny (C)
-      if (((useWeather > 0)) && weather_ok && (((second() + 10) % 30) >= 28)) {
-        uint8_t t = abs(temperature);
-        uint8_t atH = t / 10;
-        uint8_t atL = t % 10;
-        display.point(false);
-        if (atH == 0)
-          display.displayByte(_empty, (temperature >= 0) ? _empty : _dash, display.encodeDigit(atL), _degree);
-        else
-          display.displayByte((temperature >= 0) ? _empty : _dash, display.encodeDigit(atH), display.encodeDigit(atL), _degree);
-      } else 
-      #endif
-      {
-        display.displayClock(hour(),minute());         
-        // Отображение часов - разделительное двоеточие...
-        if (halfSec) display.point(dotFlag);
+      // Если время еще не получено - отображать прочерки
+      if (!init_time) {
+        if (halfSec) display->displayByte(_dash, _dash, _dash, _dash);
+      } else if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
+        // Сработал будильник (звук) - плавное мерцание текущего времени      
+        if (halfSec) display->displayClock(hour(),minute());
+        if (millis() - fade_time > 65) {
+          fade_time = millis();
+          display->setBrightness(aCounter);        
+          if (aDirection) aCounter++; else aCounter--;
+          if (aCounter > 7) {
+            aDirection = false;
+            aCounter = 7;
+          }
+          if (aCounter == 0) {
+            aDirection = true;
+          }
+        }
+      } else {
+        // Время получено - отображать часы:минуты  
+        #if (USE_WEATHER == 1)
+        // RailWar Evgeny (C)
+        if (((useWeather > 0)) && weather_ok && (((second() + 10) % 30) >= 28)) {
+          uint8_t t = abs(temperature);
+          uint8_t atH = t / 10;
+          uint8_t atL = t % 10;
+          display->point(false);
+          if (atH == 0)
+            display->displayByte(_empty, (temperature >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
+          else
+            display->displayByte((temperature >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
+        } else 
+        #endif
+        {
+          display->displayClock(hour(),minute());         
+          // Отображение часов - разделительное двоеточие...
+          if (halfSec) display->point(dotFlag);
+        }
+        display->setBrightness(isTurnedOff ? 1 : 7);
       }
-      display.setBrightness(isTurnedOff ? 1 : 7);
     }
   }
 #endif  
@@ -1178,7 +1176,6 @@ void checkAlarmTime() {
          doc["state"] = F("on");
          doc["type"]  = F("dawn");
          serializeJson(doc, out);      
-         SendMQTT(out, TOPIC_ALM);
          SendWeb(out, TOPIC_ALM);
        }
     }
@@ -1208,7 +1205,6 @@ void checkAlarmTime() {
       doc["state"] = F("on");
       doc["type"]  = F("alarm");
       serializeJson(doc, out);      
-      SendMQTT(out, TOPIC_ALM);
       SendWeb(out, TOPIC_ALM);
     }
 
@@ -1228,7 +1224,9 @@ void checkAlarmTime() {
     // Во время работы будильника индикатор плавно мерцает.
     // После завершения работы - восстановить яркость индикатора
     #if (USE_TM1637 == 1)
-    display.setBrightness(7);
+    if (display != nullptr) {
+      display->setBrightness(7);
+    }
     #endif
     DEBUGLN(String(F("Будильник Авто-ВЫКЛ в ")) + padNum(h,2)+ ":" + padNum(m,2));
     
@@ -1253,7 +1251,6 @@ void checkAlarmTime() {
     doc["state"] = F("off");
     doc["type"]  = F("auto");
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_ALM);
     SendWeb(out, TOPIC_ALM);
   }
 
@@ -1300,7 +1297,9 @@ void stopAlarm() {
     // После завершения работы - восстановить яркость индикатора
 
     #if (USE_TM1637 == 1)
-    display.setBrightness(7);
+    if (display != nullptr) {
+      display->setBrightness(7);
+    }
     #endif
 
     StopSound(1000);
@@ -1322,7 +1321,6 @@ void stopAlarm() {
     doc["state"] = F("off");
     doc["type"]  = F("stop");
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_ALM);
     SendWeb(out, TOPIC_ALM);
   }
 }
@@ -1543,7 +1541,6 @@ void SetAutoMode(uint8_t amode) {
     doc["mode_name"] = mode_name;
     doc["text"]      = text;
     serializeJson(doc, out);      
-    SendMQTT(out, TOPIC_AMD);
     SendWeb(out, TOPIC_AMD);
   }
 }

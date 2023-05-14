@@ -812,16 +812,15 @@ bool LEAP_YEAR(uint16_t Y) {
   return ((1970+(Y))>0) && !((1970+(Y))%4) && ( ((1970+(Y))%100) || !((1970+(Y))%400) );
 }
 
-// ------------------------ Отправка значений в MQTT / WEB ------------------------
+// ------------------------ Отправка значений в WEB ------------------------
 
 void notifyUnknownCommand(const char* text, eSources source) {  
-  if (source == MQTT || source == WEB || source == BOTH) {
+  if (source == WEB || source == BOTH) {
     String out;
     doc.clear();
     doc["message"] = F("unknown command");
     doc["text"]    = String(F("неизвестная команда '")) + String(text) +'\'';
     serializeJson(doc, out);      
-    if (source == MQTT || source == BOTH) SendMQTT(out, TOPIC_ERR);
     if (source == WEB  || source == BOTH) SendWeb(out, TOPIC_ERR);
   }
 }
@@ -850,7 +849,7 @@ bool isBigSizeKey(String key) {
   return key == "IC" || key == "IR" || key == "LE" || key == "LF" || key == "S1" || key == "S2" || key == "S3" || key == "SQ" || key == "TY" || key.startsWith("FL");  
 }
 
-// Отправка в MQTT / WEB канал - текущие значения переменных
+// Отправка в WEB канал - текущие значения переменных
 void SendCurrentState(String keys, String topic, eSources src) {
 
   if (keys[0] == '|') keys = keys.substring(1);
@@ -884,13 +883,6 @@ void SendCurrentState(String keys, String topic, eSources src) {
         } else {
           out = value.isNull() ? "" : value.as<String>();
         }
-        #if (USE_MQTT == 1)
-        // MQTT message sample in topic 'stt' --> topic = 'stt/key'; value = 'value'
-        if (!stopMQTT && mqtt.connected() && (src == MQTT || src == BOTH)) {
-          s_tmp = topic + "/" + key;             
-          putOutQueue(mqtt_topic(s_tmp), out, retain);
-        }
-        #endif
         // Web message sample in topic 'stt' --> topic = 'stt'; value = 'key=value'
         if (src == WEB || src == BOTH) {
           SendWebKey(key, out);            
@@ -913,35 +905,6 @@ String getKVP(String &key, JsonVariant &value) {
   return out;  
 }
 
-// Отправка в MQTT / WEB канал  состояния всех параметров при старте прошивки
-void sendStartState(eSources src) {
-
-  // Отправка неизменяемых списков - эффекты, звуки будильника и рассвета
-  // Для отправки этих длинных строк используется тот же json-документ, который позже используется для отправки и хранения свойств состояния
-  // поэтому отправка этих списков выполняется один раз при старте программы (с флагом retain), далее json-документ используется по назначению
-  // Список эффектов
-  SendCurrentState("LE", TOPIC_STT, src);    // false - т.к. хотя и один параметр, но обязательно требуется большой буфер пакета 
-
-  #if (USE_MP3 == 1)  
-  // Список звуков будильника
-  SendCurrentState("S1", TOPIC_STT, src);    // false - т.к. хотя и один параметр, но обязательно требуется большой буфер пакета
-  
-  // Список звуков рассвета
-  SendCurrentState("S2", TOPIC_STT, src);    // false - т.к. хотя и один параметр, но обязательно требуется большой буфер пакета
-
-  // Список звуков бегущей строки
-  SendCurrentState("S3", TOPIC_STT, src);    // false - т.к. хотя и один параметр, но обязательно требуется большой буфер пакета
-  #endif  
-
-  #if (USE_SD == 1)  
-    // Отправить список файлов, загруженный с SD-карточки
-    SendCurrentState("LF", TOPIC_STT, src);  // false - т.к. хотя и один параметр, но обязательно требуется большой буфер пакета
-  #endif  
-
-  // Список параметров подлежащих отправке на сервер
-  SendCurrentState(STATE_KEYS, TOPIC_STT, src);  
-}
-
 void allocateLeds() {
   int32_t freeMemory1 = ESP.getFreeHeap();
   int32_t requireMemory = NUM_LEDS * sizeof(CRGB);
@@ -951,8 +914,74 @@ void allocateLeds() {
   }
   DEBUG(F("Выделение памяти для LEDS   : "));
   leds =  new CRGB[NUM_LEDS];            
+
+  //FastLED.addLeds<LED_CHIP, D2, COLOR_ORDER>(leds, 256).setCorrection( TypicalLEDStrip );
+  //FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
+
   if (leds != NULL) {
-    FastLED.addLeds<LED_CHIP, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FOR_i(1, 4) {
+      // К сожалению функция FastLED.addLeds() в качестве чипсета, пина подключения и порядка цвета принимает только константы времени компиляции
+      // Эти параметры не могут быть заданы переменными. ТО есть настройка LED_CHIP и COLOR_ORDER - в файле a_def_hard.h, LED_PIN - из переменной, но в switch - в каждую строку подставлена константа
+      
+      bool     isLineUsed = getLedLineUsage(i);
+      int8_t   led_pin = getLedLinePin(i);
+      int16_t  led_start = getLedLineStartIndex(i);
+      int16_t  led_count = getLedLineLength(i);
+
+      isLineUsed &= led_pin >= 0 && led_start >= 0 && led_start < NUM_LEDS && led_count > 0 && led_start <= NUM_LEDS;
+      
+      if (isLineUsed) {
+        #if defined(ESP8266) 
+          // Для NodeMCU и Wemos d1 mini для подключения доступны следующие пины: Dx (GPIO)
+          // D0(16), D1(5), D2(4), D3(0), D4(2), D5(14), D6(12), D7(13), D8(15), D9/RX(3), D10/TX(1)
+          // D5-D8 - работают, но это аппаратные SPI, которые использует SD-карта 
+          // D9/RX, D10/TX - RX/TX - если включен отладочный вывод в COM-порт - лента работать не будет
+          switch (led_pin) {
+            case 16: /* D0     */ FastLED.addLeds<LED_CHIP, D0, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  5: /* D1     */ FastLED.addLeds<LED_CHIP, D1, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  4: /* D2     */ FastLED.addLeds<LED_CHIP, D2, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  0: /* D3     */ FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  2: /* D4     */ FastLED.addLeds<LED_CHIP, D4, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 14: /* D5     */ FastLED.addLeds<LED_CHIP, D5, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 12: /* D6     */ FastLED.addLeds<LED_CHIP, D6, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 13: /* D7     */ FastLED.addLeds<LED_CHIP, D7, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 15: /* D8     */ FastLED.addLeds<LED_CHIP, D8, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  3: /* D9/RX  */ FastLED.addLeds<LED_CHIP,  3, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; // Для Wemos определены константы RX(3) и TX(1), но не определены D9 И  D10; 
+            case  1: /* D10/TX */ FastLED.addLeds<LED_CHIP,  1, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; // Для NodeMCU определены константы D9(3) и D10(1), но не определены RX И  TX; 
+           }
+        #endif
+        #if defined(ESP32) 
+          // Для ESP32 безопасное подключение ленты к следующим пинам GPIO:
+          // 0,1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33
+          // 1/TX, 3/RX - - если включен отладочный вывод в COM-порт - лента работать не будет 
+          // 21/SDA, 22/SCL - шина I2С - предпостительна для использования TM1637
+          switch (led_pin) {
+            case  0: FastLED.addLeds<LED_CHIP,  0, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  1: FastLED.addLeds<LED_CHIP,  1, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  2: FastLED.addLeds<LED_CHIP,  2, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  3: FastLED.addLeds<LED_CHIP,  3, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  4: FastLED.addLeds<LED_CHIP,  4, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  5: FastLED.addLeds<LED_CHIP,  5, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 12: FastLED.addLeds<LED_CHIP, 12, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 13: FastLED.addLeds<LED_CHIP, 13, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 14: FastLED.addLeds<LED_CHIP, 14, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 15: FastLED.addLeds<LED_CHIP, 15, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 16: FastLED.addLeds<LED_CHIP, 16, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 17: FastLED.addLeds<LED_CHIP, 17, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 18: FastLED.addLeds<LED_CHIP, 18, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 19: FastLED.addLeds<LED_CHIP, 19, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 21: FastLED.addLeds<LED_CHIP, 21, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 22: FastLED.addLeds<LED_CHIP, 22, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 23: FastLED.addLeds<LED_CHIP, 23, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 25: FastLED.addLeds<LED_CHIP, 25, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 26: FastLED.addLeds<LED_CHIP, 26, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 27: FastLED.addLeds<LED_CHIP, 27, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 32: FastLED.addLeds<LED_CHIP, 32, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 33: FastLED.addLeds<LED_CHIP, 33, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+          }
+        #endif
+      }
+    }
   }
   int32_t freeMemory2 = ESP.getFreeHeap();
   int32_t freeMemory3 = freeMemory1 - freeMemory2;
@@ -995,4 +1024,52 @@ void freeOverlay() {
   overlayLEDs = nullptr;
   int32_t freeMemory2 = ESP.getFreeHeap();
   DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory2 - freeMemory1));
+}
+
+String MCUType() {
+  String mcType = F("Unknown");
+  #if defined(ESP8266)
+    // LED_BUILTIN_AUX определен только для "NodeMCU"
+    #if defined(LED_BUILTIN_AUX)
+      mcType = F("NodeMCU");
+    #else
+      mcType = F("Wemos d1 mini");
+    #endif
+  #endif
+  #if defined(ESP32)
+    mcType = F("ESP32");
+  #endif  
+  return mcType;
+}
+
+String pinName(uint8_t pin) {
+  #if defined(ESP8266) 
+    switch (pin) {
+      case 16: return F("D0"); /* D0     */
+      case  5: return F("D1"); /* D1     */ 
+      case  4: return F("D2"); /* D2     */ 
+      case  0: return F("D3"); /* D3     */ 
+      case  2: return F("D4"); /* D4     */ 
+      case 14: return F("D5"); /* D5     */ 
+      case 12: return F("D6"); /* D6     */ 
+      case 13: return F("D7"); /* D7     */ 
+      case 15: return F("D8"); /* D8     */ 
+      #if defined(RX)
+      case  3: return F("RX"); /* D9/RX  */ 
+      case  1: return F("TX"); /* D10/TX */ 
+      #else
+      case  3: return F("D9"); /* D9/RX  */ 
+      case  1: return F("D10");/* D10/TX */ 
+      #endif
+     }
+  #endif
+  #if defined(ESP32) 
+    // Для ESP32 безопасное подключение ленты к следующим пинам GPIO:
+    // 1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27
+    // 1/TX, 3/RX - - если включен отладочный вывод в COM-порт - лента работать не будет 
+    // 21/SDA, 22/SCL - шина I2С - предпочтительна для использования TM1637
+    return "G" + String(led_pin));
+  #else  
+    return "";
+  #endif
 }

@@ -45,7 +45,7 @@ import {DisableControlDirective} from "./directives/disable-control.directive";
 import {MatRadioModule} from "@angular/material/radio";
 import {TabNetworkSsidComponent} from "./components/tabs/tab-network-ssid/tab-network-ssid.component";
 import {TabNetworkApComponent} from "./components/tabs/tab-network-ap/tab-network-ap.component";
-import {TabNetworkMqttComponent} from "./components/tabs/tab-network-mqtt/tab-network-mqtt.component";
+import {TabWiringComponent} from "./components/tabs/tab-wiring/tab-wiring.component";
 import {PluggerComponent} from "./components/plugger/plugger.component";
 import {ConfirmationDialogComponent} from "./components/confirmation-dialog/confirmation-dialog.component";
 import {NgxMatTimepickerModule} from "ngx-mat-timepicker";
@@ -87,7 +87,7 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
     DisableControlDirective,
     TabNetworkSsidComponent,
     TabNetworkApComponent,
-    TabNetworkMqttComponent,
+    TabWiringComponent,
     PluggerComponent,
     ConfirmationDialogComponent,
     TabTextsPanelComponent,

@@ -108,11 +108,9 @@ void loadSettings() {
   // 176,177,178,179 - Код региона Yandex для получения погоды (4 байта - uint32_t)                          // getWeatherRegion()             // putWeatherRegion(regionID)
   //  180 - цвет температуры в дневных часах: 0 - цвет часов; 1 - цвет в зависимости от температуры          // getUseTemperatureColor()       // putUseTemperatureColor(useTemperatureColor)
   //  181 - цвет температуры в ночных часах:  0 - цвет часов; 1 - цвет в зависимости от температуры          // getUseTemperatureColorNight()  // putUseTemperatureColorNight(useTemperatureColorNight)
-  // 182-206 - MQTT сервер (24 симв)                                                                         // getMqttServer().toCharArray(mqtt_server, 24)  // putMqttServer(String(mqtt_server))       // char mqtt_server[25] = ""
-  // 207-221 - MQTT user (14 симв)                                                                           // getMqttUser().toCharArray(mqtt_user, 14)      // putMqttUser(String(mqtt_user))           // char mqtt_user[15] = ""
-  // 222-236 - MQTT pwd (14 симв)                                                                            // getMqttPass().toCharArray(mqtt_pass, 14)      // putMqttPass(String(mqtt_pass))           // char mqtt_pass[15] = ""
-  // 237,238 - MQTT порт                                                                                     // getMqttPort()                  // putMqttPort(mqtt_port)
-  // 239 - использовать MQTT канал управления: 0 - нет 1 - да                                                // getUseMqtt()                   // putUseMqtt(useMQTT)  
+  // **182 - не используется
+  // ...
+  // **239 - не используется 
   // 240 - яркость ночных часов                                                                              // getNightClockBrightness()      // putNightClockBrightness(nightClockBrightness)
   //**241 - не используется
   //**242 - не используется
@@ -120,8 +118,32 @@ void loadSettings() {
   // 244,245,246,247 - Код региона OpenWeatherMap для получения погоды (4 байта - uint32_t)                  // getWeatherRegion2()            // putWeatherRegion2(regionID2)
   //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)
   //**249 - не используется
-  // 250-279 - префикс топика сообщения (30 симв)                                                            // getMqttPrefix()                // putMqttPrefix(mqtt_prefix)
-  //**280 - не используется
+  //**279 - не используется
+  // 280 - битовая маска b0-b3 - использование каналов вывода на ленту, b6 - DEBUG_SERIAL; b7 - флаг инициализации
+  // 281 - пин вывода на ленту линии 1          LED_PIN
+  // 282,283 - начальный индекс диодов линии 1 
+  // 284,285 - количество диодов линии 1
+  // 286 - пин вывода на ленту линии 2
+  // 287,288 - начальный индекс диодов линии 2
+  // 289,290 - количество диодов линии 2
+  // 291 - пин вывода на ленту линии 3
+  // 292,293 - начальный индекс диодов линии 3
+  // 294,295 - количество диодов линии 3
+  // 296 - пин вывода на ленту линии 4
+  // 297,298 - начальный индекс диодов линии 4
+  // 299,300 - количество диодов линии 4
+  // 301 - тип матрицы DEVICE_TYPE = 0 - свернута в трубу для лампы; 1 - плоская матрица в рамке
+  // 302 - тип кнопки BUTTON_TYPE = 0 - сенсорная 1 - тактовая
+  // 303 - пин подключения кнопки PIN_BTN 
+  // 304 - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+  // 305 - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+  // 306 - POWER_PIN - пин управления реле питания
+  // 307 - DFPlayer STX
+  // 308 - DFPlayer SRX
+  // 309 - DIO TM1637
+  // 310 - CLK TM1627
+  // 311 - активный уровень сигнала управления аитанием  
+  // **312 - не используется
   //  ...
   //**399 - не используется
   //  400 - 400+(Nэфф*10)   - скорость эффекта
@@ -146,13 +168,6 @@ void loadSettings() {
   strcpy(ntpServerName, DEFAULT_NTP_SERVER);    
   ssid = NETWORK_SSID;
   pass = NETWORK_PASS;
-
-  #if (USE_MQTT == 1)
-  strcpy(mqtt_server, DEFAULT_MQTT_SERVER);
-  strcpy(mqtt_user,   DEFAULT_MQTT_USER);
-  strcpy(mqtt_pass,   DEFAULT_MQTT_PASS);
-  strcpy(mqtt_prefix, DEFAULT_MQTT_PREFIX);
-  #endif
 
   // Инициализировано ли EEPROM
   bool isInitialized = EEPROMread(0) == EEPROM_OK;  
@@ -274,19 +289,6 @@ void loadSettings() {
     if (strlen(apPass) == 0) strcpy(apPass, DEFAULT_AP_PASS);
     if (strlen(ntpServerName) == 0) strcpy(ntpServerName, DEFAULT_NTP_SERVER);
 
-    #if (USE_MQTT == 1)
-    useMQTT = getUseMqtt();
-    getMqttServer().toCharArray(mqtt_server, 25);   //  182-206 - mqtt сервер          (24 байт макс) + 1 байт '\0'
-    getMqttUser().toCharArray(mqtt_user, 15);       //  207-221 - mqtt user            (14 байт макс) + 1 байт '\0'
-    getMqttPass().toCharArray(mqtt_pass, 15);       //  222-236 - mqtt password        (14 байт макс) + 1 байт '\0'
-    getMqttPrefix().toCharArray(mqtt_prefix, 31);   //  250-279 - mqtt password        (30 байт макс) + 1 байт '\0'
-    if (strlen(mqtt_server) == 0) strcpy(mqtt_server, DEFAULT_MQTT_SERVER);
-    if (strlen(mqtt_user)   == 0) strcpy(mqtt_user,   DEFAULT_MQTT_USER);
-    if (strlen(mqtt_pass)   == 0) strcpy(mqtt_pass,   DEFAULT_MQTT_PASS);
-    if (strlen(mqtt_prefix) == 0) strcpy(mqtt_prefix, DEFAULT_MQTT_PREFIX);
-    mqtt_port = getMqttPort();
-    #endif
-
     AM1_hour       = getAM1hour();
     AM1_minute     = getAM1minute();
     AM1_effect_id  = getAM1effect();
@@ -319,16 +321,10 @@ void loadSettings() {
     
   } else {
 
-    DEBUGLN(F("Инициализация EEPROM..."));
-
-    // Значения переменных по умолчанию определяются в месте их объявления - в файле a_def_soft.h
-    // Здесь выполняются только инициализация массивов и некоторых специальных параметров
-    clearEEPROM();
-
-    for (uint8_t i=0; i<MAX_EFFECT; i++) {
+    for (uint8_t i = 0; i < MAX_EFFECT; i++) {
       effectScaleParam[i]  = 50;             // среднее значение для параметра. Конкретное значение зависит от эффекта
       effectScaleParam2[i] = 0;              // второй параметр эффекта по умолчанию равен 0. Конкретное значение зависит от эффекта
-      effectContrast[i]    = 128;            // контраст эффекта
+      effectContrast[i]    = 96;             // контраст эффекта
       effectSpeed[i]       = D_EFFECT_SPEED; // скорость эффекта
     }
 
@@ -340,7 +336,7 @@ void loadSettings() {
     
     DEBUGLN();
   }  
-  
+    
   changed_keys = "";
 }
 
@@ -451,12 +447,6 @@ void saveDefaults() {
   ssid = NETWORK_SSID;
   pass = NETWORK_PASS;
 
-  #if (USE_MQTT == 1)
-  strcpy(mqtt_server, DEFAULT_MQTT_SERVER);
-  strcpy(mqtt_user, DEFAULT_MQTT_USER);
-  strcpy(mqtt_pass, DEFAULT_MQTT_PASS);
-  #endif  
-
   #if (USE_E131 == 1)
     workMode = STANDALONE;      // По умолчанию - самостоятельный режим работы
     syncMode = LOGIC;           // По умолчанию - размещение данных в логическом порядке - левый верхний угол, далее вправо и вниз.
@@ -470,15 +460,6 @@ void saveDefaults() {
   putSoftAPPass(String(apPass));
   putSsid(ssid);
   putPass(pass);
-
-  #if (USE_MQTT == 1)
-  putMqttServer(String(mqtt_server));
-  putMqttUser(String(mqtt_user));
-  putMqttPass(String(mqtt_pass));
-  putMqttPrefix(String(mqtt_prefix));
-  putMqttPort(mqtt_port);
-  putUseMqtt(useMQTT);
-  #endif
 
   strcpy(ntpServerName, DEFAULT_NTP_SERVER);
   putNtpServer(String(ntpServerName));
@@ -530,6 +511,61 @@ void saveSettings() {
   eepromModified = false;
 }
 
+// Загрузка параметров приложения, описывающих типы оборудования в переменные
+void loadWiring() {
+  // Пины подключения в переменные загружать не нужно - они будут считываться перед использованием, т.к их применение происходит один раз при инициализации
+  // Загрузка переменных, описывающих поведение "перефирийных" устройств в зависимости от их значения - эти значения используются во многих местах программы
+  vDEBUG_SERIAL = getDebugSerialEnable();      // DEBUG_SERIAL 
+  vDEVICE_TYPE = getDeviceType();              // DEVICE_TYPE
+  vBUTTON_TYPE = getButtonType();              // BUTTON_TYPE
+  vWAIT_PLAY_FINISHED = getWaitPlayFinished(); // WAIT_PLAY_FINISHED
+  vREPEAT_PLAY = getRepeatPlay();              // REPEAT_PLAY  
+  vPOWER_ON = getPowerActiveLevel();           // POWER_ON 
+  vPOWER_OFF = vPOWER_ON == HIGH ? LOW : HIGH; // POWER_OFF
+  vPOWER_PIN = getPowerPin();                  // POWER_PIN
+}
+
+// Инициализация параметров приложения, описывающих типы оборудования и пины подключения
+void initializeWiring() { 
+  // Инициализировать начальные значения "переферийных" устройств и пины подключения из define определенных пользователем для оборудования 
+  putDebugSerialEnable(DEBUG_SERIAL == 1);
+  putDeviceType(DEVICE_TYPE);
+  putButtonType(BUTTON_TYPE);
+  putWaitPlayFinished(WAIT_PLAY_FINISHED == 1);
+  putRepeatPlay(REPEAT_PLAY == 1);
+  putPowerActiveLevel(POWER_ON);                    // Активный уровень HIGH (1) / LOW (0) для POWER_ON; POWER_OFF - противоположное значение 
+  
+  // Инициализировать пины подключения
+  // По умолчанию - используется единственная линия, все светодиоды назначены на нее
+  // Линии вывода сигнала на светодиод 2..4 - отключены.
+  putLedLineUsage(1, true);                         // Линия 1 - включена
+  putLedLinePin(1, LED_PIN);                        // Вывод назначен на LED_PIN
+  putLedLineStartIndex(1, 0);                       // Начало вывода на ленту - с 0 индекса светодиодов в массиве  
+  putLedLineLength(1, 0);                           // реальное значение будет инициализировано в setup() после того как из настроек будет считан текущий размер матрицы
+  
+  putLedLineUsage(2, false);                        // Линия 2 - отключена
+  putLedLinePin(2, -1);                             // Вывод не назначен ни на один из пинов
+  putLedLineStartIndex(2, -1);                      // Индекс начала вывода - N/A   
+  putLedLineLength(2, -1);                          // Длина сегмента - N/A
+ 
+  putLedLineUsage(3, false);                        // Линия 3 - отключена
+  putLedLinePin(3, -1);                             // Вывод не назначен ни на один из пинов
+  putLedLineStartIndex(3, -1);                      // Индекс начала вывода - N/A   
+  putLedLineLength(3, -1);                          // Длина сегмента - N/A
+  
+  putLedLineUsage(4, false);                        // Линия 4 - отключена
+  putLedLinePin(4, -1);                             // Вывод не назначен ни на один из пинов
+  putLedLineStartIndex(4, -1);                      // Индекс начала вывода - N/A   
+  putLedLineLength(4, -1);                          // Длина сегмента - N/A
+
+  putButtonPin(PIN_BTN);                            // Пин подключения кнопки
+  putPowerPin(POWER_PIN);                           // Пин подключения управления питанием
+  putDFPlayerSTXPin(STX);                           // Пин TX для отправки на DFPlayer - подключено к RX плеера
+  putDFPlayerSRXPin(SRX);                           // Пин RX для получения данных с DFPlayer - подключено к TX плеера
+  putTM1637DIOPin(DIO);                             // Пин DIO индикатора TM1637
+  putTM1637CLKPin(CLK);                             // Пин CLK индикатора TM1637
+}
+
 void putMatrixMapWidth(uint8_t width) {
   if (width < 8) width = 8;
   if (width > 127) width = 127;
@@ -537,6 +573,7 @@ void putMatrixMapWidth(uint8_t width) {
     EEPROMwrite(94, width);
   }  
 }
+
 uint8_t getMatrixMapWidth() {
   uint8_t value = EEPROMread(94);
   if (value < 8) value = 8;
@@ -1681,71 +1718,6 @@ void putUseTemperatureColorNight(bool use) {
   }
 }
 
-#if (USE_MQTT == 1)
-
-bool getUseMqtt() {
-  return EEPROMread(239) != 0;
-}
-
-void putUseMqtt(bool use) {  
-  if (use != getUseMqtt()) {
-    EEPROMwrite(239, use ? 1 : 0);
-  }
-}
-
-uint16_t getMqttPort() {
-  uint16_t val = (uint16_t)EEPROM_int_read(237);
-  return val;
-}
-
-void putMqttPort(uint16_t port) {
-  if (port != getMqttPort()) {
-    EEPROM_int_write(237, port);
-  }  
-}
-
-String getMqttServer() {
-  return EEPROM_string_read(182, 24);
-}
-
-void putMqttServer(String server) {
-  if (server != getMqttServer()) {
-    EEPROM_string_write(182, server, 24);
-  }
-}
-
-String getMqttUser() {
-  return EEPROM_string_read(207, 24);
-}
-
-void putMqttUser(String user) {
-  if (user != getMqttUser()) {
-    EEPROM_string_write(207, user, 14);
-  }
-}
-
-String getMqttPass() {
-  return EEPROM_string_read(222, 24);
-}
-
-void putMqttPass(String pass) {
-  if (pass != getMqttPass()) {
-    EEPROM_string_write(222, pass, 14);
-  }
-}
-
-String getMqttPrefix() {
-  return EEPROM_string_read(250, 30);
-}
-
-void putMqttPrefix(String prefix) {  
-  if (prefix != getMqttPrefix()) {
-    EEPROM_string_write(250, prefix, 30);
-  }
-}
-
-#endif
-
 #if (USE_E131 == 1)
 
 eWorkModes getSyncWorkMode() {
@@ -1799,81 +1771,6 @@ void putNightClockBrightness(uint8_t brightness) {
   if (brightness != getNightClockBrightness()) {
     EEPROMwrite(240, brightness);
   }  
-}
-
-// ----------------------------------------------------------
-
-uint8_t EEPROMread(uint16_t addr) {    
-  return EEPROM.read(addr);
-}
-
-void EEPROMwrite(uint16_t addr, uint8_t value) {    
-  EEPROM.write(addr, value);
-  eepromModified = true;
-  saveSettingsTimer.reset();
-}
-
-// чтение uint16_t
-uint16_t EEPROM_int_read(uint16_t addr) {    
-  uint8_t raw[2];
-  for (uint8_t i = 0; i < 2; i++) raw[i] = EEPROMread(addr+i);
-  uint16_t &num = (uint16_t&)raw;
-  return num;
-}
-
-// запись uint16_t
-void EEPROM_int_write(uint16_t addr, uint16_t num) {
-  uint8_t raw[2];
-  (uint16_t&)raw = num;
-  for (uint8_t i = 0; i < 2; i++) EEPROMwrite(addr+i, raw[i]);
-}
-
-// чтение uint32_t
-uint32_t EEPROM_long_read(uint16_t addr) {    
-  uint8_t raw[4];
-  for (uint8_t i = 0; i < 4; i++) raw[i] = EEPROMread(addr+i);
-  uint32_t &num = (uint32_t&)raw;
-  return num;
-}
-
-// запись uint32_t
-void EEPROM_long_write(uint16_t addr, uint32_t num) {
-  uint8_t raw[4];
-  (uint32_t&)raw = num;
-  for (uint8_t i = 0; i < 4; i++) EEPROMwrite(addr+i, raw[i]);
-}
-
-String EEPROM_string_read(uint16_t addr, int16_t len) {
-   char buffer[len+1];
-   memset(buffer,'\0',len+1);
-   int16_t i = 0;
-   while (i < len) {
-     uint8_t c = EEPROMread(addr+i);
-     if (c == 0) break;
-     buffer[i++] = c;
-   }
-   return String(buffer);
-}
-
-void EEPROM_string_write(uint16_t addr, String buffer, uint16_t max_len) {
-  uint16_t len = buffer.length();
-  uint16_t i = 0;
-
-  // Принудительно очистить "хвосты от прежнего значения"
-  while (i < max_len) {
-    EEPROMwrite(addr+i, 0x00);
-    i++;
-  }
-  
-  // Обрезать строку, если ее длина больше доступного места
-  if (len > max_len) len = max_len;
-
-  // Сохранить новое значение
-  i = 0;
-  while (i < len) {
-    EEPROMwrite(addr+i, buffer[i]);
-    i++;
-  }
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -1987,6 +1884,349 @@ void loadSyncViewport() {
   if (localW < 4 || localW > pWIDTH) localW = pWIDTH;
   if (localH < 4 || localH > pHEIGHT) localH = pHEIGHT;  
 #endif
+}
+
+// ------------------------------ Подключение пинов - назначение и использование ---------------------------
+
+// Система wiring инициализирована?
+bool getWiringInitialized() {
+  uint8_t value = EEPROMread(280);
+  return (value & 0x80) != 0;                  // b7 - инициализация выполнена
+}
+
+void putWiringInitialized(bool use) {
+  uint8_t value = EEPROMread(280);
+  uint8_t new_value = use ? (value | 0x80) : (value & ~0x80);
+  if (value != new_value) {
+    EEPROMwrite(280, new_value);               // b7 - инициализация выполнена
+  }
+}
+
+// Отладка в Serial - включена?
+bool getDebugSerialEnable() {
+  uint8_t value = EEPROMread(280);
+  return (value & 0x40) != 0;                  // b6 - использовать линию 1 подключения светодиодной ленты
+}
+
+// Включить / выключить отладку в Serial
+void putDebugSerialEnable(bool enable) {
+  uint8_t value = EEPROMread(280);
+  uint8_t new_value = enable ? (value | 0x40) : (value & ~0x40) | 0x80;
+  if (value != new_value) {
+    EEPROMwrite(280, new_value);               // b6 - использовать в эффекте бегущую строку поверх эффекта
+  }
+}
+
+// Использовать линию 1..4 для вывода данных на светодиоды
+bool getLedLineUsage(uint8_t line) {
+  if (line < 1 || line > 4) return false; 
+  uint8_t mask = 0x01 << (line - 1);
+  uint8_t value = EEPROMread(280);
+  return (value & mask) != 0;                  // b0 - использовать линию 1 подключения светодиодной ленты
+}
+
+// Включить / выключить линию 1..4 для вывода данных на светодиоды
+void putLedLineUsage(uint8_t line, bool use) {
+  if (line < 1 || line > 4) return;
+  uint8_t mask = 0x01 << (line - 1);
+  uint8_t value = EEPROMread(280);
+  uint8_t new_value = use ? (value | mask) : (value & ~mask) | 0x80;
+  if (value != new_value) {
+    EEPROMwrite(280, new_value);               // b0 - использовать в эффекте бегущую строку поверх эффекта
+  }
+}
+
+// Пин вывода данных на ленту - линия 1..4
+int8_t getLedLinePin(uint8_t line) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 281; break;
+    case 2: index = 286; break;
+    case 3: index = 291; break;
+    case 4: index = 296; break;
+  }
+  if (index == 0) return -1;
+  return EEPROMread(index);
+}
+
+// Пин вывода данных на ленту - линия 1..4
+void putLedLinePin(uint8_t line, int8_t new_value) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 281; break;
+    case 2: index = 286; break;
+    case 3: index = 291; break;
+    case 4: index = 296; break;
+  }
+  if (index == 0) return;
+  int8_t value = (int8_t)EEPROMread(index);
+  if (value != new_value) {
+    EEPROMwrite(index, (uint8_t)new_value);
+  }
+}
+
+// Начальный индекс светодиода линии 1..4
+int16_t getLedLineStartIndex(uint8_t line) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 282; break;
+    case 2: index = 287; break;
+    case 3: index = 292; break;
+    case 4: index = 297; break;
+  }
+  if (index == 0) return -1;
+  return (int16_t)EEPROM_int_read(index);
+}
+
+// Начальный индекс светодиода линии 1..4
+void putLedLineStartIndex(uint8_t line, int16_t new_value) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 282; break;
+    case 2: index = 287; break;
+    case 3: index = 292; break;
+    case 4: index = 297; break;
+  }
+  if (index == 0) return;
+  int16_t value = (int16_t)EEPROM_int_read(index);
+  if (value != new_value) {
+    EEPROM_int_write(index, (uint16_t)new_value);
+  }
+}
+
+// Количество светодиодов в линии 1..4
+int16_t getLedLineLength(uint8_t line) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 284; break;
+    case 2: index = 289; break;
+    case 3: index = 294; break;
+    case 4: index = 299; break;
+  }
+  if (index == 0) return -1;
+  return (int16_t)EEPROM_int_read(index);
+}
+
+// Количество светодиодов в линии 1..4
+void putLedLineLength(uint8_t line, int16_t new_value) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 284; break;
+    case 2: index = 289; break;
+    case 3: index = 294; break;
+    case 4: index = 299; break;
+  }
+  if (index == 0) return;
+  int16_t value = (int16_t)EEPROM_int_read(index);
+  if (value != new_value) {
+    EEPROM_int_write(index, (uint16_t)new_value);
+  }
+}
+
+// Тип использования матрицы - труба / плоская
+uint8_t getDeviceType() {
+  return EEPROMread(301);
+}
+
+// Тип использования матрицы - труба / плоская
+void putDeviceType(uint8_t value) {
+  if (value != getDeviceType()) {
+    EEPROMwrite(301, value);
+  }
+}
+
+// Тип кнопки сенсорная / тактовая
+uint8_t getButtonType() {
+  return EEPROMread(302);
+}
+
+// Тип кнопки сенсорная / тактовая
+void putButtonType(uint8_t value) {
+  if (value != getButtonType()) {
+    EEPROMwrite(302, value);
+  }
+}
+
+// Пин подключения кнопки
+int8_t getButtonPin() {
+  return (int8_t)EEPROMread(303);
+}
+
+// Пин подключения кнопки
+void putButtonPin(int8_t value) {
+  if (value != (int8_t)getButtonPin()) {
+    EEPROMwrite(303, value);
+  }
+}
+
+// WAIT_PLAY_FINISHED - алгоритм проигрывания эффектов с SD-карты
+bool getWaitPlayFinished() {
+  return EEPROMread(304) == 1;
+}
+
+// WAIT_PLAY_FINISHED - алгоритм проигрывания эффектов с SD-карты
+void putWaitPlayFinished(bool value) {
+  if (value != getWaitPlayFinished()) {
+    EEPROMwrite(304, value ? 1 : 0);
+  }
+}
+
+// REPEAT_PLAY - алгоритм проигрывания эффектов с SD-карты
+bool getRepeatPlay() {
+  return EEPROMread(305) == 1;
+}
+
+// REPEAT_PLAY - алгоритм проигрывания эффектов с SD-карты
+void putRepeatPlay(uint8_t value) {
+  if (value != getRepeatPlay()) {
+    EEPROMwrite(305, value ? 1 : 0);
+  }
+}
+
+// Пин подключения выхода на реле
+int8_t getPowerPin() {
+  return (int8_t)EEPROMread(306);
+}
+
+// Пин подключения выхода на реле
+void putPowerPin(int8_t value) {
+  if (value != (int8_t)getPowerPin()) {
+    EEPROMwrite(306, value);
+  }
+}
+
+// Пин STX DFPlayer
+int8_t getDFPlayerSTXPin() {
+  return (int8_t)EEPROMread(307);
+}
+
+// Пин STX DFPlayer
+void putDFPlayerSTXPin(int8_t value) {
+  if (value != (int8_t)getDFPlayerSTXPin()) {
+    EEPROMwrite(307, value);
+  }
+}
+
+// Пин SRX DFPlayer
+int8_t getDFPlayerSRXPin() {
+  return (int8_t)EEPROMread(308);
+}
+
+// Пин SRX DFPlayer
+void putDFPlayerSRXPin(int8_t value) {
+  if (value != (int8_t)getDFPlayerSRXPin()) {
+    EEPROMwrite(308, value);
+  }
+}
+
+// Пин DIO TM1637
+int8_t getTM1637DIOPin() {
+  return (int8_t)EEPROMread(309);
+}
+
+// Пин DIO TM1637
+void putTM1637DIOPin(int8_t value) {
+  if (value != (int8_t)getTM1637DIOPin()) {
+    EEPROMwrite(309, value);
+  }
+}
+
+// Пин CLK TM1637
+int8_t getTM1637CLKPin() {
+  return (int8_t)EEPROMread(310);
+}
+
+// Пин CLK TM1637
+void putTM1637CLKPin(int8_t value) {
+  if (value != (int8_t)getTM1637CLKPin()) {
+    EEPROMwrite(310, value);
+  }
+}
+
+// Активный уровень управляющего сигнала на питание - HIGH - 0x01 или LOW - 0x00
+uint8_t getPowerActiveLevel() {
+  return EEPROMread(311) == HIGH ? HIGH : LOW;
+}
+
+void putPowerActiveLevel(uint8_t value) {
+  if (value != getPowerActiveLevel()) {
+    EEPROMwrite(311, value);
+  }
+}
+
+// ----------------------------------------------------------
+
+uint8_t EEPROMread(uint16_t addr) {    
+  return EEPROM.read(addr);
+}
+
+void EEPROMwrite(uint16_t addr, uint8_t value) {    
+  EEPROM.write(addr, value);
+  eepromModified = true;
+  saveSettingsTimer.reset();
+}
+
+// чтение uint16_t
+uint16_t EEPROM_int_read(uint16_t addr) {    
+  uint8_t raw[2];
+  for (uint8_t i = 0; i < 2; i++) raw[i] = EEPROMread(addr+i);
+  uint16_t &num = (uint16_t&)raw;
+  return num;
+}
+
+// запись uint16_t
+void EEPROM_int_write(uint16_t addr, uint16_t num) {
+  uint8_t raw[2];
+  (uint16_t&)raw = num;
+  for (uint8_t i = 0; i < 2; i++) EEPROMwrite(addr+i, raw[i]);
+}
+
+// чтение uint32_t
+uint32_t EEPROM_long_read(uint16_t addr) {    
+  uint8_t raw[4];
+  for (uint8_t i = 0; i < 4; i++) raw[i] = EEPROMread(addr+i);
+  uint32_t &num = (uint32_t&)raw;
+  return num;
+}
+
+// запись uint32_t
+void EEPROM_long_write(uint16_t addr, uint32_t num) {
+  uint8_t raw[4];
+  (uint32_t&)raw = num;
+  for (uint8_t i = 0; i < 4; i++) EEPROMwrite(addr+i, raw[i]);
+}
+
+String EEPROM_string_read(uint16_t addr, int16_t len) {
+   char buffer[len+1];
+   memset(buffer,'\0',len+1);
+   int16_t i = 0;
+   while (i < len) {
+     uint8_t c = EEPROMread(addr+i);
+     if (c == 0) break;
+     buffer[i++] = c;
+   }
+   return String(buffer);
+}
+
+void EEPROM_string_write(uint16_t addr, String buffer, uint16_t max_len) {
+  uint16_t len = buffer.length();
+  uint16_t i = 0;
+
+  // Принудительно очистить "хвосты от прежнего значения"
+  while (i < max_len) {
+    EEPROMwrite(addr+i, 0x00);
+    i++;
+  }
+  
+  // Обрезать строку, если ее длина больше доступного места
+  if (len > max_len) len = max_len;
+
+  // Сохранить новое значение
+  i = 0;
+  while (i < len) {
+    EEPROMwrite(addr+i, buffer[i]);
+    i++;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------

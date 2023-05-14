@@ -117,13 +117,13 @@ void handleNotFound(AsyncWebServerRequest *request) {
       response->addHeader(F("Content-Encoding"), F("gzip"));
       response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
 
-      // +++ При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
+      // При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
       DEBUG(F("FM: "));
       DEBUG(ESP.getFreeHeap());
       
       request->send(response);
 
-      // +++
+      // Вывод ДО и ПОСЛЕ
       DEBUG(F(" - "));
       DEBUGLN(ESP.getFreeHeap());
 
@@ -133,13 +133,13 @@ void handleNotFound(AsyncWebServerRequest *request) {
     if (LittleFS.exists(file.c_str())) {      
       DEBUGLN(String(F("web -> '")) + file + String(F("' -> send (")) + type + ')');
       
-      // +++ При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
+      // При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
       DEBUG(F("FM: "));
       DEBUG(ESP.getFreeHeap());
 
       request->send(LittleFS, file.c_str(), type.c_str());
       
-      // +++
+      // ДО и ПОСЛЕ
       DEBUG(F(" - "));
       DEBUGLN(ESP.getFreeHeap());
 
@@ -198,7 +198,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
         if (cmd.length() > 0) {
           if (queueLength < QSIZE_IN) {
             queueLength++;
-            cmdQueueType[queueWriteIdx] = 'W';
             cmdQueue[queueWriteIdx++] = cmd;
             if (queueWriteIdx >= QSIZE_IN) queueWriteIdx = 0;
           } else {
@@ -325,10 +324,10 @@ void processOutQueueW() {
     bool canWrite = ws.availableForWriteAll();      
     if (!canWrite) {
       if (!isClosed) {        
-        DEBUGLN(F("-----------------------------"));                      // +++!!!
-        DEBUGLN(F("Запись в сокет недоступна!"));                         // +++!!!
-        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // +++!!!
-        DEBUGLN(F("Перезапуск сокета..."));                               // +++!!!
+        DEBUGLN(F("-----------------------------"));                      // !!!
+        DEBUGLN(F("Запись в сокет недоступна!"));                         // !!!
+        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // !!!
+        DEBUGLN(F("Перезапуск сокета..."));                               // !!!
         // !!! Этой функции нет в стандартной библиотеке. Она есть только в измененной из папки проекта.
         // !!! Если здесь возникает ошибка - скопируйте библиотеку ESPAsyncWebServer из папки проекта libraries в
         // !!! папку, где Arduino IDE хранит установленные библиотеки        
@@ -343,7 +342,7 @@ void processOutQueueW() {
           delay(10);
           cnt++;
         }
-        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // +++!!!
+        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // !!!
         isClosed = true;        
       }
       break;

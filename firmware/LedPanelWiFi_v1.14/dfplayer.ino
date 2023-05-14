@@ -20,9 +20,17 @@ void InitializeDfPlayer1() {
   DEBUGLN(F("\nИнициализация MP3-плеера..."));
   isDfPlayerOk = true;
   #if defined(ESP32)
+    // Используются аппаратный RX2/TX2 - GPIO 16/17 - mp3Serial это аппаратный Serial2
     mp3Serial.begin(9600);
   #else  
-    mp3Serial.begin(9600, SWSERIAL_8N1, SRX, STX);    
+    // Используются назначенные пины - mp3Serial это программный SoftwareSerial
+    int8_t srx_pin = getDFPlayerSRXPin();
+    int8_t stx_pin = getDFPlayerSTXPin();
+    if (srx_pin >= 0 && stx_pin >= 0) {
+      mp3Serial.begin(9600, SWSERIAL_8N1, srx_pin, stx_pin);    
+    } else {
+      return;
+    }
   #endif
   mp3Serial.setTimeout(1000);
   
@@ -46,11 +54,17 @@ void InitializeDfPlayer1() {
 
 void InitializeDfPlayer2() {    
 #if (USE_MP3 == 1)
-  refreshDfPlayerFiles();    
-  DEBUGLN(String(F("Звуков будильника найдено: ")) + String(alarmSoundsCount));
-  DEBUGLN(String(F("Звуков рассвета найдено: ")) + String(dawnSoundsCount));
-  DEBUGLN(String(F("Звуков сообщений найдено: ")) + String(noteSoundsCount));
-  set_isDfPlayerOk(alarmSoundsCount + dawnSoundsCount + noteSoundsCount > 0);
+  int8_t srx_pin = getDFPlayerSRXPin();
+  int8_t stx_pin = getDFPlayerSTXPin();
+  if (srx_pin >= 0 && stx_pin >= 0) {
+    refreshDfPlayerFiles();    
+    DEBUGLN(String(F("Звуков будильника найдено: ")) + String(alarmSoundsCount));
+    DEBUGLN(String(F("Звуков рассвета найдено: ")) + String(dawnSoundsCount));
+    DEBUGLN(String(F("Звуков сообщений найдено: ")) + String(noteSoundsCount));
+    set_isDfPlayerOk(alarmSoundsCount + dawnSoundsCount + noteSoundsCount > 0);
+  } else {
+    set_isDfPlayerOk(false);
+  }
 #else  
   set_isDfPlayerOk(false);
 #endif  

@@ -393,6 +393,20 @@ mat-error {
 /* ------------------ Select drop list -------------------- */
 
 .cdk-overlay-container {
+  .pin-select-panel {
+    .mat-mdc-option {
+      font-size: 12px;
+      padding: 0 6px;
+      min-height: 22px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      &.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+        color: var(--card-active-color);
+      }
+    }
+  }
+
   .material-select-menu,
   .app-select-panel {
 

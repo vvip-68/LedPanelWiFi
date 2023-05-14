@@ -15,8 +15,6 @@ import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
 export class TabNetworkComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
-  supportMQTT: boolean = false;
-
   constructor(
     public socketService: WebsocketService,
     public managementService: ManagementService,
@@ -26,26 +24,6 @@ export class TabNetworkComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.socketService.isConnected$
-      .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
-      .subscribe((isConnected: boolean) => {
-        if (isConnected) {
-          const request = 'QZ';
-          this.managementService.getKeys(request);
-        }
-      });
-
-    this.managementService.stateKey$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((key: string) => {
-        if (!isNullOrUndefinedOrEmpty(key)) {
-          switch (key) {
-            case 'QZ':
-              this.supportMQTT = this.managementService.state.supportMQTT;
-              break;
-          }
-        }
-      });
   }
 
   isDisabled(): boolean {

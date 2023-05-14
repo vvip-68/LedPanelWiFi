@@ -95,7 +95,6 @@ void process() {
       doc["group"] = syncGroup;
       doc["run"]   = true;
       serializeJson(doc, out);      
-      SendMQTT(out, TOPIC_E131);
       SendWeb(out, TOPIC_E131);
       FastLED.clear();
     }
@@ -112,7 +111,6 @@ void process() {
       doc["group"] = prevSyncGroup;
       doc["run"]   = false;
       serializeJson(doc, out);      
-      SendMQTT(out, TOPIC_E131);
       SendWeb(out, TOPIC_E131);
     }
     e131_streaming = streaming;
@@ -132,17 +130,11 @@ void process() {
       setRandomMode(); 
     } else {
       #if (USE_E131 == 1)
-      if (!(e131_streaming && workMode == SLAVE)) {
-      #endif  
-        #if (USE_MQTT == 0)
-        DEBUGLN(String(F("Режим: ")) + effect_name);
-        #else
-        if (!useMQTT || !mqtt.connected()) {
+        if (!(e131_streaming && workMode == SLAVE)) {
           DEBUGLN(String(F("Режим: ")) + effect_name);
-        }      
-        #endif
-      #if (USE_E131 == 1)
-      }
+        }
+      #else
+        DEBUGLN(String(F("Режим: ")) + effect_name);
       #endif
       tmpSaveMode = thisMode;    
     }               
@@ -180,7 +172,6 @@ void process() {
           doc["result"]      = F("TIMEOUT");
           
           serializeJson(doc, out);      
-          SendMQTT(out, TOPIC_TME);
           SendWeb(out, TOPIC_TME);
         }
         
@@ -211,7 +202,6 @@ void process() {
               doc["region"] = useWeather == 1 ? regionID : regionID2;
               doc["result"] = F("TIMEOUT");
               serializeJson(doc, out);      
-              SendMQTT(out, TOPIC_WTR);
               SendWeb(out, TOPIC_WTR);
             }
           }
@@ -244,21 +234,12 @@ void process() {
       }
     #endif
 
-    // Проверить необходимость отправки сообщения об изменении состояния клиенту MQTT
+    // Проверить необходимость отправки сообщения об изменении состояния клиенту Web
     if (changed_keys.length() > 1) {
       // Удалить первый '|' и последний '|' и отправить значения по сформированному списку
       if (changed_keys[0] == '|') changed_keys = changed_keys.substring(1);
       if (changed_keys[changed_keys.length() - 1] == '|') changed_keys = changed_keys.substring(0, changed_keys.length()-1);
-
-      SendCurrentState(changed_keys, TOPIC_STT, BOTH);
-      
-      #if (USE_MQTT == 1)
-      if (useMQTT && !stopMQTT && mqtt.connected()) {
-        // Если после отправки сообщений на MQTT-сервер флаг намерения useMQTT сброшен (не использовать MQTT),
-        // а флаг результата - MQTT еще не остановлен - установить состояние "MQTT канал остановлен"
-        if (!useMQTT) stopMQTT = true; 
-      }
-      #endif
+      SendCurrentState(changed_keys, TOPIC_STT, BOTH);      
       changed_keys = "";
     }
         
@@ -381,143 +362,150 @@ void process() {
     // --------------------- Опрос нажатий кнопки -------------------------
 
     #if (USE_BUTTON == 1)
-      butt.tick();  // обязательная функция отработки. Должна постоянно опрашиваться
-      uint8_t clicks = 0;
-  
-      // Один клик
-      if (butt.isSingle()) clicks = 1;    
-      // Двойной клик
-      if (butt.isDouble()) clicks = 2;
-      // Тройной клик
-      if (butt.isTriple()) clicks = 3;
-      // Четверной и более клик
-      if (butt.hasClicks()) clicks = butt.getClicks();
-  
-      // Максимальное количество нажатий - 5-кратный клик
-      // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
-      // getClicks() возвращает 179, что абсолютная ерунда
-      if (clicks > 4) clicks = 0;
-      
-      if (butt.isPress()) {
-        // Состояние - кнопку нажали  
-      }
-      
-      if (butt.isRelease()) {
-        // Состояние - кнопку отпустили
-        isButtonHold = false;
-      }
-      
-      if (butt.isHolded()) {
-        isButtonHold = true;
-        if (globalBrightness == 255)
-          brightDirection = false;
-        else if (globalBrightness == 0)  
-          brightDirection = true;
-        else  
-          brightDirection = !brightDirection;
-      }
-  
-      if (clicks > 0) {
-        DEBUG(F("Кнопка нажата "));  
-        DEBUG(clicks);
-        DEBUGLN(F(" раз"));  
-      }
-  
-      // Любое нажатие кнопки останавливает будильник
-      if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
-        DEBUG(F("Выключение будильника кнопкой."));  
-        stopAlarm();
-        clicks = 0;
-      }
-  
-      // Одинарный клик - включить . выключить панель
-      if (clicks == 1) {
-        turnOnOff();
-      }
-      
-      // Прочие клики работают только если не выключено
-      if (isTurnedOff) {
-        // Выключить питание матрицы
-        #if (USE_POWER == 1)
-          if (!isAlarming) {
-            digitalWrite(POWER_PIN, POWER_OFF);
+      if (butt != nullptr) {
+        butt->tick();  // обязательная функция отработки. Должна постоянно опрашиваться
+        uint8_t clicks = 0;
+    
+        // Один клик
+        if (butt->isSingle()) clicks = 1;    
+        // Двойной клик
+        if (butt->isDouble()) clicks = 2;
+        // Тройной клик
+        if (butt->isTriple()) clicks = 3;
+        // Четверной и более клик
+        if (butt->hasClicks()) clicks = butt->getClicks();
+    
+        // Максимальное количество нажатий - 5-кратный клик
+        // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
+        // getClicks() возвращает 179, что абсолютная ерунда
+        if (clicks > 4) clicks = 0;
+        
+        if (butt->isPress()) {
+          // Состояние - кнопку нажали  
+        }
+        
+        if (butt->isRelease()) {
+          // Состояние - кнопку отпустили
+          isButtonHold = false;
+        }
+        
+        if (butt->isHolded()) {
+          isButtonHold = true;
+          if (globalBrightness == 255)
+            brightDirection = false;
+          else if (globalBrightness == 0)  
+            brightDirection = true;
+          else  
+            brightDirection = !brightDirection;
+        }
+    
+        if (clicks > 0) {
+          DEBUG(F("Кнопка нажата "));  
+          DEBUG(clicks);
+          DEBUGLN(F(" раз"));  
+        }
+    
+        // Любое нажатие кнопки останавливает будильник
+        if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
+          DEBUG(F("Выключение будильника кнопкой."));  
+          stopAlarm();
+          clicks = 0;
+        }
+    
+        // Одинарный клик - включить . выключить панель
+        if (clicks == 1) {
+          turnOnOff();
+        }
+        
+        // Прочие клики работают только если не выключено
+        if (isTurnedOff) {
+          // Выключить питание матрицы
+          #if (USE_POWER == 1)
+            if (vPOWER_PIN >= 0) {
+              if (!isAlarming) {
+                digitalWrite(vPOWER_PIN, vPOWER_OFF);
+              } else {
+                digitalWrite(vPOWER_PIN, vPOWER_ON);
+              }
+            }  
+          #endif      
+          //  - длительное нажатие кнопки включает яркий белый свет
+          if (vDEVICE_TYPE == 0) {
+            if (isButtonHold) {
+              // Включить панель - белый цвет
+              set_specialBrightness(255);
+              set_globalBrightness(255);
+              set_globalColor(0xFFFFFF);
+              isButtonHold = false;
+              setSpecialMode(1);
+              FastLED.setBrightness(globalBrightness);
+            }
           } else {
-            digitalWrite(POWER_PIN, POWER_ON);
+            // Удержание кнопки повышает / понижает яркость панели (лампы)
+            if (isButtonHold && butt->isStep()) {
+              processButtonStep();
+            }
+          }      
+          
+        } else {
+          
+          // Включить питание матрицы
+          #if (USE_POWER == 1)
+            if (vPOWER_PIN >= 0) {
+              digitalWrite(vPOWER_PIN, vPOWER_ON);
+            }
+          #endif
+          
+          // Был двойной клик - следующий эффект, сброс автоматического переключения
+          if (clicks == 2) {
+            bool tmpSaveSpecial = specialMode;
+            resetModes();  
+            setManualModeTo(true);
+            if (tmpSaveSpecial) 
+              setRandomMode();        
+            else 
+              nextMode();
           }
-        #endif      
-        //  - длительное нажатие кнопки включает яркий белый свет
-        #if (DEVICE_TYPE == 0)
-          if (isButtonHold) {
-            // Включить панель - белый цвет
-            set_specialBrightness(255);
-            set_globalBrightness(255);
-            set_globalColor(0xFFFFFF);
-            isButtonHold = false;
-            setSpecialMode(1);
-            FastLED.setBrightness(globalBrightness);
+    
+          // Тройное нажатие - включить случайный режим с автосменой
+          else if (clicks == 3) {
+            // Включить демо-режим
+            resetModes();          
+            setManualModeTo(false);        
+            setRandomMode();
           }
-        #else
-          // Удержание кнопки повышает / понижает яркость панели (лампы)
-          if (isButtonHold && butt.isStep()) {
+    
+          // Если устройство - лампа
+          if (vDEVICE_TYPE == 0) {
+            // Четверное нажатие - включить белую лампу независимо от того была она выключена или включен любой другой режим
+            if (clicks == 4) {
+              // Включить лампу - белый цвет
+              set_specialBrightness(255);
+              set_globalBrightness(255);
+              set_globalColor(0xFFFFFF);
+              setSpecialMode(1);
+              FastLED.setBrightness(globalBrightness);
+            }      
+            // Пятикратное нажатие - показать текущий IP WiFi-соединения            
+            else if (clicks == 5) {
+              showCurrentIP(false);
+            }      
+          } else {
+            // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
+            if (clicks == 4) {
+              showCurrentIP(false);
+            }      
+          }
+          
+          // ... и т.д.
+          
+          // Обработка нажатой и удерживаемой кнопки
+          if (isButtonHold && butt->isStep() && thisMode != MC_DAWN_ALARM) {      
+            // Удержание кнопки повышает / понижает яркость панели (лампы)
             processButtonStep();
-          }
-        #endif      
-        
-      } else {
-        
-        // Включить питание матрицы
-        #if (USE_POWER == 1)
-          digitalWrite(POWER_PIN, POWER_ON);
-        #endif
-        
-        // Был двойной клик - следующий эффект, сброс автоматического переключения
-        if (clicks == 2) {
-          bool tmpSaveSpecial = specialMode;
-          resetModes();  
-          setManualModeTo(true);
-          if (tmpSaveSpecial) 
-            setRandomMode();        
-          else 
-            nextMode();
+          }            
         }
-  
-        // Тройное нажатие - включить случайный режим с автосменой
-        else if (clicks == 3) {
-          // Включить демо-режим
-          resetModes();          
-          setManualModeTo(false);        
-          setRandomMode();
-        }
-  
-        // Если устройство - лампа
-        #if (DEVICE_TYPE == 0)
-          // Четверное нажатие - включить белую лампу независимо от того была она выключена или включен любой другой режим
-          if (clicks == 4) {
-            // Включить лампу - белый цвет
-            set_specialBrightness(255);
-            set_globalBrightness(255);
-            set_globalColor(0xFFFFFF);
-            setSpecialMode(1);
-            FastLED.setBrightness(globalBrightness);
-          }      
-          // Пятикратное нажатие - показать текущий IP WiFi-соединения            
-          else if (clicks == 5) {
-            showCurrentIP(false);
-          }      
-        #else      
-          // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
-          else if (clicks == 4) {
-            showCurrentIP(false);
-          }      
-        #endif
-        // ... и т.д.
-        
-        // Обработка нажатой и удерживаемой кнопки
-        else if (isButtonHold && butt.isStep() && thisMode != MC_DAWN_ALARM) {      
-          // Удержание кнопки повышает / понижает яркость панели (лампы)
-          processButtonStep();
-        }            
-      }
+      }  
     #endif
 
     // ------------------------------------------------------------------------
@@ -652,12 +640,8 @@ void parsing() {
         5 - пароль к точке доступа
         6 - настройки будильников
         7 - строка запрашиваемых параметров для процедуры getStateString(), например - "CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
-        8 - имя сервера MQTT
-        9 - имя пользователя MQTT
-       10 - пароль к MQTT-серверу
        11 - картинка построчно $6 11|Y colorHEX,colorHEX,...,colorHEX
        12 - картинка по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX
-       13 - префикс топика сообщения к MQTT-серверу
        14 - текст бегущей строки для немедленного отображения без сохранения $6 14|text
        15 - Загрузить пользовательскую картинку из файла на матрицу; $6 15|ST|filename; ST - "FS" - файловая система; "SD" - карточка
        16 - Сохранить текущее изображение с матрицы в файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
@@ -672,10 +656,6 @@ void parsing() {
       - $8 6 N D; D -> контрастность эффекта N;
       - $8 7 N;   Запрос текущих параметров эффекта N, возвращается JSON с параметрами. Используется для редактирования эффекта в Web-интерфейсе;
       - $8 8 N D; D -> скорость эффекта N;
-    11 - Настройки MQTT-канала (см. также $6 для N=8,9,10)
-      - $11 1 X;   - использовать управление через MQTT сервер X; 0 - не использовать; 1 - использовать
-      - $11 2 D;   - порт MQTT
-      - $11 5;     - Разорвать подключение к MQTT серверу, чтобы он мог переподключиться с новыми параметрами
     12 - Настройки погоды
       - $12 3 X;   - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в дневных часах
       - $12 4 X;   - использовать получение погоды с погодного сервера
@@ -771,6 +751,31 @@ void parsing() {
              MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
              LW - ширина окна отображения на локальной матрице
              LH - высота окна отображения на локальной матрице
+        - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+        - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+        - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+        - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+             Ux - 1 - использовать линию, 0 - линия не используется
+             Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+             Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+             Lx - длина цепочки светодиодов, подключенной к линии x
+        - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
+        - $23 11 X Y; - кнопка 
+             X - GPIO пин к которому подключена кнопка
+             Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
+        - $23 12 X Y; - управление питанием
+             X - GPIO пин к которому подключено реле управления питанием
+             Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+        - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
+             X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+             Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+        - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
+        - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
+             X - STX - GPIO пин контроллера TX -> к RX плеера
+             Y - SRX - GPIO пин контроллера RX -> к TX плеера
+        - $23 16 X Y;  - Подключение пинов TM1637
+             X - DIO - GPIO пин контроллера к DIO индикатора
+             Y - CLK - GPIO пин контроллера к CLK индикатора
   */  
 
   // Если прием данных завершен и управляющая команда в intData[0] распознана
@@ -1085,12 +1090,8 @@ void parsing() {
       //   5 - пароль точки доступа
       //   6 - настройки будильника в формате $6 6|DD EF WD HH1 MM1 HH2 MM2 HH3 MM3 HH4 MM4 HH5 MM5 HH6 MM6 HH7 MM7        
       //   7 - строка запрашиваемых параметров для процедуры getStateString(), например - "$6 7|CE CC CO CK NC SC C1 DC DD DI NP NT NZ NS DW OF"
-      //   8 - имя сервера MQTT
-      //   9 - имя пользователя MQTT
-      //  10 - пароль к MQTT-серверу
       //  11 - картинка построчно $6 11|Y colorHEX,colorHEX,...,colorHEX
       //  12 - картинка по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX
-      //  13 - префикс топика сообщения к MQTT-серверу
       //  14 - текст бегущей строки для немедленного отображения без сохранения $6 14|text
       //  15 - Загрузить пользовательскую картинку из файла на матрицу; $6 15|ST|filename; ST - "FS" - файловая система; "SD" - карточка
       //  16 - Сохранить текущее изображение с матрицы в файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
@@ -1157,8 +1158,8 @@ void parsing() {
 
               // Отправить уведомление об изменениях в строке
               editIdx = tmp_eff;
-              addKeyToChanged("TY");         // Отправить также строку в канал WEB/MQTT
-              addKeyToChanged("TS");         // Текст в строке мог быть изменен - отправить в канал WEB/MQTT состояние строк
+              addKeyToChanged("TY");         // Отправить также строку в канал WEB
+              addKeyToChanged("TS");         // Текст в строке мог быть изменен - отправить в канал WEB состояние строк
 
               // Отправить подтверждение обработки команды в канал UDP
               if (cmdSource == UDP) {
@@ -1242,27 +1243,12 @@ void parsing() {
               } else {
                 // Если ключи разделены пробелом - заменить на пайпы '|'
                 // Затем добавить в строку измененных параметров changed_keys
-                // На следующей итерации параметры из строки changed_keys будут отправлены в канал MQTT
+                // На следующей итерации параметры из строки changed_keys будут отправлены в канал Web
                 str.replace(' ','|');
-                addKeysToChanged(str);
+                addKeysToChanged(str);                
               }
               break;
               
-            #if (USE_MQTT == 1)
-            case 8:
-              set_MqttServer(str);
-              break;
-            case 9:
-              set_MqttUser(str);
-              break;
-            case 10:
-              set_MqttPass(str);
-              break;
-            case 13:
-              set_MqttPrefix(str);
-              break;
-            #endif
-
             // Прием строки передаваемого отображения по строкам  $6 11|Y colorHEX,colorHEX,...,colorHEX;
             case 11:
               pictureLine = str + ',';
@@ -1372,7 +1358,7 @@ void parsing() {
               str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
               str2 = str.substring(3);                                                    // Имя файла картинки без расширения
               str = openImage(str1, str2, nullptr, false);
-              // Отправка уведомления или сообщения об ошибке в Web/MQTT канал
+              // Отправка уведомления или сообщения об ошибке в Web канал
               if (cmdSource != UDP) {
                 if (str.length() == 0) {
                   // Файл загружен
@@ -1394,7 +1380,7 @@ void parsing() {
               str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
               str2 = str.substring(3);                                                    // Имя файла картинки без расширения
               str = saveImage(str1, str2);              
-              // Отправка уведомления или сообщения об ошибке в Web/MQTT канал
+              // Отправка уведомления или сообщения об ошибке в Web канал
               if (cmdSource != UDP) {
                 if (str.length() == 0) {
                   // Файл сохранен
@@ -1416,7 +1402,7 @@ void parsing() {
               str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
               str2 = str.substring(3);                                                    // Имя файла картинки без расширения
               str = deleteImage(str1, str2);              
-              // Отправка уведомления или сообщения об ошибке в Web/MQTT канал
+              // Отправка уведомления или сообщения об ошибке в Web канал
               if (cmdSource != UDP) {
                 // При успешно завершившейся операции возвращается пустая строка
                 if (str.length() == 0) {
@@ -1470,7 +1456,6 @@ void parsing() {
         }
         
         if (b_tmp <= 18) {
-          // Для команд, пришедших от MQTT отправлять только ACK;
           // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
           if (cmdSource == UDP) {
             sendAcknowledge();
@@ -1671,55 +1656,6 @@ void parsing() {
         break;
 
       // ----------------------------------------------------
-      // 11 - Настройки MQTT-канала
-      // - $11 1 X;   - использовать управление через MQTT сервер X; 0 - не использовать; 1 - использовать
-      // - $11 2 D;   - Порт MQTT
-      // - $11 5;     - Разорвать подключение к MQTT серверу, чтобы он мог переподключиться с новыми параметрами
-      // - $11 7 D;   - интервал отправки uptime на MQTT сервер в секундах или 0, если отключено
-      // ----------------------------------------------------
-
-      #if (USE_MQTT == 1)
-      case 11:
-         switch (intData[1]) {
-           case 1:               // $11 1 X; - Использовать канал MQTT: 0 - нет; 1 - да
-             set_useMQTT(intData[2] == 1);
-             // Если MQTT канал только что включили - отправить туда все начальные настройки,
-             // т.к. пока канал был отключен - состояние параметров изменялось, но сервер об этом не знает
-             if (useMQTT) {
-               nextMqttConnectTime = millis();
-               sendStartState(MQTT);
-             }
-             break;
-           case 2:               // $11 2 D; - Порт MQTT
-             set_mqtt_port(intData[2]);
-             break;
-           case 5:               // $11 5;   - Сохранить изменения и переподключиться к MQTT серверу
-             saveSettings();
-             mqtt.disconnect();
-             // Если подключаемся к серверу с другим именем и/или на другом порту - 
-             // простой вызов 
-             // mqtt.setServer(mqtt_server, mqtt_port)
-             // не срабатывает - соединяемся к прежнему серверу, который был обозначен при старте программы
-             // Единственный вариант - программно перезагрузить контроллер. После этого новый сервер подхватывается
-             if (last_mqtt_server != String(mqtt_server) || last_mqtt_port != mqtt_port) {              
-               ESP.restart();
-             }
-             // MQTT сервер мог поменять свои настройки, переключились на другой сервер или другой аккаунт - отправить туда все начальные настройки,
-             if (useMQTT) sendStartState(MQTT);
-             break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
-            break;
-        }
-        if (!err && cmdSource == UDP) {
-          // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-          sendAcknowledge();
-        }
-        break;
-      #endif
-      
-      // ----------------------------------------------------
       // 12 - Настройки погоды
       // - $12 3 X;      - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в дневных часах
       // - $12 4 X;      - использовать получение погоды с погодного сервера
@@ -1798,7 +1734,7 @@ void parsing() {
            case 2:               // $13 2 I; - Запросить исходный текст бегущей строки с индексом I 0..35 без обработки макросов
              if (intData[2] >= 0 && intData[2] <= 35) {
                editIdx = intData[2];
-               addKeyToChanged("TY");                  // Отправить также строку в канал WEB/MQTT
+               addKeyToChanged("TY");                  // Отправить также строку в канал WEB
              }
              break;
            case 9:               // $13 9 D; - Периодичность отображения бегущей строки (в секундах D)
@@ -2311,7 +2247,7 @@ void parsing() {
         if (!err && cmdSource == UDP) {
           sendAcknowledge();
         } else {
-          // Для команд, пришедших от MQTT отправить сообщение об успешном выполнении операции
+          // Для команд, пришедших от Web отправить сообщение об успешном выполнении операции
           str = MSG_OP_SUCCESS;
           SendWebInfo(str);
         }        
@@ -2336,6 +2272,31 @@ void parsing() {
       //       MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
       //       LW - ширина окна отображения на локальной матрице
       //       LH - высота окна отображения на локальной матрице
+      // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+      // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+      // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+      // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+      //     Ux - 1 - использовать линию, 0 - линия не используется
+      //     Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+      //     Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+      //     Lx - длина цепочки светодиодов, подключенной к линии x
+      // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
+      // - $23 11 X Y; - кнопка 
+      //     X - GPIO пин к которому подключена кнопка
+      //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
+      // - $23 12 X Y; - управление питанием
+      //     X - GPIO пин к которому подключено реле управления питанием
+      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+      // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
+      //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+      //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+      // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
+      // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
+      //     X - STX - GPIO пин контроллера TX -> к RX плеера
+      //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
+      // - $23 16 X Y;  - Подключение пинов TM1637
+      //     X - DIO - GPIO пин контроллера к DIO индикатора
+      //     Y - CLK - GPIO пин контроллера к CLK индикатора
       // ----------------------------------------------------
 
       case 23:
@@ -2419,9 +2380,14 @@ void parsing() {
             }
             #endif
             break;
-          case 4:            
+          case 4:     
+            // Сохранить несохраненные настройки перед перезапуском устройства  
+            saveSettings();
+            delay(100);     
+            // Погасить жкран, перезапустить контроллер
             FastLED.clear();
             FastLED.show();
+            delay(100);     
             ESP.restart();
             break;
           case 5:
@@ -2446,6 +2412,77 @@ void parsing() {
             }
             #endif
             break;
+          case 6:
+            // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+            putLedLineUsage(1, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+            putLedLinePin(1, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+            putLedLineStartIndex(1, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+            putLedLineLength(1, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+            break;
+          case 7:
+            // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+            putLedLineUsage(2, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+            putLedLinePin(2, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+            putLedLineStartIndex(2, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+            putLedLineLength(2, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+            break;
+          case 8:
+            // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+            putLedLineUsage(3, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+            putLedLinePin(3, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+            putLedLineStartIndex(3, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+            putLedLineLength(3, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+            break;
+          case 9:
+            // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+            putLedLineUsage(4, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+            putLedLinePin(4, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+            putLedLineStartIndex(4, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+            putLedLineLength(4, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+            break;
+          case 10:
+            // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
+            putDeviceType(intData[2]);
+            break;
+          case 11:
+            // - $23 11 X Y; - кнопка 
+            //     X - GPIO пин к которому подключена кнопка
+            //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
+            putButtonPin(intData[2]);
+            putButtonType(intData[3]);
+            break;
+          case 12:
+            // - $23 12 X Y; - управление питанием
+            //     X - GPIO пин к которому подключено реле управления питанием
+            //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+            putPowerPin(intData[2]);
+            putPowerActiveLevel(intData[3]);
+            break;
+          case 13:
+            // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
+            //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+            //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+            putWaitPlayFinished(intData[2] == 1);
+            putRepeatPlay(intData[3] == 1);
+            break;
+          case 14:
+            // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
+            putDebugSerialEnable(intData[2] == 1);
+            break;
+          case 15:
+            // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
+            //     X - STX - GPIO пин контроллера TX -> к RX плеера
+            //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
+            putDFPlayerSTXPin(intData[2]);
+            putDFPlayerSRXPin(intData[3]);
+            break;
+          case 16:
+            // - $23 16 X Y;  - Подключение пинов TM1637
+            //     X - DIO - GPIO пин контроллера к DIO индикатора
+            //     Y - CLK - GPIO пин контроллера к CLK индикатора
+            putTM1637DIOPin(intData[2]);
+            putTM1637CLKPin(intData[3]);
+            break;
           default:
             notifyUnknownCommand(incomeBuffer, cmdSource);
             break;
@@ -2465,33 +2502,30 @@ void parsing() {
   haveIncomeData = bufIdx > 0 && bufIdx < packetSize; 
 
   if (!haveIncomeData) {
-    // Есть ли поступившие по каналу Web/MQTT команды?
+    // Есть ли поступившие по каналу Web команды?
     if (queueLength > 0) {
-      char   commandSource = cmdQueueType[queueReadIdx];
       String command       = cmdQueue[queueReadIdx++];
       if (queueReadIdx >= QSIZE_IN) queueReadIdx = 0;
       queueLength--;
       
-      cmdSource = commandSource == 'M' ? MQTT : WEB;
       haveIncomeData = true;
       bufIdx = 0;
       packetSize = command.length();
       memcpy(incomeBuffer, command.c_str(), packetSize);
 
+      // Команды в очередь помещаются только из источника WEB; Команды из UDP обрабатываются сразу без помещения в очередь.
+      cmdSource = WEB; 
+      
       // Эта команда используется в качестве ping, посылается каждые 2-3 секунда, ее выводить не нужно, чтобы не забивать вывод в лог
       if (command != "$6 7|FM|UP") {
-        if(commandSource == 'M')
-          DEBUG(F("MQTT"));
-        else  
-          DEBUG(F("WEB"));
-          
-        DEBUG(F(" пакeт размером "));
+
+        DEBUG(F("WEB пакeт размером "));
         DEBUGLN(packetSize);
 
         DEBUG(F("<-- "));
         DEBUGLN(command);
 
-        // +++ При поступлении каждой команды вывести в консоль информацию о свободной памяти
+        // При поступлении каждой команды вывести в консоль информацию о свободной памяти
         DEBUG(F("FM: "));
         DEBUGLN(ESP.getFreeHeap());
       }
@@ -2632,7 +2666,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // W:число     ширина матрицы
   // H:число     высота матрицы
-  // AA:[текст]  пароль точки доступа - MQTT-канал
   // AB:[текст]  пароль точки доступа - Web-канал
   // AD:число    продолжительность рассвета, мин
   // AE:число    эффект, использующийся для будильника
@@ -2708,12 +2741,12 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // M11:число   индекс текущей используемой карты индексов
   // MA:число    номер файла звука будильника из SD:/01
   // MB:число    номер файла звука рассвета из SD:/02
+  // MC:[текст]  тип микроконтроллера "ESP32", "NodeMCU", "Wemos d1 mini"
   // MD:число    сколько минут звучит будильник, если его не отключили
   // MP:папка~файл  номер папки и файла звука который проигрывается, номер папки и звука разделены '~'
   // MU:X        использовать звук в будильнике 0-нет, 1-да
   // MV:число    максимальная громкость будильника
   // MX:X        MP3 плеер доступен для использования 0-нет, 1-да
-  // NA:[текст]  пароль подключения к сети - в MQTT канал
   // NB:Х        яркость цвета ночных часов, где Х = 1..255
   // NС:Х        цвет ночных часов, где Х = 0 - R; 1 - G; 2 - B; 3 - C; 4 - M; 5 - Y;
   // NM:число    часовой пояс  - минуты 0 / 15 / 30 / 45
@@ -2727,15 +2760,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // PD:число    продолжительность режима в секундах
   // PS:X        состояние программного вкл/выкл панели 0-выкл, 1-вкл
   // PW:число    ограничение по току в миллиамперах
-  // QA:X        использовать MQTT 0-нет, 1-да
-  // QD:число    задержка отправки сообщения MQTT
-  // QP:число    порт подключения к MQTT серверу
-  // QK:X        пакетная отправка состояний в MQTT-канал 0 - каждое состояние отправляется индивидуально в свой топик, соответствующий названию параметра, 1 - состояние отправляется сборными пакетами
-  // QR:X        префикс для формирования топика
-  // QS:[текст]  имя MQTT сервера, например QS:[srv2.clusterfly.ru]
-  // QU:[текст]  имя пользователя MQTT соединения, например QU:[user_af7cd12a]
-  // QW:[текст]  пароль MQTT соединения, например QW:[pass_eb250bf5]
-  // QZ:X        сборка поддерживает MQTT 0-нет, 1-да
+  // PZ:X        использовать управление питанием 0-нет, 1-да --> USE_POWER
   // RM:Х        смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
   // S1:[список] список звуков будильника, разделенный запятыми, ограничители [] обязательны        
   // S2:[список] список звуков рассвета, разделенный запятыми, ограничители [] обязательны        
@@ -2747,6 +2772,8 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // SS:число    параметр #1 эффекта
   // SQ:спец     параметр #2 эффекта; спец - "L>val>item1,item2,..itemN" - список, где val - текущее, далее список; "C>x>title" - чекбокс, где x=0 - выкл, x=1 - вкл; title - текст чекбокса
   // ST:число    скорость смещения бегущей строки
+  // SX:число    наличие и доступность SD карты в системе: Х = 0 - нeт SD карты; 1 - SD карта доступна
+  // SZ:число    поддержка прошивкой функционала SD карты в системе - USE_SD: Х = 0 - USE_SD = 0; USE_SD = 1
   // TE:X        оверлей текста бегущей строки вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать бегущую строку в эффектах)
   // T1:[ЧЧ:MM]  время рассвета, полученное с погодного сервера
   // T2:[ЧЧ:MM]  время заката, полученное с погодного сервера
@@ -2760,6 +2787,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   //               4 - синий - активная, содержит макрос даты
   //               5 - красный - для строки 0 - это управляющая строка
   // TY:[Z:текст] текст для строки, с указанным индексом I 0..35, Z 0..9,A..Z. Ограничители [] обязательны; текст ответа в формате: 'I:Z > текст'; 
+  // UВ:X        использовать кнопку 0-нет, 1-да --> USE_BUTTON
   // UC:X        использовать часы поверх эффекта 0-нет, 1-да
   // UP:число    uptime системы в секундах
   // UT:X        использовать бегущую строку поверх эффекта 0-нет, 1-да
@@ -2773,7 +2801,19 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // WT:число    Период запроса сведений о погоде в минутах
   // WU:X        Использовать получение погоды с сервера: 0 - выключено; 1 - включено
   // WZ:X        Прошивка поддерживает погоду USE_WEATHER == 1 - 0 - выключено; 1 - включено
-
+  //
+  // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
+  // 2311:X Y    X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+  // 2312:X Y    X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+  // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+  // 2314:X      vDEBUG_SERIAL
+  // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+  // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
+ 
   String str = "", tmp;
   CRGB c;
 
@@ -3551,7 +3591,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // uptime - время работы системы в секундах
   if (key == "UP") {
-    uptime_send_last = millis();
     uint32_t upt = upTime;
     if (upt > 0) {
       upt = ((uint32_t)now()) - upt;
@@ -3592,7 +3631,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     return str + "AN:" + "[" + tmp + "]";
   }
 
-  // Пароль точки доступа - MQTT-канал
+  // Пароль точки доступа - Web-канал
   if (key == "AB") {
     tmp = String(apPass);
     if (value) {
@@ -3602,16 +3641,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     return str + "AB:" + "[" + tmp + "]";
   }
 
-  // Пароль точки доступа - Web-канад
-  if (key == "AA") {
-    tmp = String(apPass);
-    if (value) {
-      // value->set(tmp);  // Решено пароль по открытому каналу на [публичный] сервер MQTT не отправлять
-      return "";           // tmp;
-    }
-    return str + "AA:" + "[" + tmp + "]";
-  }
-
   // Имя локальной сети (SSID)
   if (key == "NW") {
     if (value){
@@ -3619,15 +3648,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       return ssid;
     }
     return str + "NW:" + "[" + ssid + "]";
-  }
-
-  // Пароль к сети - MQTT канал
-  if (key == "NA") {
-    if (value) {
-      // value->set(pass); // Решено пароль по открытому каналу на [публичный] сервер MQTT не отправлять
-      return "";           // pass;
-    }
-    return str + "NA:" + "[" + pass + "]";
   }
 
   // Пароль к сети - Web канал
@@ -3791,6 +3811,15 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     return str + "LE:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
   }
 
+  // Поддержка функционала SD-карты
+  if (key == "SZ") {
+    if (value) {
+      value->set(USE_SD == 1);
+      return String(USE_SD == 1);
+    }
+    return str + "SZ:" + String(USE_SD == 1);
+  }
+
 #if (USE_SD == 1)
   // Наличие в системе SD карты (в т.ч и эмуляция в FS)
   if (key == "SX") {
@@ -3821,76 +3850,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       return tmp;
     }
     return str + "LF:[" + tmp + "]"; 
-  }
-#endif
-
-  // Прошивка поддерживает MQTT 0-нет, 1-да
-  if (key == "QZ") {
-    if (value) {
-      value->set(USE_MQTT == 1);
-      return String(USE_MQTT == 1);
-    }
-    return str + "QZ:" + String(USE_MQTT == 1);  
-  }
-
-#if (USE_MQTT == 1)
-
-  // Использовать MQTT 0-нет, 1-да
-  if (key == "QA") {
-    if (value) {
-      value->set(useMQTT);
-      return String(useMQTT);  
-    }
-    return str + "QA:" + String(useMQTT);  
-  }
-
-  // QP:число    порт подключения к MQTT серверу
-  if (key == "QP") {
-    if (value) {
-      value->set(mqtt_port);
-      return String(mqtt_port);  
-    }
-    return str + "QP:" + String(mqtt_port);  
-  }
-
-  // QS:[text]   имя MQTT сервера, например QS:[srv2.clusterfly.ru]
-  if (key == "QS") {
-    tmp = String(mqtt_server);
-    if (value) {
-      value->set(tmp);
-      return tmp;
-    }
-    return str + "QS:" + "[" + tmp +  "]";
-  }
-  
-  // QU:[text]   имя пользователя MQTT соединения, например QU:[user_af7cd12a]
-  if (key == "QU") {
-    tmp = String(mqtt_user);
-    if (value) {
-      value->set(tmp);
-      return tmp;
-    }
-    return str + "QU:" + "[" + tmp +  "]";
-  }
-
-  // QW:[text]   пароль MQTT соединения, например QW:[pass_eb250bf5]
-  if (key == "QW") {
-    tmp = String(mqtt_pass);
-    if (value) {
-      value->set(tmp);
-      return tmp;
-    }
-    return str + "QW:" + "[" + tmp +  "]";
-  }
-
-  // QR:[text]   префикс топика MQTT сообщения, например QR:[user_af7cd12a/WiFiPanel-0]
-  if (key == "QR") {
-    tmp = String(mqtt_prefix);
-    if (value) {
-      value->set(tmp);
-      return tmp;
-    }
-    return str + "QR:" + "[" + tmp +  "]";
   }
 #endif
 
@@ -4127,6 +4086,142 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   }
   
   #endif
+
+  // Поддержка управления питанием
+  if (key == "PZ") {
+    if (value) {
+      value->set(USE_POWER == 1);
+      return String(USE_POWER == 1);
+    }
+    return str + "PZ:" + String(USE_POWER == 1);
+  }
+
+  // Тип микроконтроллера
+  if (key == "MC") {
+    String mcType = MCUType();
+    if (value) {
+      value->set(mcType);
+      return mcType;
+    }
+    return str + "MC:" + mcType;
+  }
+
+  // Наличие кнопки
+  if (key == "UB") {
+    if (value) {
+      value->set(USE_BUTTON == 1);
+      return String(USE_BUTTON == 1);
+    }
+    return str + "UB:" + String(USE_BUTTON == 1);
+  }
+
+  // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  if (key == "2306") {
+    tmp = String(getLedLineUsage(1) ? 1 : 0) + ' ' + String(getLedLinePin(1)) + ' ' + String(getLedLineStartIndex(1)) + ' ' + String(getLedLineLength(1));
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "2306:" + tmp;
+  }
+
+  // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  if (key == "2307") {
+    tmp = String(getLedLineUsage(2) ? 1 : 0) + ' ' + String(getLedLinePin(2)) + ' ' + String(getLedLineStartIndex(2)) + ' ' + String(getLedLineLength(2));
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "2307:" + tmp;
+  }
+
+  // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  if (key == "2308") {
+    tmp = String(getLedLineUsage(3) ? 1 : 0) + ' ' + String(getLedLinePin(3)) + ' ' + String(getLedLineStartIndex(3)) + ' ' + String(getLedLineLength(3));
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "2308:" + tmp;
+  }
+
+  // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  if (key == "2309") {
+    tmp = String(getLedLineUsage(4) ? 1 : 0) + ' ' + String(getLedLinePin(4)) + ' ' + String(getLedLineStartIndex(4)) + ' ' + String(getLedLineLength(4));
+    if (value) {
+      value->set(tmp);
+      return tmp;
+    }
+    return str + "2309:" + tmp;
+  }
+
+  // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
+  if (key == "2310") {
+    if (value) {
+      value->set(vDEVICE_TYPE);
+      return String(vDEVICE_TYPE);
+    }
+    return str + "2310:" + String(vDEVICE_TYPE);
+  }
+
+  // 2311:X Y    X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
+  if (key == "2311") {
+    tmp = String(getButtonPin()) + ' ' + String(vBUTTON_TYPE);
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    return str + "2311:" + tmp;
+  }
+
+  // 2312:X Y    X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+  if (key == "2312") {
+    tmp = String(getPowerPin()) + ' ' + String(getPowerActiveLevel());
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    return str + "2312:" + tmp;
+  }
+
+  // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
+  if (key == "2313") {
+    tmp = String(getWaitPlayFinished()) + ' ' + String(getRepeatPlay());
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    return str + "2313:" + tmp;
+  }
+
+  // 2314:X      vDEBUG_SERIAL
+  if (key == "2314") {
+    if (value) {
+      value->set(vDEBUG_SERIAL);
+      return String(vDEBUG_SERIAL);
+    }
+    return str + "2314:" + String(vDEBUG_SERIAL);
+  }
+
+  // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
+  if (key == "2315") {
+    tmp = String(getDFPlayerSTXPin()) + ' ' + String(getDFPlayerSRXPin());
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    return str + "2315:" + tmp;
+  }
+
+  // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
+  if (key == "2316") {
+    tmp = String(getTM1637DIOPin()) + ' ' + String(getTM1637CLKPin());
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    return str + "2316:" + tmp;
+  }
     
   // Запрошенный ключ не найден - вернуть пустую строку
   return "";

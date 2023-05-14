@@ -44,18 +44,6 @@ void doEffectWithOverlay(uint8_t aMode) {
       ignoreTextOverlaySettingforEffect = textOverlayEnabled;
       loadingTextFlag = true;
     }
-
-    // Если подошло время отправки uptime на сервер (каждые 60 сек) - отправить
-    if (upTime > 0 && (millis() - uptime_send_last > 60000L )) {      
-      // Некоторые сервера пропускают самый первый отправленный "online" сразу после соединения с брокером
-      // Подключающиеся устройства получают статус "offline" и приложение не может соединиться с устройством, считая, что оно выключено.
-      // Посылаем статус "online" по таймеру вместе с периодической отправкой времени uptime (времени бесперебойной работы)
-      #if (USE_MQTT == 1)
-      putOutQueue(mqtt_topic(TOPIC_PWR).c_str(), "online", true);
-      #endif
-      addKeyToChanged("UP");
-      addKeyToChanged("FM");
-    } 
   }
 
   // Оверлей нужен для всех эффектов, иначе при малой скорости эффекта и большой скорости часов поверх эффекта буквы-цифры "смазываются"
@@ -99,7 +87,6 @@ void doEffectWithOverlay(uint8_t aMode) {
       }
       doc["text"] = outText;
       serializeJson(doc, out);    
-      SendMQTT(out, TOPIC_TXT);
       SendWeb(out, TOPIC_TXT);
 
       #if (USE_MP3 == 1)
@@ -201,7 +188,6 @@ void doEffectWithOverlay(uint8_t aMode) {
     doc["act"] = F("TEXT");
     doc["run"] = false;
     serializeJson(doc, out);    
-    SendMQTT(out, TOPIC_TXT);
     SendWeb(out, TOPIC_TXT);
 
     // Если показ завершен и к отображению задана следующая строка - не нужно рисовать эффекты и все прочее - иначе экран мелькает
@@ -251,7 +237,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       if (showDateInClock && showDateState && !showWeatherState) {
         CALENDAR_XC--;
         if (CALENDAR_XC < -CALENDAR_W) {
-         if (DEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
+         if (vDEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
            CALENDAR_XC = pWIDTH - CALENDAR_W - 1 ;
          else
            CALENDAR_XC = pWIDTH - 1;         
@@ -260,7 +246,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       } else {
         CLOCK_XC--;
         if (getClockX(CLOCK_XC + CLOCK_LX) < 0) {
-         if (DEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
+         if (vDEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
            CLOCK_XC = pWIDTH - CLOCK_W - 1;
          else
            CLOCK_XC = pWIDTH - CLOCK_FX - 1;
@@ -375,8 +361,8 @@ void FastLEDshow() {
   #endif
   // Если выводить на матрицу чаще 5 мс - она мерцает
   if (millis() - prevTimer > 5) {
-     FastLED.show();
-     prevTimer = millis();
+    FastLED.show();
+    prevTimer = millis();
   }
 }
 
@@ -747,7 +733,7 @@ void checkIdleState() {
   //if ((ms - autoplayTimer > autoplayTime) && !(manualMode || e131_wait_command)) {    // таймер смены режима
     if (((ms - autoplayTimer > autoplayTime) // таймер смены режима
            // при окончании игры не начинать ее снова
-           || gameOverFlag && !repeat_play 
+           || gameOverFlag && !vREPEAT_PLAY
            #if (USE_SD == 1)
            // если файл с SD-карты проигрался до конца - сменить эффект
            || (thisMode == MC_SDCARD && play_file_finished)
@@ -765,7 +751,7 @@ void checkIdleState() {
          (showTextNow && (specialTextEffect >= 0))       // Воспроизводится бегущая строка на фоне указанного эффекта
          #if (USE_SD == 1)
          // Для файла с SD-карты - если указан режим ожидания проигрывания файла до конца, а файл еще не проигрался - не менять эффект
-         || (thisMode == MC_SDCARD && (wait_play_finished && !play_file_finished || loadingFlag))
+         || (thisMode == MC_SDCARD && (vWAIT_PLAY_FINISHED && !play_file_finished || loadingFlag))
          #endif
       )
       {        

@@ -43,6 +43,16 @@
 
     <mat-tab>
       <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" matTooltip="{{L.$('Настройки оборудования')}}">memory</mat-icon>
+        <span>{{ L.$('Оборудование') }}</span>
+      </ng-template>
+      <ng-template matTabContent>
+        <app-tab-wiring></app-tab-wiring>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
         <mat-icon class="tab-icon" matTooltip="{{L.$('Прочее ')}}">file_download_done</mat-icon>
         <span>{{ L.$('Прочее ') }}</span>
       </ng-template>

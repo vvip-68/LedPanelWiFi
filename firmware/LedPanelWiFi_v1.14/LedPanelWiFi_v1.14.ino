@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0505")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0514")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -34,9 +34,9 @@
 //    -> пин ленты с D2 переназначается ядром на D4
 //
 // Для ядра ESP8266 v3.1.2
-//   тип микроконтроллера в меню "Инструменты -> Плата" для ESP8266 выбирать 
-//     - "NodeMCU 1.0 (ESP12E Module)" для устройств на базе NodeMCU (впрочем для Wemos d1 mini тоже работает)
-//     - "LOLIN(WEMOS) D1 mini (clone)" для устройств на базе Wemos d1 mini
+//   тип микроконтроллера в меню "Инструменты -> Плата" для ESP8266:
+//     - для устройств на базе NodeMCU выбирать       -- "NodeMCU 1.0 (ESP12E Module)" 
+//     - для устройств на базе Wemos d1 mini выбирать -- "LOLIN(WEMOS) D1 mini (clone)" 
 //
 // Для ядра ESP32 v2.0.6 или 2.0.9 
 //   тип микроконтроллера в меню "Инструменты -> Плата" для выбирать "ESP32 Dev Module"
@@ -102,6 +102,9 @@
 //   Для микроконтроллеров ESP8266 с 4МБ флэш-памяти рекомендуется вариант "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
 //   Для микроконтроллеров ESP32   с 4МБ флэш-памяти рекомендуется вариант "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)"; 
 //
+// После того, как прошивка будет загружена в микроконтроллер - не забудьте загрузить файлы из подпапки data в файловую систему микроконтроллера
+// https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК
+//
 // --------------------------------------------------------
 //
 // *** SD-карта
@@ -116,7 +119,7 @@
 //
 // Для начала работы выполните настройки параметров прошивки - укажите нужные значения в файлах 
 //  a_def_hard.h - параметры вашей матрицы, наличие дополнительных модулей, пины подключения, использование возможностей прошивки
-//  a_def_soft.h - параметры подулючения к сети - имя сети, пароль, настройки MQTT если  используется, временная зона, коды для получения погоды и т.д.
+//  a_def_soft.h - параметры подулючения к сети - имя сети, пароль, временная зона, коды для получения погоды и т.д.
 // Большинство параметров в последствии могут быть изменены в Web-интерфейсе при подключении к устройству или в приложении на смартфоне, 
 // если таковое уже есть для текущей версии прошивки.
 //
@@ -136,9 +139,9 @@
 //           открытия Web-интерфейса в браузере из за нехватки оперативной памяти у этого типа микроконтроллеров.
 //           По той же причине недостатка оперативной памяти Web-интерфейс может вообще не открываться - передача требуемых файлов Web-странички прерывается,
 //           если микроконтроллеру недостаточно оперативной памяти. Проблемы начинаются, когда свободной оперативной памяти остается менее 12-15 килобайт.
-//           Сколько памяти остается свободной - зависит от размера матрицы и включенных функций - MQTT, MP3 Player, индикатор TM1637, поддержка E131 и т.д.
+//           Сколько памяти остается свободной - зависит от размера матрицы и включенных функций - MP3 Player, индикатор TM1637, поддержка E131 и т.д.
 //
-//         Управление через UDP и MQTT каналы прошивкой поддерживается, но в настоящий момент нет готового приложения, поддерживающего управления через UDP/MQTT.
+//         Управление через UDP канал прошивкой поддерживается, но в настоящий момент нет готового приложения, поддерживающего управления через UDP.
 //          
 //         Изменилась карта распределения хранения настроек в постоянной памяти EEPROM
 //         После сборки и загрузки скомпилированной прошивки 1.14 вам придется заново перенастраивать все эффекты
@@ -161,11 +164,26 @@ void setup() {
 
   // Инициализация EEPROM и загрузка начальных значений переменных и параметров
   EEPROM.begin(EEPROM_MAX);
+  delay(100);
 
-  #if (DEBUG_SERIAL == 1)
+  uint8_t eeprom_id = EEPROMread(0);
+
+  // Загрузть настройки подключения пинов микроконтроллера к устройствам проекта
+  bool isEEPROMInitialized = eeprom_id == EEPROM_OK;
+  if (!isEEPROMInitialized) {
+    clearEEPROM();
+  }
+  
+  bool isWireInitialized = getWiringInitialized() && isEEPROMInitialized;
+  if (!isWireInitialized) {
+    initializeWiring();
+  }
+  loadWiring();
+
+  if (vDEBUG_SERIAL) {
     Serial.begin(115200);
     delay(300);
-  #endif
+  }
 
   // пинаем генератор случайных чисел
   #if defined(ESP8266) && defined(TRUE_RANDOM)
@@ -182,10 +200,12 @@ void setup() {
     host_name = String(HOST_NAME);
   #endif
 
-  uint8_t eeprom_id = EEPROMread(0);
-
   DEBUGLN();
   DEBUGLN(FIRMWARE_VER);
+  
+  DEBUG(F("Контроллер: '"));
+  DEBUGLN(MCUType() + "'");
+  
   String core_type = "";
   String core_version = "";
   #if defined(ESP32) && defined(ARDUINO_ESP32_RELEASE)
@@ -203,6 +223,12 @@ void setup() {
     DEBUG(F(" v"));
     DEBUGLN(core_version);
   }
+  
+  if (!isEEPROMInitialized) {
+    // Сама инициализация выполняется выше по коду. Тут - просто вывод сообщения о событии
+    DEBUGLN(F("Инициализация EEPROM..."));
+  }  
+  
   DEBUG(F("Версия EEPROM: "));
   DEBUGLN(String(F("0x")) + IntToHex(eeprom_id, 2));  
   if (eeprom_id != EEPROM_OK) {
@@ -252,8 +278,8 @@ void setup() {
 
   DEBUGLN();
   DEBUG(F("Матрица: "));
-  if (DEVICE_TYPE == 0) DEBUG(F("труба "));
-  if (DEVICE_TYPE == 1) DEBUG(F("плоская "));
+  if (vDEVICE_TYPE == 0) DEBUG(F("труба "));
+  if (vDEVICE_TYPE == 1) DEBUG(F("плоская "));
   DEBUGLN(String(pWIDTH) + 'x' + String(pHEIGHT));
 
   if (sMATRIX_TYPE == 2) {
@@ -294,6 +320,26 @@ void setup() {
       if (mTYPE == 1) DEBUGLN(F("параллельная"));
     }
   }
+  
+  // ---------- Пины подключения ленты --------------
+  
+  bool hasLedOut = getLedLineUsage(1) || getLedLineUsage(2) || getLedLineUsage(3) || getLedLineUsage(4);
+  if (hasLedOut) {
+    DEBUGLN(F("Вывод на ленту:"));  
+    FOR_i(1, 4) {
+      bool isLineUsed = getLedLineUsage(i);
+      if (isLineUsed) {
+        int8_t   led_pin = getLedLinePin(i);
+        int16_t  led_start = getLedLineStartIndex(i);
+        int16_t  led_count = getLedLineLength(i);
+        DEBUGLN(String(F("  Линия ")) + String(i) + " PIN=" + pinName(led_pin) + String(F(", START=")) + String(led_start) + String(F(", COUNT=")) + String(led_count) );        
+      }
+    }
+  } else {
+    DEBUGLN(F("Вывод на ленту: нет назначенных пинов вывода"));  
+  }
+  
+  // ------------------------------------------------
 
   DEBUGLN();
   DEBUGLN(F("Доступные возможности:"));
@@ -307,19 +353,23 @@ void setup() {
     DEBUGLN(F("10x16"));
 
   #if (USE_BUTTON  == 1)
-  DEBUG(F("+ Кнопка управления: "));
-  if (BUTTON_TYPE == 0)
-    DEBUGLN(F("сенсорная"));
-  if (BUTTON_TYPE == 1)
-    DEBUGLN(F("тактовая"));
+    DEBUG(F("+ Кнопка управления: "));
+    if (vBUTTON_TYPE == 0) DEBUG(F("сенсорная PIN="));
+    if (vBUTTON_TYPE == 1) DEBUG(F("тактовая PIN="));
+    DEBUGLN(pinName(getButtonPin()));
   #else
-  DEBUG(F("- Кнопка управления: "));
+    DEBUG(F("- Кнопка управления: "));
   #endif
 
   DEBUGLN(F("+ Синхронизация времени с сервером NTP"));
 
   DEBUG((USE_POWER == 1 ? '+' : '-'));
-  DEBUGLN(F(" Управление питанием"));
+  DEBUG(F(" Управление питанием"));
+  #if (USE_POWER == 1)
+    DEBUGLN(String(F(" PIN=")) + pinName(getPowerPin()));
+  #else
+    DEBUGLN();
+  #endif
 
   DEBUG((USE_WEATHER == 1 ? '+' : '-'));
   DEBUGLN(F(" Получение информации о погоде"));
@@ -328,21 +378,40 @@ void setup() {
     DEBUGLN(F("+ Управление через Web-канал"));
   }
 
-  DEBUG((USE_MQTT == 1 ? '+' : '-'));
-  DEBUGLN(F(" Управление по каналу MQTT"));
-
   DEBUG((USE_E131 == 1 ? '+' : '-'));
   DEBUGLN(F(" Групповая синхронизация по протоколу E1.31"));
 
   DEBUG((USE_TM1637 == 1 ? '+' : '-'));
-  DEBUGLN(F(" Дополнительный индикатор TM1637"));
+  DEBUG(F(" Дополнительный индикатор TM1637"));
+  #if (USE_TM1637 == 1)
+    DEBUGLN(String(F(" DIO=")) + pinName(getTM1637DIOPin()) + String(F(" CLK=")) + pinName(getTM1637CLKPin()));
+  #else
+    DEBUGLN();
+  #endif
 
   DEBUG((USE_SD == 1 ? '+' : '-'));
   DEBUG(F(" Эффекты Jinx! с SD-карты"));
-  DEBUGLN(USE_SD == 1 && FS_AS_SD == 1 ? String(F(" (эмуляция в FS)")) : "");
+  DEBUG(USE_SD == 1 && FS_AS_SD == 1 ? String(F(" (эмуляция в FS)")) : "");
+  #if (USE_SD == 1 && FS_AS_SD == 0)
+    // CS (chip select) может быть изменен и задается в настройках
+    // CLK, MISO, MOSI - аппаратные пины, фиксированы и SD-карта может быть подключена только к ним
+    DEBUG(String(F(" CS=")) + pinName(SD_CS_PIN));
+    #if defined(ESP8266)
+      DEBUGLN(F(", CLK=D5, MISO=D6, MOSI=D7"));
+    #else
+      DEBUGLN(F(", CLK=G18, MISO=G19, MOSI=G23"));
+    #endif
+  #else
+    DEBUGLN();
+  #endif
 
   DEBUG((USE_MP3 == 1 ? '+' : '-'));
-  DEBUGLN(F(" Поддержка MP3 Player"));
+  DEBUG(F(" Поддержка MP3 Player"));
+  #if (USE_MP3 == 1)
+    DEBUGLN(String(F(" STX=")) + pinName(getDFPlayerSTXPin()) + String(F(" SRX=")) + pinName(getDFPlayerSRXPin()));
+  #else
+    DEBUGLN();
+  #endif
 
   DEBUGLN();
 
@@ -357,6 +426,13 @@ void setup() {
   NUM_LEDS = pWIDTH * pHEIGHT;
   maxDim   = max(pWIDTH, pHEIGHT);
   minDim   = min(pWIDTH, pHEIGHT);
+
+  // Если Wiring еще не был инициализирован при старте программы - он инициализируется выше, в начале скетча
+  // Но на тот момент неизвестно общее количество светодиодов в матрице - оно становится известным после выполнения loadSettings()
+  // При инициализации включается активной только линия 1 и все светодиоды назначаются на нее
+  if (!isWireInitialized) {
+    putLedLineLength(1, NUM_LEDS);
+  }
 
   // -----------------------------------------
   // В этом блоке можно принудительно устанавливать параметры, которые должны быть установлены при старте микроконтроллера
@@ -425,7 +501,9 @@ void setup() {
   checkWebDirectory();
    
   #if (USE_POWER == 1)
-    pinMode(POWER_PIN, OUTPUT);
+    if (vPOWER_PIN >= 0) {
+      pinMode(vPOWER_PIN, OUTPUT);
+    }
   #endif
      
   // Первый этап инициализации плеера - подключение и основные настройки
@@ -439,8 +517,17 @@ void setup() {
 
   // Настройка кнопки
   #if (USE_BUTTON  == 1)
-    butt.setStepTimeout(100);
-    butt.setClickTimeout(500);
+    int8_t pin_btn = getButtonPin();
+    if (pin_btn >= 0) {
+      if (vBUTTON_TYPE == 0)
+        butt = new GButton(pin_btn, LOW_PULL, NORM_OPEN);    // Для сенсорной кнопки
+      else
+        butt = new GButton(pin_btn, HIGH_PULL, NORM_OPEN);   // Для обычной кнопки
+    }
+    if (butt != nullptr) {
+      butt->setStepTimeout(100);
+      butt->setClickTimeout(500);
+    }
   #endif
 
   // Второй этап инициализации плеера - проверка наличия файлов звуков на SD карте
@@ -500,9 +587,9 @@ void setup() {
   });
 
   ArduinoOTA.onProgress([](uint32_t progress, uint32_t total) {
-    #if (DEBUG_SERIAL == 1)
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    #endif
+    if (vDEBUG_SERIAL) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    }
   });
 
   ArduinoOTA.onError([](ota_error_t error) {
@@ -523,14 +610,20 @@ void setup() {
   // Открываем Web-сокет управления через web-интерфейс
   initWebSocket();
 
-  DEBUG(F("Свободно памяти: "));
-  DEBUGLN(ESP.getFreeHeap());
 
   // Настройка внешнего дисплея TM1637
   #if (USE_TM1637 == 1)
-  display.setBrightness(7);
-  display.displayByte(_empty, _empty, _empty, _empty);
+    int8_t clk_pin = getTM1637CLKPin(); 
+    int8_t dio_pin = getTM1637DIOPin();
+    if (clk_pin >= 0 && dio_pin >= 0) {
+      display = new TM1637Display(clk_pin, dio_pin);
+      display->setBrightness(7);
+      display->displayByte(_empty, _empty, _empty, _empty);
+    }
   #endif
+
+  DEBUG(F("Свободно памяти: "));
+  DEBUGLN(ESP.getFreeHeap());
 
   // Таймер синхронизации часов
   ntpSyncTimer.setInterval(1000 * 60 * SYNC_TIME_PERIOD);
@@ -567,42 +660,12 @@ void setup() {
   }
   autoplayTimer = millis();
 
-
-  #if (USE_MQTT == 1)
-  // Настройка соединения с MQTT сервером
-  stopMQTT = !useMQTT;
-  changed_keys = "";
-  mqtt_client_name = host_name + '-' + String(random16(), HEX);
-  last_mqtt_server = mqtt_server;
-  last_mqtt_port = mqtt_port;
-  mqtt.setServer(mqtt_server, mqtt_port);
-  mqtt.setCallback(callback);
-  mqtt.setSocketTimeout(1);
-  uint32_t t = millis();
-
-  checkMqttConnection();
-  if (millis() - t > MQTT_CONNECT_TIMEOUT) {
-    nextMqttConnectTime = millis() + MQTT_RECONNECT_PERIOD;
-  }
-  String msg = F("START");
-  SendMQTT(msg, TOPIC_STA);
-  #endif
-
-  // При активном состоянии MQRTT/WEB канала отправить текущее состояние на сервер
-  sendStartState(MQTT);
-
   setIdleTimer();
 }
 
 void loop() {
   if (wifi_connected) {
     ArduinoOTA.handle();
-    #if (USE_MQTT == 1)
-      if (!stopMQTT) {
-        checkMqttConnection();
-        mqtt.loop();
-      }
-    #endif
   }
   
   ws.cleanupClients();
@@ -710,13 +773,15 @@ void startWiFi(uint32_t waitTime) {
       // Опрос состояния кнопки
       #if (USE_BUTTON  == 1)
         delay(1);
-        butt.tick();
-        if (butt.hasClicks()) {
-          butt.getClicks();
-          DEBUGLN();
-          DEBUGLN(F("Нажата кнопка.\nОжидание подключения к сети WiFi прервано."));  
-          stop_waiting = true;
-          break;
+        if (butt != nullptr) {
+          butt->tick();
+          if (butt->hasClicks()) {
+            butt->getClicks();
+            DEBUGLN();
+            DEBUGLN(F("Нажата кнопка.\nОжидание подключения к сети WiFi прервано."));  
+            stop_waiting = true;
+            break;
+          }
         }
       #endif
     }
