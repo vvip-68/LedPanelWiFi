@@ -554,7 +554,7 @@ String getEffectName(int8_t mode) {
         ef_name = "";
       }    
       break;
-  }
+  } 
   return ef_name;
 }
 
@@ -2199,7 +2199,7 @@ void parsing() {
             saveSettings();
             delay(10);
             FastLED.clear();
-            startWiFi(10000);     // Время ожидания подключения 10 сек
+            startWiFi(30000);     // Время ожидания подключения 30 сек
             showCurrentIP(true);
             break;
           default:
@@ -3081,17 +3081,18 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // Оверлей бегущей строки
   if (key == "UT") {
+    tmp = String(getEffectTextOverlayUsage(effect));
     if (value) {
       if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
         value->set("X");
         return "X";
       }
       value->set(getEffectTextOverlayUsage(effect));
-      return String(getEffectTextOverlayUsage(effect));
+      return tmp;
     }
     return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID 
          ? "X"
-         : String(getEffectTextOverlayUsage(effect)));
+         : tmp);
   }
 
   // Оверлей часов   
@@ -3127,17 +3128,18 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // Контраст
   if (key == "BE") {
+    tmp = String(getEffectContrast(effect));
     if (value) {
       if (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD) {
         value->set("X");
         return "X";
       }  
       value->set(getEffectContrast(effect));
-      return String(getEffectContrast(effect));
+      return tmp;
     }
     return str + "BE:" +  (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD
          ? "X" 
-         : String(getEffectContrast(effect)));
+         : tmp);
   }
 
   // Эффекты не имеющие настройки вариации (параметр #1) отправляют значение "Х" - программа делает ползунок настройки недоступным
