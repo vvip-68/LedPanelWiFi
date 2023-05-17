@@ -1074,6 +1074,6 @@ String pinName(uint8_t pin) {
     // 21/SDA, 22/SCL - шина I2С - предпочтительна для использования TM1637
     return "G" + String(pin);
   #else  
-    return "";
+    return F("N/A");
   #endif
 }

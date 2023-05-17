@@ -42,7 +42,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
   // MC	MC:[текст]	тип микроконтроллера "ESP32", "NodeMCU", "Wemos d1 mini"
-  // MX	MX:X	        MP3 плеер доступен для использования 0-нет, 1-да
+  // MZ	MZ:X	        прошивка поддерживает MP3 плеер 0-нет, 1-да
   // SZ SZ:X          поддержка прошивкой функционала SD карты в системе - USE_SD: Х = 0 - USE_SD = 0; USE_SD = 1
   // TM	TM:X	        в системе присутствует индикатор TM1637, где Х = 0 - нет; 1 - есть
   // UB	UВ:X	        прошивка поддерживает кнопку USE_BUTTON == 1 - 0 - выключено; 1 - включено
@@ -181,7 +181,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'MC|MX|SZ|TM|UB|PZ';
+          const request = 'MC|MZ|SZ|TM|UB|PZ';
           this.managementService.getKeys(request);
         }
       });
@@ -196,8 +196,8 @@ export class TabWiringComponent implements OnInit, OnDestroy {
               const request = '2306|2307|2308|2309|2310|2311|2312|2313|2314|2315|2316';
               this.managementService.getKeys(request);
               break;
-            case 'MX':
-              this.supportMP3 = this.managementService.state.supportMP3;
+            case 'MZ':
+              this.supportMP3 = this.managementService.state.supportPlayer;
               // В ESP32 пины подключения DFPlayer - на аппаратные RX2/TX2 - G16/G17
               if (this.supportMP3 && this.controller_type === 3) {
                 this.managementService.state.player_rx_pin = 16;

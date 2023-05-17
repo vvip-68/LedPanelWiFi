@@ -9,7 +9,8 @@ export interface IStateModel {
   height: number;                  // H - высота матрицы (полная, в точках)
   supportTM1637: boolean;          // TM - устройство поддерживает TM1637 - USE_TM1637
   supportWeather: boolean;         // WZ - устройство поддерживает получение погоды - USE_WEATHER
-  supportMP3: boolean;             // MX - MX:X	MP3 плеер доступен для использования 0-нет, 1-да - USE_MP3
+  supportMP3: boolean;             // MX - MX:X	MP3 плеер доступен для использования 0-нет, 1-да - включено в прошивке и звуки обнаружены
+  supportPlayer: boolean;          // MZ - MZ:X	MP3 плеер доступен для использования 0-нет, 1-да - USE_MP3 == 1
   supportE131: boolean;            // E0 - устройство поддерживает групповую синхронизацию по протоколу E1.31 - USE_E131
   supportSD: boolean;              // SZ - устройство поддерживает SD-карту - USE_SD
   supportButton: boolean;          // UB - устройство поддерживает кнопку USE_BUTTON
@@ -151,6 +152,7 @@ export class StateModel implements IStateModel {
   public supportTM1637 = false;
   public supportWeather = false;
   public supportMP3 = false;
+  public supportPlayer = false;
   public supportE131 = false;
   public supportSD = false;
   public supportButton = false;
@@ -298,6 +300,7 @@ export class StateModel implements IStateModel {
       case 'TM':   return this.supportTM1637;
       case 'WZ':   return this.supportWeather;
       case 'MX':   return this.supportMP3;
+      case 'MZ':   return this.supportPlayer;
       case 'SZ':   return this.supportSD;
       case 'UB':   return this.supportButton;
       case 'PZ':   return this.supportPower;
@@ -437,9 +440,10 @@ export class StateModel implements IStateModel {
       case 'TM':   this.supportTM1637 = ('' + value).toLowerCase() === 'true';    break;
       case 'WZ':   this.supportWeather = ('' + value).toLowerCase() === 'true';   break;
       case 'MX':   this.supportMP3 = ('' + value).toLowerCase() === 'true';       break;
+      case 'MZ':   this.supportPlayer = ('' + value).toLowerCase() === 'true';    break;
       case 'SZ':   this.supportSD = ('' + value).toLowerCase() === 'true';        break;
       case 'UB':   this.supportButton = ('' + value).toLowerCase() === 'true';    break;
-      case 'PZ':   this.supportPower = ('' + value).toLowerCase() === 'true';    break;
+      case 'PZ':   this.supportPower = ('' + value).toLowerCase() === 'true';     break;
       case 'BR':   this.brightness = Number(value);                               break;
       case 'BS':   this.game_button_speed = Number(value);                        break;
       case 'SE':   this.game_speed = Number(value);                               break;
