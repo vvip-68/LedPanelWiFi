@@ -541,22 +541,22 @@ void initializeWiring() {
   putLedLineUsage(1, true);                         // Линия 1 - включена
   putLedLinePin(1, LED_PIN);                        // Вывод назначен на LED_PIN
   putLedLineStartIndex(1, 0);                       // Начало вывода на ленту - с 0 индекса светодиодов в массиве  
-  putLedLineLength(1, 0);                           // реальное значение будет инициализировано в setup() после того как из настроек будет считан текущий размер матрицы
+  putLedLineLength(1, NUM_LEDS);                    // реальное значение будет инициализировано в setup() после того как из настроек будет считан текущий размер матрицы
   
   putLedLineUsage(2, false);                        // Линия 2 - отключена
   putLedLinePin(2, -1);                             // Вывод не назначен ни на один из пинов
-  putLedLineStartIndex(2, -1);                      // Индекс начала вывода - N/A   
-  putLedLineLength(2, -1);                          // Длина сегмента - N/A
+  putLedLineStartIndex(2, 0);                       // Индекс начала вывода - N/A   
+  putLedLineLength(2, NUM_LEDS);                    // Длина сегмента - N/A
  
   putLedLineUsage(3, false);                        // Линия 3 - отключена
   putLedLinePin(3, -1);                             // Вывод не назначен ни на один из пинов
-  putLedLineStartIndex(3, -1);                      // Индекс начала вывода - N/A   
-  putLedLineLength(3, -1);                          // Длина сегмента - N/A
+  putLedLineStartIndex(3, 0);                       // Индекс начала вывода - N/A   
+  putLedLineLength(3, NUM_LEDS);                    // Длина сегмента - N/A
   
   putLedLineUsage(4, false);                        // Линия 4 - отключена
   putLedLinePin(4, -1);                             // Вывод не назначен ни на один из пинов
-  putLedLineStartIndex(4, -1);                      // Индекс начала вывода - N/A   
-  putLedLineLength(4, -1);                          // Длина сегмента - N/A
+  putLedLineStartIndex(4, 0);                       // Индекс начала вывода - N/A   
+  putLedLineLength(4, NUM_LEDS);                    // Длина сегмента - N/A
 
   putButtonPin(PIN_BTN);                            // Пин подключения кнопки
   putPowerPin(POWER_PIN);                           // Пин подключения управления питанием
@@ -1974,8 +1974,10 @@ int16_t getLedLineStartIndex(uint8_t line) {
     case 3: index = 292; break;
     case 4: index = 297; break;
   }
-  if (index == 0) return -1;
-  return (int16_t)EEPROM_int_read(index);
+  if (index == 0) return 0;
+  int16_t value = (int16_t)EEPROM_int_read(index);
+  if (value < 0) value = 0;
+  return value;
 }
 
 // Начальный индекс светодиода линии 1..4
@@ -1989,6 +1991,7 @@ void putLedLineStartIndex(uint8_t line, int16_t new_value) {
   }
   if (index == 0) return;
   int16_t value = (int16_t)EEPROM_int_read(index);
+  if (new_value < 0) new_value = 0;
   if (value != new_value) {
     EEPROM_int_write(index, (uint16_t)new_value);
   }
@@ -2003,8 +2006,10 @@ int16_t getLedLineLength(uint8_t line) {
     case 3: index = 294; break;
     case 4: index = 299; break;
   }
-  if (index == 0) return -1;
-  return (int16_t)EEPROM_int_read(index);
+  if (index == 0) return NUM_LEDS;
+  int16_t value = (int16_t)EEPROM_int_read(index);
+  if (value < 1 || value > NUM_LEDS) value = NUM_LEDS;
+  return value;
 }
 
 // Количество светодиодов в линии 1..4
@@ -2018,6 +2023,7 @@ void putLedLineLength(uint8_t line, int16_t new_value) {
   }
   if (index == 0) return;
   int16_t value = (int16_t)EEPROM_int_read(index);
+  if (new_value < 0) new_value = NUM_LEDS;
   if (value != new_value) {
     EEPROM_int_write(index, (uint16_t)new_value);
   }

@@ -323,10 +323,13 @@ int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
     return read_char(&(fontHEX[font - 17][row]));
   } else if ((modif == 208 || modif == 209) && font >= 96 && font <= 111) {
     return read_char(&(fontHEX[font + 47][row]));
-  } else if (modif == 194 && font == 144) {                                          // Знак градуса '°'
-    return read_char(&(fontHEX[159][row]));
-  } else if (modif == 194 && font == 150) {                                          // Знак евро '€' - реально '¶' - замена в runningText(), т.к. работает с оно-двух-байтовыми символами UTF-8
-    return read_char(&(fontHEX[165][row]));                                          // а евро - 4 байта, что ломает алгоритм
+  } else if (modif == 194) {                                          
+    switch (font) {
+      case 129: return read_char(&(fontHEX[166][row]));                              // Знак ¡
+      case 144: return read_char(&(fontHEX[159][row]));                              // Знак градуса '°'
+      case 150: return read_char(&(fontHEX[165][row]));                              // Знак евро '€' - реально '¶' - замена в runningText(), т.к. работает с оно-двух-байтовыми символами UTF-8, а евро - 4 байта, что ломает алгоритм
+      case 159: return read_char(&(fontHEX[167 ][row]));                              // Знак ¿
+    }    
   } else if (modif == 195) {
     switch (font) {
       case 127: return read_char(&(fontHEX[163][row])); // ß - 195 127 - 163         // Индекс строки в массиве fontHex - 163
