@@ -4,7 +4,7 @@
   border-radius: var(--mdc-dialog-container-shape, var(--mdc-shape-medium, 6px));
 
   .mdc-dialog__content {
-    padding: 0 10px 10px 16px;
+    padding: 10px;
     overflow: hidden;
     -webkit-tap-highlight-color: transparent;
   }
@@ -29,6 +29,9 @@
 
   .params-wrapper-container {
     height: auto;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
 
     .params-loader {
       width: 100%;

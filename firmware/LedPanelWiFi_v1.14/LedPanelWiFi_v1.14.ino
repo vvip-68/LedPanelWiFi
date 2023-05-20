@@ -322,7 +322,7 @@ void setup() {
   bool hasLedOut = getLedLineUsage(1) || getLedLineUsage(2) || getLedLineUsage(3) || getLedLineUsage(4);
   if (hasLedOut) {
     DEBUGLN(F("Вывод на ленту:"));  
-    FOR_i(1, 4) {
+    for (uint8_t i = 1; i <= 4; i++) {
       bool isLineUsed = getLedLineUsage(i);
       if (isLineUsed) {
         int8_t   led_pin = getLedLinePin(i);

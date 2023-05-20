@@ -568,7 +568,7 @@ void initializeWiring() {
 
 void putMatrixMapWidth(uint8_t width) {
   if (width < 8) width = 8;
-  if (width > 127) width = 127;
+  if (width > 128) width = 128;
   if (width != getMatrixMapWidth()) {
     EEPROMwrite(94, width);
   }  
@@ -577,13 +577,13 @@ void putMatrixMapWidth(uint8_t width) {
 uint8_t getMatrixMapWidth() {
   uint8_t value = EEPROMread(94);
   if (value < 8) value = 8;
-  if (value > 127) value = 127;  
+  if (value > 128) value = 128;
   return value;
 }
 
 void putMatrixMapHeight(uint8_t height) {
   if (height < 8) height = 8;
-  if (height > 127) height = 127;  
+  if (height > 128) height = 128;  
   if (height != getMatrixMapHeight()) {
     EEPROMwrite(95, height);
   }  
@@ -591,31 +591,31 @@ void putMatrixMapHeight(uint8_t height) {
 uint8_t getMatrixMapHeight() {
   uint8_t value = EEPROMread(95);
   if (value < 8) value = 8;
-  if (value > 127) value = 127;  
+  if (value > 128) value = 128;
   return value;
 }
 
 void putMatrixSegmentWidth(uint8_t width) {
-  if (width == 0 && width > 127) width = 16;
+  if (width == 0 && width > 128) width = 16;
   if (width != getMatrixSegmentWidth()) {
     EEPROMwrite(80, width);
   }  
 }
 uint8_t getMatrixSegmentWidth() {
   uint8_t value = EEPROMread(80);
-  if (value == 0 || value > 127) value = 16;
+  if (value == 0 || value > 128) value = 16;
   return value;
 }
 
 void putMatrixSegmentHeight(uint8_t height) {
-  if (height == 0 && height > 127) height = 16;
-  if (height > 0 && height < 128 && height != getMatrixSegmentHeight()) {
+  if (height == 0 && height > 128) height = 16;
+  if (height > 0 && height <= 128 && height != getMatrixSegmentHeight()) {
     EEPROMwrite(81, height);
   }  
 }
 uint8_t getMatrixSegmentHeight() {
   uint8_t value = EEPROMread(81);
-  if (value == 0 || value > 127) value = 16;
+  if (value == 0 || value > 128) value = 16;
   return value;
 }
 

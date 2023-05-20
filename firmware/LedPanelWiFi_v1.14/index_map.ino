@@ -250,7 +250,7 @@ bool loadIndexMap() {
     ok = len == 2;
     uint8_t size_x = buf[0];
     uint8_t size_y = buf[1];
-    if (!ok || !(size_x <= 127 && size_y <= 127)) {
+    if (!ok || !(size_x <= 128 && size_y <= 128)) {
       message = String(F("Неподдерживаемый размер матрицы в файле индексов: ")) + String(size_x) + "x" + String(size_y);
       isLoaded = false;
       break;

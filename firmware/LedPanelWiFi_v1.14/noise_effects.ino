@@ -6,7 +6,7 @@ static uint16_t z;
 
 uint16_t speed = 20; // speed is set dynamically once we've started up
 uint16_t scale = 30; // scale is set dynamically once we've started up
-uint8_t **noise;
+uint8_t    **noise;
 
 CRGBPalette16 currentPalette( PartyColors_p );
 uint8_t colorLoop = 1;
@@ -245,9 +245,27 @@ void fillnoise8() {
 }
 
 void createNoise() {
-  if (noise == NULL) { noise = new uint8_t*[maxDim]; for (uint8_t i = 0; i < maxDim; i++) noise[i] = new uint8_t[maxDim];  }    
+  if (noise == NULL) { 
+    noise = new uint8_t*[maxDim]; 
+    if (noise != NULL) { 
+      for (uint8_t i = 0; i < maxDim; i++) {
+        noise[i] = new uint8_t[maxDim];  
+        if (noise[i] == NULL) {
+          releaseNoise();
+          DEBUGLN(F("createNoise() - недостаточно памяти для эффекта"));
+          break;
+        }
+      }
+    }
+  }    
 }
 
 void releaseNoise() {
-  if (noise != NULL) { for (uint8_t i = 0; i < maxDim; i++) delete[] noise[i]; delete[] noise; noise = NULL; }
+  if (noise != NULL) { 
+    for (uint8_t i = 0; i < maxDim; i++) {
+      if (noise[i] != NULL) delete[] noise[i];       
+    }
+    delete[] noise; 
+    noise = NULL; 
+  }  
 }
