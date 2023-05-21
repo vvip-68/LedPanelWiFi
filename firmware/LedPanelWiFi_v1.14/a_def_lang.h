@@ -324,13 +324,13 @@
   // starting from line 119
   
   #if (USE_SD == 1)                      
-    #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Startfall,Confetti," \
+    #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti," \
                           "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
                           "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
                           "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
                           "Curtain,Traffic,Slides,Dawn,SD-card")
   #else
-    #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Startfall,Confetti," \
+    #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti," \
                           "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
                           "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
                           "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
