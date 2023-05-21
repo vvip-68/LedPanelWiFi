@@ -6,7 +6,7 @@ static uint16_t z;
 
 uint16_t speed = 20; // speed is set dynamically once we've started up
 uint16_t scale = 30; // scale is set dynamically once we've started up
-uint8_t    **noise;
+uint8_t  *noise;
 
 CRGBPalette16 currentPalette( PartyColors_p );
 uint8_t colorLoop = 1;
@@ -28,7 +28,7 @@ void madnessNoise() {
   fillnoise8();
   for (uint8_t i = 0; i < pWIDTH; i++) {
     for (uint8_t j = 0; j < pHEIGHT; j++) {
-      CRGB thisColor = CHSV(noise[j][i], 255, map8(noise[i][j], effectBrightness / 2, effectBrightness));
+      CRGB thisColor = CHSV(noise[j * maxDim + i], 255, map8(noise[i * maxDim + j], effectBrightness / 2, effectBrightness));
       drawPixelXY(i, j, thisColor);
     }
   }
@@ -195,12 +195,12 @@ void fillNoiseLED() {
       data = qadd8(data, scale8(data, 39));
 
       if ( dataSmoothing ) {
-        uint8_t olddata = noise[i][j];
+        uint8_t olddata = noise[i * maxDim + j];
         uint8_t newdata = scale8( olddata, dataSmoothing) + scale8( data, 256 - dataSmoothing);
         data = newdata;
       }
 
-      noise[i][j] = data;
+      noise[i * maxDim + j] = data;
     }
   }
   z += speed;
@@ -213,8 +213,8 @@ void fillNoiseLED() {
 
   for (uint8_t i = 0; i < pWIDTH; i++) {
     for (uint8_t j = 0; j < pHEIGHT; j++) {
-      uint8_t index = noise[j][i];
-      uint8_t bri =   noise[i][j];
+      uint8_t index = noise[j * maxDim + i];
+      uint8_t bri =   noise[i * maxDim + j];
       // if this palette is a 'loop', add a slowly-changing base value
       if ( colorLoop) {
         index += ihue;
@@ -238,7 +238,7 @@ void fillnoise8() {
     int16_t ioffset = scale * i;
     for (uint8_t j = 0; j < maxDim; j++) {
       int16_t joffset = scale * j;
-      noise[i][j] = inoise8(x + ioffset, y + joffset, z);
+      noise[i * maxDim + j] = inoise8(x + ioffset, y + joffset, z);
     }
   }
   z += speed;
@@ -246,25 +246,16 @@ void fillnoise8() {
 
 void createNoise() {
   if (noise == NULL) { 
-    noise = new uint8_t*[maxDim]; 
-    if (noise != NULL) { 
-      for (uint8_t i = 0; i < maxDim; i++) {
-        noise[i] = new uint8_t[maxDim];  
-        if (noise[i] == NULL) {
-          releaseNoise();
-          DEBUGLN(F("createNoise() - недостаточно памяти для эффекта"));
-          break;
-        }
-      }
+    noise = new uint8_t[maxDim * maxDim]; 
+    if (noise == NULL) {
+      DEBUGLN(F("createNoise() - недостаточно памяти для эффекта"));
+      setRandomMode();
     }
   }    
 }
 
 void releaseNoise() {
   if (noise != NULL) { 
-    for (uint8_t i = 0; i < maxDim; i++) {
-      if (noise[i] != NULL) delete[] noise[i];       
-    }
     delete[] noise; 
     noise = NULL; 
   }  
