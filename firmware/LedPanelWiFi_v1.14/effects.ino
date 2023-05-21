@@ -2963,24 +2963,24 @@ void arrowSetup_mode4() {
 uint8_t num_x, num_y, off_x, off_y; 
 */
 
-uint8_t* cube_h   = NULL;  // Цвет плашек поля эффекта
-uint8_t* order_h  = NULL;  // Порядок вывода плашек на поле
-int16_t* order_mt = NULL;  // Для варианта "Спираль" - массив задержек движения полос
+uint8_t*  cube_h   = NULL;  // Цвет плашек поля эффекта
+uint16_t* order_h  = NULL;  // Порядок вывода плашек на поле
+int16_t*  order_mt = NULL;  // Для варианта "Спираль" - массив задержек движения полос
 
-int16_t  cube_idx;         // Индекс выводимой плашки в фазе начального вывода плашек на матрицу
-int16_t  cube_black_idx;   // Индекс черной плашки в варианте "Пятнашки"
-int16_t  cube_new_idx;     // Индекс плашки в варианте "Пятнашки", куда будет перемещаться черная
-int8_t   cube_last_mv;     // Прошлое направление движение цветной плашки на место черной в "Пятнашках" ; 
-uint8_t  cube_variant;     // Вариант анимации; 0 - случайный выбор; 1 - сдвиг по одной плашке; 2 - сдвиг всей полосы; 3 - вращение полос; 4 - пятнашки 
-uint16_t cube_size;        // Количество плашек на поле 
-uint8_t  cube_vh;          // 0 - вертикальное движение; 1 - горизонтальное
-uint8_t  cube_rl;          // верт: 0 - вниз, 1 - вверх; гориз: 0 - влево; 1 - вправо
-uint8_t  cube_move_cnt;    // На сколько линий в координатах матрицы (не плашек!) выполнять смещение
-uint8_t  RUBIK_BLOCK_SIZE; // Размер квадратика палитры
+int16_t   cube_idx;         // Индекс выводимой плашки в фазе начального вывода плашек на матрицу
+int16_t   cube_black_idx;   // Индекс черной плашки в варианте "Пятнашки"
+int16_t   cube_new_idx;     // Индекс плашки в варианте "Пятнашки", куда будет перемещаться черная
+int8_t    cube_last_mv;     // Прошлое направление движение цветной плашки на место черной в "Пятнашках" ; 
+uint8_t   cube_variant;     // Вариант анимации; 0 - случайный выбор; 1 - сдвиг по одной плашке; 2 - сдвиг всей полосы; 3 - вращение полос; 4 - пятнашки 
+uint16_t  cube_size;        // Количество плашек на поле 
+uint8_t   cube_vh;          // 0 - вертикальное движение; 1 - горизонтальное
+uint8_t   cube_rl;          // верт: 0 - вниз, 1 - вверх; гориз: 0 - влево; 1 - вправо
+uint8_t   cube_move_cnt;    // На сколько линий в координатах матрицы (не плашек!) выполнять смещение
+uint8_t   RUBIK_BLOCK_SIZE; // Размер квадратика палитры - плашки
 
-uint8_t  py, px, ppx, ppy;
-CHSV     cubeColorFrom;
-CHSV     cubeColorTo;
+uint8_t   py, px, ppx, ppy;
+CHSV      cubeColorFrom;
+CHSV      cubeColorTo;
 
 void rubikRoutine() {
 
@@ -3006,12 +3006,12 @@ void rubikRoutine() {
 
     if (old_RBS != RUBIK_BLOCK_SIZE || cube_h == NULL) {
       if (cube_h != NULL) { 
-        delete [] cube_h;
-        delete [] order_h;  
         delete [] order_mt; 
+        delete [] order_h;  
+        delete [] cube_h;
       }  
-      cube_h   = new uint8_t[cube_size]; if (cube_h  != NULL) { for (uint8_t i = 0; i < cube_size; i++) { cube_h[i]  = hue; hue += step; }}
-      order_h  = new uint8_t[cube_size]; if (order_h != NULL) { for (uint8_t i = 0; i < cube_size; i++) { order_h[i] = i; }}
+      cube_h   = new uint8_t[cube_size]; if (cube_h  != NULL) { for (uint16_t i = 0; i < cube_size; i++) { cube_h[i]  = hue; hue += step; }}
+      order_h  = new uint16_t[cube_size]; if (order_h != NULL) { for (uint16_t i = 0; i < cube_size; i++) { order_h[i] = i; }}
       order_mt = new int16_t[max(num_x, num_y)]; 
 
       if (cube_h == NULL || order_h == NULL || order_mt == NULL) {
