@@ -47,13 +47,13 @@
     #define EFFECT_LIST F("Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," \
                           "Цветной шум,Облака,Лава,Плазма,Радужные переливы,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," \
                           "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," \
-                          "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Жизнь,Узоры,Рубик,Звёзды,Штора,Трафик," \
+                          "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Узоры,Рубик,Звёзды,Штора,Трафик," \
                           "Слайды,Рассвет,SD-Карта")
   #else
     #define EFFECT_LIST F("Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," \
                           "Цветной шум,Облака,Лава,Плазма,Радужные переливы,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," \
                           "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," \
-                          "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Жизнь,Узоры,Рубик,Звёзды,Штора,Трафик," \
+                          "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Узоры,Рубик,Звёзды,Штора,Трафик," \
                           "Слайды,Рассвет")
   #endif
 
@@ -327,13 +327,13 @@
     #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Startfall,Confetti," \
                           "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
                           "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
-                          "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Life,Patterns,Rubic,Stars," \
+                          "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
                           "Curtain,Traffic,Slides,Dawn,SD-card")
   #else
     #define EFFECT_LIST F("Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Startfall,Confetti," \
                           "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
                           "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
-                          "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Life,Patterns,Rubic,Stars," \
+                          "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
                           "Curtain,Traffic,Slides,Dawn")                          
   #endif
   

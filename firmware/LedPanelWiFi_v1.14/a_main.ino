@@ -40,8 +40,13 @@ void process() {
           DEBUG(F(" --> "));
         DEBUG(abs(mem_prv - mem_now));
         #if defined(ESP8266)
-        DEBUG(F("  Max: ")  + String(ESP.getMaxFreeBlockSize()));
-        DEBUG(F("  Frag: ") + String(ESP.getHeapFragmentation()));
+        DEBUG(F("  Max: "));
+        DEBUG(ESP.getMaxFreeBlockSize());
+        DEBUG(F("  Frag: "));
+        DEBUG(ESP.getHeapFragmentation());
+        #else
+        DEBUG(F("; Max: "));
+        DEBUGLN(ESP.getMaxAllocHeap());        
         #endif            
         DEBUGLN();
       }
@@ -131,11 +136,31 @@ void process() {
     } else {
       #if (USE_E131 == 1)
         if (!(e131_streaming && workMode == SLAVE)) {
-          DEBUGLN(String(F("Режим: ")) + effect_name);
+          DEBUG(String(F("Режим: ")) + effect_name);
+          DEBUG(F(" - Free: "));
+          DEBUG(ESP.getFreeHeap());
+          DEBUG(F(" Max: "));
+          #if defined(ESP8266)
+          DEBUG(ESP.getMaxFreeBlockSize());
+          DEBUG(F("  Frag: "));
+          DEBUG(ESP.getHeapFragmentation());
+          #else
+          DEBUG(ESP.getMaxAllocHeap());        
+          #endif     
+          DEBUGLN();       
         }
       #else
-        DEBUGLN(String(F("Режим: ")) + effect_name);
-      #endif
+        DEBUG(String(F("Режим: ")) + effect_name);
+        DEBUG(F(" Max: "));
+        #if defined(ESP8266)
+        DEBUG(ESP.getMaxFreeBlockSize());
+        DEBUG(F("  Frag: "));
+        DEBUG(ESP.getHeapFragmentation());
+        #else
+        DEBUG(ESP.getMaxAllocHeap());        
+        #endif     
+        DEBUGLN();       
+      #endif      
       tmpSaveMode = thisMode;    
     }               
   }
@@ -2527,7 +2552,17 @@ void parsing() {
 
         // При поступлении каждой команды вывести в консоль информацию о свободной памяти
         DEBUG(F("FM: "));
-        DEBUGLN(ESP.getFreeHeap());
+        DEBUG(ESP.getFreeHeap());        
+        #if defined(ESP8266)
+        DEBUG(F("  Max: "));
+        DEBUG(ESP.getMaxFreeBlockSize());
+        DEBUG(F("  Frag: "));
+        DEBUG(ESP.getHeapFragmentation());
+        #else
+        DEBUG(F("; Max: "));
+        DEBUG(ESP.getMaxAllocHeap());        
+        #endif     
+        DEBUGLN();               
       }
     }
   }
@@ -4335,7 +4370,6 @@ String getParamForMode(uint8_t mode) {
    case MC_MUNCH:
    case MC_ARROWS:
    case MC_WEATHER:
-   case MC_LIFE:
    case MC_FIRE2:
    case MC_SDCARD:
    case MC_IMAGE:
@@ -4374,7 +4408,6 @@ String getParamNameForMode(uint8_t mode) {
    case MC_MUNCH:
    case MC_ARROWS:
    case MC_WEATHER:
-   case MC_LIFE:
    case MC_FIRE2:
    case MC_SDCARD:
    case MC_IMAGE:

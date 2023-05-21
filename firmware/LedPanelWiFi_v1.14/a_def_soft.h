@@ -4,7 +4,7 @@
 // При этом если флаг EEPROM_OK в строке 7 этого файла был изменен и не совпадает со считанными яз ячейки #0 значением -
 // выполняется инициализация параметров значениями по умолчанию (функция loadSettings() в eeprom.ino, ветвь if (isInitialized) -> false )
 
-#define EEPROM_OK     0xA3                       // Флаг, показывающий, что EEPROM инициализирована корректными данными 
+#define EEPROM_OK     0xA5                       // Флаг, показывающий, что EEPROM инициализирована корректными данными 
 
 // ******************* ОПРЕДЕЛЕНИЯ ПАРАМЕТРОВ подключения к сети *********************
 
@@ -129,20 +129,19 @@
 #define MC_ARROWS               37
 #define MC_IMAGE                38
 #define MC_WEATHER              39
-#define MC_LIFE                 40
-#define MC_PATTERNS             41
-#define MC_RUBIK                42
-#define MC_STARS                43
-#define MC_STARS2               44
-#define MC_TRAFFIC              45
-#define MC_SLIDE                46
-#define MC_DAWN_ALARM           47
-#define MC_SDCARD               48
+#define MC_PATTERNS             40
+#define MC_RUBIK                41
+#define MC_STARS                42
+#define MC_STARS2               43
+#define MC_TRAFFIC              44
+#define MC_SLIDE                45
+#define MC_DAWN_ALARM           46
+#define MC_SDCARD               47
 
 #if (USE_SD == 1)
-#define MAX_EFFECT              49         // количество эффектов, определенных в прошивке
-#else
 #define MAX_EFFECT              48         // количество эффектов, определенных в прошивке
+#else
+#define MAX_EFFECT              47         // количество эффектов, определенных в прошивке
 #endif
 
 #define MAX_SPEC_EFFECT         11         // количество эффектов быстрого доступа определенных в прошивке -> 0..10

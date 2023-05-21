@@ -420,7 +420,6 @@ void processEffect(uint8_t aMode) {
     case MC_FIRE2:               fire2Routine(); break;
     case MC_ARROWS:              arrowsRoutine(); break;
     case MC_WEATHER:             weatherRoutine(); break;
-    case MC_LIFE:                lifeRoutine(); break;
     case MC_TEXT:                runningText(); break;
     case MC_CLOCK:               clockRoutine(); break;
     case MC_DAWN_ALARM:          dawnProcedure(); break;
@@ -507,7 +506,6 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_FIRE2:               fire2RoutineRelease(); break;
     case MC_ARROWS:              break;
     case MC_WEATHER:             break;
-    case MC_LIFE:                lifeRoutineRelease(); break;
     case MC_TEXT:                break;
     case MC_CLOCK:               break;
     case MC_DAWN_ALARM:          break;
@@ -666,7 +664,7 @@ void setTimersForMode(uint8_t aMode) {
     // Эти режимы смотрятся (работают) только на максимальной скорости;
     if (aMode == MC_PAINTBALL || aMode == MC_SWIRL || aMode == MC_FLICKER || aMode == MC_PACIFICA || 
         aMode == MC_SHADOWS || aMode == MC_PRIZMATA || aMode == MC_FIRE2 ||
-        aMode == MC_WEATHER || aMode == MC_LIFE || aMode == MC_ARKANOID || aMode == MC_TETRIS || 
+        aMode == MC_WEATHER || aMode == MC_ARKANOID || aMode == MC_TETRIS || 
         aMode == MC_PATTERNS || aMode == MC_STARS || aMode == MC_STARS2 || aMode == MC_IMAGE || aMode == MC_SLIDE ||
         aMode == MC_RAINBOW || aMode == MC_CYCLON
         ) {      

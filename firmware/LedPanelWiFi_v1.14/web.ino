@@ -202,6 +202,17 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
             if (queueWriteIdx >= QSIZE_IN) queueWriteIdx = 0;
           } else {
             DEBUGLN(String(F("Переполнение очереди входящих команд - ")) + String(QSIZE_IN));
+            DEBUG(F("Free: "));
+            DEBUG(ESP.getFreeHeap());
+            DEBUG(F(" Max: "));
+            #if defined(ESP8266)
+            DEBUG(ESP.getMaxFreeBlockSize());
+            DEBUG(F("  Frag: "));
+            DEBUG(ESP.getHeapFragmentation());
+            #else
+            DEBUG(ESP.getMaxAllocHeap());        
+            #endif     
+            DEBUGLN();                   
           }
         }
       }    
