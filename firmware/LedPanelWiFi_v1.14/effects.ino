@@ -602,7 +602,7 @@ void fireRoutine() {
   if (loadingFlag) {
     // modeCode = MC_FIRE;
     FastLED.clear();
-    if (line == NULL) line = new uint8_t[pWIDTH];
+    if (line == NULL) line = (uint8_t*)malloc(pWIDTH);
     if (line == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       fireRoutineRelease();
@@ -626,7 +626,7 @@ void fireRoutine() {
 }
 
 void fireRoutineRelease() {
-  if (line != NULL) { delete [] line; line = NULL; }
+  if (line != NULL) { free(line); line = NULL; }
 }
 
 // Randomly generate the next line (matrix row)
@@ -765,14 +765,14 @@ void trafficRoutine() {
     // modeCode = MC_TRAFFIC;
     hue = random8(0,255);
     
-    if (traficTColors == NULL) { traficTColors = new uint8_t [pWIDTH];  }
-    if (traficTIndex  == NULL) { traficTIndex  = new int16_t [pWIDTH];  }
-    if (traficBColors == NULL) { traficBColors = new uint8_t [pWIDTH];  }
-    if (traficBIndex  == NULL) { traficBIndex  = new int16_t [pWIDTH];  }
-    if (traficLColors == NULL) { traficLColors = new uint8_t [pHEIGHT]; }
-    if (traficLIndex  == NULL) { traficLIndex  = new int16_t [pHEIGHT]; }
-    if (traficRColors == NULL) { traficRColors = new uint8_t [pHEIGHT]; }
-    if (traficRIndex  == NULL) { traficRIndex  = new int16_t [pHEIGHT]; }
+    if (traficTColors == NULL) { traficTColors = (uint8_t*)malloc(pWIDTH * sizeof(uint8_t));  }
+    if (traficTIndex  == NULL) { traficTIndex  = (int16_t*)malloc(pWIDTH * sizeof(int16_t));  }
+    if (traficBColors == NULL) { traficBColors = (uint8_t*)malloc(pWIDTH * sizeof(uint8_t));  }
+    if (traficBIndex  == NULL) { traficBIndex  = (int16_t*)malloc(pWIDTH * sizeof(int16_t));  }
+    if (traficLColors == NULL) { traficLColors = (uint8_t*)malloc(pHEIGHT * sizeof(uint8_t)); }
+    if (traficLIndex  == NULL) { traficLIndex  = (int16_t*)malloc(pHEIGHT * sizeof(int16_t)); }
+    if (traficRColors == NULL) { traficRColors = (uint8_t*)malloc(pHEIGHT * sizeof(uint8_t)); }
+    if (traficRIndex  == NULL) { traficRIndex  = (int16_t*)malloc(pHEIGHT * sizeof(int16_t)); }
 
     if (traficTColors == NULL || traficTIndex  == NULL || traficBColors == NULL || traficBIndex  == NULL ||
         traficLColors == NULL || traficLIndex  == NULL || traficRColors == NULL || traficRIndex  == NULL)
@@ -944,14 +944,14 @@ void trafficRoutine() {
 }
 
 void trafficRoutineRelease() {
-  if (traficTColors == NULL) { delete [] traficTColors; traficTColors = NULL; }
-  if (traficTIndex  == NULL) { delete [] traficTIndex;  traficTIndex  = NULL; }
-  if (traficBColors == NULL) { delete [] traficBColors; traficBColors = NULL; }
-  if (traficBIndex  == NULL) { delete [] traficBIndex;  traficBIndex  = NULL; }
-  if (traficLColors == NULL) { delete [] traficLColors; traficLColors = NULL; }
-  if (traficLIndex  == NULL) { delete [] traficLIndex;  traficLIndex  = NULL; }
-  if (traficRColors == NULL) { delete [] traficRColors; traficRColors = NULL; }
-  if (traficRIndex  == NULL) { delete [] traficRIndex;  traficRIndex  = NULL; }
+  if (traficTColors == NULL) { free(traficTColors); traficTColors = NULL; }
+  if (traficTIndex  == NULL) { free(traficTIndex);  traficTIndex  = NULL; }
+  if (traficBColors == NULL) { free(traficBColors); traficBColors = NULL; }
+  if (traficBIndex  == NULL) { free(traficBIndex);  traficBIndex  = NULL; }
+  if (traficLColors == NULL) { free(traficLColors); traficLColors = NULL; }
+  if (traficLIndex  == NULL) { free(traficLIndex);  traficLIndex  = NULL; }
+  if (traficRColors == NULL) { free(traficRColors); traficRColors = NULL; }
+  if (traficRIndex  == NULL) { free(traficRIndex);  traficRIndex  = NULL; }
 }
 
 // ********************************* ШАРИКИ *********************************
@@ -1101,8 +1101,8 @@ void sparklesRoutine() {
 
 #define LIGHTERS_AM 100
 
-int8_t  **lightersPos;   // Позиции светляков
-int8_t  **lightersSpeed; // Скорость движения светляков
+int8_t  *lightersPos;    // Позиции светляков
+int8_t  *lightersSpeed;  // Скорость движения светляков
 uint8_t *lightersColor;  // Цвета светляков
     
 void lightersRoutine() {
@@ -1111,9 +1111,9 @@ void lightersRoutine() {
     loadingFlag = false;
     // modeCode = MC_LIGHTERS;
 
-    if (lightersPos   == NULL) { lightersPos   = new int8_t*[2]; if (lightersPos   != NULL) {for (uint8_t i = 0; i < 2; i++) { lightersPos[i] = new int8_t [LIGHTERS_AM]; }}}
-    if (lightersSpeed == NULL) { lightersSpeed = new int8_t*[2]; if (lightersSpeed != NULL) {for (uint8_t i = 0; i < 2; i++) { lightersSpeed[i] = new int8_t [LIGHTERS_AM]; }}}
-    if (lightersColor == NULL) { lightersColor = new uint8_t [LIGHTERS_AM]; }
+    if (lightersPos   == NULL) { lightersPos   = (int8_t*)malloc(2 * LIGHTERS_AM); }
+    if (lightersSpeed == NULL) { lightersSpeed = (int8_t*)malloc(2 * LIGHTERS_AM); }
+    if (lightersColor == NULL) { lightersColor = (uint8_t*)malloc(LIGHTERS_AM); }
 
     if (lightersPos == NULL || lightersSpeed == NULL || lightersColor == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -1123,10 +1123,10 @@ void lightersRoutine() {
     }
 
     FOR_i (0, LIGHTERS_AM) {
-      lightersPos[0][i] = random16(0, pWIDTH);
-      lightersPos[1][i] = random16(0, pHEIGHT);
-      lightersSpeed[0][i] = random8(0, 4) - 2;
-      lightersSpeed[1][i] = random8(0, 4) - 2;
+      lightersPos[i] = random16(0, pWIDTH);                 // [0][i]
+      lightersPos[LIGHTERS_AM + i] = random16(0, pHEIGHT);  // [1][i]
+      lightersSpeed[i] = random8(0, 4) - 2;                 // [0][i]
+      lightersSpeed[LIGHTERS_AM + i] = random8(0, 4) - 2;   // [1][i]
       lightersColor[i] = random8();
     }
   }
@@ -1138,36 +1138,36 @@ void lightersRoutine() {
 
    FOR_i (0, map8(getEffectScaleParamValue(MC_LIGHTERS),5,100)) {
     if (loopCounter == 0) {     // меняем скорость каждые 20 отрисовок
-      while (lightersSpeed[0][i] == 0 && lightersSpeed[1][i] == 0) {
-        lightersSpeed[0][i] += random8(0, 4) - 2;
-        lightersSpeed[1][i] += random8(0, 4) - 2;
-        lightersSpeed[0][i] = constrain(lightersSpeed[0][i], -5, 5);
-        lightersSpeed[1][i] = constrain(lightersSpeed[1][i], -5, 5);
+      while (lightersSpeed[i] == 0 && lightersSpeed[LIGHTERS_AM + i] == 0) {
+        lightersSpeed[i] += random8(0, 4) - 2;                                               // [0][i]
+        lightersSpeed[LIGHTERS_AM + i] += random8(0, 4) - 2;                                 // [1][i]
+        lightersSpeed[i] = constrain(lightersSpeed[i], -5, 5);                               // [0][i]
+        lightersSpeed[LIGHTERS_AM + i] = constrain(lightersSpeed[LIGHTERS_AM + i], -5, 5);   // [1][i]
       }
     }
 
-    lightersPos[0][i] += lightersSpeed[0][i];
-    lightersPos[1][i] += lightersSpeed[1][i];
+    lightersPos[i] += lightersSpeed[i];                              // [0][i]
+    lightersPos[LIGHTERS_AM + i] += lightersSpeed[LIGHTERS_AM + i];  // [1][i]
 
-    if (lightersPos[0][i] < 0) lightersPos[0][i] = pWIDTH - 1;
-    if (lightersPos[0][i] >= pWIDTH) lightersPos[0][i] = 0;
+    if (lightersPos[i] < 0) lightersPos[i] = pWIDTH - 1;             // [0][i]
+    if (lightersPos[i] >= pWIDTH) lightersPos[i] = 0;                // [0][i]
 
-    if (lightersPos[1][i] < 0) {
-      lightersPos[1][i] = 0;
-      lightersSpeed[1][i] = -lightersSpeed[1][i];
+    if (lightersPos[LIGHTERS_AM + i] < 0) {                          // [1][i]
+      lightersPos[LIGHTERS_AM + i] = 0;
+      lightersSpeed[LIGHTERS_AM + i] = -lightersSpeed[LIGHTERS_AM + i];
     }
-    if (lightersPos[1][i] >= pHEIGHT - 1) {
-      lightersPos[1][i] = pHEIGHT - 1;
-      lightersSpeed[1][i] = -lightersSpeed[1][i];
+    if (lightersPos[LIGHTERS_AM + i] >= pHEIGHT - 1) {
+      lightersPos[LIGHTERS_AM + i] = pHEIGHT - 1;
+      lightersSpeed[LIGHTERS_AM + i] = -lightersSpeed[LIGHTERS_AM + i];
     }
-    drawPixelXY(lightersPos[0][i], lightersPos[1][i], CHSV(lightersColor[i], 255, effectBrightness));
+    drawPixelXY(lightersPos[i], lightersPos[LIGHTERS_AM + i], CHSV(lightersColor[i], 255, effectBrightness));
   }
 }
 
 void lighters2RoutineRelease() {
-  if (lightersPos   != NULL) { for( uint8_t i = 0; i < 2; i++ ) { delete [] lightersPos[i];}   delete [] lightersPos;   lightersPos   = NULL; }
-  if (lightersSpeed != NULL) { for( uint8_t i = 0; i < 2; i++ ) { delete [] lightersSpeed[i];} delete [] lightersSpeed; lightersSpeed = NULL; }
-  if (lightersColor == NULL) { delete [] lightersColor; lightersColor = NULL; }
+  if (lightersPos   != NULL) { free(lightersPos);   lightersPos   = NULL; }
+  if (lightersSpeed != NULL) { free(lightersSpeed); lightersSpeed = NULL; }
+  if (lightersColor == NULL) { free(lightersColor); lightersColor = NULL; }
 }
 
 // ******************* МЕРЦАНИЕ ********************
@@ -1197,6 +1197,15 @@ uint16_t x_speed, y_speed;
 
 void flickerRoutine() {
   if (loadingFlag) {
+
+    if (NUM_LEDS > 8192) {
+      // на разрешениях бОльших вроде бы 128x64, видимо из за нехватки памяти или из за проблем внутри FastLED
+      // вызов функции fill_2dnoise16() вызывает крах или зависание контроллера, поэтому вместо эффекта Мерцание
+      // запускаем другой случайный эффект
+      setRandomMode();
+      return;      
+    }
+    
     // modeCode = MC_FLICKER;
     loadingFlag = false;
     x_speed = (pWIDTH > pHEIGHT ? 1111 : 331);
@@ -1370,8 +1379,8 @@ void stars2Routine() {
     hue = 0;
     loopCounter = 0;
 
-    if (starState  == NULL) { starState  = new int8_t  [numStars]; }
-    if (starBright == NULL) { starBright = new uint8_t [numStars]; }
+    if (starState  == NULL) { starState  = (int8_t*)malloc(numStars); }
+    if (starBright == NULL) { starBright = (uint8_t*)malloc(numStars); }
 
     if (starState  == NULL || starBright == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -1466,8 +1475,8 @@ void stars2Routine() {
 }
 
 void stars2RoutineRelease() {
-  if (starState  == NULL) { delete [] starState; starState = NULL; }
-  if (starBright == NULL) { delete [] starBright; starBright = NULL; }  
+  if (starState  == NULL) { free(starState); starState = NULL; }
+  if (starBright == NULL) { free(starBright); starBright = NULL; }  
 }
 
 // ********************* БУДИЛЬНИК-РАССВЕТ *********************
@@ -1983,10 +1992,10 @@ void shadowsRoutine() {
 
 uint8_t num_x, num_y, off_x, off_y;
 
-uint8_t **palette_h; // Н in CHSV
-uint8_t **palette_s; // S in CHSV
-uint8_t **block_sta; // Block state: // 0 - появление; 1 - исчезновение; 2 - пауза перед появлением 3 - пауза перед удалением
-uint8_t **block_dur; // время паузы блока
+uint8_t *palette_h; // Н in CHSV
+uint8_t *palette_s; // S in CHSV
+uint8_t *block_sta; // Block state: // 0 - появление; 1 - исчезновение; 2 - пауза перед появлением 3 - пауза перед удалением
+uint8_t *block_dur; // время паузы блока
 
 void paletteRoutine() {
 
@@ -2002,10 +2011,10 @@ void paletteRoutine() {
     dir_mx = pWIDTH > pHEIGHT ? 0 : 1;                                   // 0 - квадратные сегменты расположены горизонтально, 1 - вертикально
     seg_num = dir_mx == 0 ? (pWIDTH / pHEIGHT) : (pHEIGHT / pWIDTH);     // вычисляем количество сегментов, умещающихся на матрице
 
-    if (palette_h == NULL) { palette_h = new uint8_t*[num_x]; if (palette_h != NULL) { for (uint8_t i = 0; i < num_x; i++) { palette_h[i] = new uint8_t [num_y]; }}}
-    if (palette_s == NULL) { palette_s = new uint8_t*[num_x]; if (palette_s != NULL) { for (uint8_t i = 0; i < num_x; i++) { palette_s[i] = new uint8_t [num_y]; }}}
-    if (block_sta == NULL) { block_sta = new uint8_t*[num_x]; if (block_sta != NULL) { for (uint8_t i = 0; i < num_x; i++) { block_sta[i] = new uint8_t [num_y]; }}}
-    if (block_dur == NULL) { block_dur = new uint8_t*[num_x]; if (block_dur != NULL) { for (uint8_t i = 0; i < num_x; i++) { block_dur[i] = new uint8_t [num_y]; }}}
+    if (palette_h == NULL) { palette_h = (uint8_t*)malloc(num_x * num_y); }
+    if (palette_s == NULL) { palette_s = (uint8_t*)malloc(num_x * num_y); }
+    if (block_sta == NULL) { block_sta = (uint8_t*)malloc(num_x * num_y); }
+    if (block_dur == NULL) { block_dur = (uint8_t*)malloc(num_x * num_y); }
 
     if (palette_h == NULL || palette_s == NULL || block_sta == NULL || block_dur == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -2014,20 +2023,22 @@ void paletteRoutine() {
       return;      
     }
 
-    // Для всех блоков определить состояние - "ожидание появления
+    // Для всех блоков определить состояние - "ожидание появления"
     for (uint8_t c = 0; c < num_x; c++) {
       for (uint8_t r = 0; r < num_y; r++) {
-        block_sta[c][r] = 2;                // Состояние - пауза перед появлением
-        block_dur[c][r] = random8(25,125);  // Длительность паузы
+        uint16_t idx = c + r * num_x;
+        block_sta[idx] = 2;                // Состояние - пауза перед появлением
+        block_dur[idx] = random8(25,125);  // Длительность паузы
       }
     }
 
     // Для некоторого количества начальных - установить "За шаг до появления"
     // При первом же проходе состояние переключится на "появление"
     for (uint8_t i = 0; i < BLOCK_ON_START * seg_num; i++) {
-      uint8_t c = random8(0, num_x - 1);
-      uint8_t r = random8(0, num_y - 1);
-      block_dur[c][r] = 1;                  // Счетчик до начала появления
+      uint8_t c = random8(0, num_x);
+      uint8_t r = random8(0, num_y);
+      uint16_t idx = c + r * num_x;
+      block_dur[idx] = 1;                  // Счетчик до начала появления
     }
     FastLED.clear();
   }
@@ -2038,34 +2049,36 @@ void paletteRoutine() {
     uint8_t block_x = off_x + c * BLOCK_SIZE;
     for (uint8_t r = 0; r < num_y; r++) {    
       
+      uint16_t idx = c + r * num_x;
+      
       uint8_t block_y = off_y + r * BLOCK_SIZE;
-      uint8_t h = palette_h[c][r];      
-      uint8_t s = palette_s[c][r];
+      uint8_t h = palette_h[idx];      
+      uint8_t s = palette_s[idx];
 
       // Проверить состояние блока
-      if (block_sta[c][r] > 1) {
+      if (block_sta[idx] > 1) {
         
         // Одна из пауз (2 или 3) - пауза перед появлением или перед исчезновением
         // Уменьшить время паузы. Если стало 0 - переключить с паузы на появление / исчезновение
-         block_dur[c][r] -= 1;
-         if (block_dur[c][r] == 0) {
-           block_sta[c][r] -= 2;     // 3->1 - исчезать; 2->0 появлять за указанное количество шагов
-           if (block_sta[c][r] == 0) {
-             block_dur[c][r] = FADE_IN_STEPS;    // Количество шагов появления блока
-             palette_h[c][r] = random8();        // Цвет нового блока
-             palette_s[c][r] = random8(112,254); // Насыщенность цвета нового блока
+         block_dur[idx] -= 1;
+         if (block_dur[idx] == 0) {
+           block_sta[idx] -= 2;     // 3->1 - исчезать; 2->0 появлять за указанное количество шагов
+           if (block_sta[idx] == 0) {
+             block_dur[idx] = FADE_IN_STEPS;    // Количество шагов появления блока
+             palette_h[idx] = random8();        // Цвет нового блока
+             palette_s[idx] = random8(112,254); // Насыщенность цвета нового блока
            } else { 
-             block_dur[c][r] = FADE_OUT_STEPS;  // Кол-во шагов убирания блока
+             block_dur[idx] = FADE_OUT_STEPS;   // Кол-во шагов убирания блока
            }  
          }
       }
       
-      if (block_sta[c][r] < 2) {
+      if (block_sta[idx] < 2) {
 
         // В процессе появления или исчезновения (0 или 1)
         // Выполнить один шаг появления / исчезновения блока
-        uint8_t fade_dir = block_sta[c][r]; // 0 - появляться, 1 - исчезать
-        uint8_t fade_step = block_dur[c][r];
+        uint8_t fade_dir = block_sta[idx]; // 0 - появляться, 1 - исчезать
+        uint8_t fade_step = block_dur[idx];
 
         // Яркость блока
         uint8_t bri = fade_dir == 0
@@ -2073,8 +2086,8 @@ void paletteRoutine() {
            : map(fade_step, 0,FADE_OUT_STEPS, effectBrightness,0);
 
         // Нарисовать блок   
-        for (uint8_t i=0; i<BLOCK_SIZE; i++) {        
-          for (uint8_t j=0; j<BLOCK_SIZE; j++) {
+        for (uint8_t i = 0; i < BLOCK_SIZE; i++) {        
+          for (uint8_t j = 0; j < BLOCK_SIZE; j++) {
             
             //uint8_t k = fade_dir == 0 ? (2 * i*j) : (2 * (BLOCK_SIZE * BLOCK_SIZE - i*j));
             //uint8_t bri2 = (bri > k ? bri - k : 0);
@@ -2083,21 +2096,21 @@ void paletteRoutine() {
             uint8_t xx = block_x + j;
             uint8_t yy = block_y + BLOCK_SIZE - i - 1;
             if (xx < pWIDTH && yy < pHEIGHT) {
-              idx = getPixelNumber(xx, yy);
-              if (idx >= 0) leds[idx] = color;
+              int16_t ix = getPixelNumber(xx, yy);
+              if (ix >= 0) leds[ix] = color;
             }
           }
         }
 
         // Шаг появления - обработан
-        block_dur[c][r] -= 1;
+        block_dur[idx] -= 1;
 
         // Весь процесс появления / исчезновения выполнен?
         // Сменить статус блока
-        if (block_dur[c][r] == 0) {
+        if (block_dur[idx] == 0) {
            // Появление / исчезновение закончено
-           block_sta[c][r] = block_sta[c][r] == 0 ? 3 : 2; // вкл паузу перед исчезновением после появления или паузу перед появлением после исчезновения
-           block_dur[c][r] = random8(25,125);              // Длительность паузы (циклов обращения палитры)
+           block_sta[idx] = block_sta[idx] == 0 ? 3 : 2;  // вкл паузу перед исчезновением после появления или паузу перед появлением после исчезновения
+           block_dur[idx] = random8(25,125);              // Длительность паузы (циклов обращения палитры)
         }        
       }      
     }
@@ -2105,10 +2118,10 @@ void paletteRoutine() {
 }
 
 void paletteRoutineRelease() {
-  if (block_dur != NULL) { for( uint8_t i = 0; i < num_x; i++ ) { delete [] block_dur[i];} delete [] block_dur; block_dur = NULL; }
-  if (block_sta != NULL) { for( uint8_t i = 0; i < num_x; i++ ) { delete [] block_sta[i];} delete [] block_sta; block_sta = NULL; }
-  if (palette_s != NULL) { for( uint8_t i = 0; i < num_x; i++ ) { delete [] palette_s[i];} delete [] palette_s; palette_s = NULL; }
-  if (palette_h != NULL) { for( uint8_t i = 0; i < num_x; i++ ) { delete [] palette_h[i];} delete [] palette_h; palette_h = NULL; }
+  if (block_dur != NULL) { free(block_dur); block_dur = NULL; }
+  if (block_sta != NULL) { free(block_sta); block_sta = NULL; }
+  if (palette_s != NULL) { free(palette_s); palette_s = NULL; }
+  if (palette_h != NULL) { free(palette_h); palette_h = NULL; }
 }
 
 
@@ -2151,10 +2164,10 @@ void analyzerRoutine() {
     // modeCode = MC_ANALYZER;
     loadingFlag = false;
 
-    if (timeLevel    == NULL) { timeLevel    = new uint32_t[pWIDTH]; }
-    if (posOffset    == NULL) { posOffset    = new uint8_t[pWIDTH]; }
-    if (maxLevel     == NULL) { maxLevel     = new int16_t[pWIDTH]; }
-    if (posLevel_old == NULL) { posLevel_old = new uint8_t[pWIDTH]; }
+    if (timeLevel    == NULL) { timeLevel    = (uint32_t*)malloc(pWIDTH * sizeof(uint32_t)); }
+    if (posOffset    == NULL) { posOffset    = (uint8_t*)malloc(pWIDTH * sizeof(uint8_t)); }
+    if (maxLevel     == NULL) { maxLevel     = (int16_t*)malloc(pWIDTH * sizeof(int16_t)); }
+    if (posLevel_old == NULL) { posLevel_old = (uint8_t*)malloc(pWIDTH * sizeof(uint8_t)); }
 
     if (timeLevel == NULL || posOffset == NULL || maxLevel == NULL || posLevel_old == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -2267,10 +2280,10 @@ void analyzerRoutine() {
 }
 
 void analyzerRoutineRelease() {
-  if (posLevel_old != NULL) { delete[] posLevel_old; posLevel_old = NULL; }
-  if (maxLevel != NULL)     { delete[] maxLevel;     maxLevel = NULL; }
-  if (posOffset != NULL)    { delete[] posOffset;    posOffset = NULL; }
-  if (timeLevel != NULL)    { delete[] timeLevel;    timeLevel = NULL; }
+  if (posLevel_old != NULL) { free(posLevel_old); posLevel_old = NULL; }
+  if (maxLevel     != NULL) { free(maxLevel);     maxLevel     = NULL; }
+  if (posOffset    != NULL) { free(posOffset);    posOffset    = NULL; }
+  if (timeLevel    != NULL) { free(timeLevel);    timeLevel    = NULL; }
 }
 
 // ****************************** СИНУСЫ *****************************
@@ -2373,7 +2386,7 @@ CRGBPalette16 rain_p( CRGB::Black, rainColor);
 CRGBPalette16 rainClouds_p( CRGB::Black, CRGB(15,24,24), CRGB(9,15,15), CRGB::Black );
 
 uint8_t cloudHeight = pHEIGHT * 0.2 + 1;
-uint8_t **noise3d;
+uint8_t *noise3d;
 uint8_t *cloud;
 
 void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool splashes, bool clouds, bool storm) {
@@ -2390,21 +2403,21 @@ void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool s
   for (uint8_t x = 0; x < pWIDTH; x++) {
     // Step 1.  Move each dot down one cell
     for (uint8_t i = 0; i < pHEIGHT; i++) {
-      if (noise3d[x][i] >= backgroundDepth) {  // Don't move empty cells
-        if (i > 0) noise3d[x][wrapY(i-1)] = noise3d[x][i];
-        noise3d[x][i] = 0;
+      if (noise3d[x + i * pWIDTH] >= backgroundDepth) {  // Don't move empty cells
+        if (i > 0) noise3d[x + wrapY(i - 1) * pWIDTH] = noise3d[x + i * pWIDTH];
+        noise3d[x + i * pWIDTH] = 0;
       }
     }
 
     // Step 2.  Randomly spawn new dots at top
     if (random8() < spawnFreq) {
-      noise3d[x][pHEIGHT-1] = random(backgroundDepth, effectBrightness);
+      noise3d[x + (pHEIGHT-1) * pWIDTH] = random(backgroundDepth, effectBrightness);
     }
 
     // Step 3. Map from tempMatrix cells to LED colors
     for (uint8_t y = 0; y < pHEIGHT; y++) {
-      if (noise3d[x][y] >= backgroundDepth) {  // Don't write out empty cells
-        leds[XY(x,y)] = ColorFromPalette(rain_p, noise3d[x][y], effectBrightness);
+      if (noise3d[x + y * pWIDTH] >= backgroundDepth) {  // Don't write out empty cells
+        leds[XY(x,y)] = ColorFromPalette(rain_p, noise3d[x + y * pWIDTH], effectBrightness);
       }
     }
 
@@ -2412,7 +2425,7 @@ void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool s
     if (splashes) {
       // FIXME, this is broken
       uint8_t j = line[x];
-      uint8_t v = noise3d[x][0];
+      uint8_t v = noise3d[x]; // [x][0]
 
       if (j >= backgroundDepth) {
         leds[XY(wrapX(x-2),0)] = ColorFromPalette(rain_p, j/3, effectBrightness);
@@ -2496,9 +2509,9 @@ void rainRoutine() {
     //modeCode = MC_RAIN;
     cloudHeight = pHEIGHT * 0.2 + 1; // это уже 20% с лишним, но на высоких матрицах будет чуть меньше
     
-    if (noise3d == NULL) { noise3d = new uint8_t*[pWIDTH]; if (noise3d != NULL) { for (uint8_t i = 0; i < pWIDTH; i++) { noise3d[i] = new uint8_t [pHEIGHT]; }}}
-    if (line    == NULL) { line    = new uint8_t[pWIDTH]; }
-    if (cloud   == NULL) { cloud   = new uint8_t[pWIDTH * cloudHeight]; }
+    if (noise3d == NULL) { noise3d = (uint8_t*)malloc(pWIDTH * pHEIGHT); }
+    if (line    == NULL) { line    = (uint8_t*)malloc(pWIDTH); }
+    if (cloud   == NULL) { cloud   = (uint8_t*)malloc(pWIDTH * cloudHeight); }
 
     if (noise3d == NULL || line == NULL || cloud == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -2520,9 +2533,9 @@ void rainRoutine() {
 }
 
 void rainRoutineRelease() {
-  if (cloud != NULL)   { delete[] cloud; cloud = NULL; }
-  if (line != NULL)    { delete[] line; line = NULL; }
-  if (noise3d != NULL) { for (uint8_t i = 0; i < pWIDTH; i++) delete[] noise3d[i]; delete[] noise3d; noise3d = NULL; }
+  if (cloud != NULL)   { free(cloud); cloud = NULL; }
+  if (line != NULL)    { free(line); line = NULL; }
+  if (noise3d != NULL) { free(noise3d); noise3d = NULL; }
 }
 
 // ********************** ОГОНЬ-2 (КАМИН) *********************
@@ -2532,7 +2545,7 @@ void fire2Routine() {
     bool err = false;
     loadingFlag = false;
     //modeCode = MC_FIRE2;
-    if (noise3d == NULL) { noise3d = new uint8_t*[pWIDTH]; if (noise3d != NULL) { for (uint8_t i = 0; i < pWIDTH; i++) { noise3d[i] = new uint8_t [pHEIGHT]; if (noise3d[i] == NULL) {err = true; break;}}}}
+    if (noise3d == NULL) { noise3d = (uint8_t*)malloc(pWIDTH * pHEIGHT); }
     if (noise3d == NULL || err) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       fire2RoutineRelease();
@@ -2568,29 +2581,29 @@ void fire2Routine() {
     
     // Step 1.  Cool down every cell a little
     for (uint8_t i = 0; i < pHEIGHT; i++) {
-      noise3d[x][i] = qsub8(noise3d[x][i], random(0, ((cooling * 10) / pHEIGHT) + 2));
+      noise3d[x + i * pWIDTH] = qsub8(noise3d[x + i * pWIDTH], random(0, ((cooling * 10) / pHEIGHT) + 2));
     }
 
     // Step 2.  Heat from  cell drifts 'up' and diffuses a little
     for (uint8_t k = pHEIGHT; k > 1; k--) {
-      noise3d[x][wrapY(k)] = (noise3d[x][k - 1] + noise3d[x][wrapY(k - 2)] + noise3d[x][wrapY(k - 2)]) / 3;
+      noise3d[x + wrapY(k) * pWIDTH] = (noise3d[x + (k - 1) * pWIDTH] + noise3d[x + wrapY(k - 2) * pWIDTH] + noise3d[x + wrapY(k - 2) * pWIDTH]) / 3;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if (random8() < sparking) {
       uint8_t j = random8(FIRE_BASE);
-      noise3d[x][j] = qadd8(noise3d[x][j], random(160, 255));
+      noise3d[x + j * pWIDTH] = qadd8(noise3d[x + j * pWIDTH], random(160, 255));
     }
 
     // Step 4.  Map from heat cells to LED colors
     // Blend new data with previous frame. Average data between neighbouring pixels
     for (uint8_t y = 0; y < pHEIGHT; y++)
-      nblend(leds[XY(x,y)], ColorFromPalette(HeatColors_p, ((noise3d[x][y]*0.7) + (noise3d[wrapX(x+1)][y]*0.3)), effectBrightness), fireSmoothing);
+      nblend(leds[XY(x,y)], ColorFromPalette(HeatColors_p, ((noise3d[x + y * pWIDTH] * 0.7) + (noise3d[wrapX(x+1) + y * pWIDTH]*0.3)), effectBrightness), fireSmoothing);
   }
 }
 
 void fire2RoutineRelease() {
-  if (noise3d != NULL) { for (uint8_t i = 0; i < pWIDTH; i++) delete[] noise3d[i]; delete[] noise3d; noise3d = NULL; }
+  if (noise3d != NULL) { free(noise3d); noise3d = NULL; }
 }
 
 // ************************** СТРЕЛКИ *************************
@@ -3010,9 +3023,9 @@ void rubikRoutine() {
         delete [] order_h;  
         delete [] cube_h;
       }  
-      cube_h   = new uint8_t[cube_size]; if (cube_h  != NULL) { for (uint16_t i = 0; i < cube_size; i++) { cube_h[i]  = hue; hue += step; }}
-      order_h  = new uint16_t[cube_size]; if (order_h != NULL) { for (uint16_t i = 0; i < cube_size; i++) { order_h[i] = i; }}
-      order_mt = new int16_t[max(num_x, num_y)]; 
+      cube_h   = (uint8_t*)malloc(cube_size * sizeof(uint8_t));         if (cube_h  != NULL) { for (uint16_t i = 0; i < cube_size; i++) { cube_h[i]  = hue; hue += step; }}
+      order_h  = (uint16_t*)malloc(cube_size * sizeof(uint16_t));       if (order_h != NULL) { for (uint16_t i = 0; i < cube_size; i++) { order_h[i] = i; }}
+      order_mt = (int16_t*)malloc(max(num_x, num_y) * sizeof(int16_t)); 
 
       if (cube_h == NULL || order_h == NULL || order_mt == NULL) {
         // Если недостаточно памяти под эффект - перейти к другому эффекту;
@@ -3382,7 +3395,7 @@ void rubikMoveLane(uint8_t px, uint8_t py, bool isEdge, uint8_t effectBrightness
 }
 
 void rubikRoutineRelease() {
-  if (cube_h   != NULL) { delete [] cube_h;   cube_h   = NULL; }
-  if (order_h  != NULL) { delete [] order_h;  order_h  = NULL; }
-  if (order_mt != NULL) { delete [] order_mt; order_mt = NULL; }
+  if (cube_h   != NULL) { free(cube_h);   cube_h   = NULL; }
+  if (order_h  != NULL) { free(order_h);  order_h  = NULL; }
+  if (order_mt != NULL) { free(order_mt); order_mt = NULL; }
 }
