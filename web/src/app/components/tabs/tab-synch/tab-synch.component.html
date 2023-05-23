@@ -129,9 +129,13 @@
       </mat-form-field>
     </div>
 
+    <div *ngIf="isDisabled2()" class="warning">
+      {{ L.$('sync_warning') }}
+    </div>
+
     <div class="field-container">
       <div class="action-button">
-        <button mat-raised-button color="primary" (click)="applySyncSettings($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+        <button mat-raised-button color="primary" (click)="applySyncSettings($event)" [disabled]="isDisabled() || isDisabled2()">{{L.$('Применить')}}</button>
       </div>
     </div>
 

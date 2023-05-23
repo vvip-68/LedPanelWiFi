@@ -16,6 +16,15 @@
   --field-s1-width: 185px;
   --field-s2-width: 110px;
 
+  .warning {
+    display: flex;
+    width: 316px;
+    font-size: 11px;
+    color: #03a9f4;
+    padding: 0 0 0 12px;
+    line-height: 1.35em;
+  }
+
   .synch-fieldset {
     width: 100%;
     max-width: 380px;

@@ -477,5 +477,6 @@
   "MISO:": "",
   "MOSI:": "",
   "TM1637": "",
-  "matrix_warning": "Changing size of matrix may require change length of led-segment line in section 'Setup' - 'Wiring', otherwise image on matrix will not be display fully, only partially."
+  "matrix_warning": "Changing size of matrix may require change length of led-segment line in section 'Setup' - 'Wiring', otherwise image on matrix will not be display fully, only partially.",
+  "sync_warning": "Master mode unavailable for matrix with LEDs amount greater than 2040"
 }

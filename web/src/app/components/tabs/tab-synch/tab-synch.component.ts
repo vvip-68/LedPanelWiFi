@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
@@ -8,6 +8,7 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import {FormControl, Validators} from "@angular/forms";
+import {MatSelect} from "@angular/material/select";
 
 @Component({
   selector: 'app-tab-synch',
@@ -16,6 +17,8 @@ import {FormControl, Validators} from "@angular/forms";
 })
 export class TabSynchComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
+
+  @ViewChild('e_mode', {static: true}) mode!: MatSelect;
 
   e131_mode: number = -1;
   e131_type: number = -1;
@@ -167,6 +170,11 @@ export class TabSynchComponent implements OnInit, OnDestroy {
 
   isDisabled(): boolean {
     return !this.managementService.state.power || !this.socketService.isConnected;
+  }
+
+  isDisabled2(): boolean {
+    // Работа в режиме Мастер-синхронизации рассчитана на размер матрицы до 2040 диодов
+    return this.mode.value === 1 && this.managementService.state.width * this.managementService.state.height > 2040;
   }
 
   ngOnDestroy() {
