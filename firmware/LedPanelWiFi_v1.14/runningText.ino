@@ -164,7 +164,7 @@ void fillString(String text) {
   // Задан ли специальный цвет отображения строки?
   // Если режим цвета - монохром (0) или задан неверно (>2) - использовать глобальный или специальный цвет
   
-  uint8_t i = 0, j = 0, pos = 0, modif = 0;
+  uint16_t i = 0, j = 0, pos = 0, modif = 0;
   
   while (text[i] != '\0') {
 
@@ -183,8 +183,8 @@ void fillString(String text) {
     }
 
     // Определились с цветом - выводим очередную букву  
-    if ((uint8_t)text[i] > 191) {    // работаем с русскими буквами!
-      modif = (uint8_t)text[i];
+    if ((uint16_t)text[i] > 191) {    // работаем с русскими буквами!
+      modif = (uint16_t)text[i];
     } else {
       drawLetter(j, text[i], modif, offset + j * (LET_WIDTH + SPACE), color);
       j++;
@@ -602,7 +602,7 @@ int8_t getNextLine(int8_t currentIdx) {
   //                   в этом случае sequenceIdx = 1..textIndecies.length() и показывает на символ в строке, содержащий индекс следующей строки к отображению
   //                   Если извлеченный символ - '#' - брать случайную строку из массива
   int8_t nextLineIdx = currentIdx;
-  int8_t cnt = 0;
+  int16_t cnt = 0;
   bool found = false;
   if (sequenceIdx < 1) {
     while (cnt < TEXTS_MAX_COUNT) {
@@ -982,7 +982,7 @@ String processMacrosInText(const String text) {
 
       // tmp может содержать кроме номера эффекта, номер варианта, отделенный знаком '-' (например из {E43} или {E34-12} будут строки '43' и '43-12'
       // если есть номер варианта - отделить его от номера эффекта
-      uint8_t p = tmp.indexOf('-');
+      int16_t p = tmp.indexOf('-');
       if (p > 0) {
         tmp1 = tmp.substring(p + 1);
         tmp  = tmp.substring(0, p);
@@ -1551,11 +1551,11 @@ String processDateMacrosInText(const String text) {
         
         // Чтобы строка замены наступившего события не показывалась в обычном порядке - она должна быть отключена
         // Проверить, что это так и если не отключена - отключить
-        uint8_t len = s_nn.length();        
+        uint16_t len = s_nn.length();        
         if (len > 0) {
           // Преобразовать строку в индекс
           char c = s_nn.charAt(0);
-          int8_t nm = -1;
+          int16_t nm = -1;
           if (len == 1 || (c >= 'A' && c <= 'Z')) {        
             // Номер следующей к показу строки, извлеченный из макроса в формате 1..9,A..Z
             nm = getTextIndex(c);
@@ -1721,14 +1721,14 @@ String processColorMacros(const String txt) {
 
   String text = txt;
   // Обнулить массивы позиций цвета и самого цвета
-  for (uint8_t i = 0; i<MAX_COLORS; i++) {
+  for (uint8_t i = 0; i < MAX_COLORS; i++) {
     textColorPos[i] = 0;
     textColor[i] = 0xFFFFFF;
   }
 
   // Если макрос цвета указан не с начала строки - начало строки отображать цветом globalTextColor
-  uint8_t cnt = 0;
-  int8_t idx, idx2;  
+  uint16_t cnt = 0;
+  int16_t idx, idx2;  
 
   idx = text.indexOf("{C");
   if (idx > 0) {
@@ -1782,7 +1782,7 @@ bool checkIsTextMultiColor(const String text) {
   
   // Строка отображается одним (указанным) цветом, если цвет указан только один раз в самом начале или в самом конце строки
   // Если цвет в середине строки - значит начало строки отображается цветом globalTextColor, а с позиции макроса и до конца - указанным в макросе цветом
-  uint8_t cnt = 0;
+  uint16_t cnt = 0;
   while (idx>=0 && cnt < 2) {
     cnt++;
     idx = text.indexOf("{C", idx + 1);  
@@ -1841,9 +1841,9 @@ String getTextByIndex(uint8_t idx) {
     File file = LittleFS.open(fileName, "r");
     if (file) {
       // считываем содержимое файла ssid
-      char buf[512];
-      memset(buf, '\0', 512); 
-      size_t len = file.read((uint8_t*)buf, 512);
+      char buf[1024];
+      memset(buf, '\0', 1024); 
+      size_t len = file.read((uint8_t*)buf, 1024);
       file.close();
       if (len > 0) {
         text = String(buf);
@@ -1879,9 +1879,9 @@ void saveTextLine(char index, String text) {
     file = LittleFS.open(fileName, "w");
     if (file) {
       size_t len = text.length()+1, lenw = 0;
-      if (len > 512) len = 512;
-      char buf[512];
-      memset(buf, '\0', 512);
+      if (len > 1024) len = 1024;
+      char buf[1024];
+      memset(buf, '\0', 1024);
       text.toCharArray(buf, len);
       lenw = file.write((uint8_t*)buf, len);
       ok = lenw == len;       
@@ -1945,16 +1945,16 @@ void rescanTextEvents() {
   // Строка textWithEvents содержит индексы строк, в которых присутствует макрос {P}.
   // Не требуется просматриватьь и обрабатывать все строки - достаточно только строки с наличием макроса ХЗЪ
   
-  for (uint8_t i = 0; i < textWithEvents.length(); i++) {
+  for (uint16_t i = 0; i < textWithEvents.length(); i++) {
 
-    int8_t t_idx = getTextIndex(textWithEvents[i]);
+    int16_t t_idx = getTextIndex(textWithEvents[i]);
     if (t_idx < 0) continue;
       
     String text = getTextByIndex(t_idx);
-    int8_t idx = text.indexOf("{P");
+    int16_t idx = text.indexOf("{P");
     if (idx < 0) continue;
 
-    int8_t idx2 = text.indexOf("}", idx);        
+    int16_t idx2 = text.indexOf("}", idx);        
     if (idx2 < 0) continue;
 
     // Вычленяем содержимое макроса "{P}"
@@ -1979,7 +1979,7 @@ void rescanTextEvents() {
       if (err) {
         DEBUGLN();
         DEBUG(String(F("Ошибка в макросе\n'{P")) + str + String(F("}'\n  ")));
-        for(uint8_t n=0; n<ix; n++) DEBUG('-');
+        for(uint16_t n=0; n<ix; n++) DEBUG('-');
         DEBUGLN('^');
         break;
       }      
@@ -2293,7 +2293,7 @@ void extractMacroSDates(String text) {
   }      
 
   String s_date1, s_date2;
-  int8_t idx = text.indexOf('#');
+  int16_t idx = text.indexOf('#');
 
   bool hasDate1 = idx != 0;  // -1 или больше нуля означает,что '#' либо нет - тогда вся строка - data1, либо больше 0 - есть часть для data1; в строке '#07.01.****' есть data2, нет data1
   bool hasDate2 = idx > 0;   // Если в строке есть '#' - значит data2 присутствует
