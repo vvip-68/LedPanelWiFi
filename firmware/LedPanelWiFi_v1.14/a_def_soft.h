@@ -886,6 +886,8 @@ uint8_t    resourcesMode = 0;
 bool       mandatoryStopText = false;
 uint16_t   restartGuard = 0;
 
+unsigned long prevShowTimer = 0;
+
 // --------------------- Для работы с JSON -----------------------
 
 DynamicJsonDocument doc(2048);

@@ -16,7 +16,17 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool effectReady = aMode == MC_IMAGE || effectTimer.isReady(); // "Анимация" использует собственные "таймеры" для отрисовки - отрисовка без задержек; Здесь таймер опрашивать нельзя - он после опроса сбросится. 
                                                                  // А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона  
 
-  if (!(effectReady || (clockReady && !showTextNow) || (textReady && (showTextNow || thisMode == MC_TEXT)))) return;
+  if (!(effectReady || (clockReady && !showTextNow) || (textReady && (showTextNow || thisMode == MC_TEXT)))) {
+    // Вообще вывод изображения на матрицу подразумевался аосле того, как сделаны изменения в кадре - а это происходит либо на таймере эффекта, либо на таймере бегущей строки.
+    // Однако на ядре 3.1.2 по каким-то внутренним причинам вывод на матрицу часто пропускается в результате эффект или текст "дергается", т.к. предыдущий кабр был пропущен
+    // Поэтому если время смены кадра не пришло - все равно выводим содержимое на матрицу - так надежнее изображение будет выведено на матрицу и
+    // пропуски кадра будут незаметными, даже если они былию Однако чаще 5 мс тоже выводить не нужно - постоянный вывод приводит к мерцанию светодиодов
+    if (millis() - prevShowTimer > 5) {
+      FastLED.show();
+      prevShowTimer = millis();
+    }
+    return;
+  }
 
   // В прошлой итерации часы / текст были наложены с оверлеем?
   // Если да - восстановить пиксели эффекта сохраненные перед наложением часов / текста
@@ -351,8 +361,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   FastLEDshow();
 }
 
-void FastLEDshow() {
-  static unsigned long prevTimer = 0;
+void FastLEDshow() {  
   #if (USE_E131 == 1)
   if (workMode == MASTER && (syncMode == PHYSIC || syncMode == LOGIC)) {
     sendE131Screen();
@@ -360,9 +369,9 @@ void FastLEDshow() {
   }
   #endif
   // Если выводить на матрицу чаще 5 мс - она мерцает
-  if (millis() - prevTimer > 5) {
+  if (millis() - prevShowTimer > 5) {
     FastLED.show();
-    prevTimer = millis();
+    prevShowTimer = millis();
   }
 }
 
