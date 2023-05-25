@@ -1,4 +1,4 @@
-// ----------------------------------------------------
+MC_FILL_COLOR// ----------------------------------------------------
 
 // Контроль времени цикла
 uint32_t last_ms = millis();  
@@ -4858,7 +4858,7 @@ void turnOn() {
       setSpecialMode(saveSpecialModeId);
     else {
       saveMode = getCurrentManualMode();
-      if (saveMode == 0 && globalColor == 0) set_globalColor(0xFFFFFF);
+      if (saveMode == MC_FILL_COLOR && globalColor == 0) set_globalColor(0xFFFFFF);
       setManualModeTo(getAutoplay());
       setEffect(saveMode);
     }
