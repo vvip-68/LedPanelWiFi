@@ -1,4 +1,4 @@
-MC_FILL_COLOR// ----------------------------------------------------
+// ----------------------------------------------------
 
 // Контроль времени цикла
 uint32_t last_ms = millis();  
@@ -137,28 +137,28 @@ void process() {
       #if (USE_E131 == 1)
         if (!(e131_streaming && workMode == SLAVE)) {
           DEBUG(String(F("Режим: ")) + effect_name);
-          DEBUG(F(" - Free: "));
-          DEBUG(ESP.getFreeHeap());
-          DEBUG(F(" Max: "));
-          #if defined(ESP8266)
-          DEBUG(ESP.getMaxFreeBlockSize());
-          DEBUG(F("  Frag: "));
-          DEBUG(ESP.getHeapFragmentation());
-          #else
-          DEBUG(ESP.getMaxAllocHeap());        
-          #endif     
+          //DEBUG(F(" - Free: "));
+          //DEBUG(ESP.getFreeHeap());
+          //DEBUG(F(" Max: "));
+          //#if defined(ESP8266)
+          //DEBUG(ESP.getMaxFreeBlockSize());
+          //DEBUG(F("  Frag: "));
+          //DEBUG(ESP.getHeapFragmentation());
+          //#else
+          //DEBUG(ESP.getMaxAllocHeap());        
+          //#endif     
           DEBUGLN();       
         }
       #else
         DEBUG(String(F("Режим: ")) + effect_name);
-        DEBUG(F(" Max: "));
-        #if defined(ESP8266)
-        DEBUG(ESP.getMaxFreeBlockSize());
-        DEBUG(F("  Frag: "));
-        DEBUG(ESP.getHeapFragmentation());
-        #else
-        DEBUG(ESP.getMaxAllocHeap());        
-        #endif     
+        //DEBUG(F(" Max: "));
+        //#if defined(ESP8266)
+        //DEBUG(ESP.getMaxFreeBlockSize());
+        //DEBUG(F("  Frag: "));
+        //DEBUG(ESP.getHeapFragmentation());
+        //#else
+        //DEBUG(ESP.getMaxAllocHeap());        
+        //#endif     
         DEBUGLN();       
       #endif      
       tmpSaveMode = thisMode;    
