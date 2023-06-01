@@ -121,7 +121,9 @@ void runningText() {
   if (thisMode == MC_TEXT) {
     FastLED.clear();    
     // Включен режим (не оверлей!) бегущей строки
-    if (wifi_print_ip_text) 
+    if (wifi_print_version) 
+      text = String(FIRMWARE_VER);
+    else if (wifi_print_ip_text) 
       text = wifi_current_ip;
     else if (init_time)
       text = clockCurrentText();
@@ -155,7 +157,6 @@ void fillString(String text) {
     offset = pWIDTH;   // перемотка в правый край
     // modeCode = MC_TEXT;
     loadingTextFlag = false;    
-    loadingTextFlag = false;        
   }
 
   uint32_t color;

@@ -389,7 +389,6 @@ void process() {
     #if (USE_BUTTON == 1)
       if (butt != nullptr) {
         butt->tick();  // обязательная функция отработки. Должна постоянно опрашиваться
-        uint8_t clicks = 0;
     
         // Один клик
         if (butt->isSingle()) clicks = 1;    
@@ -403,7 +402,15 @@ void process() {
         // Максимальное количество нажатий - 5-кратный клик
         // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
         // getClicks() возвращает 179, что абсолютная ерунда
-        if (clicks > 4) clicks = 0;
+        if (clicks > 5) clicks = 0;
+
+        if (clicks == 1) {
+          if (one_click_time == 0) {
+            one_click_time = (uint32_t)millis();
+          }
+        } else if (clicks > 1) {
+          one_click_time = 0;
+        }
         
         if (butt->isPress()) {
           // Состояние - кнопку нажали  
@@ -413,37 +420,53 @@ void process() {
           // Состояние - кнопку отпустили
           isButtonHold = false;
         }
-        
-        if (butt->isHolded()) {
-          isButtonHold = true;
-          if (globalBrightness == 255)
-            brightDirection = false;
-          else if (globalBrightness == 0)  
-            brightDirection = true;
-          else  
-            brightDirection = !brightDirection;
-        }
-    
-        if (clicks > 0) {
+            
+        if (clicks > 0 && !clicks_printed) {
           DEBUG(F("Кнопка нажата "));  
           DEBUG(clicks);
           DEBUGLN(F(" раз"));  
+          clicks_printed = true;
         }
     
         // Любое нажатие кнопки останавливает будильник
         if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
           DEBUG(F("Выключение будильника кнопкой."));  
           stopAlarm();
+          clicks_printed = false;
           clicks = 0;
         }
     
-        // Одинарный клик - включить . выключить панель
-        if (clicks == 1) {
-          turnOnOff();
-        }
+        // Одинарный клик - включить / выключить панель
+        // Одинарный клик + удержание - ночные часы или ночник лампа на минимальной яркости
+        if (clicks == 1 && (((uint32_t)(millis()) - one_click_time) > 500)) {
+          if (butt->isHolded()) {
+            if (isTurnedOff) {
+              // Клик + удержание в выключенном состоянии - лампа на минимальной яркости
+              // Включить панель - белый цвет
+              set_specialBrightness(6);
+              set_globalBrightness(6);
+              set_globalColor(0xFFFFFF);
+              isButtonHold = false;
+              setSpecialMode(1);
+              FastLED.setBrightness(globalBrightness);
+            } else {
+              // Клик + удержание во включенном состоянии - включить ночные часы
+              setSpecialMode(8);
+            }
+            clicks = 255;
+            one_click_time = 0;
+            clicks_printed = false;
+         } else {
+           // Однократное короткое нажатие без удержаниz вкл/выкл лампу
+           turnOnOff();
+           clicks_printed = false;
+           clicks = 0;
+           one_click_time = 0;
+         }          
+       }
         
-        // Прочие клики работают только если не выключено
-        if (isTurnedOff) {
+       // Прочие клики работают только если не выключено
+       if (isTurnedOff) {
           // Выключить питание матрицы
           #if (USE_POWER == 1)
             if (vPOWER_PIN >= 0) {
@@ -454,25 +477,20 @@ void process() {
               }
             }  
           #endif      
-          //  - длительное нажатие кнопки включает яркий белый свет
-          if (vDEVICE_TYPE == 0) {
-            if (isButtonHold) {
-              // Включить панель - белый цвет
-              set_specialBrightness(255);
-              set_globalBrightness(255);
-              set_globalColor(0xFFFFFF);
-              isButtonHold = false;
-              setSpecialMode(1);
-              FastLED.setBrightness(globalBrightness);
-            }
-          } else {
-            // Удержание кнопки повышает / понижает яркость панели (лампы)
-            if (isButtonHold && butt->isStep()) {
-              processButtonStep();
-            }
-          }      
-          
-        } else {
+          //  - одинарный клик из выключенного состояния включает устройство - обработка в блоке выше
+          //  - двойной клик из выключенного состояния включает яркий белый свет
+          if (clicks == 2) {
+            // Включить панель - белый цвет
+            set_specialBrightness(255);
+            set_globalBrightness(255);
+            set_globalColor(0xFFFFFF);
+            isButtonHold = false;
+            setSpecialMode(1);
+            FastLED.setBrightness(globalBrightness);
+            clicks = 0;
+            one_click_time = 0;
+          }          
+       } else {
           
           // Включить питание матрицы
           #if (USE_POWER == 1)
@@ -480,6 +498,18 @@ void process() {
               digitalWrite(vPOWER_PIN, vPOWER_ON);
             }
           #endif
+
+          if (clicks == 0 && butt->isHolded()) {
+          // Управление яркостью - только если нажата и уделживается без предварительного короткого нажатия
+            isButtonHold = true;
+            if (globalBrightness == 255)
+              brightDirection = false;
+            else if (globalBrightness <= 4){
+              brightDirection = true;
+              globalBrightness = 4;
+            } else  
+              brightDirection = !brightDirection;
+          }
           
           // Был двойной клик - следующий эффект, сброс автоматического переключения
           if (clicks == 2) {
@@ -490,6 +520,8 @@ void process() {
               setRandomMode();        
             else 
               nextMode();
+            clicks = 0;
+            clicks_printed = false;
           }
     
           // Тройное нажатие - включить случайный режим с автосменой
@@ -498,30 +530,24 @@ void process() {
             resetModes();          
             setManualModeTo(false);        
             setRandomMode();
+            clicks = 0;
+            clicks_printed = false;
           }
-    
-          // Если устройство - лампа
-          if (vDEVICE_TYPE == 0) {
-            // Четверное нажатие - включить белую лампу независимо от того была она выключена или включен любой другой режим
-            if (clicks == 4) {
-              // Включить лампу - белый цвет
-              set_specialBrightness(255);
-              set_globalBrightness(255);
-              set_globalColor(0xFFFFFF);
-              setSpecialMode(1);
-              FastLED.setBrightness(globalBrightness);
-            }      
-            // Пятикратное нажатие - показать текущий IP WiFi-соединения            
-            else if (clicks == 5) {
-              showCurrentIP(false);
-            }      
-          } else {
-            // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
-            if (clicks == 4) {
-              showCurrentIP(false);
-            }      
-          }
-          
+
+          // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
+          else if (clicks == 4) {
+            showCurrentIP();
+            clicks = 0;
+            clicks_printed = false;
+          }      
+
+          // Пятикратное нажатие - показать версию прошивки
+          else if (clicks == 5) {
+            showCurrentVersion();
+            clicks = 0;
+            clicks_printed = false;
+          }      
+              
           // ... и т.д.
           
           // Обработка нажатой и удерживаемой кнопки
@@ -593,9 +619,9 @@ void processButtonStep() {
     }
   } else {
     if (globalBrightness > 15) set_globalBrightness(globalBrightness - 5);
-    else if (globalBrightness > 1) set_globalBrightness(globalBrightness - 1);
+    else if (globalBrightness > 2) set_globalBrightness(globalBrightness - 1);
     else {
-      set_globalBrightness(1);
+      set_globalBrightness(2);
     }
   }
   set_specialBrightness(globalBrightness);
@@ -2225,7 +2251,7 @@ void parsing() {
             delay(10);
             FastLED.clear();
             startWiFi(30000);     // Время ожидания подключения 30 сек
-            showCurrentIP(true);
+            showCurrentIP();
             break;
           default:
             err = true;
@@ -4637,6 +4663,7 @@ void resetModes() {
   loadingFlag = false;
   wifi_print_ip = false;
   wifi_print_ip_text = false;
+  wifi_print_version = false;
   #if (USE_SD == 1)  
     play_file_finished = false;
   #endif
@@ -4698,20 +4725,28 @@ void setEffect(uint8_t eff) {
   }
 }
 
-void showCurrentIP(bool autoplay) {
+void showCurrentIP() {
+  saveSpecialMode = specialMode;
+  saveSpecialModeId = specialModeId;
+  saveMode = thisMode;
   setEffect(MC_TEXT);
   textHasMultiColor = false;
+  wifi_print_version = false;
   wifi_print_ip = wifi_connected;  
   wifi_print_ip_text = true;
   wifi_print_idx = 0; 
   wifi_current_ip = wifi_connected ? WiFi.localIP().toString() : F("Нет подключения к сети WiFi");
-  // Если параметр autoplay == true - включить режим автосмены режимов так,
-  // что строка IP адреса будет показана несколько раз, затем автоматически включится другой режим.
-  // autoplay == true - при установке IP адреса из программы
-  // autoplay == false - при вызове отображения текущего IP адреса по пятикратному нажатию кнопки.
-  if (autoplay) {
-    setManualModeTo(false);
-  }
+}
+
+void showCurrentVersion() {
+  saveSpecialMode = specialMode;
+  saveSpecialModeId = specialModeId;
+  saveMode = thisMode;
+  setEffect(MC_TEXT);
+  textHasMultiColor = false;
+  wifi_print_version = true;
+  wifi_print_ip = false;  
+  wifi_print_ip_text = false;
 }
 
 void setRandomMode() {

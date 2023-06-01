@@ -20,7 +20,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     // Вообще вывод изображения на матрицу подразумевался аосле того, как сделаны изменения в кадре - а это происходит либо на таймере эффекта, либо на таймере бегущей строки.
     // Однако на ядре 3.1.2 по каким-то внутренним причинам вывод на матрицу часто пропускается в результате эффект или текст "дергается", т.к. предыдущий кабр был пропущен
     // Поэтому если время смены кадра не пришло - все равно выводим содержимое на матрицу - так надежнее изображение будет выведено на матрицу и
-    // пропуски кадра будут незаметными, даже если они былию Однако чаще 5 мс тоже выводить не нужно - постоянный вывод приводит к мерцанию светодиодов
+    // пропуски кадра будут незаметными, даже если они были. Однако чаще 5 мс тоже выводить не нужно - постоянный вывод приводит к мерцанию светодиодов
     if (millis() - prevShowTimer > 5) {
       FastLED.show();
       prevShowTimer = millis();
@@ -156,6 +156,22 @@ void doEffectWithOverlay(uint8_t aMode) {
     rescanTextEvents();
   }
 
+  // Отображался IP-адрес или версия прошики и показ строки завершен - включить режим 
+  if (thisMode == MC_TEXT && (wifi_print_ip_text || wifi_print_version) && fullTextFlag) {   
+    wifi_print_ip = false;
+    wifi_print_ip_text = false;
+    wifi_print_version = false;
+    if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId < SPECIAL_EFFECTS_START) 
+      setSpecialMode(saveSpecialModeId);
+    else {
+      if (saveMode >= MAX_EFFECT) {
+        setRandomMode(); 
+      } else {
+        setEffect(saveMode);
+      }
+    }
+  }
+
   // Нужно прекратить показ текста бегущей строки
   if (needStopText || mandatoryStopText) {    
     showTextNow = false; 
@@ -163,6 +179,9 @@ void doEffectWithOverlay(uint8_t aMode) {
     currentText = "";
     ignoreTextOverlaySettingforEffect = nextTextLineIdx >= 0;
     specialTextEffectParam = -1;
+    wifi_print_ip = false;
+    wifi_print_ip_text = false;
+    wifi_print_version = false;
 
     #if (USE_E131 == 1)
       commandStopText();

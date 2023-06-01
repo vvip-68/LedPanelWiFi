@@ -398,6 +398,7 @@ bool     wifi_connected = false;            // true - подключение к 
 bool     ap_connected = false;              // true - работаем в режиме точки доступа;
 bool     wifi_print_ip = false;             // Включен режим отображения текущего IP на индикаторе TM1637
 bool     wifi_print_ip_text = false;        // Включен режим отображения текущего IP на матрице
+bool     wifi_print_version = false;        // Включен режим отображения текущей версии прошивки
 uint8_t  wifi_print_idx = 0;                // Индекс отображаемой на индикаторе TM1637 тетрады IP адреса
 String   wifi_current_ip = "";              // Отображаемый в бегущей строке IP адрес лампы
 
@@ -536,7 +537,10 @@ uint8_t  maxAlarmVolume = 30;               // Максимальная гром
 // ************************* КНОПКА УПРАВЛЕНИЯ *************************
 
 #if (USE_BUTTON == 1)
-  GButton *butt;
+  GButton  *butt;
+  uint8_t  clicks = 0;
+  uint32_t one_click_time;
+  bool     clicks_printed = false;
 #endif
 
 #if (USE_BUTTON == 1 || USE_TM1637 == 1)

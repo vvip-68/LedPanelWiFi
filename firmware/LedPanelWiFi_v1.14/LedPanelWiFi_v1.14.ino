@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0601")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0602")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -530,7 +530,9 @@ void setup() {
     }
     if (butt != nullptr) {
       butt->setStepTimeout(100);
-      butt->setClickTimeout(500);
+      butt->setClickTimeout(300);
+      butt->setDebounce(50);
+      butt->tick(true);
     }
   #endif
 
