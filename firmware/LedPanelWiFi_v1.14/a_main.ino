@@ -4854,13 +4854,17 @@ void turnOn() {
   if (isTurnedOff) {
     DEBUGLN(F("Режим: Включено"));
     // Если выключен - включить панель, восстановив эффект на котором панель была выключена
-    if (saveSpecialMode && saveSpecialModeId != 0) 
+    if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId < SPECIAL_EFFECTS_START) 
       setSpecialMode(saveSpecialModeId);
     else {
       saveMode = getCurrentManualMode();
-      if (saveMode == MC_FILL_COLOR && globalColor == 0) set_globalColor(0xFFFFFF);
-      setManualModeTo(getAutoplay());
-      setEffect(saveMode);
+      if (saveMode >= MAX_EFFECT) {
+        setRandomMode(); 
+      } else {
+        if (saveMode == MC_FILL_COLOR && globalColor == 0) set_globalColor(0xFFFFFF);
+        setManualModeTo(getAutoplay());
+        setEffect(saveMode);
+      }
     }
   }
 }
