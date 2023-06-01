@@ -551,7 +551,7 @@ void process() {
           // ... и т.д.
           
           // Обработка нажатой и удерживаемой кнопки
-          if (isButtonHold && butt->isStep() && thisMode != MC_DAWN_ALARM) {      
+          if (clicks == 0 && isButtonHold && butt->isStep() && thisMode != MC_DAWN_ALARM) {      
             // Удержание кнопки повышает / понижает яркость панели (лампы)
             processButtonStep();
           }            
@@ -4585,7 +4585,7 @@ void setSpecialMode(int8_t spc_mode) {
 
   String str;
   int8_t tmp_eff = -1;
-  set_specialBrightness(globalBrightness);
+  // set_specialBrightness(globalBrightness);
   specialClock = getClockOverlayEnabled() && ((CLOCK_ORIENT == 0 && allowHorizontal) || (CLOCK_ORIENT == 1 && allowVertical)); 
 
   switch(spc_mode) {
@@ -4625,6 +4625,7 @@ void setSpecialMode(int8_t spc_mode) {
       specialClock = false;
       set_isNightClock(true); // setter
       set_specialBrightness(nightClockBrightness);
+      FastLED.clear();
       break;
     case 9:  // Палитра;
       tmp_eff = MC_PALETTE;
