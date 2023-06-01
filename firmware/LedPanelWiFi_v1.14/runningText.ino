@@ -1282,7 +1282,7 @@ String processDateMacrosInText(const String text) {
   uint8_t  secs = second();
   bool     am = isAM();
   bool     pm = isPM();
-  int8_t   idx, idx2;
+  int16_t  idx, idx2;
 
   int8_t   wd = weekday()-1;  // day of the week, Sunday is day 0   
   if (wd == 0) wd = 7;        // Sunday is day 7, Monday is day 1;
