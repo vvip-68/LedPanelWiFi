@@ -360,7 +360,6 @@ void doEffectWithOverlay(uint8_t aMode) {
         }
       #endif
     }
-    
   }
   
   if ((showTextNow || aMode == MC_TEXT) && !isNightClock) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне

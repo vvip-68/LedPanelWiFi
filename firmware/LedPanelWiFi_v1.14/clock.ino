@@ -257,14 +257,14 @@ int8_t getClockX(int8_t x) {
 void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
 
   // Для отладки позиционирования часов с температурой
-  bool debug = debug_hours >= 0 && debug_mins >= 0;
+  bool debug = false; // debug_hours >= 0 && debug_mins >= 0;
   if (debug) {
     hrs = debug_hours; mins = debug_mins; 
     #if (USE_WEATHER == 1)
     temperature = debug_temperature;
     #endif
   }
-
+  
   int8_t x = X;
 
   uint8_t h10 = hrs / 10;
@@ -314,6 +314,7 @@ void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
       #endif
     }
   }
+  
   if (debug) {
     drawPixelXY(getClockX(X + CLOCK_FX), Y - 1, CRGB::Green);      
   }
@@ -348,7 +349,7 @@ void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
       x += (h10 == 0 && h01 == 1 ? -1 : 0);
       drawDigit3x5(h01, getClockX(X + x), Y, clockLED[1]);
       x += 3;
-      
+    
       if (dots) {
         drawPixelXY(getClockX(X + x), Y + 1, clockLED[2]);
         drawPixelXY(getClockX(X + x), Y + 3, clockLED[2]);
@@ -359,9 +360,10 @@ void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
 
       x += (m01 == 1 ? 3 : (m10 == 1 ? 3 : 4));
       drawDigit3x5(m01, getClockX(X + x) , Y, clockLED[4]); // шрифт 3x5 в котором 1 - по центру знакоместа - смещать влево на 1 колонку
-      
+
       x += (m01 == 1 ? 1 : 2);
       CLOCK_LX = x;     // колонка в которой находится правая точка часов
+      
       if (debug) {
         drawPixelXY(getClockX(X + CLOCK_LX), Y - 1, CRGB::Red);
       }
