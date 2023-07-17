@@ -28,11 +28,10 @@
 //
 //
 // Измените здесь при необходимости сигнатуру языка, используемого в интерфейсе
-// В этом файле есть поддержка языков Русского (сигнатура 'RUS') и Английского (сигнатура 'ENG')
+// В этом файле есть поддержка языков Русского (сигнатура 'RUS'), Английского (сигнатура 'ENG') и Испанского (сигнатура 'ESP')
 // 
-#ifndef LANG
-#define LANG 'RUS'
-#endif
+#undef  LANG
+#define LANG 'ESP'
 
 // ============================================== RUS ============================================== 
 
@@ -340,7 +339,7 @@
   // ****************** SOUNDS OF ALARMS, DAWN and RUNNING TEXT MACRO {A} ********************
   
   #if (USE_MP3 == 1)
-  // SD card in MP3 player (DFPlayer) contains under root folder three folders with names - "1","2" и "3"
+  // SD card in MP3 player (DFPlayer) contains under root folder three folders with names - "1","2" and "3"
   // Folder "1" contains MP3 sound files, playing on event of alarm
   // Folder "2" contains MP3 sound files, playing on event of dawn
   // Folder "3" contains MP3 sound files, playing on event ow shoe running text containing {A} macros
@@ -350,6 +349,13 @@
   // So, file was written into folder first of all gets index 1, next - 2 and so on and do not depends on names of files
   // These definitions contain names of sounds displayed in comboboxes inside application in order that must match to indecies of files were written into folders.
   
+  // To form the correct order of sound files, rename them on your computer in a temporary folder so that they
+  // formed the desired order, for example - just give them numeric names like 001.mp3, 002.mp3 and so on or
+  // set a numeric prefix to an existing name, for example 01_birds.mpr, 02_thunder.mp3, and so on
+  // The files in the folder should be sorted in the order of names.
+  // Next, create a folder on a clean microSD card where the sound files will be placed and copy them to
+  // an ordered list.
+
   // List of sounds for "Alarm sound" combobox in phone application or Web-interface
   #define ALARM_SOUND_LIST   F("One Step Over,In the Death Car,Horn call,Lighthouse,Mister Sandman,Сasket,Banana Phone,Carol of the Bells")
   
@@ -357,7 +363,7 @@
   #define DAWN_SOUND_LIST    F("Birds,Thunderstorm,Surf,Rain,Creek,The Mantra,La Petite Fille De La Mer")
   
   // List of sounds for {A} macros of running text in phone application or Web-interface
-  #define NOTIFY_SOUND_LIST  F("Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
+  #define NOTIFY_SOUND_LIST  F("Piece Of Cake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
                                "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal," \
                                "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3")
   
@@ -368,7 +374,7 @@
   #define LANG_IMAGE_LIST F("Heart,Mario,Weather")   
   
   // List names of Patterns effect
-  #define LANG_PATTERNS_LIST F("Zigzag,Noteы,Rhomb,Heart,Fir tree,Cells,Smile,Zigzag-2,Streaks,Waves,Scales,Curtain,Wicker,Snowflake,Squares,Greece,Circles,Roll," \
+  #define LANG_PATTERNS_LIST F("Zigzag,Notes,Rhomb,Heart,Fir tree,Cells,Smile,Zigzag-2,Streaks,Waves,Scales,Curtain,Wicker,Snowflake,Squares,Greece,Circles,Roll," \
                                "Pattern 1,Pattern 2,Pattern 3,Pattern 4,Pattern 5,Pattern 6,Pattern 7,Pattern 8,Pattern 9,Pattern 10,Pattern 11,Pattern 12,Pattern 13,Pattern 14")
 
   // Weather condition from Yandex
@@ -516,10 +522,14 @@
   #define SSecondForm_2 F(" second")
   #define SSecondForm_3 F(" seconds")
 
+  // Examples of lines for the "Running Line" that will be filled with these values when the INITIALIZE_TEXTS == 1 flag is set in a_def_hard.h (in line 62)
+  // at the initialization step when the firmware is first started on the microcontroller.
+  // These examples contain some options for using macros in a running line.
+
   #define textLine_0  F("##")
   #define textLine_1  F("")
   #define textLine_2  F("There are {C#10FF00}{R01.01.***+} {C#FFFFFF} left until the {C#00D0FF}New year!{S01.12.****#31.12.**** 23:59:59}{E21}")
-  #define textLine_3  F("{C#0019FF}New year{C#FFFFFF} in {P01.01.****#4} {C#0019FF}Нового года{C#FFFFFF} ")
+  #define textLine_3  F("{C#0019FF}New year{C#FFFFFF} in {P01.01.****#4} {C#0019FF}New Year's Eve{C#FFFFFF} ")
   #define textLine_4  F("Happy {C#00D0FF}New {C#0BFF00}{D:yyyy} {C#FFFFFF}year!{S01.01.****#31.01.**** 23:59:59}{E21}")
   #define textLine_5  F("")
   #define textLine_6  F("Show must go on!{C#000002}")
@@ -553,6 +563,9 @@
   #define textLine_Y  F("Wake up in {P7:30#Z#60#60#12345}!")
   #define textLine_Z  F("-Good morning!")
 
+  // Lines of results of operations and some other messages transmitted
+  // from the firmware to the Web application to display
+
   #define MSG_FILE_DELETED        F("File deleted")
   #define MSG_FILE_DELETE_ERROR   F("File delete error")
   #define MSG_FILE_SAVED          F("File sucessfully saved")
@@ -581,6 +594,286 @@
 
 #endif
 
+// ============================================== ESP ============================================== 
+
+#if (LANG == 'ESP')
+  #define UI F("ESP")
+  
+  // Lista y orden de los efectos, transmitido al interfaz web. 
+  // El orden de los nombres de los efectos en la lista debe coincidir con la lista de los efectos determinada en el archivo a_def_soft.h 
+  // en las lineas desde 119 
+  
+#if (USE_SD == 1)                      
+    #define EFFECT_LIST F("Reloj,Lampara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti," \
+                          "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color," \
+                          "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid," \
+                          "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Animación,Clima,Patrones,Rubik,Estrellas,Cortina,Tráfico," \
+                          "Diapositivas,Amanecer,Tarjeta SD")
+  #else
+    #define EFFECT_LIST F("Reloj,Lámpara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti," \
+                          "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color," \
+                          "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid," \
+                          "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Animación,Clima,Patrones,Rubik,Estrellas,Cortina,Tráfico," \
+                          "Diapositivas,Amanecer")
+  #endif
+
+  // ****************** DEFINICION DE LOS PARAMETROS DEL DESPERTADOR ********************
+  
+  #if (USE_MP3 == 1)
+  // Tarjeta SD en el reproductor de MP3 (DFPlayer) contiene en su raiz tres carpetas - "01","02" и "03"
+  // Carpeta "01" contiene los archivos MP3 de los sonidos que estan sonando cuando ocurre el evento de despertador
+  // Carpeta "02" contiene los archivos MP3 de los sonidos que estan sonando cuando ocurre el evento de ocaso
+  // Carpeta "03" contiene los archivos MP3 de los sonidos que estan sonando en el macro {A} de letrero de desplazamiento
+  // DFPlayer no tiene posibilidad de leer los nombres de los archivos, solo se puede recibir la cantidad de los archivos en la carpeta.
+  // El comando de reproducir el sonido significa - reproducir el archivo con index (numero) N desde la caprpeta M
+  // Los numeros de los archivos estan definidos por la tabla de colocacion de los archivos de tarjeta SD (FAT) y se forman en el orden de inscripcion de los archivos en la tarjeta vacia
+  // Asi, el archivo colocado el primero recibe el numero 1, el segundo ' 2, etc. y eso de ningun manera depende de los nombres propios de los archivos.
+  // Estos matrizes contienen los nombres de los sonidos que se muestran en la aplicacion en el orden que coincide con la numeracion de los archivos en la carpeta.
+  //
+  // Para formar el orden correcto de los archivos de los sonidos cambia sus nombres en el ordenador en la carpeta temporal asi que ellos
+  // se mantengan en el orden necesario, por ejemplo - dales simples nombres numericos  001.mp3, 002.mp3 etc. o 
+  // dales un prefijo numerico a su nombre actual, por ejemplo 01_birds.mpr, 02_thunder.mp3 etc.
+  // Los archivos en la carpeta deben ser ordenados en el orden de sus nombres.
+  // Ahora hay que crear en la tarjeta SD vacia una carpeta para meter alli los archivos de sonidos, y hay que copiarlos alli 
+  // como una lista ordenada.
+  
+  // Lista de los sonidos para la caja combo "El Sonido del Despertador" en la aplicacion en el movil
+  #define ALARM_SOUND_LIST   F("One Step Over,In the Death Car,La Trompeta Esta Llamando,Farola,Mister Sandman,Ataud,Banana Phone,Carol of the Bells")
+  
+  // Lista de los sonidos para la caja combo "El Sonido del Ocaso" en la aplicacion en el movil
+  #define DAWN_SOUND_LIST    F("Aves,Tormenta,Surf,Lluvia,Arroyo,Mantra,La Petite Fille De La Mer")
+  
+  // Lista de los sonidos `para el macro {A} de letrero de desplazamiento
+  #define NOTIFY_SOUND_LIST  F("Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
+                               "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal," \
+                               "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3")
+  
+  #endif
+
+  // Lista de los nombres de animaciones. Las animaciones estan definidos en el archivo 'animation.ino'
+  #define LANG_IMAGE_LIST F("Corazon,Mario,Tiempo")   
+
+  // Lista de nombres de los patrones
+  #define LANG_PATTERNS_LIST F("Zigzag,Notas musicales,Rombo,Corazón,Arbol de Navidad,Celda,Carita sonriente,Zigzag,Rayas,Ondas,Escamas,Cortinas,Trenza,Copo de nieve,Cuadrados,Grecia,Círculos,Rollo," \
+                               "Patron 1,Patron 2,Patron 3,Patron 4,Patron 5,Patron 6,Patron 7,Patron 8,Patron 9,Patron 10,Patron 11,Patron 12,Patron 13,Patron 14")
+
+  // Condiciones del tiempo por Yandex
+  #define Y_CODE_01 F("parcialmente nublado, lluvia ligera")             // cloudy, light rain
+  #define Y_CODE_02 F("parcialmente nublado, nieve ligera")              // cloudy, light snow
+  #define Y_CODE_03 F("parcialmente nublado, nieve ligera con lluvia")   // cloudy, wet snow
+  #define Y_CODE_04 F("parcialmente nublado")                            // partly cloudy
+  #define Y_CODE_05 F("parcialmente nublado, lluvia")                    // partly cloudy, rain
+  #define Y_CODE_06 F("parcialmente nublado, nieve")                     // partly cloudy, show
+  #define Y_CODE_07 F("parcialmente nublado, chubascos de nieve")        // partly cloudy, wet snow
+  #define Y_CODE_08 F("tormenta de nieve")                               // snowstorm
+  #define Y_CODE_09 F("niebla")                                          // fog
+  #define Y_CODE_10 F("Principalmente nublado")                          // overcast
+  #define Y_CODE_11 F("nublado, a veces lluvia")                         // overcast, light rain 
+  #define Y_CODE_12 F("nublado, a veces nieve")                          // overcast, light snow
+  #define Y_CODE_13 F("nublado con nieve y lluvia ocasionales")          // overcast, wet snow 
+  #define Y_CODE_14 F("nublado, lluvia")                                 // overcast, rain
+  #define Y_CODE_15 F("nublado, nieve y lluvia")                         // overcast, wet snow
+  #define Y_CODE_16 F("nublado, nieve")                                  // overcast, show
+  #define Y_CODE_17 F("nublado, lluvia con truenos")                     // overcast, thunderstorm withrain
+  #define Y_CODE_18 F("despejado")                                       // clear
+
+  // Condiciones del tiempo por OpenWeatherMap
+  #define W_CODE_200 F("Tormenta, lluvia ligera")                        // thunderstorm with light rain
+  #define W_CODE_201 F("Lluvia con truenos")                             // thunderstorm with rain
+  #define W_CODE_202 F("Tormenta, chubascos")                            // thunderstorm with heavy rain
+  #define W_CODE_210 F("pequeña tormenta")                               // light thunderstorm
+  #define W_CODE_211 F("Tormenta")                                       // thunderstorm
+  #define W_CODE_212 F("Tormenta fuerte")                                // heavy thunderstorm
+  #define W_CODE_221 F("tormentas eléctricas intermitentes")             // ragged thunderstorm
+  #define W_CODE_230 F("Tormenta, lluvia ligera")                        // thunderstorm with light drizzle
+  #define W_CODE_231 F("Tormenta con lluvia")                            // thunderstorm with drizzle
+  #define W_CODE_232 F("Tormenta con fuertes lluvias")                   // thunderstorm with heavy drizzle
+  #define W_CODE_300 F("lluvia fina")                                    // light intensity drizzle
+  #define W_CODE_301 F("lluvia torrencial")                              // drizzle
+  #define W_CODE_302 F("Lluvia Pesada")                                  // heavy intensity drizzle
+  #define W_CODE_310 F("Lluvia pequeña")                                 // light intensity drizzle rain
+  #define W_CODE_311 F("lluvia torrencial")                              // drizzle rain
+  #define W_CODE_312 F("Lluvia Pesada")                                  // heavy intensity drizzle rain
+  #define W_CODE_313 F("Aguacero, lluvia y llovizna")                    // shower rain and drizzle
+  #define W_CODE_314 F("Fuerte aguacero, lluvia y llovizna")             // heavy shower rain and drizzle
+  #define W_CODE_321 F("lluvia torrencial")                              // shower drizzle  
+  #define W_CODE_500 F("Lluvia pequeña")                                 // light rain
+  #define W_CODE_501 F("lluvia moderada")                                // moderate rain
+  #define W_CODE_502 F("Ducha")                                          // heavy intensity rain
+  #define W_CODE_503 F("Lluvia torrencial")                              // very heavy rain
+  #define W_CODE_504 F("Lluvia torrencial")                              // extreme rain
+  #define W_CODE_511 F("Granizo")                                        // freezing rain
+  #define W_CODE_520 F("Lluvia pequeña")                                 // light intensity shower rain
+  #define W_CODE_521 F("lluvia torrencial")                              // shower rain
+  #define W_CODE_522 F("Lluvia Pesada")                                  // heavy intensity shower rain
+  #define W_CODE_531 F("Lluvia a veces")                                 // ragged shower rain
+  #define W_CODE_600 F("nieve pequeña")                                  // light snow
+  #define W_CODE_601 F("Nieve")                                          // Snow
+  #define W_CODE_602 F("Nevada")                                         // Heavy snow
+  #define W_CODE_611 F("Fango")                                          // Sleet
+  #define W_CODE_612 F("nieve ligera")                                   // Light shower sleet
+  #define W_CODE_613 F("aguacero, nieve")                                // Shower sleet
+  #define W_CODE_615 F("Nieve humeda")                                   // Light rain and snow
+  #define W_CODE_616 F("lluvia con nieve")                               // Rain and snow
+  #define W_CODE_620 F("nevada ligera")                                  // Light shower snow
+  #define W_CODE_621 F("nevada, ventisca")                               // Shower snow
+  #define W_CODE_622 F("fuerte nevada")                                  // Heavy shower snow
+  #define W_CODE_701 F("Niebla")                                         // mist
+  #define W_CODE_711 F("Bruma")                                          // Smoke
+  #define W_CODE_721 F("Niebla ligera")                                  // Haze
+  #define W_CODE_731 F("remolinos de polvo")                             // sand/ dust whirls
+  #define W_CODE_741 F("Bruma")                                          // fog
+  #define W_CODE_751 F("torbellinos de arena")                           // sand
+  #define W_CODE_761 F("Remolinos de polvo")                             // dust
+  #define W_CODE_762 F("ceniza volcánica")                               // volcanic ash
+  #define W_CODE_771 F("viento chubasco")                                // squalls
+  #define W_CODE_781 F("Tornado")                                        // tornado
+  #define W_CODE_800 F("Despejado")                                      // clear sky
+  #define W_CODE_801 F("Parcialmente nublado")                           // few clouds: 11-25%
+  #define W_CODE_802 F("Parcialmente nublado")                           // scattered clouds: 25-50%
+  #define W_CODE_803 F("Nublado con claros")                             // broken clouds: 51-84%
+  #define W_CODE_804 F("Principalmente nublado")                         // overcast clouds: 85-100%
+
+  // Константы вывода даты в бегущей строке
+
+  #define SMonth_01  F("enero")
+  #define SMonth_02  F("febrero")
+  #define SMonth_03  F("marzo")
+  #define SMonth_04  F("abril")
+  #define SMonth_05  F("mayo")
+  #define SMonth_06  F("junio")
+  #define SMonth_07  F("julio")
+  #define SMonth_08  F("agosto")
+  #define SMonth_09  F("septiembre")
+  #define SMonth_10  F("octubre")
+  #define SMonth_11  F("noviembre")
+  #define SMonth_12  F("diciembre")
+
+  #define SMnth_01   F("ene")
+  #define SMnth_02   F("feb")
+  #define SMnth_03   F("mar")
+  #define SMnth_04   F("abr")
+  #define SMnth_05   F("may")
+  #define SMnth_06   F("jun")
+  #define SMnth_07   F("jul")
+  #define SMnth_08   F("ago")
+  #define SMnth_09   F("sep")
+  #define SMnth_10   F("oct")
+  #define SMnth_11   F("nov")
+  #define SMnth_12   F("dic")
+
+  #define SDayFull_1 F("lunes")
+  #define SDayFull_2 F("martes")
+  #define SDayFull_3 F("miercoles")
+  #define SDayFull_4 F("jueves")
+  #define SDayFull_5 F("viernes")
+  #define SDayFull_6 F("sabado")
+  #define SDayFull_7 F("domingo")
+
+  #define SDayShort_1 F("lun")
+  #define SDayShort_2 F("mart")
+  #define SDayShort_3 F("mier")
+  #define SDayShort_4 F("juev")
+  #define SDayShort_5 F("vier")
+  #define SDayShort_6 F("sab")
+  #define SDayShort_7 F("dom")
+  
+  #define SDayShrt_1 F("L")
+  #define SDayShrt_2 F("M")
+  #define SDayShrt_3 F("X")
+  #define SDayShrt_4 F("J")
+  #define SDayShrt_5 F("V")
+  #define SDayShrt_6 F("S")
+  #define SDayShrt_7 F("D")
+
+
+  #define SDayForm_1 F(" dias")         // El espacio al principio es obligatorio
+  #define SDayForm_2 F(" dia")
+  #define SDayForm_3 F(" dia")
+ 
+  #define SHourForm_1 F(" hora")        // El espacio al principio es obligatorio
+  #define SHourForm_2 F(" hora")
+  #define SHourForm_3 F(" horas")
+
+  #define SMinuteForm_1 F(" minutos")   // El espacio al principio es obligatorio
+  #define SMinuteForm_2 F(" minuto")
+  #define SMinuteForm_3 F(" minuto")
+
+  #define SSecondForm_1 F(" segunda")   // El espacio al principio es obligatorio
+  #define SSecondForm_2 F(" segunda")
+  #define SSecondForm_3 F(" segunda")
+
+  // Ejemplos de frases para "Letrero de desplazamiento", que van a ser rellenados con esos parametros si esta marcado INITIALIZE_TEXTS == 1 en a_def_hard.h (en linea 62)
+  // en el paso de inicializacion al primer comienzo del firmware del microcontrolador.
+  // Estos ejemplos contienes algunos variantes del uso de los macros en el letrero de desplazamiento. 
+  
+  #define textLine_0  F("##")
+  #define textLine_1  F("Todo estará bien!")
+  #define textLine_2  F("Hasta {C#00D0FF}La Navidad {C#FFFFFF}se queda {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}")
+  #define textLine_3  F("Hasta {C#0019FF}La Navidad{C#FFFFFF} {P01.01.****#4}")
+  #define textLine_4  F("Feliz {C#00D0FF}Navidad {C#0BFF00}{D:yyyy} {C#FFFFFF}!!!{S01.01.****#31.01.**** 23:59:59}{E21}")
+  #define textLine_5  F("En {C#10FF00}Madrid {C#FFFFFF}{WS} {WT}°C")
+  #define textLine_6  F("Show must go on!{C#000002}")
+  #define textLine_7  F("{C#FF000F}Habracadabra! {C#00FF00}Bum!!!{E24}")
+  #define textLine_8  F("Prepárense, gente, se acerca {C#FF0300}el verano!{S01.01.****#10.04.****}")
+  #define textLine_9  F("¿Que {C#0081FF}pasa{C#FFFFFF} Hombre?")
+  #define textLine_A  F("{C#000001}¡Uno! ¡¡Dos!! Tres!!! {C#33C309}Tira,{B#000000}{C#000001} ¡¡¡Otravez!!!")
+  #define textLine_B  F("Esa linia on tiene nada...")
+  #define textLine_C  F("¡Que bonito!")
+  #define textLine_D  F("Hola, hola caracola...")
+  #define textLine_E  F("Hay algo inteligente en esto....")
+  #define textLine_F  F("En {C#10FF00}Madrid {C#FFFFFF}{WS} {WT}°C")
+  #define textLine_G  F("Eso es todo, {C#FF0000}hombre{C#FFFFFF}!..")
+  #define textLine_H  F("Hoy {D:dd MMMM yyyy}, dia {D:dddd}")
+  #define textLine_I  F("Pareza - motor de progreso")
+  #define textLine_J  F("123")
+  #define textLine_K  F("456{S07.01.****}")
+  #define textLine_L  F("789{S09.05.**** 7:00#09.05.**** 21:30}")
+  #define textLine_M  F("Ahora {D:dddd dd MMMM}, temperatura {WS}, {WT}°C{E25}")
+  #define textLine_N  F("321")
+  #define textLine_O  F("132")
+  #define textLine_P  F("465")
+  #define textLine_Q  F("657")
+  #define textLine_R  F("¡Porque? ¡Por que!")
+  #define textLine_S  F("!")
+  #define textLine_T  F("876!")
+  #define textLine_U  F("8765!{S15.05.****#01.09.****}")
+  #define textLine_V  F("9098")
+  #define textLine_W  F("0999")
+  #define textLine_X  F("00000000")
+  #define textLine_Y  F("Levantote desde {P7:30#Z#60#60#12345}!")
+  #define textLine_Z  F("BUENOS DIAS!")
+
+  // Líneas de resultados de ejecución de operaciones y algunos otros mensajes transmitidos
+  // del firmware a la aplicación web para mostrar
+  
+  #define MSG_FILE_DELETED        F("Archivo eliminado")
+  #define MSG_FILE_DELETE_ERROR   F("Error de eliminación de archivos")
+  #define MSG_FILE_SAVED          F("Archivo guardado")
+  #define MSG_FILE_SAVE_ERROR     F("Error al escribir en el archivo")
+  #define MSG_FILE_CREATE_ERROR   F("Error de creación de archivo")
+  #define MSG_FOLDER_CREATE_ERROR F("Error al crear una carpeta para almacenar imágenes")
+  #define MSG_FILE_LOADED         F("Archivo descargado")
+  #define MSG_FILE_LOAD_ERROR     F("Error de lectura de archivo")
+  #define MSG_FILE_NOT_FOUND      F("Archivo no encontrado")
+  #define MSG_FOLDER_NOT_FOUND    F("Carpeta de imágenes no encontrada")
+  #define MSG_BACKUP_SAVE_ERROR   F("No se pudo hacer una copia de seguridad de la configuración")
+  #define MSG_BACKUP_SAVE_OK      F("Configuraciones respaldadas creadas")
+  #define MSG_BACKUP_LOAD_ERROR   F("Error al cargar la copia de seguridad de la configuración")
+  #define MSG_BACKUP_LOAD_OK      F("Configuración de copia de seguridad restaurada")
+  #define MSG_OP_SUCCESS          F("Los ajustes se han guardado")
+
+  #define MODE_NIGHT_CLOCK        F("Reloj de la noche")
+  #define MODE_CLOCK              F("Reloj")
+  #define MODE_RUNNING_TEXT       F("Letras desplasamento")
+  #define MODE_LOAD_PICTURE       F("Carga de imagen")
+  #define MODE_DRAW               F("Dibujo")
+  #define MODE_DAWN               F("Amanecer")
+
+  #define WTR_LANG_YA             F("es")      // Yandex.Weather: parece entender solo "ru" y "en"
+  #define WTR_LANG_OWM            F("es")      // OpenWeatherMap = 2 - [código de idioma alfabético-ru,en,de,fr, it y así sucesivamente. Si el idioma no sabe - devuelve tanto para en
+  
+#endif
 // ================================================================================================= 
 
 #ifndef EFFECT_LIST

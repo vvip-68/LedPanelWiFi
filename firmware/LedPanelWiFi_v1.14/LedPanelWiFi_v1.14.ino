@@ -343,6 +343,9 @@ void setup() {
   DEBUGLN();
   DEBUGLN(F("Доступные возможности:"));
   
+  DEBUG(F("+ Язык интерфейса: "));
+  DEBUGLN(UI);
+  
   DEBUG(F("+ Бегущая строка: шрифт "));
   if (BIG_FONT == 0)
     DEBUGLN(F("5x8"));
