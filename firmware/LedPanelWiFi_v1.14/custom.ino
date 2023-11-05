@@ -276,9 +276,9 @@ void doEffectWithOverlay(uint8_t aMode) {
         CLOCK_XC--;
         if (getClockX(CLOCK_XC + CLOCK_LX) < 0) {
          if (vDEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
-           CLOCK_XC = pWIDTH - CLOCK_W - 1;
-         else
-           CLOCK_XC = pWIDTH - CLOCK_FX - 1;
+           CLOCK_XC = pWIDTH - CLOCK_W + (CLOCK_ORIENT == 0 ? (c_size == 1 ? 8 : -1) : (c_size == 1 ? 8 : 10));     // Тут непонятно почему + 8; В малых часах есть поправка -9, иначе почему-то часы и календарь не на одном и том же месте
+         else                                                                                                      // отображаются при скроллинге. Но если поправки тут не делать - когда скрываются за левым краем с правого появляются спазццу на 9 пикселей от края  
+           CLOCK_XC = pWIDTH - CLOCK_FX + (CLOCK_ORIENT == 0 ? (c_size == 1 ? 8 : -1) : (c_size == 1 ? 8 : 10));
         }     
         CALENDAR_XC = CLOCK_XC + (CALENDAR_W - CLOCK_W) / 2;
       }

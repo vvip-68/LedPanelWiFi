@@ -454,6 +454,12 @@ void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
 
     } else {
 
+      // Движущиеся большие вертикальные часы не совпадает с позицией отрисовки календаря по x на 11 точек. Часы рисуются правее.
+      // Скорректировать позицию отрисовки часов до позиции отрисовки календаря
+      if (clockScrollSpeed < 240) {
+        x -= 11;
+      }
+
       // Большие часы
       drawDigit5x7(h10, X + x, Y + 7, clockLED[0]);
       drawDigit5x7(h01, X + x + 6, Y + 7, clockLED[1]);
