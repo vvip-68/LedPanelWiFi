@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.0602")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.1108")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -34,10 +34,10 @@
 //       Если включена поддкржка всех возможностий и компилятор ругается на недостаток памяти - придется отказаться от
 //       возможности обновления "по воздуху" (OTA, Over The Air) и выбрать вариант распределения памяти устройства "Partition scheme: No OTA (2MB APP/2MB SPIFFS)";
 //
-//   Внимание!!! - если при нажатии кнопки смены эффеекта в Web-приложении вы получаете краш программы с сообщением в журнале либо "Stack owerflow", либо "Heap corrupted"
+//   Внимание!!! - если при нажатии кнопки смены эффекта в Web-приложении вы получаете краш программы с сообщением в журнале либо "Stack overflow", либо "Heap corrupted"
 //   перейдите в папку C:\Users\<user>\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\ и далее найдите файлы
 //                     \cores\esp32\main.cpp, \tools\sdk\sdkconfig, \tools\sdk\include\config\sdkconfig.h
-//   В каждом из этих файлов найдите строчку - параметр CONFIG_ARDUINO_LOOP_STACK_SIZE и измените значание по умолчанию 8192 на 16138, пересоберите проект с новым значением параметра     
+//   В каждом из этих файлов найдите строчку - параметр CONFIG_ARDUINO_LOOP_STACK_SIZE и измените значение по умолчанию 8192 на 16138, пересоберите проект с новым значением параметра     
 // 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -535,7 +535,8 @@ void setup() {
       butt->setStepTimeout(100);
       butt->setClickTimeout(300);
       butt->setDebounce(50);
-      butt->tick(true);
+      butt->tick();
+      butt->isHolded();
     }
   #endif
 
@@ -665,7 +666,7 @@ void loop() {
   if (wifi_connected) {
     ArduinoOTA.handle();
   }
-  
+
   ws.cleanupClients();
   processOutQueueW();
 

@@ -500,7 +500,7 @@ void process() {
           #endif
 
           if (clicks == 0 && butt->isHolded()) {
-          // Управление яркостью - только если нажата и уделживается без предварительного короткого нажатия
+            // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
             isButtonHold = true;
             if (globalBrightness == 255)
               brightDirection = false;
@@ -510,7 +510,7 @@ void process() {
             } else  
               brightDirection = !brightDirection;
           }
-          
+         
           // Был двойной клик - следующий эффект, сброс автоматического переключения
           if (clicks == 2) {
             bool tmpSaveSpecial = specialMode;
