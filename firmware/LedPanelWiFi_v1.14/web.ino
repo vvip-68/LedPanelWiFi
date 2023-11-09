@@ -1,25 +1,22 @@
 // --------------- WEB-SERVER CALLBACK ----------------
 #define BASE_WEB F("/web")
-
 // Эта страница отображается, если по какой-то причине файловая система не активирована
 // например, прошивка загружена, а файлы WebServer`a не загружены или прошивка скомпилирована
 // без выделения места под файловую систему
-void handleNotActive(AsyncWebServerRequest *request) {
-  String text = 
-  
-F("<!doctype html><html><head><meta charset=\"utf-8\"><title>Server not active</title><style>\
-* {margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}\
-section {position:relative;width:100%;height:100vh;}\
-section .box {position:absolute;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;}\
-section .box.box2 {background:#7f54ce;clip-path:polygon(0 0,100% 0,100% 50%,0 50%);}\
-section .box h2 {color:#7f54ce;font-size:6vw;text-align:center;animation:anim 3s ease-in-out infinite;}\
-section .box.box2 h2 {color:#fff;}\
-@keyframes anim {0%,45%{transform:translateY(-70%);} 55%,90%{transform:translateY(70%);} 100%{transform:translateY(-70%);}}</style></head>\
-<body><section><div class=\"box box1\"><h2>Server not active</h2></div><div class=\"box box2\"><h2>Сервер не активен</h2></div></section></body></html>");
+static const char PGindex_page[] PROGMEM = R"===(
+<!doctype html><html><head><meta charset="utf-8"><title>Server not active</title><style>
+* {margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}
+section {position:relative;width:100%;height:100vh;}
+section .box {position:absolute;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;}
+section .box.box2 {background:#7f54ce;clip-path:polygon(0 0,100% 0,100% 50%,0 50%);}
+section .box h2 {color:#7f54ce;font-size:6vw;text-align:center;animation:anim 3s ease-in-out infinite;}
+section .box.box2 h2 {color:#fff;}
+@keyframes anim {0%,45%{transform:translateY(-70%);} 55%,90%{transform:translateY(70%);} 100%{transform:translateY(-70%);}}</style></head>
+<body><section><div class="box box1"><h2>Server not active</h2></div><div class="box box2"><h2>Сервер не активен</h2></div></section></body></html>
+)===";
 
-  char temp[880];
-  strcpy(temp, text.c_str());
-  request->send(200, F("text/html"), temp);
+void handleNotActive(AsyncWebServerRequest *request) {
+  request->send_P(200, F("text/html"), PGindex_page);
 }
 
 void handleRoot(AsyncWebServerRequest *request) {
