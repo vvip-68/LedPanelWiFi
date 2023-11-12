@@ -158,6 +158,9 @@ void setup() {
     ESP.wdtEnable(WDTO_8S);
   #endif
 
+  // allocate heap mem for buffer
+  incomeBuffer = new char[BUF_MAX_SIZE];
+
   // Инициализация EEPROM и загрузка начальных значений переменных и параметров
   EEPROM.begin(EEPROM_MAX);
   delay(100);
