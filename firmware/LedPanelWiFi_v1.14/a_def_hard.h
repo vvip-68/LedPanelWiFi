@@ -515,3 +515,4 @@
 #define DEBUGLN(x)   if (vDEBUG_SERIAL) Serial.println(x)
 #define DEBUG(x)     if (vDEBUG_SERIAL) Serial.print(x)
 #define DEBUGR(x, r) if (vDEBUG_SERIAL) Serial.print(x, r)
+#define DEBUGWR(b, l) if (vDEBUG_SERIAL) Serial.write(b, l)

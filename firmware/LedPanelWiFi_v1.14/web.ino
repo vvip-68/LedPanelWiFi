@@ -155,21 +155,25 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
   // обрабатываем получаемые сообщения
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    data[len] = 0;
-    memset(incomeCmdBuffer, 0, BUF_CMD_SIZE);
-    memcpy(incomeCmdBuffer, data, len);
+    //data[len] = 0;
+    //memset(incomeCmdBuffer, 0, BUF_CMD_SIZE);
+    //memcpy(incomeCmdBuffer, data, len);
     
-    String json = String(incomeCmdBuffer);
+    //String json = String(incomeCmdBuffer);
     //DEBUGLN("json='" + json + "'");
     doc.clear();
-    DeserializationError error = deserializeJson(doc, json.c_str());
+    DeserializationError error = deserializeJson(doc, (const char*)data, len);  // deserialize with deep-copy
     if (error) {
-      DEBUGLN(String(F("Ошибка в JSON: '")) + json + "'; err: " + String(error.f_str()));
+      //DEBUGLN(String(F("Ошибка в JSON: '")) + json + "'; err: " + String(error.f_str()));
+      DEBUG(F("Ошибка в JSON: '"));
+      DEBUGWR(data, len);
+      DEBUG("'; err: ");
+      DEBUGLN(error.f_str());
       return;
     }
     
-    String event = doc["e"].as<String>();   
-    String command = doc["d"].as<String>(); 
+    String event(doc["e"].as<const char*>());
+    String command(doc["d"].as<const char*>()); 
 
     // DEBUGLN(String(F("<-- ")) + json);
 
@@ -180,7 +184,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
       uint32_t count = CountTokens(command, '\n');
 
       for (uint8_t i=1; i<=count; i++) {
-        String cmd = GetToken(command, i, '\n');
+        String cmd(GetToken(command, i, '\n'));
         cmd.replace('~', '\n');
         cmd.trim();
         // После разделения команд во 2 и далее строке '$' (начало команды) удален - восстановить
@@ -244,17 +248,17 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 
-String prepareMessage(String &message, String &topic) {
-  String out;
+String prepareMessage(const String &message, const String &topic) {
   doc.clear();
   doc["e"] = topic;
   doc["d"] = message;
-  serializeJson(doc, out);      
+  String out;
+  serializeJson(doc, out);
 //DEBUGLN(out);
   return out;
 }
 
-void putOutQueueW(String topic, String message) {
+void putOutQueueW(const String& topic, const String& message) {
   
   // Если нет подключенных клиентов - ничего никому отправлять не нужно
   if (web_client_count == 0) {
@@ -276,7 +280,7 @@ void putOutQueueW(String topic, String message) {
   }
 }
 
-void SendWeb(String &message, String topic) {
+void SendWeb(const String &message, const String& topic) {
   if (web_client_count < 0) web_client_count = 0;
   if (web_client_count == 0) return;
 
@@ -287,11 +291,11 @@ void SendWebError(String &message) {
   SendWebKey("ER", message);
 }
 
-void SendWebInfo(String &message) {
+void SendWebInfo(const String &message) {
   SendWebKey("NF", message);
 }
 
-void SendWebKey(String key, String value) {
+void SendWebKey(const String& key, const String& value) {
   String out, topic = TOPIC_STT;
 
   doc.clear();
@@ -334,7 +338,7 @@ void processOutQueueW() {
       if (!isClosed) {        
         DEBUGLN(F("-----------------------------"));                      // !!!
         DEBUGLN(F("Запись в сокет недоступна!"));                         // !!!
-        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // !!!
+        DEBUG(F("Клиентов подключено: ")); DEBUGLN( ws.count());          // !!!
         DEBUGLN(F("Перезапуск сокета..."));                               // !!!
         // !!! Этой функции нет в стандартной библиотеке. Она есть только в измененной из папки проекта.
         // !!! Если здесь возникает ошибка - скопируйте библиотеку ESPAsyncWebServer из папки проекта libraries в
@@ -380,8 +384,8 @@ void processOutQueueW() {
     }
     
     // Извлекаем сообщение из очереди
-    outWQueue[outWQueueReadIdx] = "";
-    tpcWQueue[outWQueueReadIdx] = "";
+    outWQueue[outWQueueReadIdx].clear();
+    tpcWQueue[outWQueueReadIdx].clear();
     outWQueueReadIdx++;
     
     if (outWQueueReadIdx >= QSIZE_OUT) outWQueueReadIdx = 0;
@@ -403,7 +407,7 @@ void processOutQueueW() {
 
 void checkWebDirectory() {
 
-  String directoryName = String(BASE_WEB);
+  String directoryName(BASE_WEB);
   DEBUG(F("Папка '"));
   DEBUG(directoryName);
   
@@ -416,14 +420,14 @@ void checkWebDirectory() {
   
   DEBUGLN(F("Cпискок файлов web-интерфейса:"));  
 
-  String dir_name = directoryName;
+  String dir_name(directoryName);
   int16_t p = dir_name.lastIndexOf("/");
   if (p >= 0) dir_name = dir_name.substring(p + 1);
 
   checkWebSubDir(1, directoryName, dir_name);  
 }
 
-void checkWebSubDir(uint8_t level, String full_dir_name, String dir_name) {
+void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& dir_name) {
   
   String   file_name, fs, sp;
   uint32_t file_size;
