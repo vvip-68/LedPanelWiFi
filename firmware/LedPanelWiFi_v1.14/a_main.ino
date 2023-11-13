@@ -1,4 +1,7 @@
 // ----------------------------------------------------
+#ifdef ESP32
+#include "utility_esp32.h"
+#endif  // ESP32
 
 // Контроль времени цикла
 uint32_t last_ms = millis();  
@@ -572,13 +575,13 @@ void process() {
 }
 
 String getEffectName(int8_t mode) {
-  String ef_name = "";
+  String ef_name;
   switch (mode) {
     case MC_CLOCK:      
       if (isNightClock)
-        ef_name = String(MODE_NIGHT_CLOCK);
+        ef_name = MODE_NIGHT_CLOCK;
       else
-        ef_name = String(MODE_CLOCK);
+        ef_name = MODE_CLOCK;
       break;
     case MC_TEXT:
       ef_name = MODE_RUNNING_TEXT;
@@ -590,20 +593,20 @@ String getEffectName(int8_t mode) {
       ef_name = MODE_DRAW;
       break;
     case -1:      
-      ef_name = "";
+      ef_name.clear();
       break;
     default:
+
       // Определить какой эффект включился
-      String s_tmp = String(EFFECT_LIST);    
-      uint16_t len1 = s_tmp.length();
-      s_tmp = GetToken(s_tmp, mode + 1, ',');
-      uint16_t len2 = s_tmp.length();
-      if (len1 > len2) { 
-        ef_name = s_tmp;
-      } else {
-        // Если режим отсутствует в списке эффектов - имя не определено
-        ef_name = "";
-      }    
+#ifdef ESP32
+      // I could have used std::string_view with c++17
+      std::string s_tmp(EFFECT_LIST);
+      ef_name = getToken(s_tmp, mode + 1, ',').c_str();
+#else
+      String s_tmp(EFFECT_LIST);
+      ef_name = GetToken(s_tmp, mode + 1, ',');
+#endif // ESP32
+      // Если режим отсутствует в списке эффектов - имя остаётся пустым 
       break;
   } 
   return ef_name;
