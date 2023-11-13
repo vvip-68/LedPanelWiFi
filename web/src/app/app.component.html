@@ -5,9 +5,11 @@
       <div class="lamp"></div>
       <h1>{{managementService.state.hostName}}</h1>
       <div class="spacer">
-        <div class="size_panel" *ngIf="managementService.state.width > 0 && managementService.state.height > 0">
-          [{{managementService.state.width}} x {{managementService.state.height}}]
-        </div>
+        @if (managementService.state.width > 0 && managementService.state.height > 0) {
+          <div class="size_panel">
+            [{{managementService.state.width}} x {{managementService.state.height}}]
+          </div>
+        }
       </div>
       <div class="themes">
         <mat-icon class="light" matTooltip="{{L.$('Светлая тема')}}" (click)="setDarkTheme(false)">wb_sunny</mat-icon>
@@ -19,111 +21,161 @@
     </mat-toolbar-row>
   </mat-toolbar>
 
-  <div class="alarm" *ngIf="managementService.state.alarming && socketService.isConnected">
-    <mat-icon class="ding" (click)="stopAlarm()">notifications_active</mat-icon>
-  </div>
-
-  <div *ngIf="socketService.firstConnect || !socketService.isConnected" class="connect-wrapper">
-    <div class="connect-message">
-      <mat-icon class="wifi-sign">wifi</mat-icon>
-      <h1>{{socketService.firstConnect ? (L.loaded ? L.$('Подключение...') : '. . . . . . . . . . . .') : L.$('Соeдинение утеряно...')}}</h1>
+  @if (managementService.state.alarming && socketService.isConnected) {
+    <div class="alarm">
+      <mat-icon class="ding" (click)="stopAlarm()">notifications_active</mat-icon>
     </div>
-  </div>
+  }
 
-  <div *ngIf="socketService.firstConnect" class="page-content" role="main">
-  </div>
+  @if (socketService.firstConnect || !socketService.isConnected) {
+    <div class="connect-wrapper">
+      <div class="connect-message">
+        <mat-icon class="wifi-sign">wifi</mat-icon>
+        <h1>{{socketService.firstConnect ? (L.loaded ? L.$('Подключение...') : '. . . . . . . . . . . .') : L.$('Соeдинение утеряно...')}}</h1>
+      </div>
+    </div>
+  }
 
-  <div *ngIf="!socketService.firstConnect" class="page-content" role="main">
-    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" [(selectedIndex)]="selectedTab">
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Эффекты ')}}">blur_on</mat-icon>
-          <span>{{ L.$('Эффекты ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-effects></app-tab-effects>
-        </ng-template>
-      </mat-tab>
+  @if (socketService.firstConnect) {
+    <div class="page-content" role="main"></div>
+  }
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Тексты ')}}">title</mat-icon>
-          <span>{{ L.$('Тексты ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-texts-panel></app-tab-texts-panel>
-        </ng-template>
-      </mat-tab>
+  @if (!socketService.firstConnect) {
+    <div class="page-content" role="main">
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center" [(selectedIndex)]="selectedTab">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Эффекты ')}}">blur_on</mat-icon>
+            <span>{{ L.$('Эффекты ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+          @defer (on viewport) {
+            <app-tab-effects></app-tab-effects>
+          } @placeholder {
+            <div>{{ L.$('Эффекты ') }}</div>
+          }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Часы ')}}">schedule</mat-icon>
-          <span>{{ L.$('Часы ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-clock></app-tab-clock>
-        </ng-template>
-      </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Тексты ')}}">title</mat-icon>
+            <span>{{ L.$('Тексты ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-texts-panel></app-tab-texts-panel>
+            } @placeholder {
+              <div>{{ L.$('Тексты ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Будильник ')}}">alarm</mat-icon>
-          <span>{{ L.$('Будильник ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-alarm></app-tab-alarm>
-        </ng-template>
-      </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Часы ')}}">schedule</mat-icon>
+            <span>{{ L.$('Часы ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-clock></app-tab-clock>
+            } @placeholder {
+              <div>{{ L.$('Часы ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Режимы ')}}">schedule_send</mat-icon>
-          <span>{{ L.$('Режимы ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-modes></app-tab-modes>
-        </ng-template>
-      </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Будильник ')}}">alarm</mat-icon>
+            <span>{{ L.$('Будильник ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-alarm></app-tab-alarm>
+            } @placeholder {
+              <div>{{ L.$('Будильник ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Рисование ')}}">brush</mat-icon>
-          <span>{{ L.$('Рисование ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-draw></app-tab-draw>
-        </ng-template>
-      </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Режимы ')}}">schedule_send</mat-icon>
+            <span>{{ L.$('Режимы ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-modes></app-tab-modes>
+            } @placeholder {
+              <div>{{ L.$('Режимы ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Игры ')}}">sports_esports</mat-icon>
-          <span>{{ L.$('Игры ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-games></app-tab-games>
-        </ng-template>
-      </mat-tab>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Рисование ')}}">brush</mat-icon>
+            <span>{{ L.$('Рисование ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-draw></app-tab-draw>
+            } @placeholder {
+              <div>{{ L.$('Рисование ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
 
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon" matTooltip="{{L.$('Настройки ')}}">settings</mat-icon>
-          <span>{{ L.$('Настройки ') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <app-tab-setup></app-tab-setup>
-        </ng-template>
-      </mat-tab>
-    </mat-tab-group>
-  </div>
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Игры ')}}">sports_esports</mat-icon>
+            <span>{{ L.$('Игры ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-games></app-tab-games>
+            } @placeholder {
+              <div>{{ L.$('Игры ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon" matTooltip="{{L.$('Настройки ')}}">settings</mat-icon>
+            <span>{{ L.$('Настройки ') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            @defer (on viewport) {
+              <app-tab-setup></app-tab-setup>
+            } @placeholder {
+              <div>{{ L.$('Настройки ') }}</div>
+            }
+          </ng-template>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  }
 
   <div class="footer">
-    <div class="version" *ngIf="managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && socketService.isConnected && this.selectedTab != 7"
-         (click)="showEffectInformation(2000)">{{managementService.state.version}}</div>
-    <div class="stats" *ngIf="managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && socketService.isConnected && this.selectedTab == 7">{{getUptimeAndMemoryUsage()}}</div>
-    <div class="noconnect" *ngIf="managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && !socketService.isConnected">{{L.$('*** Нет связи с устройством ***')}}</div>
-    <div class="poweroff" *ngIf="socketService.isConnected && !managementService.state.power">{{L.$('*** Устройство выключено ***')}}</div>
-    <div class="info" *ngIf="managementService.state.power && commonService.info.length > 0">{{commonService.info}}</div>
-    <div class="error" *ngIf="managementService.state.power && commonService.error.length > 0">{{commonService.error}}</div>
+    @if (managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && socketService.isConnected && this.selectedTab != 7) {
+      <div class="version" (click)="showEffectInformation(2000)">{{managementService.state.version}}</div>
+    }
+    @if (managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && socketService.isConnected && this.selectedTab == 7) {
+      <div class="stats">{{getUptimeAndMemoryUsage()}}</div>
+    }
+    @if (managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && !socketService.isConnected) {
+      <div class="noconnect">{{L.$('*** Нет связи с устройством ***')}}</div>
+    }
+    @if (socketService.isConnected && !managementService.state.power) {
+      <div class="poweroff">{{L.$('*** Устройство выключено ***')}}</div>
+    }
+    @if (managementService.state.power && commonService.info.length > 0) {
+      <div class="info">{{commonService.info}}</div>
+    }
+    @if (managementService.state.power && commonService.error.length > 0) {
+      <div class="error">{{commonService.error}}</div>
+    }
   </div>
 </div>

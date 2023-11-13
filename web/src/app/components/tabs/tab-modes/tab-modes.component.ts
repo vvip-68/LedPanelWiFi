@@ -8,11 +8,32 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import {EffectModel} from "../../../models/effect.model";
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { NgStyle } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-modes',
-  templateUrl: './tab-modes.component.html',
-  styleUrls: ['./tab-modes.component.scss'],
+    selector: 'app-tab-modes',
+    templateUrl: './tab-modes.component.html',
+    styleUrls: ['./tab-modes.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        NgxMatTimepickerModule,
+        DisableControlDirective,
+        MatSelectModule,
+        MatOptionModule,
+        NgStyle,
+        MatButtonModule,
+    ],
 })
 export class TabModesComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

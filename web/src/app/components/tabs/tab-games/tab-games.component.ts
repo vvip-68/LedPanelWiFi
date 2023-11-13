@@ -6,11 +6,22 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
+import { MatIconModule } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-games',
-  templateUrl: './tab-games.component.html',
-  styleUrls: ['./tab-games.component.scss'],
+    selector: 'app-tab-games',
+    templateUrl: './tab-games.component.html',
+    styleUrls: ['./tab-games.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatSliderModule,
+        NgClass,
+        MatIconModule,
+    ],
 })
 export class TabGamesComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

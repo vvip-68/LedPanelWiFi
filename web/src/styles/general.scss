@@ -319,6 +319,11 @@ mat-tooltip-component .mdc-tooltip__surface {
   }
 }
 
+.mdc-line-ripple::before,
+.mdc-line-ripple--active::after{
+  border-bottom-width: 1px !important;
+}
+
 .mdc-text-field {
   padding: 0 !important;
   height: 24px !important;
@@ -341,7 +346,7 @@ mat-tooltip-component .mdc-tooltip__surface {
     position: relative !important;
     pointer-events: all;
     top: 2px !important;
-    font-size: 12px;
+    font-size: 12px !important;
     z-index: 1;
     display: block;
     transform: scale(1) !important;
@@ -363,6 +368,11 @@ mat-tooltip-component .mdc-tooltip__surface {
   .mat-mdc-select-arrow-wrapper {
     transform: none !important;
   }
+}
+
+:root .mat-primary .mat-pseudo-checkbox-checked.mat-pseudo-checkbox-minimal::after,
+.dark-theme .mat-primary .mat-pseudo-checkbox-checked.mat-pseudo-checkbox-minimal::after {
+  color: var(--card-active-color);
 }
 
 .mat-mdc-form-field-text-suffix,

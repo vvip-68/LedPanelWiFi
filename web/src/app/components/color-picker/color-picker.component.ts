@@ -1,12 +1,22 @@
 import {Component, ElementRef, Inject, OnInit, ViewChild} from '@angular/core';
 import {ColorEvent, HSVA, RGBA} from "ngx-color";
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from "@angular/material/dialog";
 import {TinyColor} from "@ctrl/tinycolor";
+import { MatButtonModule } from '@angular/material/button';
+import { ColorHueModule } from 'ngx-color/hue';
+import { ColorChromeModule } from 'ngx-color/chrome';
 
 @Component({
-  selector: 'app-color-picker',
-  templateUrl: './color-picker.component.html',
-  styleUrls: ['./color-picker.component.scss'],
+    selector: 'app-color-picker',
+    templateUrl: './color-picker.component.html',
+    styleUrls: ['./color-picker.component.scss'],
+    standalone: true,
+    imports: [
+        MatDialogModule,
+        ColorChromeModule,
+        ColorHueModule,
+        MatButtonModule,
+    ],
 })
 export class ColorPickerComponent implements OnInit {
 

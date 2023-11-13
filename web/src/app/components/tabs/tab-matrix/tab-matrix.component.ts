@@ -7,13 +7,35 @@ import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {ComboBoxItem} from "../../../models/combo-box.model";
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {PluggerComponent} from "../../plugger/plugger.component";
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatRadioModule } from '@angular/material/radio';
+import { NgStyle } from '@angular/common';
 
 @Component({
-  selector: 'app-tab-matrix',
-  templateUrl: './tab-matrix.component.html',
-  styleUrls: ['./tab-matrix.component.scss'],
+    selector: 'app-tab-matrix',
+    templateUrl: './tab-matrix.component.html',
+    styleUrls: ['./tab-matrix.component.scss'],
+    standalone: true,
+    imports: [
+        NgStyle,
+        MatRadioModule,
+        FormsModule,
+        DisableControlDirective,
+        MatSelectModule,
+        MatOptionModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        PluggerComponent,
+        MatButtonModule,
+    ],
 })
 export class TabMatrixComponent implements OnInit, OnDestroy {
 

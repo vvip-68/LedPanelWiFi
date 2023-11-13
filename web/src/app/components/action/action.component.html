@@ -4,5 +4,7 @@
      [matTooltip]="tooltip" matTooltipPosition="below"
      (click)="doSetCommand()">
   <mat-icon [ngClass]="getIconClass()">{{getIcon()}}</mat-icon>
-  <div #indicator *ngIf="config.mode === actionType.BRIGHT" [ngClass]="getIndicatorClass()"></div>
+  @if (config.mode === actionType.BRIGHT) {
+    <div #indicator [ngClass]="getIndicatorClass()"></div>
+  }
 </div>

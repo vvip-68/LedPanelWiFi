@@ -4,7 +4,7 @@ import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator, replaceAll} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
 import {RGBA} from "ngx-color";
@@ -12,6 +12,18 @@ import {ColorPickerComponent} from "../../color-picker/color-picker.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import {isValidDate} from "rxjs/internal/util/isDate";
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonModule } from '@angular/material/button';
+import { NgClass } from '@angular/common';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 export class TextButtonItem {
   constructor(public label: string, public index: number, public type: number, public text: string) {
@@ -19,9 +31,26 @@ export class TextButtonItem {
 }
 
 @Component({
-  selector: 'app-tab-texts',
-  templateUrl: './tab-texts.component.html',
-  styleUrls: ['./tab-texts.component.scss'],
+    selector: 'app-tab-texts',
+    templateUrl: './tab-texts.component.html',
+    styleUrls: ['./tab-texts.component.scss'],
+    standalone: true,
+    imports: [
+        MatSlideToggleModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        DisableControlDirective,
+        MatButtonModule,
+        MatRadioModule,
+        MatSliderModule,
+        MatTooltipModule,
+        NgClass,
+        MatIconModule,
+        MatMenuModule,
+        MatDatepickerModule,
+    ],
 })
 export class TabTextsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

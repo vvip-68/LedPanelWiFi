@@ -5,11 +5,16 @@ import {LanguagesService} from '../../services/languages/languages.service';
 import {ManagementService} from '../../services/management/management.service';
 import {WebsocketService} from '../../services/websocket/websocket.service';
 import {EffectParamsComponent} from '../effect-params/effect-params.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-effect',
-  templateUrl: './effect.component.html',
-  styleUrls: ['./effect.component.scss']
+    selector: 'app-effect',
+    templateUrl: './effect.component.html',
+    styleUrls: ['./effect.component.scss'],
+    standalone: true,
+    imports: [NgClass, MatIconModule, MatTooltipModule]
 })
 export class EffectComponent implements OnInit {
 

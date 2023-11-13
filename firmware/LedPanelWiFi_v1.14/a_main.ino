@@ -389,7 +389,7 @@ void process() {
     #if (USE_BUTTON == 1)
       if (butt != nullptr) {
         butt->tick();  // обязательная функция отработки. Должна постоянно опрашиваться
-    
+        
         // Один клик
         if (butt->isSingle()) clicks = 1;    
         // Двойной клик
@@ -435,11 +435,13 @@ void process() {
           clicks_printed = false;
           clicks = 0;
         }
-    
+        
+        bool isHolded = butt->isHolded();
+
         // Одинарный клик - включить / выключить панель
         // Одинарный клик + удержание - ночные часы или ночник лампа на минимальной яркости
         if (clicks == 1 && (((uint32_t)(millis()) - one_click_time) > 500)) {
-          if (butt->isHolded()) {
+          if (isHolded) {
             if (isTurnedOff) {
               // Клик + удержание в выключенном состоянии - лампа на минимальной яркости
               // Включить панель - белый цвет
@@ -499,7 +501,7 @@ void process() {
             }
           #endif
 
-          if (clicks == 0 && butt->isHolded()) {
+          if (clicks == 0 && isHolded) {
             // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
             isButtonHold = true;
             if (globalBrightness == 255)

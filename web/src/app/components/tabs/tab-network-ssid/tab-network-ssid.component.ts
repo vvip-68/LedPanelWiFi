@@ -4,14 +4,31 @@ import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {AppErrorStateMatcher, ipV4Validator, isNullOrUndefinedOrEmpty, lengthValidator} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
+import { InputRestrictionDirective } from '../../../directives/input-restrict.directive';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-network-ssid',
-  templateUrl: './tab-network-ssid.component.html',
-  styleUrls: ['./tab-network-ssid.component.scss'],
+    selector: 'app-tab-network-ssid',
+    templateUrl: './tab-network-ssid.component.html',
+    styleUrls: ['./tab-network-ssid.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        ReactiveFormsModule,
+        DisableControlDirective,
+        MatButtonModule,
+        MatIconModule,
+        InputRestrictionDirective,
+    ],
 })
 export class TabNetworkSsidComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

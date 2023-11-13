@@ -1,6 +1,6 @@
-import {DOCUMENT} from '@angular/common';
+import { DOCUMENT, NgClass } from '@angular/common';
 import {Component, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
 import {ActionModel, ActionType} from '../../../models/action.model';
 import {CommonService, MessageType} from '../../../services/common/common.service';
@@ -9,14 +9,44 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefined, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
-import {FormControl, Validators} from "@angular/forms";
-import {CdkDragDrop, moveItemInArray, transferArrayItem} from "@angular/cdk/drag-drop";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { CdkDragDrop, moveItemInArray, transferArrayItem, CdkDropListGroup, CdkDropList, CdkDrag } from "@angular/cdk/drag-drop";
 import {IEffectModel} from "../../../models/effect.model";
+import { EffectComponent } from '../../effect/effect.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { BrightnessSliderComponent } from '../../brightness-slider/brightness-slider.component';
+import { ActionComponent } from '../../action/action.component';
 
 @Component({
-  selector: 'app-tab-effects',
-  templateUrl: './tab-effects.component.html',
-  styleUrls: ['./tab-effects.component.scss'],
+    selector: 'app-tab-effects',
+    templateUrl: './tab-effects.component.html',
+    styleUrls: ['./tab-effects.component.scss'],
+    standalone: true,
+    imports: [
+        ActionComponent,
+        BrightnessSliderComponent,
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        ReactiveFormsModule,
+        DisableControlDirective,
+        MatButtonModule,
+        MatSlideToggleModule,
+        MatTooltipModule,
+        NgClass,
+        MatIconModule,
+        MatTabsModule,
+        EffectComponent,
+        CdkDropListGroup,
+        CdkDropList,
+        CdkDrag,
+    ],
 })
 export class TabEffectsComponent implements OnInit, OnDestroy {
 

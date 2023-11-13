@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.1108")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2023.1114")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -22,7 +22,7 @@
 ////
 // Для ядра ESP8266 v3.1.2
 //   тип микроконтроллера в меню "Инструменты -> Плата" для ESP8266:
-//     - для устройств на базе NodeMCU выбирать       -- "NodeMCU 1.0 (ESP12E Module)"f
+//     - для устройств на базе NodeMCU выбирать       -- "NodeMCU 1.0 (ESP12E Module)"
 //     - для устройств на базе Wemos d1 mini выбирать -- "LOLIN(WEMOS) D1 mini (clone)" 
 //     - для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Flash Size: 4MB(FS:2MB OTA:~1019KB)"

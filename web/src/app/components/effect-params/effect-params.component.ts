@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
 import {ComboBoxItem} from '../../models/combo-box.model';
 import {EffectModel} from '../../models/effect.model';
@@ -8,6 +8,14 @@ import {isNullOrUndefined} from '../../services/helper';
 import {LanguagesService} from '../../services/languages/languages.service';
 import {ManagementService} from '../../services/management/management.service';
 import {WebsocketService} from '../../services/websocket/websocket.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 
 export enum ControlType {
   NONE,
@@ -17,9 +25,11 @@ export enum ControlType {
 }
 
 @Component({
-  selector: 'app-effect-params',
-  templateUrl: './effect-params.component.html',
-  styleUrls: ['./effect-params.component.scss']
+    selector: 'app-effect-params',
+    templateUrl: './effect-params.component.html',
+    styleUrls: ['./effect-params.component.scss'],
+    standalone: true,
+    imports: [MatDialogModule, CdkDrag, CdkDragHandle, MatSlideToggleModule, FormsModule, MatTooltipModule, MatSliderModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatButtonModule]
 })
 export class EffectParamsComponent implements OnInit {
 

@@ -7,9 +7,11 @@
         <mat-form-field floatLabel="always" class="select">
           <mat-label>{{ L.$('Эффект рассвета') }}</mat-label>
           <mat-select [(ngModel)]="alarm_effect" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()">
-            <mat-option *ngFor="let effect of managementService.effects;" [value]="effect.id">
-              {{effect.name}}
-            </mat-option>
+            @for (effect of managementService.effects; track effect) {
+              <mat-option [value]="effect.id">
+                {{effect.name}}
+              </mat-option>
+            }
           </mat-select>
         </mat-form-field>
       </div>
@@ -22,12 +24,16 @@
                  [disableControl]="isDisabled()"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('минут') }}</p>
-          <mat-error *ngIf="dawnTimeFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="dawnTimeFormControl.hasError('range') && !dawnTimeFormControl.hasError('required')">
-            {{ L.$('от 1 до 30 минут') }}
-          </mat-error>
+          @if (dawnTimeFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (dawnTimeFormControl.hasError('range') && !dawnTimeFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 1 до 30 минут') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -39,12 +45,16 @@
                  [disableControl]="isDisabled()"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('минут') }}</p>
-          <mat-error *ngIf="alarmTimeFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="alarmTimeFormControl.hasError('range') && !alarmTimeFormControl.hasError('required')">
-            {{ L.$('от 1 до 5 минут') }}
-          </mat-error>
+          @if (alarmTimeFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (alarmTimeFormControl.hasError('range') && !alarmTimeFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 1 до 5 минут') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -142,67 +152,73 @@
 
     </fieldset>
 
-    <fieldset *ngIf="managementService.state.supportMP3" class="app-fieldset alarms-fieldset">
-      <legend>{{ L.$('Настройки звука') }}</legend>
+    @if (managementService.state.supportMP3) {
+      <fieldset class="app-fieldset alarms-fieldset">
+        <legend>{{ L.$('Настройки звука') }}</legend>
 
-      <div class="toggler-container">
-        <div class="toggler">
-          <mat-slide-toggle color="primary" class="switch" [ngModel]="alarm_use_sound" (toggleChange)="alarm_use_sound = !alarm_use_sound" [disabled]="isDisabled()"></mat-slide-toggle>
+        <div class="toggler-container">
+          <div class="toggler">
+            <mat-slide-toggle color="primary" class="switch" [ngModel]="alarm_use_sound" (toggleChange)="alarm_use_sound = !alarm_use_sound" [disabled]="isDisabled()"></mat-slide-toggle>
+          </div>
+          <div class="toggler-label">
+            <p>{{L.$('Использовать звук')}}</p>
+          </div>
         </div>
-        <div class="toggler-label">
-          <p>{{L.$('Использовать звук')}}</p>
+
+        <div class="field-container">
+          <mat-form-field floatLabel="always" class="select-sound">
+            <mat-label>{{ L.$('Звук рассвета') }}</mat-label>
+            <mat-select [(ngModel)]="dawn_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="downSoundChanged($event)">
+              @for (sound of dawn_sounds; track sound) {
+                <mat-option [value]="sound.value">
+                  {{sound.displayText}}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-icon-button matSuffix (click)="toggleDawnSound()" [disabled]="isDisabled() || dawn_sound <= 2">
+            <mat-icon>{{isDawnPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
+          </button>
         </div>
-      </div>
 
-      <div class="field-container">
-        <mat-form-field floatLabel="always" class="select-sound">
-          <mat-label>{{ L.$('Звук рассвета') }}</mat-label>
-          <mat-select [(ngModel)]="dawn_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="downSoundChanged($event)">
-            <mat-option *ngFor="let sound of dawn_sounds;" [value]="sound.value">
-              {{sound.displayText}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-icon-button matSuffix (click)="toggleDawnSound()" [disabled]="isDisabled() || dawn_sound <= 2">
-          <mat-icon>{{isDawnPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
-        </button>
-      </div>
-
-      <div class="field-container">
-        <mat-form-field floatLabel="always" class="select-sound">
-          <mat-label>{{ L.$('Звук будильника') }}</mat-label>
-          <mat-select [(ngModel)]="alarm_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="alarmSoundChanged($event)">
-            <mat-option *ngFor="let sound of alarm_sounds;" [value]="sound.value">
-              {{sound.displayText}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <button mat-icon-button matSuffix (click)="toggleAlarmSound()" [disabled]="isDisabled() || alarm_sound <= 2">
-          <mat-icon>{{isAlarmPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
-        </button>
-      </div>
-
-      <div class="field-container slider">
-        <mat-label>{{ L.$('Громкость') }}</mat-label>
-        <mat-slider [disableRipple]="true" color="primary"
-                    [disabled]="isDisabled()"
-                    [displayWith]="formatLabel"
-                    min="1" step="0" max="30">
-          <input #sl matSliderThumb [value]="alarm_volume" (valueChange)="volumeChanged($event)">
-          <p>{{ sl.value === '0' ? 'Выкл.' : sl.value.toString() }}</p>
-        </mat-slider>
-      </div>
-
-      <div style="flex:1"></div>
-
-      <div class="field-container buttons">
-        <div class="action-button">
-          <button mat-raised-button color="primary" (click)="applySounds($event)" [disabled]="isDisabled() || !isValid()">{{L.$('Применить')}}</button>
+        <div class="field-container">
+          <mat-form-field floatLabel="always" class="select-sound">
+            <mat-label>{{ L.$('Звук будильника') }}</mat-label>
+            <mat-select [(ngModel)]="alarm_sound" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="alarmSoundChanged($event)">
+              @for (sound of alarm_sounds; track sound) {
+                <mat-option [value]="sound.value">
+                  {{sound.displayText}}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <button mat-icon-button matSuffix (click)="toggleAlarmSound()" [disabled]="isDisabled() || alarm_sound <= 2">
+            <mat-icon>{{isAlarmPlaying ? 'stop' : 'play_arrow'}}</mat-icon>
+          </button>
         </div>
-      </div>
 
-    </fieldset>
+        <div class="field-container slider">
+          <mat-label>{{ L.$('Громкость') }}</mat-label>
+          <mat-slider [disableRipple]="true" color="primary"
+                      [disabled]="isDisabled()"
+                      [displayWith]="formatLabel"
+                      min="1" step="0" max="30">
+            <input #sl matSliderThumb [value]="alarm_volume" (valueChange)="volumeChanged($event)">
+            <p>{{ sl.value === '0' ? 'Выкл.' : sl.value.toString() }}</p>
+          </mat-slider>
+        </div>
 
-  </div>
+        <div style="flex:1"></div>
+
+        <div class="field-container buttons">
+          <div class="action-button">
+            <button mat-raised-button color="primary" (click)="applySounds($event)" [disabled]="isDisabled() || !isValid()">{{L.$('Применить')}}</button>
+          </div>
+        </div>
+
+      </fieldset>
+    }
+
+    </div>
   <div style="min-height:54px">&nbsp;</div>
 </div>

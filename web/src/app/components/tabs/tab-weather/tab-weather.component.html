@@ -20,9 +20,11 @@
         <input matInput autocomplete="new-password" type="number"
                [formControl]="codeYandexFormControl"
                [disableControl]="isDisabled() || weather_mode !== 1">
-        <mat-error *ngIf="codeYandexFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
-        </mat-error>
+        @if (codeYandexFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -32,9 +34,11 @@
         <input matInput autocomplete="new-password" type="number"
                [formControl]="codeOWMFormControl"
                [disableControl]="isDisabled() || weather_mode !== 2">
-        <mat-error *ngIf="codeOWMFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
-        </mat-error>
+        @if (codeOWMFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!')}} {{ L.$('Укажите 0, если не используется')}}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -46,12 +50,16 @@
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
         <p matTextSuffix="">{{ L.$('минут') }}</p>
-        <mat-error *ngIf="updateIntervalFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
-        <mat-error *ngIf="updateIntervalFormControl.hasError('range') && !updateIntervalFormControl.hasError('required')">
-          {{ L.$('от 15 до 240 минут') }}
-        </mat-error>
+        @if (updateIntervalFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
+        @if (updateIntervalFormControl.hasError('range') && !updateIntervalFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('от 15 до 240 минут') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 

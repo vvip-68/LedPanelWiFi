@@ -5,15 +5,32 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {AppErrorStateMatcher, isNullOrUndefined, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {distinctUntilChanged} from "rxjs/operators";
 import {ConfirmationDialogComponent} from "../../confirmation-dialog/confirmation-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-other',
-  templateUrl: './tab-other.component.html',
-  styleUrls: ['./tab-other.component.scss'],
+    selector: 'app-tab-other',
+    templateUrl: './tab-other.component.html',
+    styleUrls: ['./tab-other.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatInputModule,
+        FormsModule,
+        ReactiveFormsModule,
+        DisableControlDirective,
+        MatButtonModule,
+        MatTooltipModule,
+        MatIconModule,
+    ],
 })
 export class TabOtherComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
@@ -106,6 +123,7 @@ export class TabOtherComponent implements OnInit, OnDestroy {
         if (result === true) {
           // $23 2 ST;   - Загрузить EEPROM из файла  ST = 0 - внутр. файл. системы; 1 - на SD-карты
           this.socketService.sendText(`$23 2 ${from};`);
+          this.managementService.text_lines = [];
         }
       });
   }

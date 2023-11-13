@@ -1,20 +1,43 @@
-import {DOCUMENT} from '@angular/common';
-import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
-import {MatDialogRef} from '@angular/material/dialog';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
-import {debounceTime, Subject, takeUntil} from 'rxjs';
-import {distinctUntilChanged} from 'rxjs/operators';
-import {ColorPickerComponent} from './components/color-picker/color-picker.component';
-import {CommonService, MessageType} from './services/common/common.service';
-import {getUptime, isNullOrUndefinedOrEmpty} from './services/helper';
-import {LanguagesService} from './services/languages/languages.service';
-import {ManagementService} from './services/management/management.service';
-import {WebsocketService} from './services/websocket/websocket.service';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { MatDialogRef} from '@angular/material/dialog';
+import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { ColorPickerComponent } from './components/color-picker/color-picker.component';
+import { CommonService, MessageType } from './services/common/common.service';
+import { getUptime, isNullOrUndefinedOrEmpty } from './services/helper';
+import { LanguagesService } from './services/languages/languages.service';
+import { ManagementService} from './services/management/management.service';
+import { WebsocketService } from './services/websocket/websocket.service';
+import { TabSetupComponent } from './components/tabs/tab-setup/tab-setup.component';
+import { TabGamesComponent } from './components/tabs/tab-games/tab-games.component';
+import { TabDrawComponent } from './components/tabs/tab-draw/tab-draw.component';
+import { TabModesComponent } from './components/tabs/tab-modes/tab-modes.component';
+import { TabAlarmComponent } from './components/tabs/tab-alarm/tab-alarm.component';
+import { TabClockComponent } from './components/tabs/tab-clock/tab-clock.component';
+import { TabTextsPanelComponent } from './components/tabs/tab-texts-panel/tab-texts-panel.component';
+import { TabEffectsComponent } from './components/tabs/tab-effects/tab-effects.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatTooltipDefaultOptions, MatTooltipModule} from '@angular/material/tooltip';
+
+export const customTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 1000,
+  hideDelay: 100,
+  touchendHideDelay: 100
+};
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: true,
+    imports: [
+      MatToolbarModule, MatIconModule, MatTooltipModule, MatSlideToggleModule, MatTabsModule,
+      TabEffectsComponent, TabTextsPanelComponent, TabClockComponent, TabAlarmComponent, TabModesComponent, TabDrawComponent, TabGamesComponent, TabSetupComponent
+    ]
 })
 export class AppComponent implements OnInit, OnDestroy {
   private static readonly DARK_THEME_CLASS = 'dark-theme';

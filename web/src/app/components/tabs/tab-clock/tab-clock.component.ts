@@ -7,12 +7,41 @@ import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator, timeZoneValidator} from "../../../services/helper";
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { InputRestrictionDirective } from '../../../directives/input-restrict.directive';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatOptionModule } from '@angular/material/core';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
-  selector: 'app-tab-clock',
-  templateUrl: './tab-clock.component.html',
-  styleUrls: ['./tab-clock.component.scss'],
+    selector: 'app-tab-clock',
+    templateUrl: './tab-clock.component.html',
+    styleUrls: ['./tab-clock.component.scss'],
+    standalone: true,
+    imports: [
+        MatSlideToggleModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatSelectModule,
+        DisableControlDirective,
+        MatOptionModule,
+        MatSliderModule,
+        MatIconModule,
+        MatRadioModule,
+        MatCheckboxModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+        InputRestrictionDirective,
+    ],
 })
 export class TabClockComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

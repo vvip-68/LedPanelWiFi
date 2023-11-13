@@ -210,16 +210,6 @@
             text-overflow: ellipsis;
           }
 
-          mat-radio-group {
-            display: flex;
-            flex-direction: row;
-            flex: 1;
-
-            mat-radio-button {
-              width: 65px;
-            }
-          }
-
           &.radio-buttons {
             margin: 0 0 12px 0;
           }

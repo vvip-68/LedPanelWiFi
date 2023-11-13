@@ -21,15 +21,17 @@
       </ng-template>
     </mat-tab>
 
-    <mat-tab *ngIf="supportE131">
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon" matTooltip="{{L.$('Группы ')}}">cast_connected</mat-icon>
-        <span>{{ L.$('Группы ') }}</span>
-      </ng-template>
-      <ng-template matTabContent>
-        <app-tab-synch></app-tab-synch>
-      </ng-template>
-    </mat-tab>
+    @if (supportE131) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" matTooltip="{{L.$('Группы ')}}">cast_connected</mat-icon>
+          <span>{{ L.$('Группы ') }}</span>
+        </ng-template>
+        <ng-template matTabContent>
+          <app-tab-synch></app-tab-synch>
+        </ng-template>
+      </mat-tab>
+    }
 
     <mat-tab>
       <ng-template mat-tab-label>
@@ -41,15 +43,17 @@
       </ng-template>
     </mat-tab>
 
-    <mat-tab *ngIf="supportWeather">
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon" matTooltip="{{L.$('Погода ')}}">filter_drama</mat-icon>
-        <span>{{ L.$('Погода ') }}</span>
-      </ng-template>
-      <ng-template matTabContent>
-        <app-tab-weather></app-tab-weather>
-      </ng-template>
-    </mat-tab>
+    @if (supportWeather) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" matTooltip="{{L.$('Погода ')}}">filter_drama</mat-icon>
+          <span>{{ L.$('Погода ') }}</span>
+        </ng-template>
+        <ng-template matTabContent>
+          <app-tab-weather></app-tab-weather>
+        </ng-template>
+      </mat-tab>
+    }
 
     <mat-tab>
       <ng-template mat-tab-label>

@@ -14,16 +14,18 @@
         </mat-slider>
       </div>
 
-      <div class="field-container slider" *ngIf="!managementService.state.isGameMaze()">
-        <mat-label>{{ L.$('Скорость') }}</mat-label>
-        <mat-slider [disableRipple]="true" color="primary"
-                    [disabled]="isDisabled()"
-                    [displayWith]="formatLabel"
-                    min="0" step="1" max="255">
-          <input #sl matSliderThumb [value]="speed" (valueChange)="speedChanged($event)">
-          <p>{{ sl.value }}</p>
-        </mat-slider>
-      </div>
+      @if (!managementService.state.isGameMaze()) {
+        <div class="field-container slider">
+          <mat-label>{{ L.$('Скорость') }}</mat-label>
+          <mat-slider [disableRipple]="true" color="primary"
+                      [disabled]="isDisabled()"
+                      [displayWith]="formatLabel"
+                      min="0" step="1" max="255">
+            <input #sl matSliderThumb [value]="speed" (valueChange)="speedChanged($event)">
+            <p>{{ sl.value }}</p>
+          </mat-slider>
+        </div>
+      }
 
       <div class="games">
         <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameMaze()}" (click)="switchToMaze()">{{ L.$('Лабиринт') }}</div>
@@ -32,8 +34,12 @@
         <div class="game-card" [ngClass]="{'active': !isDisabled() && this.managementService.state.isGameArkanoid()}" (click)="switchToArkanoid()">{{ L.$('Арканоид') }}</div>
       </div>
 
-      <div *ngIf="!this.managementService.state.isGameRunning()" class="message">{{ L.$('Выберите игру для начала') }}</div>
-      <div *ngIf="this.managementService.state.isGameRunning()" class="message">&nbsp;</div>
+      @if (!this.managementService.state.isGameRunning()) {
+        <div class="message">{{ L.$('Выберите игру для начала') }}</div>
+      }
+      @if (this.managementService.state.isGameRunning()) {
+        <div class="message">&nbsp;</div>
+      }
 
       <div class="game-buttons">
         <div class="cell c1"></div>

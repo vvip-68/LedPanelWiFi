@@ -4,11 +4,16 @@ import {ActionModel, ActionType} from '../../models/action.model';
 import {isNullOrUndefinedOrEmpty} from '../../services/helper';
 import {ManagementService} from '../../services/management/management.service';
 import {WebsocketService} from '../../services/websocket/websocket.service';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-action',
-  templateUrl: './action.component.html',
-  styleUrls: ['./action.component.scss']
+    selector: 'app-action',
+    templateUrl: './action.component.html',
+    styleUrls: ['./action.component.scss'],
+    standalone: true,
+    imports: [NgClass, MatTooltipModule, MatIconModule]
 })
 export class ActionComponent implements OnInit, OnDestroy {
 

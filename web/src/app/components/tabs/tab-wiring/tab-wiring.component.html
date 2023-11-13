@@ -1,159 +1,254 @@
 <div class="tab-wiring">
   <h1> {{controller}}</h1>
   <div class="mcu">
-  <div class="esp32" *ngIf="controller_type === 3">
-    <img src="../../../../assets/images/esp32.png" width="173" height="355" alt="">
+    @if (controller_type === 3) {
+      <div class="esp32">
+      <img src="../../../../assets/images/esp32.png" width="173" height="355" alt="">
 
-    <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d2 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d4 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d5 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d12 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d13 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d14 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d15 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d16 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d17 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d18 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d19 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d21 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d22 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d23 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d25 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d26 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d27 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d32 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d33 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark d2 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark d4 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d5 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark d12 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark d13 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d14 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d15 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+      <div class="mark d16 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d17 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d18 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d19 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d21 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d22 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d23 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d25 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d26 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d27 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d32 ok"><mat-icon>done</mat-icon></div>
+      <div class="mark d33 ok"><mat-icon>done</mat-icon></div>
 
-    <div class="markp tx"  [ngClass]="{'set': getUsage('tx')}">G1/TX0</div>
-    <div class="markp rx"  [ngClass]="{'set': getUsage('rx')}">G3/RX0</div>
-    <div class="markp d2"  [ngClass]="{'set': getUsage('g2')}">G2</div>
-    <div class="markp d4"  [ngClass]="{'set': getUsage('g4')}">G4</div>
-    <div class="markp d5"  [ngClass]="{'set': getUsage('g5')}">G5</div>
-    <div class="markp d12" [ngClass]="{'set': getUsage('g12')}">G12</div>
-    <div class="markp d13" [ngClass]="{'set': getUsage('g13')}">G13</div>
-    <div class="markp d14" [ngClass]="{'set': getUsage('g14')}">G14</div>
-    <div class="markp d15" [ngClass]="{'set': getUsage('g15')}">G15</div>
-    <div class="markp d16"  [ngClass]="{'set': getUsage('g16')}">G16</div>
-    <div class="markp d17"  [ngClass]="{'set': getUsage('g17')}">G17</div>
-    <div class="markp d18"  [ngClass]="{'set': getUsage('g18')}">G18</div>
-    <div class="markp d19"  [ngClass]="{'set': getUsage('g19')}">G19</div>
-    <div class="markp d21"  [ngClass]="{'set': getUsage('g21')}">G21</div>
-    <div class="markp d22"  [ngClass]="{'set': getUsage('g22')}">G22</div>
-    <div class="markp d23"  [ngClass]="{'set': getUsage('g23')}">G23</div>
-    <div class="markp d25"  [ngClass]="{'set': getUsage('g25')}">G25</div>
-    <div class="markp d26"  [ngClass]="{'set': getUsage('g26')}">G26</div>
-    <div class="markp d27"  [ngClass]="{'set': getUsage('g27')}">G27</div>
-    <div class="markp d32"  [ngClass]="{'set': getUsage('g32')}">G32</div>
-    <div class="markp d33"  [ngClass]="{'set': getUsage('g33')}">G33</div>
+      <div class="markp tx"  [ngClass]="{'set': getUsage('tx')}">G1/TX0</div>
+      <div class="markp rx"  [ngClass]="{'set': getUsage('rx')}">G3/RX0</div>
+      <div class="markp d2"  [ngClass]="{'set': getUsage('g2')}">G2</div>
+      <div class="markp d4"  [ngClass]="{'set': getUsage('g4')}">G4</div>
+      <div class="markp d5"  [ngClass]="{'set': getUsage('g5')}">G5</div>
+      <div class="markp d12" [ngClass]="{'set': getUsage('g12')}">G12</div>
+      <div class="markp d13" [ngClass]="{'set': getUsage('g13')}">G13</div>
+      <div class="markp d14" [ngClass]="{'set': getUsage('g14')}">G14</div>
+      <div class="markp d15" [ngClass]="{'set': getUsage('g15')}">G15</div>
+      <div class="markp d16"  [ngClass]="{'set': getUsage('g16')}">G16</div>
+      <div class="markp d17"  [ngClass]="{'set': getUsage('g17')}">G17</div>
+      <div class="markp d18"  [ngClass]="{'set': getUsage('g18')}">G18</div>
+      <div class="markp d19"  [ngClass]="{'set': getUsage('g19')}">G19</div>
+      <div class="markp d21"  [ngClass]="{'set': getUsage('g21')}">G21</div>
+      <div class="markp d22"  [ngClass]="{'set': getUsage('g22')}">G22</div>
+      <div class="markp d23"  [ngClass]="{'set': getUsage('g23')}">G23</div>
+      <div class="markp d25"  [ngClass]="{'set': getUsage('g25')}">G25</div>
+      <div class="markp d26"  [ngClass]="{'set': getUsage('g26')}">G26</div>
+      <div class="markp d27"  [ngClass]="{'set': getUsage('g27')}">G27</div>
+      <div class="markp d32"  [ngClass]="{'set': getUsage('g32')}">G32</div>
+      <div class="markp d33"  [ngClass]="{'set': getUsage('g33')}">G33</div>
 
-    <div class="markc tx"  *ngIf="getUsage('tx')">{{ getUsageName('tx') }}</div>
-    <div class="markc rx"  *ngIf="getUsage('rx')">{{ getUsageName('rx') }}</div>
-    <div class="markc d2"  *ngIf="getUsage('g2')">{{ getUsageName('g2') }}</div>
-    <div class="markc d4"  *ngIf="getUsage('g4')">{{ getUsageName('g4') }}</div>
-    <div class="markc d5"  *ngIf="getUsage('g5')">{{ getUsageName('g5') }}</div>
-    <div class="markc d12" *ngIf="getUsage('g12')">{{ getUsageName('g12') }}</div>
-    <div class="markc d13" *ngIf="getUsage('g13')">{{ getUsageName('g13') }}</div>
-    <div class="markc d14" *ngIf="getUsage('g14')">{{ getUsageName('g14') }}</div>
-    <div class="markc d15" *ngIf="getUsage('g15')">{{ getUsageName('g15') }}</div>
-    <div class="markc d16"  *ngIf="getUsage('g16')">{{ getUsageName('g16') }}</div>
-    <div class="markc d17"  *ngIf="getUsage('g17')">{{ getUsageName('g17') }}</div>
-    <div class="markc d18"  *ngIf="getUsage('g18')">{{ getUsageName('g18') }}</div>
-    <div class="markc d19"  *ngIf="getUsage('g19')">{{ getUsageName('g19') }}</div>
-    <div class="markc d21"  *ngIf="getUsage('g21')">{{ getUsageName('g21') }}</div>
-    <div class="markc d22"  *ngIf="getUsage('g22')">{{ getUsageName('g22') }}</div>
-    <div class="markc d23"  *ngIf="getUsage('g23')">{{ getUsageName('g23') }}</div>
-    <div class="markc d25"  *ngIf="getUsage('g25')">{{ getUsageName('g25') }}</div>
-    <div class="markc d26"  *ngIf="getUsage('g26')">{{ getUsageName('g26') }}</div>
-    <div class="markc d27"  *ngIf="getUsage('g27')">{{ getUsageName('g27') }}</div>
-    <div class="markc d32"  *ngIf="getUsage('g32')">{{ getUsageName('g32') }}</div>
-    <div class="markc d33"  *ngIf="getUsage('g33')">{{ getUsageName('g33') }}</div>
+      @if (getUsage('tx')) {
+        <div class="markc tx" >{{ getUsageName('tx') }}</div>
+      }
+      @if (getUsage('rx')) {
+        <div class="markc rx" >{{ getUsageName('rx') }}</div>
+      }
+      @if (getUsage('g2')) {
+        <div class="markc d2" >{{ getUsageName('g2') }}</div>
+      }
+      @if (getUsage('g4')) {
+        <div class="markc d4" >{{ getUsageName('g4') }}</div>
+      }
+      @if (getUsage('g5')) {
+        <div class="markc d5" >{{ getUsageName('g5') }}</div>
+      }
+      @if (getUsage('g12')) {
+        <div class="markc d12">{{ getUsageName('g12') }}</div>
+      }
+      @if (getUsage('g13')) {
+        <div class="markc d13">{{ getUsageName('g13') }}</div>
+      }
+      @if (getUsage('g14')) {
+        <div class="markc d14">{{ getUsageName('g14') }}</div>
+      }
+      @if (getUsage('g15')) {
+        <div class="markc d15">{{ getUsageName('g15') }}</div>
+      }
+      @if (getUsage('g16')) {
+        <div class="markc d16" >{{ getUsageName('g16') }}</div>
+      }
+      @if (getUsage('g17')) {
+        <div class="markc d17" >{{ getUsageName('g17') }}</div>
+      }
+      @if (getUsage('g18')) {
+        <div class="markc d18" >{{ getUsageName('g18') }}</div>
+      }
+      @if (getUsage('g19')) {
+        <div class="markc d19" >{{ getUsageName('g19') }}</div>
+      }
+      @if (getUsage('g21')) {
+        <div class="markc d21" >{{ getUsageName('g21') }}</div>
+      }
+      @if (getUsage('g22')) {
+        <div class="markc d22" >{{ getUsageName('g22') }}</div>
+      }
+      @if (getUsage('g23')) {
+        <div class="markc d23" >{{ getUsageName('g23') }}</div>
+      }
+      @if (getUsage('g25')) {
+        <div class="markc d25" >{{ getUsageName('g25') }}</div>
+      }
+      @if (getUsage('g26')) {
+        <div class="markc d26" >{{ getUsageName('g26') }}</div>
+      }
+      @if (getUsage('g27')) {
+        <div class="markc d27" >{{ getUsageName('g27') }}</div>
+      }
+      @if (getUsage('g32')) {
+        <div class="markc d32" >{{ getUsageName('g32') }}</div>
+      }
+      @if (getUsage('g33')) {
+        <div class="markc d33" >{{ getUsageName('g33') }}</div>
+      }
 
+      </div>
+    }
+
+    @if (controller_type === 1) {
+      <div class="nodemcu">
+        <img src="../../../../assets/images/nodemcu.png" width="172" height="343" alt="">
+        <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d1 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d2 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d3 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d4 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d5 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d6 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d7 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d8 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+
+        <div class="markp tx" [ngClass]="{'set': getUsage('tx')}">D10/TX</div>
+        <div class="markp rx" [ngClass]="{'set': getUsage('rx')}">D9/RX</div>
+        <div class="markp d0" [ngClass]="{'set': getUsage('d0')}">D0</div>
+        <div class="markp d1" [ngClass]="{'set': getUsage('d1')}">D1</div>
+        <div class="markp d2" [ngClass]="{'set': getUsage('d2')}">D2</div>
+        <div class="markp d3" [ngClass]="{'set': getUsage('d3')}">D3</div>
+        <div class="markp d4" [ngClass]="{'set': getUsage('d4')}">D4</div>
+        <div class="markp d5" [ngClass]="{'set': getUsage('d5')}">D5</div>
+        <div class="markp d6" [ngClass]="{'set': getUsage('d6')}">D6</div>
+        <div class="markp d7" [ngClass]="{'set': getUsage('d7')}">D7</div>
+        <div class="markp d8" [ngClass]="{'set': getUsage('d8')}">D8</div>
+
+        @if (getUsage('tx')) {
+          <div class="markc tx">{{ getUsageName('tx') }}</div>
+        }
+        @if (getUsage('rx')) {
+          <div class="markc rx">{{ getUsageName('rx') }}</div>
+        }
+        @if (getUsage('d0')) {
+          <div class="markc d0">{{ getUsageName('d0') }}</div>
+        }
+        @if (getUsage('d1')) {
+          <div class="markc d1">{{ getUsageName('d1') }}</div>
+        }
+        @if (getUsage('d2')) {
+          <div class="markc d2">{{ getUsageName('d2') }}</div>
+        }
+        @if (getUsage('d3')) {
+          <div class="markc d3">{{ getUsageName('d3') }}</div>
+        }
+        @if (getUsage('d4')) {
+          <div class="markc d4">{{ getUsageName('d4') }}</div>
+        }
+        @if (getUsage('d5')) {
+          <div class="markc d5">{{ getUsageName('d5') }}</div>
+        }
+        @if (getUsage('d6')) {
+          <div class="markc d6">{{ getUsageName('d6') }}</div>
+        }
+        @if (getUsage('d7')) {
+          <div class="markc d7">{{ getUsageName('d7') }}</div>
+        }
+        @if (getUsage('d8')) {
+          <div class="markc d8">{{ getUsageName('d8') }}</div>
+        }
+      </div>
+    }
+
+    @if (controller_type === 2) {
+      <div class="wemos">
+        <img src="../../../../assets/images/wemos.png" width="172" height="236" alt="">
+
+        <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d1 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d2 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d3 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d4 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+        <div class="mark d5 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d6 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d7 ok"><mat-icon>done</mat-icon></div>
+        <div class="mark d8 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
+
+        <div class="markp tx" [ngClass]="{'set': getUsage('tx')}">D10/TX</div>
+        <div class="markp rx" [ngClass]="{'set': getUsage('rx')}">D9/RX</div>
+        <div class="markp d0" [ngClass]="{'set': getUsage('d0')}">D0</div>
+        <div class="markp d1" [ngClass]="{'set': getUsage('d1')}">D1</div>
+        <div class="markp d2" [ngClass]="{'set': getUsage('d2')}">D2</div>
+        <div class="markp d3" [ngClass]="{'set': getUsage('d3')}">D3</div>
+        <div class="markp d4" [ngClass]="{'set': getUsage('d4')}">D4</div>
+        <div class="markp d5" [ngClass]="{'set': getUsage('d5')}">D5</div>
+        <div class="markp d6" [ngClass]="{'set': getUsage('d6')}">D6</div>
+        <div class="markp d7" [ngClass]="{'set': getUsage('d7')}">D7</div>
+        <div class="markp d8" [ngClass]="{'set': getUsage('d8')}">D8</div>
+
+        @if (getUsage('tx')) {
+          <div class="markc tx">{{ getUsageName('tx') }}</div>
+        }
+        @if (getUsage('rx')) {
+          <div class="markc rx">{{ getUsageName('rx') }}</div>
+        }
+        @if (getUsage('d0')) {
+          <div class="markc d0">{{ getUsageName('d0') }}</div>
+        }
+        @if (getUsage('d1')) {
+          <div class="markc d1">{{ getUsageName('d1') }}</div>
+        }
+        @if (getUsage('d2')) {
+          <div class="markc d2">{{ getUsageName('d2') }}</div>
+        }
+        @if (getUsage('d3')) {
+          <div class="markc d3">{{ getUsageName('d3') }}</div>
+        }
+        @if (getUsage('d4')) {
+          <div class="markc d4">{{ getUsageName('d4') }}</div>
+        }
+        @if (getUsage('d5')) {
+          <div class="markc d5">{{ getUsageName('d5') }}</div>
+        }
+        @if (getUsage('d6')) {
+          <div class="markc d6">{{ getUsageName('d6') }}</div>
+        }
+        @if (getUsage('d7')) {
+          <div class="markc d7">{{ getUsageName('d7') }}</div>
+        }
+        @if (getUsage('d8')) {
+          <div class="markc d8">{{ getUsageName('d8') }}</div>
+        }
+      </div>
+    }
   </div>
 
-  <div class="nodemcu" *ngIf="controller_type === 1">
-    <img src="../../../../assets/images/nodemcu.png" width="172" height="343" alt="">
-    <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d1 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d2 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d3 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d4 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d5 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d6 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d7 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d8 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-
-    <div class="markp tx" [ngClass]="{'set': getUsage('tx')}">D10/TX</div>
-    <div class="markp rx" [ngClass]="{'set': getUsage('rx')}">D9/RX</div>
-    <div class="markp d0" [ngClass]="{'set': getUsage('d0')}">D0</div>
-    <div class="markp d1" [ngClass]="{'set': getUsage('d1')}">D1</div>
-    <div class="markp d2" [ngClass]="{'set': getUsage('d2')}">D2</div>
-    <div class="markp d3" [ngClass]="{'set': getUsage('d3')}">D3</div>
-    <div class="markp d4" [ngClass]="{'set': getUsage('d4')}">D4</div>
-    <div class="markp d5" [ngClass]="{'set': getUsage('d5')}">D5</div>
-    <div class="markp d6" [ngClass]="{'set': getUsage('d6')}">D6</div>
-    <div class="markp d7" [ngClass]="{'set': getUsage('d7')}">D7</div>
-    <div class="markp d8" [ngClass]="{'set': getUsage('d8')}">D8</div>
-
-    <div class="markc tx" *ngIf="getUsage('tx')">{{ getUsageName('tx') }}</div>
-    <div class="markc rx" *ngIf="getUsage('rx')">{{ getUsageName('rx') }}</div>
-    <div class="markc d0" *ngIf="getUsage('d0')">{{ getUsageName('d0') }}</div>
-    <div class="markc d1" *ngIf="getUsage('d1')">{{ getUsageName('d1') }}</div>
-    <div class="markc d2" *ngIf="getUsage('d2')">{{ getUsageName('d2') }}</div>
-    <div class="markc d3" *ngIf="getUsage('d3')">{{ getUsageName('d3') }}</div>
-    <div class="markc d4" *ngIf="getUsage('d4')">{{ getUsageName('d4') }}</div>
-    <div class="markc d5" *ngIf="getUsage('d5')">{{ getUsageName('d5') }}</div>
-    <div class="markc d6" *ngIf="getUsage('d6')">{{ getUsageName('d6') }}</div>
-    <div class="markc d7" *ngIf="getUsage('d7')">{{ getUsageName('d7') }}</div>
-    <div class="markc d8" *ngIf="getUsage('d8')">{{ getUsageName('d8') }}</div>
-  </div>
-
-  <div class="wemos" *ngIf="controller_type === 2">
-    <img src="../../../../assets/images/wemos.png" width="172" height="236" alt="">
-
-    <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d1 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d2 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d3 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d4 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-    <div class="mark d5 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d6 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d7 ok"><mat-icon>done</mat-icon></div>
-    <div class="mark d8 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-
-    <div class="markp tx" [ngClass]="{'set': getUsage('tx')}">D10/TX</div>
-    <div class="markp rx" [ngClass]="{'set': getUsage('rx')}">D9/RX</div>
-    <div class="markp d0" [ngClass]="{'set': getUsage('d0')}">D0</div>
-    <div class="markp d1" [ngClass]="{'set': getUsage('d1')}">D1</div>
-    <div class="markp d2" [ngClass]="{'set': getUsage('d2')}">D2</div>
-    <div class="markp d3" [ngClass]="{'set': getUsage('d3')}">D3</div>
-    <div class="markp d4" [ngClass]="{'set': getUsage('d4')}">D4</div>
-    <div class="markp d5" [ngClass]="{'set': getUsage('d5')}">D5</div>
-    <div class="markp d6" [ngClass]="{'set': getUsage('d6')}">D6</div>
-    <div class="markp d7" [ngClass]="{'set': getUsage('d7')}">D7</div>
-    <div class="markp d8" [ngClass]="{'set': getUsage('d8')}">D8</div>
-
-    <div class="markc tx" *ngIf="getUsage('tx')">{{ getUsageName('tx') }}</div>
-    <div class="markc rx" *ngIf="getUsage('rx')">{{ getUsageName('rx') }}</div>
-    <div class="markc d0" *ngIf="getUsage('d0')">{{ getUsageName('d0') }}</div>
-    <div class="markc d1" *ngIf="getUsage('d1')">{{ getUsageName('d1') }}</div>
-    <div class="markc d2" *ngIf="getUsage('d2')">{{ getUsageName('d2') }}</div>
-    <div class="markc d3" *ngIf="getUsage('d3')">{{ getUsageName('d3') }}</div>
-    <div class="markc d4" *ngIf="getUsage('d4')">{{ getUsageName('d4') }}</div>
-    <div class="markc d5" *ngIf="getUsage('d5')">{{ getUsageName('d5') }}</div>
-    <div class="markc d6" *ngIf="getUsage('d6')">{{ getUsageName('d6') }}</div>
-    <div class="markc d7" *ngIf="getUsage('d7')">{{ getUsageName('d7') }}</div>
-    <div class="markc d8" *ngIf="getUsage('d8')">{{ getUsageName('d8') }}</div>
-  </div>
-</div>
-  <div *ngIf="controller_type === 1 || controller_type === 2">
-    <div class="link" (click)="goToLink()">{{this.L.$('Таблица совместимости пинов')}}</div>
-  </div>
+  @if (controller_type === 1 || controller_type === 2) {
+    <div>
+      <div class="link" (click)="goToLink()">{{this.L.$('Таблица совместимости пинов')}}</div>
+    </div>
+  }
 
   <fieldset class="app-fieldset wiring-fieldset">
     <legend>{{ L.$('Настройки оборудования') }}</legend>
@@ -166,343 +261,432 @@
       </div>
     </div>
 
-    <div *ngIf="supportButton" class="toggler-container">
-      <div class="toggler-label" style="padding-top: 5px">
-        <p>{{L.$('Использование матрицы:')}}</p>
+    @if (supportButton) {
+      <div class="toggler-container">
+        <div class="toggler-label" style="padding-top: 5px">
+          <p>{{L.$('Использование матрицы:')}}</p>
+        </div>
+        <mat-select [(ngModel)]="device_type" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          @for (item of this.device_type_list; track item) {
+            <mat-option [value]="item.value">
+              {{item.displayText}}
+            </mat-option>
+          }
+        </mat-select>
       </div>
-      <mat-select [(ngModel)]="device_type" panelClass="app-select-panel" [disableControl]="isDisabled()">
-        <mat-option *ngFor="let item of this.device_type_list;" [value]="item.value">
-          {{item.displayText}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
+    @if (lines.length > 0) {
+      <div class="section-header">
+        <h3>{{ L.$('Матрица') }}</h3>
+      </div>
+    }
 
-    <div *ngIf="lines.length > 0" class="section-header">
-      <h3>{{ L.$('Матрица') }}</h3>
-    </div>
+    @if (lines.length > 0) {
+      <div class="toggler-container led-lines" style="padding-top: 12px">
+        <div class="toggler-label">
+          <p>{{L.$('Линия 1')}}</p>
+        </div>
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[0].pin.use" (toggleChange)="lines[0].pin.use = !lines[0].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="lines[0].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}"
+                    (valueChange)="unassignPin(lines[0].pin.gpio); lines[0].pin = assignPin($event, 'LED LINE 1'); updateRxTxUsage();">
+          @for (pin of this.line1_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Нач.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds-1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line1StartFormControl"
+                 [disableControl]="isDisabled() || !lines[0].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[0].pin.use && line1StartFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Кол.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line1LengthFormControl"
+                 [disableControl]="isDisabled() || !lines[0].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[0].pin.use && line1LengthFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до ') + this.numLeds.toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
+      </div>
+    }
 
-    <div *ngIf="lines.length > 0" class="toggler-container led-lines" style="padding-top: 12px">
-      <div class="toggler-label">
-        <p>{{L.$('Линия 1')}}</p>
+    @if (lines.length > 1) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label">
+          <p>{{L.$('Линия 2')}}</p>
+        </div>
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[1].pin.use" (toggleChange)="lines[1].pin.use = !lines[1].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label" [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="lines[1].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"  [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}"
+                    (valueChange)="unassignPin(lines[1].pin.gpio); lines[1].pin = assignPin($event, 'LED LINE 2'); updateRxTxUsage();">
+          @for (pin of this.line2_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Нач.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line2StartFormControl"
+                 [disableControl]="isDisabled() || !lines[1].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[1].pin.use && line2StartFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Кол.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line2LengthFormControl"
+                 [disableControl]="isDisabled() || !lines[1].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[1].pin.use && line2LengthFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до ') + this.numLeds.toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
       </div>
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[0].pin.use" (toggleChange)="lines[0].pin.use = !lines[0].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
-      </div>
-      <div class="toggler-label" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}">
-        <p>{{L.$('Пин:')}}</p>
-      </div>
-      <mat-select [ngModel]="lines[0].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}"
-                  (valueChange)="unassignPin(lines[0].pin.gpio); lines[0].pin = assignPin($event, 'LED LINE 1'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.line1_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Нач.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds-1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line1StartFormControl"
-               [disableControl]="isDisabled() || !lines[0].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[0].pin.use && line1StartFormControl.hasError('range')">
-          {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Кол.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line1LengthFormControl"
-               [disableControl]="isDisabled() || !lines[0].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[0].pin.use && line1LengthFormControl.hasError('range')">
-          {{ L.$('от 1 до ') + this.numLeds.toString() }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+    }
 
-    <div *ngIf="lines.length > 1" class="toggler-container led-lines">
-      <div class="toggler-label">
-        <p>{{L.$('Линия 2')}}</p>
+    @if (lines.length > 2) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label">
+          <p>{{L.$('Линия 3')}}</p>
+        </div>
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[2].pin.use" (toggleChange)="lines[2].pin.use = !lines[2].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label" [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="lines[2].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"  [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}"
+                    (valueChange)="unassignPin(lines[2].pin.gpio); lines[2].pin = assignPin($event, 'LED LINE 3'); updateRxTxUsage();">
+          @for (pin of this.line3_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Нач.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line3StartFormControl"
+                 [disableControl]="isDisabled() || !lines[2].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[2].pin.use && line3StartFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Кол.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line3LengthFormControl"
+                 [disableControl]="isDisabled() || !lines[2].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[2].pin.use && line3LengthFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до ') + this.numLeds.toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
       </div>
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[1].pin.use" (toggleChange)="lines[1].pin.use = !lines[1].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
-      </div>
-      <div class="toggler-label" [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}">
-        <p>{{L.$('Пин:')}}</p>
-      </div>
-      <mat-select [ngModel]="lines[1].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"  [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}"
-                  (valueChange)="unassignPin(lines[1].pin.gpio); lines[1].pin = assignPin($event, 'LED LINE 2'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.line2_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Нач.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line2StartFormControl"
-               [disableControl]="isDisabled() || !lines[1].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[1].pin.use && line2StartFormControl.hasError('range')">
-          {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Кол.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line2LengthFormControl"
-               [disableControl]="isDisabled() || !lines[1].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[1].pin.use && line2LengthFormControl.hasError('range')">
-          {{ L.$('от 1 до ') + this.numLeds.toString() }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+    }
 
-    <div *ngIf="lines.length > 2" class="toggler-container led-lines">
-      <div class="toggler-label">
-        <p>{{L.$('Линия 3')}}</p>
+    @if (lines.length > 3) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label">
+          <p>{{L.$('Линия 4')}}</p>
+        </div>
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[3].pin.use" (toggleChange)="lines[3].pin.use = !lines[3].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label" [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="lines[3].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"  [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}"
+                    (valueChange)="unassignPin(lines[3].pin.gpio); lines[3].pin = assignPin($event, 'LED LINE 4'); updateRxTxUsage();">
+          @for (pin of this.line4_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Нач.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line4StartFormControl"
+                 [disableControl]="isDisabled() || !lines[3].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[3].pin.use && line4StartFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
+          <mat-label>{{ L.$('Кол.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
+                 [formControl]="line4LengthFormControl"
+                 [disableControl]="isDisabled() || !lines[3].pin.use"
+                 [errorStateMatcher]="matcher">
+          @if (lines[3].pin.use && line4LengthFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до ') + this.numLeds.toString() }}
+            </mat-error>
+          }
+        </mat-form-field>
       </div>
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[2].pin.use" (toggleChange)="lines[2].pin.use = !lines[2].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
-      </div>
-      <div class="toggler-label" [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}">
-        <p>{{L.$('Пин:')}}</p>
-      </div>
-      <mat-select [ngModel]="lines[2].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"  [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}"
-                  (valueChange)="unassignPin(lines[2].pin.gpio); lines[2].pin = assignPin($event, 'LED LINE 3'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.line3_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Нач.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line3StartFormControl"
-               [disableControl]="isDisabled() || !lines[2].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[2].pin.use && line3StartFormControl.hasError('range')">
-          {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Кол.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line3LengthFormControl"
-               [disableControl]="isDisabled() || !lines[2].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[2].pin.use && line3LengthFormControl.hasError('range')">
-          {{ L.$('от 1 до ') + this.numLeds.toString() }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+    }
 
-    <div *ngIf="lines.length > 3" class="toggler-container led-lines">
-      <div class="toggler-label">
-        <p>{{L.$('Линия 4')}}</p>
+    @if (supportButton) {
+      <div class="section-header">
+        <h3>{{ L.$('Кнопка') }}</h3>
       </div>
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="lines[3].pin.use" (toggleChange)="lines[3].pin.use = !lines[3].pin.use" [disabled]="isDisabled()"></mat-slide-toggle>
-      </div>
-      <div class="toggler-label" [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}">
-        <p>{{L.$('Пин:')}}</p>
-      </div>
-      <mat-select [ngModel]="lines[3].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"  [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}"
-                  (valueChange)="unassignPin(lines[3].pin.gpio); lines[3].pin = assignPin($event, 'LED LINE 4'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.line4_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Нач.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds - 1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line4StartFormControl"
-               [disableControl]="isDisabled() || !lines[3].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[3].pin.use && line4StartFormControl.hasError('range')">
-          {{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field hintLabel="{{ L.$('от 1 до ') + this.numLeds.toString() }}" floatLabel="always">
-        <mat-label>{{ L.$('Кол.') }}</mat-label>
-        <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="numLeds" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
-               [formControl]="line4LengthFormControl"
-               [disableControl]="isDisabled() || !lines[3].pin.use"
-               [errorStateMatcher]="matcher">
-        <mat-error *ngIf="lines[3].pin.use && line4LengthFormControl.hasError('range')">
-          {{ L.$('от 1 до ') + this.numLeds.toString() }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+    }
 
-    <div *ngIf="supportButton" class="section-header">
-      <h3>{{ L.$('Кнопка') }}</h3>
-    </div>
+    @if (supportButton) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="button_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(button_pin.gpio); button_pin = assignPin($event, 'BUTTON'); updateRxTxUsage();">
+          @for (pin of this.button_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label left-space">
+          <p>{{L.$('Тип:')}}</p>
+        </div>
+        <mat-select [(ngModel)]="button_type" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="rebuildFreePinsByTimer()">
+          @for (item of this.button_type_list; track item) {
+            <mat-option [value]="item.value">
+              {{item.displayText}}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
 
-    <div *ngIf="supportButton" class="toggler-container led-lines">
-      <div class="toggler-label">
-        <p>{{L.$('Пин:')}}</p>
+    @if (supportPower) {
+      <div class="section-header">
+        <h3>{{ L.$('Управление питанием') }}</h3>
       </div>
-      <mat-select [ngModel]="button_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                  (valueChange)="unassignPin(button_pin.gpio); button_pin = assignPin($event, 'BUTTON'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.button_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label left-space">
-        <p>{{L.$('Тип:')}}</p>
-      </div>
-      <mat-select [(ngModel)]="button_type" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()"
-                  (valueChange)="rebuildFreePinsByTimer()">
-        <mat-option *ngFor="let item of this.button_type_list;" [value]="item.value">
-          {{item.displayText}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
-    <div *ngIf="supportPower" class="section-header">
-      <h3>{{ L.$('Управление питанием') }}</h3>
-    </div>
+    @if (supportPower) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label">
+          <p>{{L.$('Пин:')}}</p>
+        </div>
+        <mat-select [ngModel]="power_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(power_pin.gpio); power_pin = assignPin($event, 'POWER'); updateRxTxUsage();">
+          @for (pin of this.power_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label left-space">
+          <p>{{L.$('Тип:')}}</p>
+        </div>
+        <mat-select [(ngModel)]="button_type" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          @for (item of this.power_type_list; track item) {
+            <mat-option [value]="item.value">
+              {{item.displayText}}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
 
-    <div *ngIf="supportPower" class="toggler-container led-lines">
-      <div class="toggler-label">
-        <p>{{L.$('Пин:')}}</p>
+    @if (supportSD) {
+      <div class="section-header">
+        <h3>{{ L.$('SD-карта') }}</h3>
       </div>
-      <mat-select [ngModel]="power_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                  (valueChange)="unassignPin(power_pin.gpio); power_pin = assignPin($event, 'POWER'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.power_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label left-space">
-        <p>{{L.$('Тип:')}}</p>
-      </div>
-      <mat-select [(ngModel)]="button_type" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
-        <mat-option *ngFor="let item of this.power_type_list;" [value]="item.value">
-          {{item.displayText}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
-    <div *ngIf="supportSD" class="section-header">
-      <h3>{{ L.$('SD-карта') }}</h3>
-    </div>
+    @if (supportSD) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label sd">
+          <p>{{L.$('CLK:')}}</p>
+        </div>
+        <mat-select [ngModel]="sd_clk_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
+          @for (pin of this.sd_clk_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label sd left-space2">
+          <p>{{L.$('MISO:')}}</p>
+        </div>
+        <mat-select [ngModel]="sd_miso_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
+          @for (pin of this.sd_miso_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label sd left-space2">
+          <p>{{L.$('MOSI:')}}</p>
+        </div>
+        <mat-select [ngModel]="sd_mosi_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
+          @for (pin of this.sd_mosi_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label sd left-space2">
+          <p>{{L.$('CS:')}}</p>
+        </div>
+        <mat-select [ngModel]="sd_cs_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
+          @for (pin of this.sd_cs_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
 
-    <div *ngIf="supportSD" class="toggler-container led-lines">
-      <div class="toggler-label sd">
-        <p>{{L.$('CLK:')}}</p>
+    @if (supportSD) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label info">
+          <p>{{L.$('sd-card-info')}}</p>
+        </div>
       </div>
-      <mat-select [ngModel]="sd_clk_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
-        <mat-option *ngFor="let pin of this.sd_clk_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label sd left-space2">
-        <p>{{L.$('MISO:')}}</p>
-      </div>
-      <mat-select [ngModel]="sd_miso_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
-        <mat-option *ngFor="let pin of this.sd_miso_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label sd left-space2">
-        <p>{{L.$('MOSI:')}}</p>
-      </div>
-      <mat-select [ngModel]="sd_mosi_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
-        <mat-option *ngFor="let pin of this.sd_mosi_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label sd left-space2">
-        <p>{{L.$('CS:')}}</p>
-      </div>
-      <mat-select [ngModel]="sd_cs_pin.gpio" class="narrow" panelClass="pin-select-panel" [disableControl]="true">
-        <mat-option *ngFor="let pin of this.sd_cs_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
-    <div *ngIf="supportSD" class="toggler-container led-lines">
-      <div class="toggler-label info">
-        <p>{{L.$('sd-card-info')}}</p>
+    @if (supportSD) {
+      <div class="toggler-container led-lines">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="wait_play_finished" (toggleChange)="wait_play_finished = !wait_play_finished" [disabled]="isDisabled()"
+                            [matTooltip]="L.$('wait_play_finished_info')" matTooltipPosition="after"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label info2 left-space">
+          <p>{{L.$('Менять эффект только после конца ролика')}}</p>
+        </div>
       </div>
-    </div>
+    }
 
-    <div *ngIf="supportSD" class="toggler-container led-lines">
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="wait_play_finished" (toggleChange)="wait_play_finished = !wait_play_finished" [disabled]="isDisabled()"
-                          [matTooltip]="L.$('wait_play_finished_info')" matTooltipPosition="after"></mat-slide-toggle>
+    @if (supportSD) {
+      <div class="toggler-container led-lines">
+        <div class="toggler">
+          <mat-slide-toggle color="primary" class="switch" [ngModel]="repeat_play" (toggleChange)="repeat_play = !repeat_play" [disabled]="isDisabled()"
+                            [matTooltip]="L.$('repeat_play_info')" matTooltipPosition="after"></mat-slide-toggle>
+        </div>
+        <div class="toggler-label info2 left-space">
+          <p>{{L.$('Повторять короткие ролики до смены эффекта')}}</p>
+        </div>
       </div>
-      <div class="toggler-label info2 left-space">
-        <p>{{L.$('Менять эффект только после конца ролика')}}</p>
-      </div>
-    </div>
+    }
 
-    <div *ngIf="supportSD" class="toggler-container led-lines">
-      <div class="toggler">
-        <mat-slide-toggle color="primary" class="switch" [ngModel]="repeat_play" (toggleChange)="repeat_play = !repeat_play" [disabled]="isDisabled()"
-                          [matTooltip]="L.$('repeat_play_info')" matTooltipPosition="after"></mat-slide-toggle>
+    @if (supportMP3) {
+      <div class="section-header">
+        <h3>{{ L.$('MP3 DFPlayer') }}</h3>
       </div>
-      <div class="toggler-label info2 left-space">
-        <p>{{L.$('Повторять короткие ролики до смены эффекта')}}</p>
-      </div>
-    </div>
+    }
 
-    <div *ngIf="supportMP3" class="section-header">
-      <h3>{{ L.$('MP3 DFPlayer') }}</h3>
-    </div>
+    @if (supportMP3) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label sd">
+          <p>{{L.$('SRX:')}}</p>
+        </div>
+        <mat-select [ngModel]="player_rx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
+                    (valueChange)="unassignPin(player_rx_pin.gpio); player_rx_pin = assignPin($event, 'MP3 SRX'); updateRxTxUsage();">
+          @for (pin of this.player_rx_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label sd left-space">
+          <p>{{L.$('STX:')}}</p>
+        </div>
+        <mat-select [ngModel]="player_tx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
+                    (valueChange)="unassignPin(player_tx_pin.gpio); player_tx_pin = assignPin($event, 'MP3 STX'); updateRxTxUsage();">
+          @for (pin of this.player_tx_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+         }
+        </mat-select>
+      </div>
+    }
 
-    <div *ngIf="supportMP3" class="toggler-container led-lines">
-      <div class="toggler-label sd">
-        <p>{{L.$('SRX:')}}</p>
+    @if (supportMP3 && controller_type === 3) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label info">
+          <p>{{L.$('dfplayer-info')}}</p>
+        </div>
       </div>
-      <mat-select [ngModel]="player_rx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
-                  (valueChange)="unassignPin(player_rx_pin.gpio); player_rx_pin = assignPin($event, 'MP3 SRX'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.player_rx_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label sd left-space">
-        <p>{{L.$('STX:')}}</p>
-      </div>
-      <mat-select [ngModel]="player_tx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
-                  (valueChange)="unassignPin(player_tx_pin.gpio); player_tx_pin = assignPin($event, 'MP3 STX'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.player_tx_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
-    <div *ngIf="supportMP3 && controller_type === 3" class="toggler-container led-lines">
-      <div class="toggler-label info">
-        <p>{{L.$('dfplayer-info')}}</p>
+    @if (supportTM1637) {
+      <div class="section-header">
+        <h3>{{ L.$('TM1637') }}</h3>
       </div>
-    </div>
+    }
 
-    <div *ngIf="supportTM1637" class="section-header">
-      <h3>{{ L.$('TM1637') }}</h3>
-    </div>
-
-    <div *ngIf="supportTM1637" class="toggler-container led-lines">
-      <div class="toggler-label sd">
-        <p>{{L.$('CLK:')}}</p>
+    @if (supportTM1637) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label sd">
+          <p>{{L.$('CLK:')}}</p>
+        </div>
+        <mat-select [ngModel]="tm1637_clk_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(tm1637_clk_pin.gpio); tm1637_clk_pin = assignPin($event, 'TM1637 CLK'); updateRxTxUsage();">
+          @for (pin of this.tm1637_clk_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label sd left-space">
+          <p>{{L.$('DIO:')}}</p>
+        </div>
+        <mat-select [ngModel]="tm1637_dio_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(tm1637_dio_pin.gpio); tm1637_dio_pin = assignPin($event, 'TM1637 DIO'); updateRxTxUsage();">
+          @for (pin of this.tm1637_dio_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
       </div>
-      <mat-select [ngModel]="tm1637_clk_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                  (valueChange)="unassignPin(tm1637_clk_pin.gpio); tm1637_clk_pin = assignPin($event, 'TM1637 CLK'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.tm1637_clk_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-      <div class="toggler-label sd left-space">
-        <p>{{L.$('DIO:')}}</p>
-      </div>
-      <mat-select [ngModel]="tm1637_dio_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                  (valueChange)="unassignPin(tm1637_dio_pin.gpio); tm1637_dio_pin = assignPin($event, 'TM1637 DIO'); updateRxTxUsage();">
-        <mat-option *ngFor="let pin of this.tm1637_dio_pin_list;" [value]="pin.gpio">
-          {{pin.name}}
-        </mat-option>
-      </mat-select>
-    </div>
+    }
 
     <div class="field-container">
       <div class="action-button">

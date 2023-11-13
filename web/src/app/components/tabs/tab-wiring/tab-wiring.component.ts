@@ -6,8 +6,18 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {AppErrorStateMatcher, isNullOrUndefined, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {ComboBoxItem} from "../../../models/combo-box.model";
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatOptionModule } from '@angular/material/core';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { NgClass } from '@angular/common';
 
 interface LineParameters {
   idx: number,    // Номер линии 1..4
@@ -33,9 +43,24 @@ interface Assignment {
 }
 
 @Component({
-  selector: 'app-tab-wiring',
-  templateUrl: './tab-wiring.component.html',
-  styleUrls: ['./tab-wiring.component.scss'],
+    selector: 'app-tab-wiring',
+    templateUrl: './tab-wiring.component.html',
+    styleUrls: ['./tab-wiring.component.scss'],
+    standalone: true,
+    imports: [
+        MatTooltipModule,
+        MatIconModule,
+        NgClass,
+        MatSlideToggleModule,
+        FormsModule,
+        MatSelectModule,
+        DisableControlDirective,
+        MatOptionModule,
+        MatFormFieldModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+    ],
 })
 
 export class TabWiringComponent implements OnInit, OnDestroy {

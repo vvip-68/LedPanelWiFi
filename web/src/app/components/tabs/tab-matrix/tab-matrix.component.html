@@ -11,9 +11,11 @@
 
     <div class="idx-files-sel">
       <mat-select [(ngModel)]="index_file" panelClass="app-select-panel" [disableControl]="isDisabled() || radio_idx !== 0 || index_files.length === 0">
-        <mat-option *ngFor="let file of index_files" [value]="file.value">
-          {{file.displayText}}
-        </mat-option>
+        @for (file of index_files; track file) {
+          <mat-option [value]="file.value">
+            {{file.displayText}}
+          </mat-option>
+        }
       </mat-select>
     </div>
 
@@ -33,12 +35,16 @@
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('точ.') }}</p>
-          <mat-error *ngIf="segWidthFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="segWidthFormControl.hasError('range') && !segWidthFormControl.hasError('required')">
-            {{ L.$('от 4 до 128') }}
-          </mat-error>
+          @if (segWidthFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (segWidthFormControl.hasError('range') && !segWidthFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 4 до 128') }}
+            </mat-error>
+          }
         </mat-form-field>
         <div style="width:12px"></div>
         <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always">
@@ -48,12 +54,16 @@
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('точ.') }}</p>
-          <mat-error *ngIf="segHeightFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="segHeightFormControl.hasError('range') && !segHeightFormControl.hasError('required')">
-            {{ L.$('от 4 до 128') }}
-          </mat-error>
+          @if (segHeightFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (segHeightFormControl.hasError('range') && !segHeightFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 4 до 128') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -75,12 +85,16 @@
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('сег.') }}</p>
-          <mat-error *ngIf="tolWidthFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="tolWidthFormControl.hasError('range') && !tolWidthFormControl.hasError('required')">
-            {{ L.$('от 1 до 15') }}
-          </mat-error>
+          @if (tolWidthFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (tolWidthFormControl.hasError('range') && !tolWidthFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 1 до 15') }}
+            </mat-error>
+          }
         </mat-form-field>
         <div style="width:12px"></div>
         <mat-form-field hintLabel="{{ L.$('от 1 до 15') }}" floatLabel="always">
@@ -90,12 +104,16 @@
                  [disableControl]="isDisabled() || radio_idx === 0"
                  [errorStateMatcher]="matcher">
           <p matTextSuffix="">{{ L.$('сег.') }}</p>
-          <mat-error *ngIf="tolHeightFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="tolHeightFormControl.hasError('range') && !tolHeightFormControl.hasError('required')">
-            {{ L.$('от 1 до 15') }}
-          </mat-error>
+          @if (tolHeightFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (tolHeightFormControl.hasError('range') && !tolHeightFormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 1 до 15') }}
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 

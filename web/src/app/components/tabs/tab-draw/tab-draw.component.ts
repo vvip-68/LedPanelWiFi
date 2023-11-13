@@ -6,17 +6,45 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ColorPickerComponent} from "../../color-picker/color-picker.component";
-import {DOCUMENT} from "@angular/common";
+import { DOCUMENT, NgClass } from "@angular/common";
 import {distinctUntilChanged} from "rxjs/operators";
 import {HSLA, HSVA, RGBA} from "ngx-color";
 import {isNullOrUndefined, isNullOrUndefinedOrEmpty} from "../../../services/helper";
 import {ConfirmationDialogComponent} from "../../confirmation-dialog/confirmation-dialog.component";
 import {ComboBoxItem} from "../../../models/combo-box.model";
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { FormsModule } from '@angular/forms';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ColorCircleModule } from 'ngx-color/circle';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { ColorPhotoshopModule } from 'ngx-color/photoshop';
 
 @Component({
-  selector: 'app-tab-draw',
-  templateUrl: './tab-draw.component.html',
-  styleUrls: ['./tab-draw.component.scss'],
+    selector: 'app-tab-draw',
+    templateUrl: './tab-draw.component.html',
+    styleUrls: ['./tab-draw.component.scss'],
+    standalone: true,
+    imports: [
+        ColorPhotoshopModule,
+        MatIconModule,
+        MatTooltipModule,
+        NgClass,
+        ColorCircleModule,
+        MatFormFieldModule,
+        MatRadioModule,
+        FormsModule,
+        DisableControlDirective,
+        MatSelectModule,
+        MatOptionModule,
+        MatButtonModule,
+        MatInputModule,
+    ],
 })
 export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
 

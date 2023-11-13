@@ -1,11 +1,14 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
 import {WebsocketService} from '../../services/websocket/websocket.service';
+import { MatSliderModule } from '@angular/material/slider';
 
 @Component({
-  selector: 'app-brightness-slider',
-  templateUrl: './brightness-slider.component.html',
-  styleUrls: ['./brightness-slider.component.scss']
+    selector: 'app-brightness-slider',
+    templateUrl: './brightness-slider.component.html',
+    styleUrls: ['./brightness-slider.component.scss'],
+    standalone: true,
+    imports: [MatSliderModule]
 })
 export class BrightnessSliderComponent implements OnInit, OnDestroy {
 

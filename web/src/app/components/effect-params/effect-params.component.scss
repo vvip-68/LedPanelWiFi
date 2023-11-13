@@ -23,8 +23,10 @@
     cursor: move;
     text-overflow: ellipsis;
     white-space: nowrap;
-    height: 20px;
-    padding: 20px 0;
+    height: 28px;
+    font-size: 28px;
+    padding: 4px 0;
+    margin-bottom: 8px;
   }
 
   .params-wrapper-container {
@@ -88,7 +90,7 @@
         }
 
         .param-label-toggler {
-          padding-top: 17px;
+          padding-top: 7px;
           width: 300px;
         }
 
@@ -119,17 +121,13 @@
         .param-value-toggler {
           position: relative;
           width: auto;
-          padding-top: 15px;
+          padding-top: 5px;
         }
 
         .param-value-select {
           position: relative;
           width: 222px;
           top: 6px;
-
-          ::ng-deep .mat-form-field-infix {
-            width: 212px;
-          }
         }
       }
 
@@ -137,22 +135,5 @@
         margin-bottom: 12px;
       }
     }
-  }
-
-  mat-dialog-actions {
-    display: block;
-    position: relative;
-    margin-top: -12px;
-
-    .buttons {
-      padding: 0 6px 8px 0;
-      margin: 2px 0 0 0;
-
-      button {
-        width: 98px;
-        padding: 0 4px;
-      }
-    }
-
   }
 }

@@ -6,11 +6,32 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
+import { TabOtherComponent } from '../tab-other/tab-other.component';
+import { TabWeatherComponent } from '../tab-weather/tab-weather.component';
+import { TabNetworkComponent } from '../tab-network/tab-network.component';
+import { TabSynchComponent } from '../tab-synch/tab-synch.component';
+import { TabWiringComponent } from '../tab-wiring/tab-wiring.component';
+import { TabMatrixComponent } from '../tab-matrix/tab-matrix.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'app-tab-setup',
-  templateUrl: './tab-setup.component.html',
-  styleUrls: ['./tab-setup.component.scss'],
+    selector: 'app-tab-setup',
+    templateUrl: './tab-setup.component.html',
+    styleUrls: ['./tab-setup.component.scss'],
+    standalone: true,
+    imports: [
+        MatTabsModule,
+        MatIconModule,
+        MatTooltipModule,
+        TabMatrixComponent,
+        TabWiringComponent,
+        TabSynchComponent,
+        TabNetworkComponent,
+        TabWeatherComponent,
+        TabOtherComponent,
+    ],
 })
 export class TabSetupComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

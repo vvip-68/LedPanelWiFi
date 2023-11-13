@@ -21,12 +21,16 @@
                    [disableControl]="isDisabled()"
                    [errorStateMatcher]="matcher">
             <p matTextSuffix="">{{ L.$('секунд') }}</p>
-            <mat-error *ngIf="textIntervalFormControl.hasError('required')">
-              {{ L.$('Поле не может быть пустым!') }}
-            </mat-error>
-            <mat-error *ngIf="textIntervalFormControl.hasError('range') && !textIntervalFormControl.hasError('required')">
-              {{ L.$('не более 64000 секунд') }}
-            </mat-error>
+            @if (textIntervalFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (textIntervalFormControl.hasError('range') && !textIntervalFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('не более 64000 секунд') }}
+              </mat-error>
+            }
           </mat-form-field>
         </div>
 
@@ -47,7 +51,9 @@
 
         <div class="select-color">
           <button mat-raised-button color="primary" (click)="showColorSelector()" [disabled]="isDisabled()">{{L.$('Выбрать цвет')}}</button>
-          <div *ngIf="sample_color_visible" class="sample-color" [style.background-color]="getTextSampleColor()"></div>
+          @if (sample_color_visible) {
+            <div class="sample-color" [style.background-color]="getTextSampleColor()"></div>
+          }
         </div>
 
       </div>
@@ -70,7 +76,9 @@
     <fieldset class="app-fieldset texts-fieldset">
       <legend>{{ L.$('Текст бегущей строки') }}</legend>
       <div class="line-container">
-        <button *ngFor="let btn of buttons; let i = index" [matTooltip]="getTextButtonTooltip(i)" [disabled]="isDisabled()" (click)="textAction(i)" [class]="getTextButtonClass(i)">{{btn.label}}</button>
+        @for (btn of buttons; track btn; let i = $index) {
+          <button [matTooltip]="getTextButtonTooltip(i)" [disabled]="isDisabled()" (click)="textAction(i)" [class]="getTextButtonClass(i)">{{btn.label}}</button>
+        }
       </div>
 
       <div class="field-container text">
@@ -170,12 +178,16 @@
         <button [matTooltip]="L.$('Формат даты')" [matMenuTriggerFor]="menuDateFormat" [disabled]="isDisabled2()" class="btn">
           <span>dd.MM</span>
         </button>
-        <button *ngIf="managementService.state.supportMP3" [matTooltip]="L.$('Звук в сообщении')" [matMenuTriggerFor]="menuSounds" [disabled]="isDisabled2()" class="btn">
-          <mat-icon matSuffix>audiotrack</mat-icon>
-        </button>
-        <button *ngIf="!managementService.state.supportMP3" [matTooltip]="L.$('Звук в сообщении')" [disabled]="true" class="btn">
-          <mat-icon matSuffix>audiotrack</mat-icon>
-        </button>
+        @if (managementService.state.supportMP3) {
+          <button [matTooltip]="L.$('Звук в сообщении')" [matMenuTriggerFor]="menuSounds" [disabled]="isDisabled2()" class="btn">
+            <mat-icon matSuffix>audiotrack</mat-icon>
+          </button>
+        }
+        @if (!managementService.state.supportMP3) {
+          <button [matTooltip]="L.$('Звук в сообщении')" [disabled]="true" class="btn">
+            <mat-icon matSuffix>audiotrack</mat-icon>
+          </button>
+        }
         <button [matTooltip]="L.$('Радуга')" [disabled]="isDisabled2()" (click)="putMacrosInText('{C#000001}')" class="btn">
           <span class="letter"><span class="r">a</span><span class="g">b</span><span class="y">c</span></span>
         </button>
@@ -183,7 +195,7 @@
           <span class="letter"><span class="b">a</span><span class="y">b</span><span class="m">c</span></span>
         </button>
         <button [matTooltip]="L.$('Отключить строку')" [disabled]="isDisabled2()" (click)="macrosDisableString()" class="btn">
-          <span>{{ '{'}}-}</span>
+          <span>{{ '{'}}-&#125;</span>
         </button>
         <button [matTooltip]="L.$('Период показа строки')" [disabled]="isDisabled2()" (click)="pickerS.open()" class="btn">
           <mat-icon matSuffix>event</mat-icon>
@@ -203,19 +215,27 @@
     </fieldset>
 
     <mat-menu #menuDateFormat="matMenu">
-      <button *ngFor="let item of date_fmt" (click)="putMacrosInText(item.value)" mat-menu-item>{{item.displayText}}</button>
+      @for (item of date_fmt; track item) {
+        <button (click)="putMacrosInText(item.value)" mat-menu-item>{{item.displayText}}</button>
+      }
     </mat-menu>
 
     <mat-menu #menuEffect="matMenu">
-      <button *ngFor="let item of managementService.effects" (click)="putEffect(item.id)" mat-menu-item>{{item.name}}</button>
+      @for (item of managementService.effects; track item) {
+        <button (click)="putEffect(item.id)" mat-menu-item>{{item.name}}</button>
+      }
     </mat-menu>
 
     <mat-menu #menuSounds="matMenu">
-      <button *ngFor="let item of managementService.notify_sounds" (click)="putNotifySound(item.value)" mat-menu-item>{{item.displayText}}</button>
+      @for (item of managementService.notify_sounds; track item) {
+        <button (click)="putNotifySound(item.value)" mat-menu-item>{{item.displayText}}</button>
+      }
     </mat-menu>
 
     <mat-menu #menuLineNumber="matMenu">
-      <button *ngFor="let item of filterButtons()" (click)="linkToLine(item.label)" mat-menu-item>{{getLineText(item.index)}}</button>
+      @for (item of filterButtons(); track item) {
+        <button (click)="linkToLine(item.label)" mat-menu-item>{{getLineText(item.index)}}</button>
+      }
     </mat-menu>
 
     <div style="height: 54px">&nbsp;</div>

@@ -10,12 +10,16 @@
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
         <p matTextSuffix="">{{ L.$('миллиампер') }}</p>
-        <mat-error *ngIf="autoLimitFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
-        <mat-error *ngIf="autoLimitFormControl.hasError('range') && !autoLimitFormControl.hasError('required')">
-          {{ L.$('от 0 до 50000 миллиампер') }}
-        </mat-error>
+        @if (autoLimitFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
+        @if (autoLimitFormControl.hasError('range') && !autoLimitFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('от 0 до 50000 миллиампер') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -27,41 +31,51 @@
 
   </fieldset>
 
-  <fieldset class="app-fieldset other-fieldset" *ngIf="fs_allow || sd_allow">
-    <legend>{{ L.$('Резервная копия настроек') }}</legend>
-    <div class="field-container nomargin">
-      <div class="action-button center">
-        <button mat-raised-button color="primary" *ngIf="fs_allow && (backup_place === 1 || backup_place === 3)"
+  @if (fs_allow || sd_allow) {
+    <fieldset class="app-fieldset other-fieldset">
+      <legend>{{ L.$('Резервная копия настроек') }}</legend>
+      <div class="field-container nomargin">
+        <div class="action-button center">
+          @if (fs_allow && (backup_place === 1 || backup_place === 3)) {
+            <button mat-raised-button color="primary"
                 matTooltip="{{L.$('Загрузить с FS')}}"
                 [disabled]="isDisabled()"
                 (click)="loadFrom(0)">
-          <mat-icon matSuffix>publish</mat-icon>
-          <span>{{L.$('FS')}}</span>
-        </button>
-        <button mat-raised-button color="primary" *ngIf="sd_allow && (backup_place === 2 || backup_place === 3)"
-                matTooltip="{{L.$('Загрузить с SD')}}"
-                [disabled]="isDisabled()"
-                (click)="loadFrom(1)">
-          <mat-icon matSuffix>publish</mat-icon>
-          <span>{{L.$('SD')}}</span>
-        </button>
-        <button mat-raised-button color="primary" *ngIf="fs_allow"
-                matTooltip="{{L.$('Сохранить в FS')}}"
-                [disabled]="isDisabled()"
-                (click)="saveTo(0)">
-          <mat-icon matSuffix>save</mat-icon>
-          <span>{{L.$('FS')}}</span>
-        </button>
-        <button mat-raised-button color="primary" *ngIf="sd_allow"
-                matTooltip="{{L.$('Сохранить в SD')}}"
-                [disabled]="isDisabled()"
-                (click)="saveTo(1)">
-          <mat-icon matSuffix>save</mat-icon>
-          <span>{{L.$('SD')}}</span>
-        </button>
+              <mat-icon matSuffix>publish</mat-icon>
+              <span>{{L.$('FS')}}</span>
+            </button>
+          }
+          @if (sd_allow && (backup_place === 2 || backup_place === 3)) {
+            <button mat-raised-button color="primary"
+                  matTooltip="{{L.$('Загрузить с SD')}}"
+                  [disabled]="isDisabled()"
+                  (click)="loadFrom(1)">
+              <mat-icon matSuffix>publish</mat-icon>
+              <span>{{L.$('SD')}}</span>
+            </button>
+          }
+          @if (fs_allow) {
+            <button mat-raised-button color="primary"
+                  matTooltip="{{L.$('Сохранить в FS')}}"
+                  [disabled]="isDisabled()"
+                  (click)="saveTo(0)">
+              <mat-icon matSuffix>save</mat-icon>
+              <span>{{L.$('FS')}}</span>
+            </button>
+          }
+          @if (sd_allow) {
+            <button mat-raised-button color="primary"
+                  matTooltip="{{L.$('Сохранить в SD')}}"
+                  [disabled]="isDisabled()"
+                  (click)="saveTo(1)">
+              <mat-icon matSuffix>save</mat-icon>
+              <span>{{L.$('SD')}}</span>
+            </button>
+          }
+        </div>
       </div>
-    </div>
-  </fieldset>
+    </fieldset>
+  }
 
   <fieldset class="app-fieldset other-fieldset">
     <div class="field-container nomargin">

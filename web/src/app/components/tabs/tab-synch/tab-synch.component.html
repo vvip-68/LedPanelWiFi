@@ -6,9 +6,11 @@
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Режим работы') }}</mat-label>
         <mat-select #e_mode [(ngModel)]="e131_mode" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let mode of e131_modes" [value]="mode.value">
-            {{mode.displayText}}
-          </mat-option>
+          @for (mode of e131_modes; track mode) {
+            <mat-option [value]="mode.value">
+              {{mode.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
@@ -17,121 +19,152 @@
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Тип синхронизации') }}</mat-label>
         <mat-select #e_type [(ngModel)]="e131_type" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled() || e131_mode === 0">
-          <mat-option *ngFor="let type of e131_types" [value]="type.value">
-            {{type.displayText}}
-          </mat-option>
+          @for (type of e131_types; track type) {
+            <mat-option [value]="type.value">
+              {{type.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
 
-    <div *ngIf="e_mode.value === 2 && e_type.value === 1" class="viewport-container">
+    @if (e_mode.value === 2 && e_type.value === 1) {
+      <div class="viewport-container">
 
-      <div class="field-container">
-        <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s1">
-          <mat-label class="s1">{{ L.$('Угол окна мастера: X') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="masterXFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="masterXFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="masterXFormControl.hasError('range') && !masterXFormControl.hasError('required')">
-            {{ L.$('от 0 до 127') }}
-          </mat-error>
-        </mat-form-field>
-        <div style="width:12px"></div>
-        <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s2">
-          <mat-label class="s2">{{ L.$('Y') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="masterYFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="masterYFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="masterYFormControl.hasError('range') && !masterYFormControl.hasError('required')">
-            {{ L.$('от 0 до 127') }}
-          </mat-error>
-        </mat-form-field>
+        <div class="field-container">
+          <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s1">
+            <mat-label class="s1">{{ L.$('Угол окна мастера: X') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="masterXFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (masterXFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (masterXFormControl.hasError('range') && !masterXFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 0 до 127') }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <div style="width:12px"></div>
+          <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s2">
+            <mat-label class="s2">{{ L.$('Y') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="masterYFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (masterYFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (masterYFormControl.hasError('range') && !masterYFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 0 до 127') }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="field-container">
+          <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s1">
+            <mat-label class="s1">{{ L.$('Угол окна вывода: X') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="localXFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (localXFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (localXFormControl.hasError('range') && !localXFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 0 до 127') }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <div style="width:12px"></div>
+          <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s2">
+            <mat-label class="s2">{{ L.$('Y') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="localYFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (localYFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (localYFormControl.hasError('range') && !localYFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 0 до 127') }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="field-container">
+          <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always" class="s1">
+            <mat-label class="s1">{{ L.$('Размер окна вывода: W') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="localWFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (localWFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (localWFormControl.hasError('range') && !localWFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 4 до 128') }}
+              </mat-error>
+            }
+          </mat-form-field>
+          <div style="width:12px"></div>
+          <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always"  class="s2">
+            <mat-label class="s2">{{ L.$('H') }}</mat-label>
+            <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="localHFormControl"
+                   [disableControl]="isDisabled()"
+                   [errorStateMatcher]="matcher">
+            @if (localHFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('Поле не может быть пустым!') }}
+              </mat-error>
+            }
+            @if (localHFormControl.hasError('range') && !localHFormControl.hasError('required')) {
+              <mat-error>
+                {{ L.$('от 4 до 128') }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
       </div>
-
-      <div class="field-container">
-        <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s1">
-          <mat-label class="s1">{{ L.$('Угол окна вывода: X') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="localXFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="localXFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="localXFormControl.hasError('range') && !localXFormControl.hasError('required')">
-            {{ L.$('от 0 до 127') }}
-          </mat-error>
-        </mat-form-field>
-        <div style="width:12px"></div>
-        <mat-form-field hintLabel="{{ L.$('от 0 до 127') }}" floatLabel="always" class="s2">
-          <mat-label class="s2">{{ L.$('Y') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="127" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="localYFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="localYFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="localYFormControl.hasError('range') && !localYFormControl.hasError('required')">
-            {{ L.$('от 0 до 127') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-      <div class="field-container">
-        <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always" class="s1">
-          <mat-label class="s1">{{ L.$('Размер окна вывода: W') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="localWFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="localWFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="localWFormControl.hasError('range') && !localWFormControl.hasError('required')">
-            {{ L.$('от 4 до 128') }}
-          </mat-error>
-        </mat-form-field>
-        <div style="width:12px"></div>
-        <mat-form-field hintLabel="{{ L.$('от 4 до 128') }}" floatLabel="always"  class="s2">
-          <mat-label class="s2">{{ L.$('H') }}</mat-label>
-          <input matInput required autocomplete="new-password" type="number" class="size" [min]="4" [max]="128" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="localHFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <mat-error *ngIf="localHFormControl.hasError('required')">
-            {{ L.$('Поле не может быть пустым!') }}
-          </mat-error>
-          <mat-error *ngIf="localHFormControl.hasError('range') && !localHFormControl.hasError('required')">
-            {{ L.$('от 4 до 128') }}
-          </mat-error>
-        </mat-form-field>
-      </div>
-
-    </div>
+    }
 
     <div class="field-container">
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Группа синхронизации') }}</mat-label>
         <mat-select [(ngModel)]="e131_group" panelClass="app-select-panel shift-140px" [disableControl]="isDisabled() || e131_mode === 0">
-          <mat-option *ngFor="let group of e131_groups" [value]="group.value">
-            {{group.displayText}}
-          </mat-option>
+          @for (group of e131_groups; track group) {
+            <mat-option [value]="group.value">
+              {{group.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
 
-    <div *ngIf="isDisabled2()" class="warning">
-      {{ L.$('sync_warning') }}
-    </div>
+    @if (isDisabled2()) {
+      <div class="warning">
+        {{ L.$('sync_warning') }}
+      </div>
+    }
 
     <div class="field-container">
       <div class="action-button">

@@ -2359,6 +2359,18 @@ bool saveEepromToFile(String storage) {
   DEBUGLN(F("Файл сохранен."));
 
   eeprom_backup = checkEepromBackup();
+
+  // Сделать резервную копию строк текста бегущей строки
+  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
+    char c = getAZIndex(i);
+    String tmp = getTextByIndex(i);
+    DEBUGLN(String(F("Сохранение строки [")) + String(c) + String(F("] : '")) + tmp + "'");
+    if (storage == "FS") {
+      saveTextLineFS(c, tmp, true);
+    } else {
+      saveTextLineSD(c, tmp, true);
+    }
+  }
   
   return true;
 }
@@ -2429,6 +2441,19 @@ bool loadEepromFromFile(String storage) {
   EEPROMwrite(0, EEPROM_OK);
   
   saveSettings();
+
+  // Загрузить строки из резервной копии
+  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
+    char c = getAZIndex(i);
+    String tmp;
+    if (storage == "FS") {
+      tmp = getTextByIndexFS(i, true);
+    } else {
+      tmp = getTextByIndexSD(i, true);
+    }
+    DEBUGLN(String(F("Загружена строка [")) + String(c) + String(F("] : '")) + tmp + "'");
+    saveTextLineFS(c, tmp, false);
+  }
   
   return true;
 }

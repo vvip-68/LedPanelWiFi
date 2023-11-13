@@ -1,11 +1,20 @@
 import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Subject} from 'rxjs';
 import {LanguagesService} from '../../services/languages/languages.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-plugger',
-  templateUrl: './plugger.component.html',
-  styleUrls: ['./plugger.component.scss'],
+    selector: 'app-plugger',
+    templateUrl: './plugger.component.html',
+    styleUrls: ['./plugger.component.scss'],
+    standalone: true,
+    imports: [
+        NgClass,
+        MatIconModule,
+        MatTooltipModule,
+    ],
 })
 export class PluggerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

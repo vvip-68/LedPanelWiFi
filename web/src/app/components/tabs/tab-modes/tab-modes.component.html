@@ -11,9 +11,11 @@
 
       <mat-form-field floatLabel="always" class="select">
         <mat-select [(ngModel)]="mode1_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
+          @for (effect of effects; track effect; let i = $index) {
+            <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+              {{effect.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
@@ -27,9 +29,11 @@
 
       <mat-form-field floatLabel="always" class="select">
         <mat-select [(ngModel)]="mode2_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
+          @for (effect of effects; track effect; let i = $index) {
+            <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+              {{effect.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
@@ -43,9 +47,11 @@
 
       <mat-form-field floatLabel="always" class="select">
         <mat-select [(ngModel)]="mode3_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
+          @for (effect of effects; track effect; let i = $index) {
+            <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+              {{effect.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
@@ -59,42 +65,52 @@
 
       <mat-form-field floatLabel="always" class="select">
         <mat-select [(ngModel)]="mode4_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
+          @for (effect of effects; track effect; let i = $index) {
+            <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+              {{effect.displayText}}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
     </div>
 
-    <div *ngIf="supportWeather" class="field-container">
-      <mat-form-field floatLabel="always">
-        <mat-label><b>{{ L.$('Рассвет') }}</b></mat-label>
-        <input matInput readonly [(ngModel)]="mode5_time" [disableControl]="isDisabled()">
-      </mat-form-field>
+    @if (supportWeather) {
+      <div class="field-container">
+        <mat-form-field floatLabel="always">
+          <mat-label><b>{{ L.$('Рассвет') }}</b></mat-label>
+          <input matInput readonly [(ngModel)]="mode5_time" [disableControl]="isDisabled()">
+        </mat-form-field>
 
-      <mat-form-field floatLabel="always" class="select">
-        <mat-select [(ngModel)]="mode5_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+        <mat-form-field floatLabel="always" class="select">
+          <mat-select [(ngModel)]="mode5_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+            @for (effect of effects; track effect; let i = $index) {
+              <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+                {{effect.displayText}}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    }
 
-    <div *ngIf="supportWeather" class="field-container">
-      <mat-form-field floatLabel="always">
-        <mat-label><b>{{ L.$('Закат') }}</b></mat-label>
-        <input matInput readonly [(ngModel)]="mode6_time" [disableControl]="isDisabled()">
-      </mat-form-field>
+    @if (supportWeather) {
+      <div class="field-container">
+        <mat-form-field floatLabel="always">
+          <mat-label><b>{{ L.$('Закат') }}</b></mat-label>
+          <input matInput readonly [(ngModel)]="mode6_time" [disableControl]="isDisabled()">
+        </mat-form-field>
 
-      <mat-form-field floatLabel="always" class="select">
-        <mat-select [(ngModel)]="mode6_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
-          <mat-option *ngFor="let effect of effects; let i = index;" [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
-            {{effect.displayText}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+        <mat-form-field floatLabel="always" class="select">
+          <mat-select [(ngModel)]="mode6_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
+            @for (effect of effects; track effect; let i = $index) {
+              <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+                {{effect.displayText}}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+    }
 
     <div class="field-container buttons">
       <div class="action-button">

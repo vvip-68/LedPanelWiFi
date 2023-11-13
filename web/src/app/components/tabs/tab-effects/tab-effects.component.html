@@ -1,175 +1,195 @@
 <div class="tab-effects">
-  <div *ngIf="!socketService.firstConnect" class="content" role="main">
+  @if (!socketService.firstConnect) {
+    <div class="content" role="main">
 
-    <div class="top-container">
+      <div class="top-container">
 
-      <div class="block3">
-        <div class="power-brightness">
-          <div class="power-btn">
-            <app-action [config]="power" [disabled]="!this.socketService.isConnected" [tooltip]="managementService.state.power ? L.$('Выключить') : L.$('Включить')"></app-action>
-            <span>{{ L.$('Яркость') }}</span>
-          </div>
-          <div class="brightness-container">
-            <div class="brightness-buttons">
-              <app-action [config]="bright_5" [disabled]="isDisabled()" tooltip="5%"></app-action>
-              <app-action [config]="bright_25" [disabled]="isDisabled()" tooltip="25%"></app-action>
-              <app-action [config]="bright_50" [disabled]="isDisabled()" tooltip="50%"></app-action>
-              <app-action [config]="bright_75" [disabled]="isDisabled()" tooltip="75%"></app-action>
-              <app-action [config]="bright_100" [disabled]="isDisabled()" tooltip="100%"></app-action>
+        <div class="block3">
+          <div class="power-brightness">
+            <div class="power-btn">
+              <app-action [config]="power" [disabled]="!this.socketService.isConnected" [tooltip]="managementService.state.power ? L.$('Выключить') : L.$('Включить')"></app-action>
+              <span>{{ L.$('Яркость') }}</span>
             </div>
-            <app-brightness-slider class="brightness-slider" [disabled]="isDisabled()" [value]="managementService.state.brightness"></app-brightness-slider>
+            <div class="brightness-container">
+              <div class="brightness-buttons">
+                <app-action [config]="bright_5" [disabled]="isDisabled()" tooltip="5%"></app-action>
+                <app-action [config]="bright_25" [disabled]="isDisabled()" tooltip="25%"></app-action>
+                <app-action [config]="bright_50" [disabled]="isDisabled()" tooltip="50%"></app-action>
+                <app-action [config]="bright_75" [disabled]="isDisabled()" tooltip="75%"></app-action>
+                <app-action [config]="bright_100" [disabled]="isDisabled()" tooltip="100%"></app-action>
+              </div>
+              <app-brightness-slider class="brightness-slider" [disabled]="isDisabled()" [value]="managementService.state.brightness"></app-brightness-slider>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="block3">
-        <div class="block-params time-params">
-          <div>
-            <div class="field-container">
-              <mat-form-field hintLabel="{{ L.$('смена эффекта через') }} {{input.value}} {{ L.$('секунд') }}" floatLabel="always">
-                <mat-label>{{ L.$('Время режима') }}</mat-label>
-                <input matInput #input autocomplete="new-password" type="number" [min]="5" [max]="255" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                       [formControl]="effectTimeFormControl"
-                       [disableControl]="isDisabled()"
-                       [errorStateMatcher]="matcher">
-                <p matTextSuffix="">{{ L.$('секунд') }}</p>
-                <mat-error *ngIf="effectTimeFormControl.hasError('required')">
-                  {{ L.$('Поле не может быть пустым!') }}
-                </mat-error>
-                <mat-error *ngIf="effectTimeFormControl.hasError('range') && !effectTimeFormControl.hasError('required')">
-                  {{ L.$('от 5 до 255 секунд') }}
-                </mat-error>
-              </mat-form-field>
+        <div class="block3">
+          <div class="block-params time-params">
+            <div>
+              <div class="field-container">
+                <mat-form-field hintLabel="{{ L.$('смена эффекта через') }} {{input.value}} {{ L.$('секунд') }}" floatLabel="always">
+                  <mat-label>{{ L.$('Время режима') }}</mat-label>
+                  <input matInput #input autocomplete="new-password" type="number" [min]="5" [max]="255" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                         [formControl]="effectTimeFormControl"
+                         [disableControl]="isDisabled()"
+                         [errorStateMatcher]="matcher">
+                  <p matTextSuffix="">{{ L.$('секунд') }}</p>
+                  @if (effectTimeFormControl.hasError('required')) {
+                    <mat-error>
+                      {{ L.$('Поле не может быть пустым!') }}
+                    </mat-error>
+                  }
+                  @if (effectTimeFormControl.hasError('range') && !effectTimeFormControl.hasError('required')) {
+                    <mat-error>
+                      {{ L.$('от 5 до 255 секунд') }}
+                    </mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="field-container">
+                <mat-form-field [hintLabel]="getHintForAutoModeTime()" floatLabel="always">
+                  <mat-label>{{ L.$('Авторежим через') }}</mat-label>
+                  <input matInput #input2 autocomplete="new-password" type="number" [min]="0" [max]="255" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                         [formControl]="autoModeTimeFormControl"
+                         [disableControl]="isDisabled()"
+                         [errorStateMatcher]="matcher">
+                  <p matTextSuffix="">{{ L.$('минут') }}</p>
+                  @if (autoModeTimeFormControl.hasError('required')) {
+                    <mat-error>
+                      {{ L.$('Поле не может быть пустым!') }}
+                    </mat-error>
+                  }
+                  @if (autoModeTimeFormControl.hasError('range') && !autoModeTimeFormControl.hasError('required')) {
+                    <mat-error>
+                      {{ L.$('от 0 до 255 минут') }}
+                    </mat-error>
+                  }
+                </mat-form-field>
+              </div>
             </div>
 
-            <div class="field-container">
-              <mat-form-field [hintLabel]="getHintForAutoModeTime()" floatLabel="always">
-                <mat-label>{{ L.$('Авторежим через') }}</mat-label>
-                <input matInput #input2 autocomplete="new-password" type="number" [min]="0" [max]="255" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                       [formControl]="autoModeTimeFormControl"
-                       [disableControl]="isDisabled()"
-                       [errorStateMatcher]="matcher">
-                <p matTextSuffix="">{{ L.$('минут') }}</p>
-                <mat-error *ngIf="autoModeTimeFormControl.hasError('required')">
-                  {{ L.$('Поле не может быть пустым!') }}
-                </mat-error>
-                <mat-error *ngIf="autoModeTimeFormControl.hasError('range') && !autoModeTimeFormControl.hasError('required')">
-                  {{ L.$('от 0 до 255 минут') }}
-                </mat-error>
-              </mat-form-field>
+            <div class="action-container">
+              <button mat-raised-button color="primary" (click)="applyIntervals($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
             </div>
-          </div>
 
-          <div class="action-container">
-            <button mat-raised-button color="primary" (click)="applyIntervals($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
           </div>
-
         </div>
-      </div>
 
-      <div class="block3">
-        <div class="block-params mode-params">
-          <div class="togglers">
-            <div class="toggler">
-              <mat-slide-toggle color="primary" class="switch" disableRipple
-                                [(ngModel)]="managementService.state.isAutomatic"
-                                [disabled]="isDisabled()"
-                                (change)="toggleAutoMode($event)">
-                <p>{{ L.$('Автосмена эффекта') }}</p>
-              </mat-slide-toggle>
+        <div class="block3">
+          <div class="block-params mode-params">
+            <div class="togglers">
+              <div class="toggler">
+                <mat-slide-toggle color="primary" class="switch" disableRipple
+                                  [(ngModel)]="managementService.state.isAutomatic"
+                                  [disabled]="isDisabled()"
+                                  (change)="toggleAutoMode($event)">
+                  <p>{{ L.$('Автосмена эффекта') }}</p>
+                </mat-slide-toggle>
+              </div>
+              <div class="toggler">
+                <mat-slide-toggle color="primary" class="switch" disableRipple
+                                  [(ngModel)]="managementService.state.isRandom"
+                                  [disabled]="isDisabled()"
+                                  (change)="toggleRandomMode($event)">
+                  <p>{{ L.$('Случайный выбор эффекта') }}</p>
+                </mat-slide-toggle>
+              </div>
             </div>
-            <div class="toggler">
-              <mat-slide-toggle color="primary" class="switch" disableRipple
-                                [(ngModel)]="managementService.state.isRandom"
-                                [disabled]="isDisabled()"
-                                (change)="toggleRandomMode($event)">
-                <p>{{ L.$('Случайный выбор эффекта') }}</p>
-              </mat-slide-toggle>
+            <div class="buttons">
+              <button mat-raised-button color="primary" class="prev" [disabled]="isDisabled()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
+                {{ L.$('Назад') }}
+              </button>
+              <button mat-raised-button color="primary" class="next" [disabled]="isDisabled()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
+                {{ L.$('Вперед') }}
+              </button>
             </div>
           </div>
-          <div class="buttons">
-            <button mat-raised-button color="primary" class="prev" [disabled]="isDisabled()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
-              {{ L.$('Назад') }}
+
+          <div class="clock-button-spacer"></div>
+
+          <div class="block-params mode-params clock-button">
+            <button mat-raised-button color="primary" class="night"
+                    [ngClass]="{'active': managementService.state.isNightClockRunnung()}"
+                    [disabled]="isDisabled()" [matTooltip]="getNightClockTooltip()" (click)="toggleNightClock()">
+              <mat-icon>snooze</mat-icon>
+              @if (!managementService.state.isNightClockRunnung()) {
+                <span>{{ L.$('Включить ночные часы') }}</span>
+              }
+              @if (managementService.state.isNightClockRunnung()) {
+                <span>{{ L.$('Ночные часы. Выключить.') }}</span>
+              }
             </button>
-            <button mat-raised-button color="primary" class="next" [disabled]="isDisabled()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
-              {{ L.$('Вперед') }}
-            </button>
           </div>
-        </div>
 
-        <div class="clock-button-spacer">
-        </div>
-
-        <div class="block-params mode-params clock-button">
-          <button mat-raised-button color="primary" class="night"
-                  [ngClass]="{'active': managementService.state.isNightClockRunnung()}"
-                  [disabled]="isDisabled()" [matTooltip]="getNightClockTooltip()" (click)="toggleNightClock()">
-            <mat-icon>snooze</mat-icon>
-            <span *ngIf="!managementService.state.isNightClockRunnung()">{{ L.$('Включить ночные часы') }}</span>
-            <span *ngIf="managementService.state.isNightClockRunnung()">{{ L.$('Ночные часы. Выключить.') }}</span>
-          </button>
         </div>
 
       </div>
+
+      <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center">
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon show-label">double_arrow</mat-icon>
+            <span>{{ L.$('Эффекты') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            <div class="card-container">
+              @for (idx of managementService.effects_in_use; track idx) {
+                <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="false"></app-effect>
+              }
+            </div>
+          </ng-template>
+        </mat-tab>
+
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon class="tab-icon show-label">swap_horiz</mat-icon>
+            <span>{{ L.$('Выбор') }}</span>
+          </ng-template>
+          <ng-template matTabContent>
+            <div class="card-tuner">
+              <div class="tooltip-text">{{ L.$('Перетаскивайте карточки между списками') }}</div>
+              <div class="card-container choosing" cdkDropListGroup>
+                <div class="list-container">
+                  <h2 class="right">{{ L.$('Включено') }}</h2>
+                  <div class="btn right">
+                    <span>{{ L.$('Отключить все') }}</span>
+                    <mat-icon class="tab-icon show-label" (click)="selectAll(false)">arrow_forward</mat-icon>
+                  </div>
+                  <div cdkDropList #list1="cdkDropList" [cdkDropListData]="managementService.effects_in_use" [cdkDropListConnectedTo]="list2" class="effect-list" (cdkDropListDropped)="drop($event)">
+                    @for (idx of managementService.effects_in_use; track idx) {
+                      <div cdkDrag>
+                        <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
+                        <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="list-container">
+                  <h2 class="left">{{ L.$('Отключено') }}</h2>
+                  <div class="btn left">
+                    <mat-icon class="tab-icon show-label" (click)="selectAll(true)">arrow_backward</mat-icon>
+                    <span>{{ L.$('Добавить все') }}</span>
+                  </div>
+                  <div cdkDropList #list2="cdkDropList"  [cdkDropListData]="managementService.effects_not_use" [cdkDropListConnectedTo]="list1" class="effect-list" (cdkDropListDropped)="drop($event)">
+                    @for (idx of managementService.effects_not_use; track idx) {
+                      <div cdkDrag>
+                        <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
+                        <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </mat-tab>
+
+      </mat-tab-group>
 
     </div>
-
-    <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="center">
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon show-label">double_arrow</mat-icon>
-          <span>{{ L.$('Эффекты') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <div class="card-container">
-            <app-effect *ngFor="let idx of managementService.effects_in_use" [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="false"></app-effect>
-          </div>
-        </ng-template>
-      </mat-tab>
-
-      <mat-tab>
-        <ng-template mat-tab-label>
-          <mat-icon class="tab-icon show-label">swap_horiz</mat-icon>
-          <span>{{ L.$('Выбор') }}</span>
-        </ng-template>
-        <ng-template matTabContent>
-          <div class="card-tuner">
-            <div class="tooltip-text">{{ L.$('Перетаскивайте карточки между списками') }}</div>
-            <div class="card-container choosing" cdkDropListGroup>
-              <div class="list-container">
-                <h2 class="right">{{ L.$('Включено') }}</h2>
-                <div class="btn right">
-                  <span>{{ L.$('Отключить все') }}</span>
-                  <mat-icon class="tab-icon show-label" (click)="selectAll(false)">arrow_forward</mat-icon>
-                </div>
-                <div cdkDropList #list1="cdkDropList" [cdkDropListData]="managementService.effects_in_use" [cdkDropListConnectedTo]="list2" class="effect-list" (cdkDropListDropped)="drop($event)">
-                  <div cdkDrag *ngFor="let idx of managementService.effects_in_use">
-                    <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
-                    <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
-                  </div>
-                </div>
-              </div>
-
-              <div class="list-container">
-                <h2 class="left">{{ L.$('Отключено') }}</h2>
-                <div class="btn left">
-                  <mat-icon class="tab-icon show-label" (click)="selectAll(true)">arrow_backward</mat-icon>
-                  <span>{{ L.$('Добавить все') }}</span>
-                </div>
-                <div cdkDropList #list2="cdkDropList"  [cdkDropListData]="managementService.effects_not_use" [cdkDropListConnectedTo]="list1" class="effect-list" (cdkDropListDropped)="drop($event)">
-                  <div cdkDrag *ngFor="let idx of managementService.effects_not_use">
-                    <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
-                    <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ng-template>
-      </mat-tab>
-
-    </mat-tab-group>
-
-  </div>
+  }
 </div>
+
 <div style="height:54px"></div>

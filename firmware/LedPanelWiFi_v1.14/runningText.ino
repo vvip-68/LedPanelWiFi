@@ -31,45 +31,45 @@ void InitializeTexts() {
   
   for (uint8_t i=0; i < TEXTS_MAX_COUNT; i++) {
     char charIndex = getAZIndex(i);
-    String fileName = directoryName + '/' + charIndex;
+    String fileName = directoryName + '/' + charIndex, tmp;
     if (INITIALIZE_TEXTS == 1 && !LittleFS.exists(fileName)) {
       switch (i) {
-        case 0: saveTextLine('0', textLine_0); break;
-        case 1: saveTextLine('1', textLine_1); break;
-        case 2: saveTextLine('2', textLine_2); break;
-        case 3: saveTextLine('3', textLine_3); break;
-        case 4: saveTextLine('4', textLine_4); break;
-        case 5: saveTextLine('5', textLine_5); break;
-        case 6: saveTextLine('6', textLine_6); break;
-        case 7: saveTextLine('7', textLine_7); break;
-        case 8: saveTextLine('8', textLine_8); break;
-        case 9: saveTextLine('9', textLine_9); break;
-        case 10: saveTextLine('A', textLine_A); break;
-        case 11: saveTextLine('B', textLine_B); break;
-        case 12: saveTextLine('C', textLine_C); break;
-        case 13: saveTextLine('D', textLine_D); break;
-        case 14: saveTextLine('E', textLine_E); break;
-        case 15: saveTextLine('F', textLine_F); break;
-        case 16: saveTextLine('G', textLine_G); break;
-        case 17: saveTextLine('H', textLine_H); break;
-        case 18: saveTextLine('I', textLine_I); break;
-        case 19: saveTextLine('J', textLine_J); break;
-        case 20: saveTextLine('K', textLine_K); break;
-        case 21: saveTextLine('L', textLine_L); break;
-        case 22: saveTextLine('M', textLine_M); break;
-        case 23: saveTextLine('N', textLine_N); break;
-        case 24: saveTextLine('O', textLine_O); break;
-        case 25: saveTextLine('P', textLine_P); break;
-        case 26: saveTextLine('Q', textLine_Q); break;
-        case 27: saveTextLine('R', textLine_R); break;
-        case 28: saveTextLine('S', textLine_S); break;
-        case 29: saveTextLine('T', textLine_T); break;
-        case 30: saveTextLine('U', textLine_U); break;
-        case 31: saveTextLine('V', textLine_V); break;
-        case 32: saveTextLine('W', textLine_W); break;
-        case 33: saveTextLine('X', textLine_X); break;
-        case 34: saveTextLine('Y', textLine_Y); break;
-        case 35: saveTextLine('Z', textLine_Z); break; 
+        case 0:  tmp = String(textLine_0); saveTextLine('0', tmp); break;
+        case 1:  tmp = String(textLine_1); saveTextLine('1', tmp); break;
+        case 2:  tmp = String(textLine_2); saveTextLine('2', tmp); break;
+        case 3:  tmp = String(textLine_3); saveTextLine('3', tmp); break;
+        case 4:  tmp = String(textLine_4); saveTextLine('4', tmp); break;
+        case 5:  tmp = String(textLine_5); saveTextLine('5', tmp); break;
+        case 6:  tmp = String(textLine_6); saveTextLine('6', tmp); break;
+        case 7:  tmp = String(textLine_7); saveTextLine('7', tmp); break;
+        case 8:  tmp = String(textLine_8); saveTextLine('8', tmp); break;
+        case 9:  tmp = String(textLine_9); saveTextLine('9', tmp); break;
+        case 10: tmp = String(textLine_A); saveTextLine('A', tmp); break;
+        case 11: tmp = String(textLine_B); saveTextLine('B', tmp); break;
+        case 12: tmp = String(textLine_C); saveTextLine('C', tmp); break;
+        case 13: tmp = String(textLine_D); saveTextLine('D', tmp); break;
+        case 14: tmp = String(textLine_E); saveTextLine('E', tmp); break;
+        case 15: tmp = String(textLine_F); saveTextLine('F', tmp); break;
+        case 16: tmp = String(textLine_G); saveTextLine('G', tmp); break;
+        case 17: tmp = String(textLine_H); saveTextLine('H', tmp); break;
+        case 18: tmp = String(textLine_I); saveTextLine('I', tmp); break;
+        case 19: tmp = String(textLine_J); saveTextLine('J', tmp); break;
+        case 20: tmp = String(textLine_K); saveTextLine('K', tmp); break;
+        case 21: tmp = String(textLine_L); saveTextLine('L', tmp); break;
+        case 22: tmp = String(textLine_M); saveTextLine('M', tmp); break;
+        case 23: tmp = String(textLine_N); saveTextLine('N', tmp); break;
+        case 24: tmp = String(textLine_O); saveTextLine('O', tmp); break;
+        case 25: tmp = String(textLine_P); saveTextLine('P', tmp); break;
+        case 26: tmp = String(textLine_Q); saveTextLine('Q', tmp); break;
+        case 27: tmp = String(textLine_R); saveTextLine('R', tmp); break;
+        case 28: tmp = String(textLine_S); saveTextLine('S', tmp); break;
+        case 29: tmp = String(textLine_T); saveTextLine('T', tmp); break;
+        case 30: tmp = String(textLine_U); saveTextLine('U', tmp); break;
+        case 31: tmp = String(textLine_V); saveTextLine('V', tmp); break;
+        case 32: tmp = String(textLine_W); saveTextLine('W', tmp); break;
+        case 33: tmp = String(textLine_X); saveTextLine('X', tmp); break;
+        case 34: tmp = String(textLine_Y); saveTextLine('Y', tmp); break;
+        case 35: tmp = String(textLine_Z); saveTextLine('Z', tmp); break; 
       }
     }
 
@@ -1825,24 +1825,29 @@ String getTextByAZIndex(char c) {
 
 // получить строку из массива строк текстов бегущей строки по индексу 0..35
 String getTextByIndex(uint8_t idx) {
+  return getTextByIndexFS(idx, false);
+}
+
+// получить строку из массива строк текстов бегущей строки по индексу 0..35
+String getTextByIndexFS(uint8_t idx, bool backup) {
   if (idx >= TEXTS_MAX_COUNT) return "";
 
   // preparedTextIdx - индекс строки, которая находится в preparedText
   // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
-  if (preparedTextIdx == idx) return preparedText;
+  if (preparedTextIdx == idx && preparedTextStorage == "FS") return preparedText;
 
   // Загрузить текст из файловой стистемы микроконтроллера
   char c = getAZIndex(idx);
   String text = "";
 
-  String directoryName = TEXT_STORAGE;
+  String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
   String fileName = directoryName + '/' + c;
   if (LittleFS.exists(fileName)) {
     
     File file = LittleFS.open(fileName, "r");
     if (file) {
       // считываем содержимое файла ssid
-      char buf[1024];
+      char* buf = (char*)malloc(1024);
       memset(buf, '\0', 1024); 
       size_t len = file.read((uint8_t*)buf, 1024);
       file.close();
@@ -1850,8 +1855,9 @@ String getTextByIndex(uint8_t idx) {
         text = String(buf);
         preparedText = text;
         preparedTextIdx = idx;
+        preparedTextStorage = "FS";
       }
-      
+      free(buf); 
     } else {
       DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    
     }    
@@ -1859,8 +1865,56 @@ String getTextByIndex(uint8_t idx) {
   return text;
 }
 
-void saveTextLine(char index, String text) {
-  String directoryName = TEXT_STORAGE;
+// получить строку из массива строк текстов бегущей строки по индексу 0..35
+String getTextByIndexSD(uint8_t idx, bool backup) {
+  if (idx >= TEXTS_MAX_COUNT) return "";
+
+  #if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1)
+
+    return getTextByIndexFS(idx, backup);
+  
+  #else
+
+    // preparedTextIdx - индекс строки, которая находится в preparedText
+    // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
+    if (preparedTextIdx == idx && preparedTextStorage == "SD") return preparedText;
+  
+    // Загрузить текст из файловой стистемы микроконтроллера
+    char c = getAZIndex(idx);
+    String text = "";
+  
+    String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");    
+    String fileName = directoryName + '/' + c;
+    if (SD.exists(fileName)) {
+      
+      File file = SD.open(fileName, "r");
+      if (file) {
+        // считываем содержимое файла ssid
+        char* buf = (char*)malloc(1024);
+        memset(buf, '\0', 1024); 
+        size_t len = file.read((uint8_t*)buf, 1024);
+        file.close();
+        if (len > 0) {
+          text = String(buf);
+          preparedText = text;
+          preparedTextIdx = idx;
+          preparedTextStorage = "SD";
+        }
+        free(buf);
+      } else {
+        DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    
+      }    
+    }
+    return text;
+  #endif
+}
+
+void saveTextLine(char index, String &text) {
+  saveTextLineFS(index, text, false);
+}
+
+void saveTextLineFS(char index, String &text, bool backup) {
+  String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
 
   bool ok = true;
   if (!LittleFS.exists(directoryName)) {
@@ -1870,7 +1924,7 @@ void saveTextLine(char index, String text) {
     }
   }
   
-  String fileName = directoryName + '/' + index;    
+  String fileName = directoryName + '/' + index;
 
   File file;
   if (LittleFS.exists(fileName)) {
@@ -1894,6 +1948,55 @@ void saveTextLine(char index, String text) {
   if (!ok) {
     DEBUGLN(String(F("Ошибка сохранения строки с индексом '")) + index + '\'');
   } 
+}
+
+void saveTextLineSD(char index, String &text, bool backup) {
+
+  #if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1)
+  
+    saveTextLineFS(index, text, backup);
+  
+  #else  
+  
+    String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
+  
+    bool ok = true;
+    if (!SD.exists(directoryName)) {
+      ok = SD.mkdir(directoryName);
+      if (!ok) {
+        DEBUGLN(String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'');      
+      }
+    }
+      
+    String fileName = directoryName + '/' + index;    
+    
+    File file;
+    
+    // Если файл с таким именем уже есть - удалить (перезапись файла новым)
+    if (SD.exists(fileName)) {
+      ok = SD.remove(fileName);
+    }
+  
+    if (ok) {
+      file = SD.open(fileName, "w");
+      if (file) {
+        size_t len = text.length()+1, lenw = 0;
+        if (len > 1024) len = 1024;
+        char buf[1024];
+        memset(buf, '\0', 1024);
+        text.toCharArray(buf, len);
+        lenw = file.write((uint8_t*)buf, len);
+        ok = lenw == len;       
+        file.close();
+      } else {
+        ok = false;
+      }
+    }
+    if (!ok) {
+      DEBUGLN(String(F("Ошибка сохранения строки с индексом '")) + index + '\'');
+    }
+     
+  #endif
 }
 
 // Сканировать массив текстовых строк на наличие событий постоянного отслеживания - макросов {P}

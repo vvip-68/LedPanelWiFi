@@ -19,9 +19,11 @@
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
         <mat-hint align="end">{{inputAP.value.length}}/10</mat-hint>
-        <mat-error *ngIf="apFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
+        @if (apFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -37,9 +39,11 @@
           <mat-icon>{{hideAPPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-hint align="end">{{inputAPPass.value.length}}/16</mat-hint>
-        <mat-error *ngIf="passAPFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
+        @if (passAPFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 

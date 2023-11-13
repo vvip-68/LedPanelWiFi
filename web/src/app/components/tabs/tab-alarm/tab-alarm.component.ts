@@ -4,15 +4,40 @@ import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
-import {FormControl, Validators} from "@angular/forms";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
 import {ComboBoxItem} from "../../../models/combo-box.model";
+import { MatSliderModule } from '@angular/material/slider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-alarm',
-  templateUrl: './tab-alarm.component.html',
-  styleUrls: ['./tab-alarm.component.scss'],
+    selector: 'app-tab-alarm',
+    templateUrl: './tab-alarm.component.html',
+    styleUrls: ['./tab-alarm.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatSelectModule,
+        FormsModule,
+        DisableControlDirective,
+        MatOptionModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatSlideToggleModule,
+        NgxMatTimepickerModule,
+        MatButtonModule,
+        MatIconModule,
+        MatSliderModule,
+    ],
 })
 export class TabAlarmComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

@@ -6,11 +6,24 @@ import {ManagementService} from '../../../services/management/management.service
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
+import { TabNetworkApComponent } from '../tab-network-ap/tab-network-ap.component';
+import { TabNetworkSsidComponent } from '../tab-network-ssid/tab-network-ssid.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'app-tab-network',
-  templateUrl: './tab-network.component.html',
-  styleUrls: ['./tab-network.component.scss'],
+    selector: 'app-tab-network',
+    templateUrl: './tab-network.component.html',
+    styleUrls: ['./tab-network.component.scss'],
+    standalone: true,
+    imports: [
+        MatTabsModule,
+        MatIconModule,
+        MatTooltipModule,
+        TabNetworkSsidComponent,
+        TabNetworkApComponent,
+    ],
 })
 export class TabNetworkComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

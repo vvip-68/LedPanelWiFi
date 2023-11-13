@@ -7,13 +7,29 @@ import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {ComboBoxItem} from "../../../models/combo-box.model";
-import {FormControl, Validators} from "@angular/forms";
-import {MatSelect} from "@angular/material/select";
+import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { MatSelect, MatSelectModule } from "@angular/material/select";
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
+import { DisableControlDirective } from '../../../directives/disable-control.directive';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-tab-synch',
-  templateUrl: './tab-synch.component.html',
-  styleUrls: ['./tab-synch.component.scss'],
+    selector: 'app-tab-synch',
+    templateUrl: './tab-synch.component.html',
+    styleUrls: ['./tab-synch.component.scss'],
+    standalone: true,
+    imports: [
+        MatFormFieldModule,
+        MatSelectModule,
+        FormsModule,
+        DisableControlDirective,
+        MatOptionModule,
+        MatInputModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+    ],
 })
 export class TabSynchComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();

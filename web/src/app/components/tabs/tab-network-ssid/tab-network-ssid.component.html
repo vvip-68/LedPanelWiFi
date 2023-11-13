@@ -10,9 +10,11 @@
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
         <mat-hint align="end">{{inputSsid.value.length}}/32</mat-hint>
-        <mat-error *ngIf="ssidFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
+        @if (ssidFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -28,12 +30,16 @@
           <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-hint align="end">{{inputPassword.value.length}}/64</mat-hint>
-        <mat-error *ngIf="passwordFormControl.hasError('required')">
-          {{ L.$('Поле не может быть пустым!') }}
-        </mat-error>
-        <mat-error *ngIf="passwordFormControl.hasError('length') && !passwordFormControl.hasError('required')">
-          {{ L.$('Длина пароля от 8 до 64 символов!') }}
-        </mat-error>
+        @if (passwordFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
+        @if (passwordFormControl.hasError('length') && !passwordFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Длина пароля от 8 до 64 символов!') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 
@@ -44,9 +50,11 @@
                [formControl]="ipAddressFormControl"
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
-        <mat-error *ngIf="ipAddressFormControl.hasError('ipv4')">
-          {{ L.$('Неверный IP адрес') }}
-        </mat-error>
+        @if (ipAddressFormControl.hasError('ipv4')) {
+          <mat-error>
+            {{ L.$('Неверный IP адрес') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 

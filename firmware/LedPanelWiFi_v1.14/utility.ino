@@ -913,7 +913,7 @@ void allocateLeds() {
      return;
   }
   DEBUG(F("Выделение памяти для LEDS   : "));
-  leds =  new CRGB[NUM_LEDS];            
+  leds =  new CRGB[NUM_LEDS];
 
   //FastLED.addLeds<LED_CHIP, D2, COLOR_ORDER>(leds, 256).setCorrection( TypicalLEDStrip );
   //FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
