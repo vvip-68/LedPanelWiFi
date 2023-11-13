@@ -536,24 +536,25 @@ String IntToHex(uint32_t value, uint8_t n) {
 }
 
 uint32_t CountTokens(const String &str, char separator) {
-
   uint32_t count = 0;
   int16_t  pos = 0;
+  String   l_str = str;
 
-  if (str.length() <= 0) return 0;
-  pos = str.indexOf(separator);
+  l_str.trim();
+  if (l_str.length() <= 0) return 0;
+  pos = l_str.indexOf(separator);
   while (pos >= 0) {
     count++;
-    pos = str.indexOf(separator, pos + 1);
+    pos = l_str.indexOf(separator, pos + 1);
   }
   return ++count;
 }
 
-String GetToken(const String &str, uint32_t index, char separator) {
+String GetToken(String &str, uint32_t index, char separator) {
 
   uint32_t count = CountTokens(str, separator);
 
-  if (count <= 1 || index < 1 || index > count) return emptyString;  // вернуть пустую строку
+  if (count <= 1 || index < 1 || index > count) return str;
 
   uint32_t pos_start = 0;
   uint32_t pos_end = str.length();

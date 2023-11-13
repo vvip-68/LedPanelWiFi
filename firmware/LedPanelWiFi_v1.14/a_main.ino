@@ -1343,7 +1343,9 @@ void parsing() {
               
               // Строка подтверждения приема строки изображения              
               if (cmdSource == UDP) {
-                str = "{\"L\":\"" + String(pntY) + "\"}";
+                str = "{\"L\":\"";
+                str += pntY;
+                str += "\"}";
                 sendStringData(str);
               } else {
                 SendWebKey("L", String(pntY));
@@ -1391,7 +1393,9 @@ void parsing() {
 
               // Строка подтверждения приема строки изображения              
               if (cmdSource == UDP) {
-                str = "{\"C\":\"" + String(pntX) + "\"}";
+                str = "{\"C\":\"";
+                str += pntX;
+                str += "\"}";
                 sendStringData(str);
               } else {
                 SendWebKey("C", String(pntX));
@@ -1665,20 +1669,20 @@ void parsing() {
         if (intData[1] == 7) {
           // В сообщении может передаваться длинная строка - например список файлов с SD-карты (param2), требуется буфер значительного размера
           
-          JsonVariant value;
+          //JsonVariant value;
           String out;
           
           doc.clear();
           doc["act"] = F("EDIT");
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["id"] = String(tmp_eff);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["name"] = getEffectName(tmp_eff);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["usage"] = getStateValue("UE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowClock"] = getStateValue("UC", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowText"] = getStateValue("UT", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["speed"] = getStateValue("SE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["contrast"] = getStateValue("BE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param1"] = getStateValue("SS", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param2"] = getStateValue("SQ", tmp_eff, &value);
+          doc["id"] = String(tmp_eff);
+          doc["name"] = getEffectName(tmp_eff);
+          doc["usage"] = getStateValue("UE", tmp_eff, nullptr);
+          doc["allowClock"] = getStateValue("UC", tmp_eff, nullptr);
+          doc["allowText"] = getStateValue("UT", tmp_eff, nullptr);
+          doc["speed"] = getStateValue("SE", tmp_eff, nullptr);
+          doc["contrast"] = getStateValue("BE", tmp_eff, nullptr);
+          doc["param1"] = getStateValue("SS", tmp_eff, nullptr);
+          doc["param2"] = getStateValue("SQ", tmp_eff, nullptr);
           doc["paramName1"] = getParamNameForMode(tmp_eff);
           doc["paramName2"] = getParam2NameForMode(tmp_eff);
           serializeJson(doc, out);
@@ -2728,6 +2732,19 @@ void sendStringData(String &str) {
 
 String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
+  String result1, result2;
+
+  result1 = getStateValue1(key, effect, value);
+  if (!result1.isEmpty())   // если вернули непустую строку в 1й заход, выходим
+    return result1;
+
+  // делаем 2й заход
+  result2 = getStateValue2(key, effect, value);
+  return result2;
+}
+
+String getStateValue1(String key, int8_t effect, JsonVariant* value) {
+ 
   // W:число     ширина матрицы
   // H:число     высота матрицы
   // AB:[текст]  пароль точки доступа - Web-канал
@@ -2879,7 +2896,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
  
-  String str = "", tmp;
+  String str, tmp;
   CRGB c;
 
   // Версия прошивки
@@ -3146,18 +3163,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
 
   // Оверлей бегущей строки
   if (key == "UT") {
-    tmp = String(getEffectTextOverlayUsage(effect));
+    tmp = getEffectTextOverlayUsage(effect) ? "1" : "0";
     if (value) {
       if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
         value->set("X");
-        return "X";
+        return String("X");
       }
       value->set(getEffectTextOverlayUsage(effect));
       return tmp;
     }
-    return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID 
-         ? "X"
-         : tmp);
+    str = "UT:";
+    if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID)
+      str += "X";
+    else
+      str += tmp;
+    return str;
   }
 
   // Оверлей часов   
@@ -3165,14 +3185,17 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     if (value) {
        if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK) {
          value->set("X");
-         return "X"; 
+         return String("X"); 
        }
        value->set(getEffectClockOverlayUsage(effect));
        return String(getEffectClockOverlayUsage(effect));
     }
-    return str + "UC:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK
-         ? "X" 
-         : (String(getEffectClockOverlayUsage(effect))));
+    str = "UC:";
+    if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK)
+      str += "X";
+    else
+      str += getEffectClockOverlayUsage(effect) ? "1" : "0";
+    return str;
   }
 
   // Настройка скорости
@@ -3181,15 +3204,18 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
         ) {
         value->set("X");
-        return "X";
+        return String("X");
       }
       value->set(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
       return String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
     }
-    return str + "SE:" +  (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
-         ? "X" 
-         : String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255)));
+    str = "SE:";
+    if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE) 
+      str += "X";
+    else 
+      str += String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
   }
+
 
   // Контраст
   if (key == "BE") {
@@ -3303,6 +3329,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     }
     return str + "TY:" + "[" + tmp + "]";
   }
+
 
   // Оверлей часов вкл/выкл
   if (key == "CE") {
@@ -3456,6 +3483,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     }
     return str + "NZ:" + String(timeZoneOffset);
   }
+
 
   // Часовой пояс - минты
   if (key == "NM") {
@@ -3665,6 +3693,17 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   }
 #endif
 
+  // Запрошенный ключ не найден - вернуть пустую строку
+  return emptyString;
+}
+
+String getStateValue2(String key, int8_t effect, JsonVariant* value) {
+
+  String str, tmp;
+  CRGB c;
+
+
+
   // uptime - время работы системы в секундах
   if (key == "UP") {
     uint32_t upt = upTime;
@@ -3856,6 +3895,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     }
     return str + "FS:" + String(spiffs_ok); 
   }
+
 
   // Список картинок с внутренней файловой системы
   if (key == "FL0") {
@@ -4163,6 +4203,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   
   #endif
 
+
   // Поддержка управления питанием
   if (key == "PZ") {
     if (value) {
@@ -4320,7 +4361,7 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   }
     
   // Запрошенный ключ не найден - вернуть пустую строку
-  return "";
+  return emptyString;
 }
 
 String getStateString(String keys) {
