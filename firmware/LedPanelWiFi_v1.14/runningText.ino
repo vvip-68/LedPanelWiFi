@@ -219,7 +219,7 @@ uint8_t getTextY() {
 bool drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, uint32_t color) {
   
   int8_t LH = LET_HEIGHT;
-  if (LH > HEIGHT) LH = pHEIGHT;
+  if (LH > pHEIGHT) LH = pHEIGHT;
 
   int8_t start_pos = 0, finish_pos = LET_WIDTH;
   int8_t offset_y = getTextY();
