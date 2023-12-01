@@ -2,7 +2,7 @@
 
 void InitializeTexts() {
 
-  String directoryName = TEXT_STORAGE;
+  String directoryName(TEXT_STORAGE);
   
   textIndecies = F("##");
   textWithEvents = "";
@@ -11,7 +11,7 @@ void InitializeTexts() {
     
   if (!LittleFS.exists(directoryName)) {
     if (!LittleFS.mkdir(directoryName)) {
-      DEBUGLN(String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'');
+      DEBUG(String(MSG_FOLDER_CREATE_ERROR)); DEBUG(F(" '")); DEBUG(directoryName); DEBUGLN('\'');
       return;
     }
   }
@@ -31,49 +31,49 @@ void InitializeTexts() {
   
   for (uint8_t i=0; i < TEXTS_MAX_COUNT; i++) {
     char charIndex = getAZIndex(i);
-    String fileName = directoryName + '/' + charIndex, tmp;
+    String fileName(directoryName); fileName += '/'; fileName += charIndex;
     if (INITIALIZE_TEXTS == 1 && !LittleFS.exists(fileName)) {
       switch (i) {
-        case 0:  tmp = String(textLine_0); saveTextLine('0', tmp); break;
-        case 1:  tmp = String(textLine_1); saveTextLine('1', tmp); break;
-        case 2:  tmp = String(textLine_2); saveTextLine('2', tmp); break;
-        case 3:  tmp = String(textLine_3); saveTextLine('3', tmp); break;
-        case 4:  tmp = String(textLine_4); saveTextLine('4', tmp); break;
-        case 5:  tmp = String(textLine_5); saveTextLine('5', tmp); break;
-        case 6:  tmp = String(textLine_6); saveTextLine('6', tmp); break;
-        case 7:  tmp = String(textLine_7); saveTextLine('7', tmp); break;
-        case 8:  tmp = String(textLine_8); saveTextLine('8', tmp); break;
-        case 9:  tmp = String(textLine_9); saveTextLine('9', tmp); break;
-        case 10: tmp = String(textLine_A); saveTextLine('A', tmp); break;
-        case 11: tmp = String(textLine_B); saveTextLine('B', tmp); break;
-        case 12: tmp = String(textLine_C); saveTextLine('C', tmp); break;
-        case 13: tmp = String(textLine_D); saveTextLine('D', tmp); break;
-        case 14: tmp = String(textLine_E); saveTextLine('E', tmp); break;
-        case 15: tmp = String(textLine_F); saveTextLine('F', tmp); break;
-        case 16: tmp = String(textLine_G); saveTextLine('G', tmp); break;
-        case 17: tmp = String(textLine_H); saveTextLine('H', tmp); break;
-        case 18: tmp = String(textLine_I); saveTextLine('I', tmp); break;
-        case 19: tmp = String(textLine_J); saveTextLine('J', tmp); break;
-        case 20: tmp = String(textLine_K); saveTextLine('K', tmp); break;
-        case 21: tmp = String(textLine_L); saveTextLine('L', tmp); break;
-        case 22: tmp = String(textLine_M); saveTextLine('M', tmp); break;
-        case 23: tmp = String(textLine_N); saveTextLine('N', tmp); break;
-        case 24: tmp = String(textLine_O); saveTextLine('O', tmp); break;
-        case 25: tmp = String(textLine_P); saveTextLine('P', tmp); break;
-        case 26: tmp = String(textLine_Q); saveTextLine('Q', tmp); break;
-        case 27: tmp = String(textLine_R); saveTextLine('R', tmp); break;
-        case 28: tmp = String(textLine_S); saveTextLine('S', tmp); break;
-        case 29: tmp = String(textLine_T); saveTextLine('T', tmp); break;
-        case 30: tmp = String(textLine_U); saveTextLine('U', tmp); break;
-        case 31: tmp = String(textLine_V); saveTextLine('V', tmp); break;
-        case 32: tmp = String(textLine_W); saveTextLine('W', tmp); break;
-        case 33: tmp = String(textLine_X); saveTextLine('X', tmp); break;
-        case 34: tmp = String(textLine_Y); saveTextLine('Y', tmp); break;
-        case 35: tmp = String(textLine_Z); saveTextLine('Z', tmp); break; 
+        case 0:  saveTextLine('0', textLine_0); break;
+        case 1:  saveTextLine('1', textLine_1); break;
+        case 2:  saveTextLine('2', textLine_2); break;
+        case 3:  saveTextLine('3', textLine_3); break;
+        case 4:  saveTextLine('4', textLine_4); break;
+        case 5:  saveTextLine('5', textLine_5); break;
+        case 6:  saveTextLine('6', textLine_6); break;
+        case 7:  saveTextLine('7', textLine_7); break;
+        case 8:  saveTextLine('8', textLine_8); break;
+        case 9:  saveTextLine('9', textLine_9); break;
+        case 10: saveTextLine('A', textLine_A); break;
+        case 11: saveTextLine('B', textLine_B); break;
+        case 12: saveTextLine('C', textLine_C); break;
+        case 13: saveTextLine('D', textLine_D); break;
+        case 14: saveTextLine('E', textLine_E); break;
+        case 15: saveTextLine('F', textLine_F); break;
+        case 16: saveTextLine('G', textLine_G); break;
+        case 17: saveTextLine('H', textLine_H); break;
+        case 18: saveTextLine('I', textLine_I); break;
+        case 19: saveTextLine('J', textLine_J); break;
+        case 20: saveTextLine('K', textLine_K); break;
+        case 21: saveTextLine('L', textLine_L); break;
+        case 22: saveTextLine('M', textLine_M); break;
+        case 23: saveTextLine('N', textLine_N); break;
+        case 24: saveTextLine('O', textLine_O); break;
+        case 25: saveTextLine('P', textLine_P); break;
+        case 26: saveTextLine('Q', textLine_Q); break;
+        case 27: saveTextLine('R', textLine_R); break;
+        case 28: saveTextLine('S', textLine_S); break;
+        case 29: saveTextLine('T', textLine_T); break;
+        case 30: saveTextLine('U', textLine_U); break;
+        case 31: saveTextLine('V', textLine_V); break;
+        case 32: saveTextLine('W', textLine_W); break;
+        case 33: saveTextLine('X', textLine_X); break;
+        case 34: saveTextLine('Y', textLine_Y); break;
+        case 35: saveTextLine('Z', textLine_Z); break; 
       }
     }
 
-    String text = getTextByIndex(i);
+    String text(getTextByIndex(i));
 
     // Проверить строку на наличие макроса события {P}/ Если есть добавить ч строку индексов строк с отслеживаемыми событиями
     if (text.indexOf("{P") >= 0) {
@@ -99,7 +99,7 @@ void InitializeTexts() {
   sequenceIdx = isFirstLineControl() ? 1 : -1;
 }
 
-char getTextStateChar(uint8_t i, String &text) {
+char getTextStateChar(uint8_t i, const String& text) {
   char c = '0';    // статус - пустая
   if (text.length() > 0) {
     if (i == 0 && text[0] == '#')
@@ -117,18 +117,18 @@ char getTextStateChar(uint8_t i, String &text) {
 }
 
 void runningText() {
-  String text = "";
+  String text;
   if (thisMode == MC_TEXT) {
     FastLED.clear();    
     // Включен режим (не оверлей!) бегущей строки
     if (wifi_print_version) 
-      text = String(FIRMWARE_VER);
+      text = FIRMWARE_VER;
     else if (wifi_print_ip_text) 
       text = wifi_current_ip;
     else if (init_time)
       text = clockCurrentText();
     else
-      text = String(FIRMWARE_VER);
+      text = FIRMWARE_VER;
   } else {
     // Обычно отображаемые буквы - UTF-8 состоят из двух байт. Исключение из поддерживаемых символов - символ евро '€', который состоит из 4 байт - [226, 98, 0, 140] - занимает 4 позиции в строке.
     // Два лишних байта отображаются как пробел - пустое место. Если их не отображать (пропускать) - отображение бегущей строки обрывается (заканчивается) до того как последний символ скроется с экрана
@@ -152,12 +152,14 @@ void runningText() {
   fillString(text);
 }
 
-void fillString(String text) {
+void fillString(const String& text) {
+  
   if (loadingTextFlag) {
     offset = pWIDTH;   // перемотка в правый край
     // modeCode = MC_TEXT;
     loadingTextFlag = false;    
   }
+
 
   uint32_t color;
 
@@ -166,7 +168,7 @@ void fillString(String text) {
   // Если режим цвета - монохром (0) или задан неверно (>2) - использовать глобальный или специальный цвет
   
   uint16_t i = 0, j = 0, pos = 0, modif = 0;
-  
+
   while (text[i] != '\0') {
 
     // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
@@ -530,12 +532,19 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
 
 // Сдвинуть позицию отображения строки
 void shiftTextPosition() {
-  offset--;
+  #if defined(ESP32)
+    if (pWIDTH > 28)
+      offset -= 2;
+    else
+      offset--;
+  #else
+    offset--;
+  #endif
 }
 
 // Получить / установить настройки отображения очередного текста бегущей строки
 // Если нет строк, готовых к отображению (например все строки отключены) - вернуть false - 'нет готовых строк'
-bool prepareNextText(String text) {  
+bool prepareNextText(const String& text) {  
   // Если есть активная строка текущего момента - отображать ее 
   int8_t nextIdx = momentTextIdx >= 0 ? momentTextIdx : nextTextLineIdx;
 
@@ -548,7 +557,6 @@ bool prepareNextText(String text) {
   nextTextLineIdx = -1;           // Какую следующую строку показывать, может быть указан макросом в строке. Если указан - интервал отображения игнорируется, строка показывается сразу;
   textHasDateTime = false;        // Строка имеет макрос отображения текущего времени - ее нужно пересчитывать каждый раз при отрисовке; Если макроса времени нет - рассчитать текст строки один раз на этапе инициализации
   textHasMultiColor = false;      // Строк имеет множественное определение цвета - многоцветная строка
-  currentText  = "";              // Текст текущей отображаемой строки
 
   #if (USE_MP3 == 1) 
   runTextSound = -1;              // Нет звука, сопровождающего строку
@@ -566,12 +574,13 @@ bool prepareNextText(String text) {
   if (text.length() != 0) {
     syncText = text;
     currentText = processMacrosInText(text);
+    
   } else {
   
     // Если nextIdx >= 0 - значит в предыдущей строке было указано какую строку показывать следующей - показываем ее
     currentTextLineIdx = nextIdx >= 0 ? nextIdx : getNextLine(currentTextLineIdx);
     if (currentTextLineIdx >= TEXTS_MAX_COUNT) currentTextLineIdx = -1;
-  
+
     currentText = currentTextLineIdx < 0 ? "" : getTextByIndex(currentTextLineIdx);
     syncText = currentText;
     // Если выбрана строка для принудительного показа - игнорировать запрет по '-' в начале строки или по макросу {-}
@@ -580,6 +589,7 @@ bool prepareNextText(String text) {
       currentText.replace("{-}", "");
     }
     currentText = processMacrosInText(currentText);
+    
   }
 
   if (text.length() == 0 && currentTextLineIdx == 0 && currentText[0] == '#') currentText = "";
@@ -611,7 +621,7 @@ int8_t getNextLine(int8_t currentIdx) {
       if (nextLineIdx >= TEXTS_MAX_COUNT) nextLineIdx = 0;
       char c_idx = getAZIndex(nextLineIdx);
       if (textsNotEmpty.indexOf(c_idx) < 0) continue;
-      String text = getTextByAZIndex(c_idx);
+      String text(getTextByAZIndex(c_idx));
       bool disabled = (text.length() == 0) || (nextLineIdx == 0 && text[0] == '#') || (text[0] == '-') || (text.indexOf("{-}") >= 0) || (text.indexOf("{P") >= 0);
       bool wrong_date = (text.indexOf("{S") >= 0) && !forThisDate(text);
       if (disabled || wrong_date) continue;    
@@ -635,7 +645,7 @@ int8_t getNextLine(int8_t currentIdx) {
           int8_t t_idx = getTextIndex(c_idx);
           if (t_idx < 0) continue;        
           // Проверить - доступен ли текст в указанной строке к отображению?
-          String text = getTextByIndex(t_idx);
+          String text(getTextByIndex(t_idx));
           // Строка должна быть не пустая,
           // Не отключена - в первом символе или наличие макроса {-}?
           // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
@@ -656,7 +666,7 @@ int8_t getNextLine(int8_t currentIdx) {
         uint8_t c_idx = sequenceIdx;
         while (!found) {
           // Проверить - доступен ли текст в указанной строке к отображению?
-          String text = getTextByIndex(nextLineIdx);
+          String text(getTextByIndex(nextLineIdx));
           // Строка должна быть не пустая,
           // Не отключена - в первом символе или наличие макроса {-}?
           // Строки с макросом события {P} не отображаются по интервалу показа - только сразу до/после события
@@ -693,9 +703,9 @@ int8_t getNextLine(int8_t currentIdx) {
 }
 
 // Выполнить разбор строки на наличие макросов, применить указанные настройки
-String processMacrosInText(const String text) {  
+String processMacrosInText(const String& text) {  
 
-  String textLine = text;
+  String textLine(text);
   /*   
      Общие правила:
      - Макрос - последовательность управляющих конструкций, каждая из которых заключена в фигурные скобки, например "{Exx}" 
@@ -822,7 +832,6 @@ String processMacrosInText(const String text) {
   bool    found = false;
   uint8_t attempt = 0;
   int16_t idx, idx2;
-  String  tmp, tmp1;
 
   while (!found && (attempt < TEXTS_MAX_COUNT)) {
     
@@ -888,7 +897,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь номер эффекта, он должен быть 0..MAX_EFFECT-1, может быть двузначным
-      tmp = "";
+      String tmp;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -934,7 +943,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь номер звука, может быть двузначным
-      tmp = "";
+      String tmp;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -973,7 +982,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь номер эффекта, он должен быть 0..MAX_EFFECT-1, может быть двузначным
-      tmp = "", tmp1 = "";
+      String tmp, tmp1;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -1014,7 +1023,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь количество секунд отображения этой бегущей строки
-      tmp = "";
+      String tmp;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -1044,7 +1053,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь количество раз отображения этой бегущей строки
-      tmp = "";
+      String tmp;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -1074,7 +1083,7 @@ String processMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь цвет фона отображения этой бегущей строки
-      tmp = "";
+      String tmp;
       if (idx2 - idx > 1) {
         tmp = textLine.substring(idx+2, idx2);
       }
@@ -1103,7 +1112,7 @@ String processMacrosInText(const String text) {
     idx = textLine.indexOf("{WT}");
     if (idx >= 0) {
       // Подготовить строку текущего времени HH:mm и заменить все вхождения {D} на эту строку
-      String s_temperature = (temperature == 0 ? "" : (temperature > 0 ? "+" : "")) + String(temperature);
+      String s_temperature((temperature == 0 ? "" : (temperature > 0 ? "+" : ""))); s_temperature += temperature;
       String s_color = "";
 
       if (useTemperatureColor) {
@@ -1149,7 +1158,7 @@ String processMacrosInText(const String text) {
         if (idx2 < 0) break;
   
         // Извлечь цвет текста отображения этой бегущей строки
-        tmp = "";
+        String tmp;
         if (idx2 - idx > 1) {
           tmp = textLine.substring(idx+2, idx2);
         }
@@ -1174,9 +1183,9 @@ String processMacrosInText(const String text) {
 
 // Обработать макросы даты в строке
 // textLine - строка, содержащая макросы
-String processDateMacrosInText(const String text) {
+String processDateMacrosInText(const String& text) {
 
-  String textLine = text;
+  String textLine(text); 
   
   /* -------------------------------------------------------------
    Эти форматы содержат строку, зависящую от текущего времени.
@@ -1274,7 +1283,6 @@ String processDateMacrosInText(const String text) {
      ------------------------------------------------------------- 
   */
 
-  String   str, tmp, s_time, outText;
   uint8_t  aday = day();
   uint8_t  amnth = month();
   uint16_t ayear = year();
@@ -1293,11 +1301,7 @@ String processDateMacrosInText(const String text) {
     idx = textLine.indexOf("{D}");
     if (idx >= 0) {
       // Подготовить строку текущего времени HH:mm и заменить все вхождения {D} на эту строку
-      String s_hour = String(hrs);
-      String s_mins = String(mins);
-      if (s_hour.length() < 2) s_hour = "0" + s_hour;
-      if (s_mins.length() < 2) s_mins = "0" + s_mins;
-      String s_time = s_hour + ":" + s_mins;
+      String s_time(padNum(hrs, 2)); s_time += ':'; s_time += padNum(mins, 2);
       textLine.replace("{D}", s_time);
     }
 
@@ -1311,15 +1315,23 @@ String processDateMacrosInText(const String text) {
       if (idx2 < 0) break;
   
       // Извлечь форматную строку
-      String sFormat = "$", sFmtProcess = "#";
+      String sFmtProcess('#'); 
+      String sFormat('$');
   
       if (idx2 - idx > 1) {
         sFormat = textLine.substring(idx+3, idx2);
       }
+      
       sFmtProcess = sFormat;
       
+      //  YYY+ - СДЕДУЮЩИЙ год в виде четырехзначного числа
+      String str(ayear + 1);
+      sFmtProcess.replace("YYY+", str);
+      sFmtProcess.replace("yyy+", str);
+
       //  YYYY - год в виде четырехзначного числа
-      str = String(ayear);
+      str.clear();
+      str += ayear;
       sFmtProcess.replace("YYYY", str);
       sFmtProcess.replace("yyyy", str);
   
@@ -1334,98 +1346,108 @@ String processDateMacrosInText(const String text) {
       sFmtProcess.replace("y", str);
       
       //  HH   - час в 23-часовом формате от 00 до 23
-      str = String(hrs);
-      if (str.length() < 2) str = "0" + str;    
+      str.clear();
+      str += padNum(hrs, 2);
       sFmtProcess.replace("HH", str);
   
       //  H    - час в 23-часовом формате от 0 до 23
-      str = String(hrs);
+      str.clear();
+      str += hrs;
       sFmtProcess.replace("H", str);
   
       //  hh   - час в 12-часовом формате от 01 до 12
       hrs_t = hrs;
       if (hrs_t > 12) hrs_t = hrs_t - 12;
       if (hrs_t == 0) hrs_t = 12;
-      str = String(hrs_t);
-      if (str.length() < 2) str = "0" + str;    
+
+      str.clear();
+      str += padNum(hrs_t, 2);
       sFmtProcess.replace("hh", str);
   
       //  h    - час в 12-часовом формате от 1 до 12
-      str = String(hrs_t);
+      str.clear();
+      str += hrs_t;
       sFmtProcess.replace("h", str);
       
       //  mm   - минуты в диапазоне от 00 до 59
-      str = String(mins);
-      if (str.length() < 2) str = "0" + str;    
+      str.clear();
+      str += padNum(mins, 2);
       sFmtProcess.replace("mm", str);
   
       //  m    - минуты в диапазоне от 0 до 59
-      str = String(mins);
+      str.clear();
+      str += mins;
       sFmtProcess.replace("m", str);
   
       //  ss   - секунды в диапазоне от 00 до 59
-      str = String(secs);
-      if (str.length() < 2) str = "0" + str;    
+      str.clear();
+      str += padNum(secs, 2);
       sFmtProcess.replace("SS", str);
       sFmtProcess.replace("ss", str);
   
       //  s    - секунды в диапазоне от 0 до 59
-      str = String(secs);
+      str.clear();
+      str += secs;
       sFmtProcess.replace("S", str);
       sFmtProcess.replace("s", str);
   
       //  tt   - Указатель AM/PM
-      str = am ? "AM" : (pm ? "PM" : "");
+      str.clear();
+      str += am ? "AM" : (pm ? "PM" : "");
       sFmtProcess.replace("TT", str);
       str.toLowerCase();
       sFmtProcess.replace("tt", str);
   
       //  t    - Первый символ указателя AM/PM
-      str = am ? "A" : (pm ? "P" : "");
+      str.clear();
+      str += am ? "A" : (pm ? "P" : "");
       sFmtProcess.replace("T", str);
       str.toLowerCase();
       sFmtProcess.replace("t", str);
 
       //  dddd - полное название дня недели            (допускается DDDD)
-      str = getWeekdayString(wd);  // DDDD  
-      str = substitureDateMacros(str);
+      str.clear();
+      str += substitureDateMacros(getWeekdayString(wd));
       sFmtProcess.replace("DDDD", str);
       sFmtProcess.replace("dddd", str);
       
       //  ddd  - сокращенное название дня недели       (допускается DDD)
-      str = getWeekdayShortString(wd);  // DDD
-      str = substitureDateMacros(str);
+      str.clear(); // DDD
+      str += substitureDateMacros(getWeekdayShortString(wd));
       sFmtProcess.replace("DDD", str);
       sFmtProcess.replace("ddd", str);
   
       //  dd   - день месяца, в диапазоне от 01 до 31. (допускается DD)
-      str = String(aday);  // DD
-      if (str.length() < 2) str = "0" + str;    
+      str.clear();
+      str += padNum(aday,2);  // DD
       sFmtProcess.replace("DD", str);
       sFmtProcess.replace("dd", str);
   
       //  d    - день месяца, в диапазоне от 1 до 31.  (допускается D)
-      str = String(aday);  // D
+      str.clear();
+      str += aday;  // D
       sFmtProcess.replace("D", str);
       sFmtProcess.replace("d", str);
 
       //  MMMМ - месяц прописью (января..декабря)
-      str = getMonthString(amnth);
-      str = substitureDateMacros(str);
+      str.clear();
+      str += substitureDateMacros(getMonthString(amnth));
       sFmtProcess.replace("MMMM", str);
       
       //  MMM  - месяц прописью (янв..дек)
-      str = substitureDateMacros(str);
+      str.clear();
+      str += substitureDateMacros(str);
       str = getMonthShortString(amnth);
       sFmtProcess.replace("MMM", str);
   
       //  MM   - месяц от 01 до 12
-      str = String(amnth);
-      if (str.length() < 2) str = "0" + str;    
+      str.clear();
+      str += padNum(amnth,2);
       sFmtProcess.replace("MM", str);
   
       //  M    - месяц от 1 до 12
-      str = String(amnth);
+      str.clear();
+      str += amnth;
       sFmtProcess.replace("M", str);
       sFmtProcess = unsubstitureDateMacros(sFmtProcess);
 
@@ -1453,9 +1475,9 @@ String processDateMacrosInText(const String text) {
       if (idx2 < 0) break;
 
       // Извлечь дату события, время и строку замены ПОСЛЕ события (если есть)
-      str = "";
+      String str;
       if (idx2 - idx > 1) {
-        str = textLine.substring(idx+2, idx2);
+        str += textLine.substring(idx+2, idx2);
         str.trim();
       }
 
@@ -1479,7 +1501,7 @@ String processDateMacrosInText(const String text) {
 
         // Есть индекс строки замены? Если есть - отделить ее от даты события
         idx = str.indexOf("#");
-        String s_nn = "";
+        String s_nn;
         if (idx >= 0) {
           s_nn = idx>=0 ? str.substring(idx+1) : "";
           str = str.substring(0,idx);
@@ -1489,10 +1511,10 @@ String processDateMacrosInText(const String text) {
         t_event = makeTime(tm);
 
         /*
-        DEBUGLN("------------------------------------");
+        DEBUGLN(DELIM_LINE);
         DEBUGLN("Исходная R-дата: '" + str + "'");
         DEBUGLN(String(F("Дата события: ")) + padNum(tm.Day,2) + "." + padNum(tm.Month,2) + "." + padNum(tmYearToCalendar(tm.Year),4) + " " + padNum(tm.Hour,2) + ":" + padNum(tm.Minute,2) + ":" + padNum(tm.Second,2));
-        DEBUGLN("------------------------------------");
+        DEBUGLN(DELIM_LINE);
         */
         
         // Если t_now >= t_event - событие уже прошло, нужно заменять обрабатываемую строку на строку подстановки, указанную (или нет) в s_nn 
@@ -1566,7 +1588,7 @@ String processDateMacrosInText(const String text) {
           }
     
           if (nm > 0 && nm < TEXTS_MAX_COUNT) {
-            String s = getTextByIndex(nm);
+            String s(getTextByIndex(nm));
             if (s.length() > 0 && s[0] != '-' && s.indexOf("{-}") < 0) {
               s = '-' + s;              
               saveTextLine(getAZIndex(nm), s);
@@ -1588,17 +1610,18 @@ String processDateMacrosInText(const String text) {
         // Если осталось несколько часов - отображать часы и минуты
         // Если осталось меньше-равно 7 дней - отображать дни и часы
         // Если осталось больше 7 дней - отображать дни
-
+        
+        String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0)
-          tmp = String(restSeconds) + WriteSeconds(restSeconds);
+          { tmp += restSeconds; tmp += WriteSeconds(restSeconds); }
         else if (restDays == 0 && restHours == 0 && restMinutes > 0)
-          tmp = String(restMinutes) + WriteMinutes(restMinutes);
+          { tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
         else if (restDays == 0 && restHours > 0 && restMinutes > 0)
-          tmp = String(restHours) + WriteHours(restHours) + " " + String(restMinutes) + WriteMinutes(restMinutes);
+          { tmp += restHours; tmp += WriteHours(restHours); tmp += ' '; tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
         else if (restDays > 0 && restDays <= 7 && restHours > 0)
-          tmp = String(restDays) + WriteDays(restDays) + " " + String(restHours) + WriteHours(restHours);
+          { tmp += restDays; tmp += WriteDays(restDays); tmp += ' '; tmp += restHours; tmp += WriteHours(restHours); }
         else  
-          tmp = String(restDays) + WriteDays(restDays);
+          { tmp += restDays; tmp += WriteDays(restDays); }
 
         textLine = textLine.substring(0, insertPoint) + tmp + textLine.substring(insertPoint);
       }
@@ -1643,17 +1666,18 @@ String processDateMacrosInText(const String text) {
         // Если осталось несколько часов - отображать часы и минуты
         // Если осталось меньше-равно 7 дней - отображать дни и часы
         // Если осталось больше 7 дней - отображать дни
-  
+        
+        String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0)
-          tmp = String(restSeconds) + WriteSeconds(restSeconds);
+          { tmp += restSeconds; tmp += WriteSeconds(restSeconds); }
         else if (restDays == 0 && restHours == 0 && restMinutes > 0)
-          tmp = String(restMinutes) + WriteMinutes(restMinutes);
+          { tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
         else if (restDays == 0 && restHours > 0 && restMinutes > 0)
-          tmp = String(restHours) + WriteHours(restHours) + " " + String(restMinutes) + WriteMinutes(restMinutes);
+          { tmp += restHours; tmp += WriteHours(restHours); tmp += ' '; tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
         else if (restDays > 0 && restDays <= 7 && restHours > 0)
-          tmp = String(restDays) + WriteDays(restDays) + " " + String(restHours) + WriteHours(restHours);
+          { tmp += restDays; tmp += WriteDays(restDays); tmp += ' '; tmp += restHours; tmp += WriteHours(restHours); }
         else  
-          tmp = String(restDays) + WriteDays(restDays);
+          { tmp += restDays; tmp += WriteDays(restDays); }
         
         textLine = textLine.substring(0, insertPoint) + tmp + textLine.substring(insertPoint);
       }
@@ -1691,8 +1715,8 @@ String processDateMacrosInText(const String text) {
   return textLine;
 }
 
-String substitureDateMacros(const String txt) {  
-  String str = txt;
+String substitureDateMacros(const String& txt) {  
+  String str(txt);
   str.replace("DD", "~1~");
   str.replace("dd", "~2~");
   str.replace("D",  "~3~");
@@ -1704,8 +1728,8 @@ String substitureDateMacros(const String txt) {
   return str;
 }
 
-String unsubstitureDateMacros(const String txt) {  
-  String str = txt;
+String unsubstitureDateMacros(const String& txt) {  
+  String str(txt);
   str.replace("~1~", "DD");
   str.replace("~2~", "dd");
   str.replace("~3~", "D");
@@ -1718,9 +1742,9 @@ String unsubstitureDateMacros(const String txt) {
 }
 
 // Обработать макросы цвета в строке, в случае если строка многоцветная
-String processColorMacros(const String txt) {
+String processColorMacros(const String& txt) {
 
-  String text = txt;
+  String text(txt);
   // Обнулить массивы позиций цвета и самого цвета
   for (uint8_t i = 0; i < MAX_COLORS; i++) {
     textColorPos[i] = 0;
@@ -1746,7 +1770,7 @@ String processColorMacros(const String txt) {
     if (idx2 < 0) break;
 
     // Извлечь цвет текста отображения этой бегущей строки
-    String tmp = "";
+    String tmp;
     if (idx2 - idx > 1) {
       tmp = text.substring(idx+2, idx2);
     }
@@ -1773,7 +1797,7 @@ String processColorMacros(const String txt) {
 }
 
 // Проверка содержит ли эта строка множественное задание цвета
-bool checkIsTextMultiColor(const String text) {
+bool checkIsTextMultiColor(const String& text) {
 
   // Строка не содержит макроса цвета
   int16_t idx = text.indexOf("{C"), idx_first = idx;
@@ -1838,10 +1862,14 @@ String getTextByIndexFS(uint8_t idx, bool backup) {
 
   // Загрузить текст из файловой стистемы микроконтроллера
   char c = getAZIndex(idx);
-  String text = "";
 
-  String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
-  String fileName = directoryName + '/' + c;
+  String directoryName(TEXT_STORAGE);
+  if (backup) directoryName += ".bak";
+  
+  String fileName(directoryName); fileName += '/'; fileName += c;
+
+  String text;
+  
   if (LittleFS.exists(fileName)) {
     
     File file = LittleFS.open(fileName, "r");
@@ -1859,7 +1887,7 @@ String getTextByIndexFS(uint8_t idx, bool backup) {
       }
       free(buf); 
     } else {
-      DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    
+      DEBUG(F("Ошибка чтения строки с индексом '")); DEBUG(c); DEBUGLN('\'');    
     }    
   }
   return text;
@@ -1881,10 +1909,14 @@ String getTextByIndexSD(uint8_t idx, bool backup) {
   
     // Загрузить текст из файловой стистемы микроконтроллера
     char c = getAZIndex(idx);
-    String text = "";
   
-    String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");    
-    String fileName = directoryName + '/' + c;
+    String directoryName(TEXT_STORAGE);
+    if (backup) directoryName += ".bak";
+
+    String fileName(directoryName); fileName += '/'; fileName += c;
+
+    String text;
+
     if (SD.exists(fileName)) {
       
       File file = SD.open(fileName, "r");
@@ -1902,34 +1934,36 @@ String getTextByIndexSD(uint8_t idx, bool backup) {
         }
         free(buf);
       } else {
-        DEBUG(String(F("Ошибка чтения строки с индексом '")) + c + '\'');    
+        DEBUG(F("Ошибка чтения строки с индексом '")); DEBUG(c); DEBUGLN('\'');    
       }    
     }
     return text;
   #endif
 }
 
-void saveTextLine(char index, String &text) {
+void saveTextLine(char index, const String& text) {
   saveTextLineFS(index, text, false);
 }
 
-void saveTextLineFS(char index, String &text, bool backup) {
-  String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
+void saveTextLineFS(char index, const String& text, bool backup) {
+  String directoryName(TEXT_STORAGE);
+  if (backup) directoryName += ".bak";
 
   bool ok = true;
   if (!LittleFS.exists(directoryName)) {
     ok = LittleFS.mkdir(directoryName);
     if (!ok) {
-      DEBUGLN(String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'');
+      DEBUG(String(MSG_FOLDER_CREATE_ERROR)); DEBUG(F(" '")); DEBUGLN('\'');
     }
   }
   
-  String fileName = directoryName + '/' + index;
+  String fileName(directoryName); fileName += '/'; fileName += index;
 
   File file;
   if (LittleFS.exists(fileName)) {
     ok = LittleFS.remove(fileName);
   }
+  
   if (ok) {
     file = LittleFS.open(fileName, "w");
     if (file) {
@@ -1945,12 +1979,13 @@ void saveTextLineFS(char index, String &text, bool backup) {
       ok = false;
     }
   }
+  
   if (!ok) {
-    DEBUGLN(String(F("Ошибка сохранения строки с индексом '")) + index + '\'');
+    DEBUG(F("Ошибка сохранения строки с индексом '")); DEBUG(index); DEBUGLN('\'');
   } 
 }
 
-void saveTextLineSD(char index, String &text, bool backup) {
+void saveTextLineSD(char index, const String& text, bool backup) {
 
   #if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1)
   
@@ -1958,17 +1993,18 @@ void saveTextLineSD(char index, String &text, bool backup) {
   
   #else  
   
-    String directoryName = String(TEXT_STORAGE) + (backup ? ".bak" : "");
+    String directoryName(TEXT_STORAGE);
+    if (backup) directoryName += ".bak";
   
     bool ok = true;
     if (!SD.exists(directoryName)) {
       ok = SD.mkdir(directoryName);
       if (!ok) {
-        DEBUGLN(String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'');      
+        DEBUG(String(MSG_FOLDER_CREATE_ERROR)); DEBUG(F(" '")); DEBUG(directoryName); DEBUGLN('\'');      
       }
     }
       
-    String fileName = directoryName + '/' + index;    
+    String fileName(directoryName); fileName += '/'; fileName += index;    
     
     File file;
     
@@ -1992,8 +2028,9 @@ void saveTextLineSD(char index, String &text, bool backup) {
         ok = false;
       }
     }
+    
     if (!ok) {
-      DEBUGLN(String(F("Ошибка сохранения строки с индексом '")) + index + '\'');
+      DEBUG(F("Ошибка сохранения строки с индексом '")); DEBUG(index); DEBUGLN('\'');
     }
      
   #endif
@@ -2054,7 +2091,7 @@ void rescanTextEvents() {
     int16_t t_idx = getTextIndex(textWithEvents[i]);
     if (t_idx < 0) continue;
       
-    String text = getTextByIndex(t_idx);
+    String text(getTextByIndex(t_idx));
     int16_t idx = text.indexOf("{P");
     if (idx < 0) continue;
 
@@ -2062,16 +2099,16 @@ void rescanTextEvents() {
     if (idx2 < 0) continue;
 
     // Вычленяем содержимое макроса "{P}"
-    String str = text.substring(idx+2, idx2);
+    String str(text.substring(idx+2, idx2));
     str.trim();
 
     if (!found) {
-      DEBUGLN(F("--------------------"));
+      DEBUGLN(DELIM_LINE);
       DEBUGLN(F("Строки с событием {P}"));
       found = true;
     }
-    DEBUGLN(F("--------------------"));
-    DEBUGLN(String(F("Строка: '")) + text + "'");
+    DEBUGLN(DELIM_LINE);
+    DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
 
     // Сбрасываем переменные перед разбором очередной строки
     stage = 0; iDay = 0; iMonth = 0; iYear = 0; iHour = 0; iMinute = 0; iSecond = 0; iBefore = 60; iAfter = 60; star_cnt = 0; num = 0;
@@ -2082,7 +2119,7 @@ void rescanTextEvents() {
     for (uint16_t ix = 0; ix < str.length(); ix++) {
       if (err) {
         DEBUGLN();
-        DEBUG(String(F("Ошибка в макросе\n'{P")) + str + String(F("}'\n  ")));
+        DEBUG(F("Ошибка в макросе\n'{P")); DEBUG(str); DEBUG(F("}'\n  "));
         for(uint16_t n=0; n<ix; n++) DEBUG('-');
         DEBUGLN('^');
         break;
@@ -2251,9 +2288,28 @@ void rescanTextEvents() {
       
       breakTime(t_event, tm);
       
-      DEBUGLN(String(F("Событие: ")) + padNum(tm.Day,2) + "." + padNum(tm.Month,2) + "." + padNum(tmYearToCalendar(tm.Year),4) + " " + padNum(tm.Hour,2) + ":" + padNum(tm.Minute,2) + 
-                     String(F("; before=")) + String(iBefore) + String(F("; after=")) + String(iAfter) + String(F("; days='")) + wdays + String(F("'; replace='")) + String(getAZIndex(text_idx)) + "'");
-      
+      String str(F("Событие: ")); 
+      str += padNum(tm.Day,2);
+      str += ".";
+      str += padNum(tm.Month,2);
+      str += ".";
+      str += padNum(tmYearToCalendar(tm.Year),4);
+      str += " ";
+      str += padNum(tm.Hour,2);
+      str += ":";
+      str += padNum(tm.Minute,2);
+      str += F("; before=");
+      str += iBefore;
+      str += F("; after=");
+      str += iAfter;
+      str += F("; days='");
+      str += wdays;
+      str += F("'; replace='");
+      str += getAZIndex(text_idx);
+      str += "'";
+      DEBUGLN(str);
+      str.clear();
+        
       // Заполнить текущий элемент массива полученными параметрами
       moments[moment_idx].moment  = t_event;
       moments[moment_idx].before  = iBefore;
@@ -2263,7 +2319,7 @@ void rescanTextEvents() {
 
       // Строка-заместитель должна быть отключена, чтобы она не отображалась как регулярная строка
       if (text_idx >= 0) {
-        String text = getTextByIndex(text_idx);
+        String text(getTextByIndex(text_idx));
         if (text.length() > 0) {
           bool disabled = (text_idx == 0 && text[0] == '#') || text[0] == '-' || text.indexOf("{-}") >= 0; 
           if (!disabled) {
@@ -2277,7 +2333,7 @@ void rescanTextEvents() {
       moment_idx++;
     }
   }
-  DEBUGLN(F("--------------------"));  
+  DEBUGLN(DELIM_LINE);
   textCheckTime = millis();
 }
 
@@ -2308,7 +2364,7 @@ void checkMomentText() {
 // Проверить текст, содержащий макрос {S}
 // Возвращает true - если дата в макросе после расшифровки совпадает с текущей датой - текст можно отображать
 // Если дата не совпадает - текст отображать сегодня нельзя - еще не пришло (или уже прошло) время для этого текста
-bool forThisDate(String text) {
+bool forThisDate(const String& pText) { 
   /*
      text - в общем случае - "{S01.01.**** 7:00:00#01.01.**** 19:00:00}" - содержит даты начала и конца, разделенные символом "#"
      Дата как правило имеет формат "ДД.ММ.ГГГГ ЧЧ:MM:СС"; В дате День может быть замене на "**" - текущий день, месяц - "**" - текущий месяц, год - "****" - текущий год или "***+" - следующий год
@@ -2326,10 +2382,11 @@ bool forThisDate(String text) {
          Допускается указывать несколько макросов {S} в строке для определения нескольких разрешенных диапазонов
   */
   bool   ok = false;
-  String str;
   int16_t idx2;
-  
+
+  String text(pText);
   int16_t idx = text.indexOf("{S");
+  
   while (idx >= 0) {
     // Строка с событием проверки текущей даты - выводится только при совпадении текущей даты с указанной (вычисленной по маске)
     // Проверка строки производится раньше при решении какую строку показывать в getNextLine(). Если сюда попали - значит строка 
@@ -2341,16 +2398,16 @@ bool forThisDate(String text) {
     if (idx2 < 0) break;
 
     // Извлечь дату события из макроса
-    str = "";
+    String str;
     if (idx2 - idx > 1) {
-      str = text.substring(idx+2, idx2);
+      str = text.substring(idx + 2, idx2);
       str.trim();
     }
 
     // Проверить дату
     if (str.length() > 0) {
       /*
-      DEBUGLN(F("--------------------")); 
+      DEBUGLN(DELIM_LINE);
       DEBUG(F("Строка: '"));
       DEBUGLN(text + "'");
       */
@@ -2361,7 +2418,7 @@ bool forThisDate(String text) {
       DEBUGLN("now=" + String(now_moment) + "; start=" + String(textAllowBegin) + "; end=" + String(textAllowEnd));
       if (ok) DEBUGLN(F("вывод разрешен"));
       else    DEBUGLN(F("вывод запрещен"));
-      DEBUGLN(F("--------------------")); 
+      DEBUGLN(DELIM_LINE); 
       */
     }
 
@@ -2375,12 +2432,12 @@ bool forThisDate(String text) {
     idx = text.indexOf("{S");
   }
   
-//  DEBUGLN(F("--------------------"));
+//  DEBUGLN(DELIM_LINE);
 
   return ok;
 }
 
-void extractMacroSDates(String text) {
+void extractMacroSDates(const String& text) {
 
   // Text - в общем случае - "01.01.**** 7:00:00#01.01.**** 19:00:00" - содержит даты начала и конца, разделенные символом "#"
   // Дата как правило имеет формат "ДД.ММ.ГГГГ ЧЧ:MM:СС"; В дате День может быть замене на "**" - текущий день, месяц - "**" - текущий месяц, год - "****" - текущий год или "***+" - следующий год
@@ -2391,19 +2448,19 @@ void extractMacroSDates(String text) {
   textAllowEnd = 0;          // время конца допустимого интервала отображения unixTime
 
   if (text.length() == 0) {
-    DEBUGLN(String(F("Строка: '")) + text + "'");
+    DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
     DEBUGLN(F("Ошибка: макрос {S} не содержит интервала дат"));                 
     return;
   }      
 
-  String s_date1, s_date2;
+  
   int16_t idx = text.indexOf('#');
 
   bool hasDate1 = idx != 0;  // -1 или больше нуля означает,что '#' либо нет - тогда вся строка - data1, либо больше 0 - есть часть для data1; в строке '#07.01.****' есть data2, нет data1
   bool hasDate2 = idx > 0;   // Если в строке есть '#' - значит data2 присутствует
   
-  s_date1 = idx < 0 ? text : ( idx == 0 ? "" : text.substring(0, idx));
-  s_date2 = idx >=0 ? text.substring(idx+1) : "";
+  String s_date1(idx < 0 ? text : ( idx == 0 ? "" : text.substring(0, idx)));
+  String s_date2(idx >=0 ? text.substring(idx+1) : "");
 
   // Сформировать ближайшее время события из полученных компонент  
   tmElements_t tm1, tm2;
@@ -2425,20 +2482,43 @@ void extractMacroSDates(String text) {
   time_t t_event2 = makeTime(tm2);
 
   /*
-  DEBUGLN(F("--------------------")); 
+  DEBUGLN(DELIM_LINE); 
   DEBUGLN("date1='" + s_date1 + ";");
   DEBUGLN("date2='" + s_date2 + ";");
   DEBUGLN(String(F("Интервал показа: ")) + 
                  padNum(tm1.Day,2) + "." + padNum(tm1.Month,2) + "." + padNum(tmYearToCalendar(tm1.Year),4) + " " + padNum(tm1.Hour,2) + ":" + padNum(tm1.Minute,2) + ":" + padNum(tm1.Second,2) + " -- " +
                  padNum(tm2.Day,2) + "." + padNum(tm2.Month,2) + "." + padNum(tmYearToCalendar(tm2.Year),4) + " " + padNum(tm2.Hour,2) + ":" + padNum(tm2.Minute,2) + ":" + padNum(tm2.Second,2));
-  DEBUGLN(F("--------------------")); 
+  DEBUGLN(DELIM_LINE); 
   */
   
   if (t_event2 < t_event1) {
-    DEBUGLN(String(F("Строка: '")) + text + "'");
-    DEBUGLN(String(F("Интервал показа: ")) + 
-                   padNum(tm1.Day,2) + "." + padNum(tm1.Month,2) + "." + padNum(tmYearToCalendar(tm1.Year),4) + " " + padNum(tm1.Hour,2) + ":" + padNum(tm1.Minute,2) + ":" + padNum(tm1.Second,2) + " -- " +
-                   padNum(tm2.Day,2) + "." + padNum(tm2.Month,2) + "." + padNum(tmYearToCalendar(tm2.Year),4) + " " + padNum(tm2.Hour,2) + ":" + padNum(tm2.Minute,2) + ":" + padNum(tm2.Second,2));
+    DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
+    String str(F("Интервал показа: "));
+    str += padNum(tm1.Day,2);
+    str += '.';
+    str += padNum(tm1.Month,2);
+    str += '.';
+    str += padNum(tmYearToCalendar(tm1.Year),4);
+    str += ' ';
+    str += padNum(tm1.Hour,2);
+    str += ':';
+    str += padNum(tm1.Minute,2);
+    str += ':';
+    str += padNum(tm1.Second,2);
+    str += " -- ";
+    str += padNum(tm2.Day,2);
+    str += '.';
+    str += padNum(tm2.Month,2);
+    str += '.';
+    str += padNum(tmYearToCalendar(tm2.Year),4);
+    str += ' ';
+    str += padNum(tm2.Hour,2);
+    str += ':';
+    str += padNum(tm2.Minute,2);
+    str += ':';
+    str += padNum(tm2.Second,2);
+    DEBUGLN(str);
+    str.clear();
     DEBUGLN(F("Ошибка: дата начала больше даты окончания разрешенного интервала"));                 
     textAllowBegin = 0; // время начала допустимого интервала отображения unixTime
     textAllowEnd   = 0; // время конца допустимого интервала отображения unixTime
@@ -2494,7 +2574,7 @@ bool isFirstLineControl() {
   return isControlLine;  
 }
 
-tmElements_t ParseDateTime(String &str) {
+tmElements_t ParseDateTime(const String& str) {
 
   uint8_t  aday = day();
   uint8_t  amnth = month();
@@ -2503,13 +2583,14 @@ tmElements_t ParseDateTime(String &str) {
   uint8_t  mins = minute();
   uint8_t  secs = second();
 
-  String s_date;
-  String s_time;
   uint16_t iYear = 0;  
   uint8_t iMonth = 0, iDay = 0, iHours = 0, iMinutes = 0, iSeconds = 0;
   int8_t idx;
   
   tmElements_t tm;  
+
+  String s_date;
+  String s_time;
 
   // Корректная дата - 10 символов (ДД.ММ.ГГГГ), точки в позициях 2 и 5; UUUU может быть '****' - текущий год или '***+' - следующий год
   // Если есть время - оно отделено пробелом от даты, формат (ЧЧ:MM:СС), часы и минуты и секундв разделены двоеточием
@@ -2523,24 +2604,29 @@ tmElements_t ParseDateTime(String &str) {
   }
 
   /*
-  DEBUGLN("------------------------------------");
+  DEBUGLN(DELIM_LINE);
   DEBUGLN("text = '" + str + "'");
   DEBUGLN("parse -> date = '" + s_date + "'; time = '" + s_time + "'");
   */
   
   if (s_date.length() == 10 && s_date.charAt(2) == '.' && s_date.charAt(5) == '.') {
+    
     idx = CountTokens(s_date, '.');
+    
     if (idx > 0) {
-      String sDay = GetToken(s_date, 1, '.');
-      String sMonth = idx >= 2 ? GetToken(s_date, 2, '.') : "0";
-      String sYear = idx >= 3 ? GetToken(s_date, 3, '.') : "0";
+      String sDay(GetToken(s_date, 1, '.'));
+      String sMonth(idx >= 2 ? GetToken(s_date, 2, '.') : "0");
+      String sYear(idx >= 3 ? GetToken(s_date, 3, '.') : "0");
+      
       iDay   = sDay == "**" ? aday : sDay.toInt();
       iMonth = sMonth == "**" ? amnth : sMonth.toInt();
       iYear  = sYear == "****" ? ayear : (sYear == "***+" ? (ayear + 1) : sYear.toInt());
+    
       if (iDay   == 0) iDay   = aday;
       if (iMonth == 0) iMonth = amnth;
       if (iYear  == 0) iYear  = ayear;
     }
+    
   }
 
   if (s_time.length() > 0) {
@@ -2556,7 +2642,7 @@ tmElements_t ParseDateTime(String &str) {
 
   /*
   DEBUGLN(String(F("Parse out: ")) + padNum(tm.Day,2) + "." + padNum(tm.Month,2) + "." + padNum(tmYearToCalendar(tm.Year),4) + " " + padNum(tm.Hour,2) + ":" + padNum(tm.Minute,2) + ":" + padNum(tm.Second,2));
-  DEBUGLN("------------------------------------");
+  DEBUGLN(DELIM_LINE);
   */
   
   return tm;

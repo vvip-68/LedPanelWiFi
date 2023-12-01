@@ -4,22 +4,25 @@
 // устанавливающие значения переменных.
 
 // Добавление ключа в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
-void addKeyToChanged(String key) {
-  String search = "|" + key + "|";
+void addKeyToChanged(const String& key) {
+  String search('|'); search += key; search += '|';
   // Если ключа еще нет в строке измененных параметров - добавить 
-  if      (changed_keys.length() == 0)       changed_keys = search;
-  else if (changed_keys.indexOf(search) < 0) changed_keys += key + "|";
+  if (changed_keys.length() == 0) changed_keys = search; else 
+  if (changed_keys.indexOf(search) < 0) {
+    changed_keys += key;
+    changed_keys += '|';
+  }
 }
 
 // Добавление списка ключей в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
-void addKeysToChanged(String str) {
+void addKeysToChanged(const String& str) {
   int16_t pos_start = 0;
   int16_t pos_end = str.indexOf('|', pos_start);
   int16_t len = str.length();
   if (pos_end < 0) pos_end = len;
   while (pos_start < len && pos_end >= pos_start) {
     if (pos_end > pos_start) {      
-      String key = str.substring(pos_start, pos_end);
+      String key(str.substring(pos_start, pos_end));
       if (key.length() > 0) addKeyToChanged(key);
     }
     pos_start = pos_end + 1;
@@ -177,7 +180,7 @@ void set_useTemperatureColorNight(bool value) {
 }
 
 // W1 weather
-void set_weather(String value) {
+void set_weather(const String& value) {
   if (weather == value) return;
   weather = value;
   addKeyToChanged("W1");
@@ -207,43 +210,43 @@ void set_thisMode(int8_t value) {
 
   valid = (value >= 0 && value < MAX_EFFECT);
 
-  String keySE = "SE", keyBE = "BE", keyUT = "UT", keyUC = "UC", old_SQ, old_SS, old_SE, old_BE, old_UT, old_UC;
+  String old_SQ, old_SS, old_SE, old_BE, old_UT, old_UC;
 
   if (valid) {
-    old_UT = getStateValue(keyUT, thisMode);
-    old_UC = getStateValue(keyUC, thisMode);
-    old_SE = getStateValue(keySE, thisMode);
-    old_BE = getStateValue(keyBE, thisMode);
+    old_UT = getStateValue("UT", thisMode);
+    old_UC = getStateValue("UC", thisMode);
+    old_SE = getStateValue("SE", thisMode);
+    old_BE = getStateValue("BE", thisMode);
     old_SS = getParamForMode(thisMode);
     old_SQ = getParam2ForMode(thisMode);
   }
 
   thisMode = value;
-
+  effect_name.clear();
+  
   if (valid && !isTurnedOff) {
-    effect_name = getEffectName(value);
+    effect_name += getEffectName(value);
   } else if (isTurnedOff) {
-    effect_name = F("Выключено");
+    effect_name += F("Выключено");
   } else {
     switch (value) {
-      case MC_DRAW:              effect_name = MODE_DRAW; break;
-      case MC_LOADIMAGE:         effect_name = MODE_LOAD_PICTURE; break;
-      case MC_TEXT:              effect_name = MODE_RUNNING_TEXT; break;
-      case MC_DAWN_ALARM_SPIRAL: effect_name = MODE_DAWN; break;
-      case MC_DAWN_ALARM_SQUARE: effect_name = MODE_DAWN; break;
-      default:                   effect_name = ""; break;
+      case MC_DRAW:              effect_name += String(MODE_DRAW); break;
+      case MC_LOADIMAGE:         effect_name += String(MODE_LOAD_PICTURE); break;
+      case MC_TEXT:              effect_name += String(MODE_RUNNING_TEXT); break;
+      case MC_DAWN_ALARM_SPIRAL: effect_name += String(MODE_DAWN); break;
+      case MC_DAWN_ALARM_SQUARE: effect_name += String(MODE_DAWN); break;
     }
   }
 
   addKeyToChanged("EF");
   addKeyToChanged("EN");
 
-  if (value < 0 || (valid && old_UT != getStateValue(keyUT, value)))  addKeyToChanged("UT");
-  if (value < 0 || (valid && old_UC != getStateValue(keyUC, value)))  addKeyToChanged("UC");
-  if (value < 0 || (valid && old_SE != getStateValue(keySE, value)))  addKeyToChanged("SE");
-  if (value < 0 || (valid && old_BE != getStateValue(keyBE, value)))  addKeyToChanged("BE");
-  if (value < 0 || (valid && old_SS != getParamForMode(value)))       addKeyToChanged("SS");
-  if (value < 0 || (valid && old_SQ != getParam2ForMode(value)))      addKeyToChanged("SQ");
+  if (value < 0 || (valid && old_UT != getStateValue("UT", value)))  addKeyToChanged("UT");
+  if (value < 0 || (valid && old_UC != getStateValue("UC", value)))  addKeyToChanged("UC");
+  if (value < 0 || (valid && old_SE != getStateValue("SE", value)))  addKeyToChanged("SE");
+  if (value < 0 || (valid && old_BE != getStateValue("BE", value)))  addKeyToChanged("BE");
+  if (value < 0 || (valid && old_SS != getParamForMode(value)))      addKeyToChanged("SS");
+  if (value < 0 || (valid && old_SQ != getParam2ForMode(value)))     addKeyToChanged("SQ");
 
   #if (USE_E131 == 1)
     commandSetMode(thisMode);
@@ -278,12 +281,11 @@ void set_CurrentSpecialMode(int8_t spc_mode) {
 void set_EffectTextOverlayUsage(uint8_t effect, bool value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
-  String key = "UT";
   bool old_value = getEffectTextOverlayUsage(effect);
-  String old_s_value = getStateValue(key, effect);
+  String old_s_value(getStateValue("UT", effect));
   if (old_value != value) {
     putEffectTextOverlayUsage(effect, value);
-    if (effect == thisMode && old_s_value != getStateValue(key, effect)) addKeyToChanged("UT");
+    if (effect == thisMode && old_s_value != getStateValue("UT", effect)) addKeyToChanged("UT");
   }
 }
 
@@ -291,12 +293,11 @@ void set_EffectTextOverlayUsage(uint8_t effect, bool value) {
 void set_EffectClockOverlayUsage(uint8_t effect, bool value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
-  String key = "UC";
   bool old_value = getEffectClockOverlayUsage(effect);
-  String old_s_value = getStateValue(key, effect);
+  String old_s_value(getStateValue("UC", effect));
   if (old_value != value) {
     putEffectClockOverlayUsage(effect, value);
-    if (effect == thisMode && old_s_value != getStateValue(key, effect)) addKeyToChanged("UC");
+    if (effect == thisMode && old_s_value != getStateValue("UC", effect)) addKeyToChanged("UC");
   }
 }
 
@@ -304,14 +305,13 @@ void set_EffectClockOverlayUsage(uint8_t effect, bool value) {
 void set_EffectSpeed(uint8_t effect, uint8_t value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
-  String key = "SE";
   uint8_t old_value = effectSpeed[effect];
-  String old_s_value = getStateValue(key, effect);
+  String old_s_value(getStateValue("SE", effect));
   if (old_value != value) {
     effectSpeed[effect] = value;
     putEffectSpeed(effect, value);
   }
-  if (effect == thisMode && old_s_value != getStateValue(key, effect)) addKeyToChanged("SE");
+  if (effect == thisMode && old_s_value != getStateValue("SE", effect)) addKeyToChanged("SE");
   #if (USE_E131 == 1)
     commandSetEffectSpeed(value);
     syncEffectSpeed = value;
@@ -322,14 +322,13 @@ void set_EffectSpeed(uint8_t effect, uint8_t value) {
 void set_EffectContrast(uint8_t effect, uint8_t value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
-  String key = "BE";
   uint8_t old_value = effectContrast[effect];
-  String old_s_value = getStateValue(key, effect);
+  String old_s_value(getStateValue("BE", effect));
   if (old_value != value) {
     effectContrast[effect] = value;
     putEffectContrast(effect, value);
   }
-  if (effect == thisMode && old_s_value != getStateValue(key, effect)) addKeyToChanged("BE");
+  if (effect == thisMode && old_s_value != getStateValue("BE", effect)) addKeyToChanged("BE");
   #if (USE_E131 == 1)
     commandSetEffectContrast(value);
     syncEffectContrast = value;
@@ -341,7 +340,7 @@ void set_EffectScaleParam(uint8_t effect, uint8_t value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
   uint8_t old_value = effectScaleParam[effect];
-  String old_s_value = getParamForMode(effect);
+  String old_s_value(getParamForMode(effect));
   if (old_value != value) {
     effectScaleParam[effect] = value;
     putScaleForEffect(effect, value);
@@ -358,7 +357,7 @@ void set_EffectScaleParam2(uint8_t effect, uint8_t value) {
   bool valid = effect < MAX_EFFECT;
   if (!valid) return;
   uint8_t old_value = effectScaleParam2[effect];
-  String old_s_value = getParam2ForMode(effect);
+  String old_s_value(getParam2ForMode(effect));
   if (old_value != value) {
     effectScaleParam2[effect] = value;
     putScaleForEffect2(effect, value);
@@ -433,14 +432,13 @@ void set_globalTextColor(uint32_t value) {
 
 // CE clockOverlayEnabled
 void set_clockOverlayEnabled(bool value) {
-  String key = "CE";
   bool old_value = clockOverlayEnabled;
-  String old_s_value = getStateValue(key, thisMode);
+  String old_s_value(getStateValue("CE", thisMode));
   if (old_value != value) {
     putClockOverlayEnabled(value);
     clockOverlayEnabled = getClockOverlayEnabled();
   }
-  if (old_s_value != getStateValue(key, thisMode)) addKeyToChanged("CE");
+  if (old_s_value != getStateValue("CE", thisMode)) addKeyToChanged("CE");
 }
 
 // CC COLOR_MODE
@@ -460,9 +458,8 @@ void set_drawColor(uint32_t value) {
 
 // CO CLOCK_ORIENT
 void set_CLOCK_ORIENT(uint8_t value) {
-  String key = "CO";
   uint8_t old_value = CLOCK_ORIENT;
-  String old_s_value = getStateValue(key, thisMode);
+  String old_s_value(getStateValue("CO", thisMode));
   if (old_value != value) {
     putClockOrientation(value);
     CLOCK_ORIENT = value;
@@ -473,7 +470,7 @@ void set_CLOCK_ORIENT(uint8_t value) {
       putClockOrientation(value);
     }
   }
-  if (old_s_value != getStateValue(key, thisMode)) addKeyToChanged("CO");
+  if (old_s_value != getStateValue("CO", thisMode)) addKeyToChanged("CO");
 }
 
 // CK CLOCK_SIZE
@@ -569,7 +566,7 @@ void set_timeZoneOffsetMinutes(int16_t value) {
 }
 
 // NS ntpServerName
-void set_ntpServerName(String value) {
+void set_ntpServerName(const String& value) {
   if (getNtpServer() == value) return;
   putNtpServer(value);  
   getNtpServer().toCharArray(ntpServerName, 31);
@@ -577,14 +574,14 @@ void set_ntpServerName(String value) {
 }
 
 // NW ssid
-void set_Ssid(String value) {
+void set_Ssid(const String& value) {
   putSsid(value);
   ssid = value;
   addKeyToChanged("NW");
 }
 
 // NA|NX pass
-void set_pass(String value) {
+void set_pass(const String& value) {
   putPass(value);
   pass = value;
   addKeyToChanged("NA");
@@ -592,7 +589,7 @@ void set_pass(String value) {
 }
               
 // AN apName
-void set_SoftAPName(String value) {
+void set_SoftAPName(const String& value) {
   if (getSoftAPName() == value) return;
   putSoftAPName(value);
   getSoftAPName().toCharArray(apName, 10);
@@ -600,7 +597,7 @@ void set_SoftAPName(String value) {
 }              
 
 // AA|AB apPass
-void set_SoftAPPass(String value) {
+void set_SoftAPPass(const String& value) {
   if (getSoftAPPass() == value) return;
   putSoftAPPass(value);
   getSoftAPPass().toCharArray(apPass, 16);

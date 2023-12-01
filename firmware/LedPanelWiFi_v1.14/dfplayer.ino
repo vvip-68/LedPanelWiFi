@@ -59,9 +59,12 @@ void InitializeDfPlayer2() {
   int8_t stx_pin = getDFPlayerSTXPin();
   if (srx_pin >= 0 && stx_pin >= 0) {
     refreshDfPlayerFiles();    
-    DEBUGLN(String(F("Звуков будильника найдено: ")) + String(alarmSoundsCount));
-    DEBUGLN(String(F("Звуков рассвета найдено: ")) + String(dawnSoundsCount));
-    DEBUGLN(String(F("Звуков сообщений найдено: ")) + String(noteSoundsCount));
+    DEBUG(F("Звуков будильника найдено: "));
+    DEBUGLN(alarmSoundsCount);
+    DEBUG(F("Звуков рассвета найдено: "));
+    DEBUGLN(dawnSoundsCount);
+    DEBUG(F("Звуков сообщений найдено: "));
+    DEBUGLN(noteSoundsCount);
     set_isDfPlayerOk(alarmSoundsCount + dawnSoundsCount + noteSoundsCount > 0);
   } else {
     set_isDfPlayerOk(false);

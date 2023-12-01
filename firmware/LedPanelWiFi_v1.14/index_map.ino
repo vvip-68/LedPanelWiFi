@@ -4,7 +4,13 @@
 
 #if (WIDTH == 16 && HEIGHT == 16)
 #define INDEX_MAP_OK
-bool loadIndexMap() {  mapFiles[0] = String(WIDTH) + "x" + String(HEIGHT); mapListLen = 1; return true; }
+bool loadIndexMap() {  
+  String tmp(WIDTH); tmp += 'x'; tmp += HEIGHT;
+  mapFiles[0] = tmp; 
+  mapListLen = 1; 
+  return true; 
+}
+
 // Матрица 16x16, мз 4-х матриц 8х8, угол подключения каждого сегмента - правый нижний, направление из угла - влево, тип - зигзаг
 /* !!! Не удалять. Это информация о распределении сегментов матрицы !!!
 >2222222211111111222222221111111122222222111111112222222211111111
@@ -34,7 +40,12 @@ const int16_t PROGMEM imap[] = {
 
 #if (WIDTH == 32 && HEIGHT == 8)
 #define INDEX_MAP_OK
-bool loadIndexMap() {  mapFiles[0] = String(WIDTH) + "x" + String(HEIGHT); mapListLen = 1; return true; }
+bool loadIndexMap() {  
+  String tmp(WIDTH); tmp += 'x'; tmp += HEIGHT;
+  mapFiles[0] = tmp; 
+  mapListLen = 1; 
+  return true; 
+}
 // Матрица 32x8, угол подключения правый нижний, направление из угла - влево, тип - зигзаг
 const int16_t PROGMEM imap[] = {
   224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 
@@ -50,7 +61,12 @@ const int16_t PROGMEM imap[] = {
 
 #if (WIDTH == 32 && HEIGHT == 16)
 #define INDEX_MAP_OK
-bool loadIndexMap() {  mapFiles[0] = String(WIDTH) + "x" + String(HEIGHT); mapListLen = 1; return true; }
+bool loadIndexMap() {  
+  String tmp(WIDTH); tmp += 'x'; tmp += HEIGHT;
+  mapFiles[0] = tmp; 
+  mapListLen = 1; 
+  return true; 
+}
 // Матрица сборная из двух 16x16, у обеих матриц угол подключения левый нижний, направление вправо, тип - зигзаг
 /* !!! Не удалять. Это информация о распределении сегментов матрицы !!!
 >00000000000000001111111111111111000000000000000011111111111111110000000000000000111111111111111100000000000000001111111111111111
@@ -80,7 +96,12 @@ const int16_t PROGMEM imap[] = {
 
 #if (WIDTH == 48 && HEIGHT == 16)
 #define INDEX_MAP_OK
-bool loadIndexMap() {  mapFiles[0] = String(WIDTH) + "x" + String(HEIGHT); mapListLen = 1; return true; }
+bool loadIndexMap() {  
+  String tmp(WIDTH); tmp += 'x'; tmp += HEIGHT;
+  mapFiles[0] = tmp; 
+  mapListLen = 1; 
+  return true; 
+}
 // Матрица 48x16 из матрицы 16x16 и двух матриц 32x8, 
 // +----+----+---------------+
 // |         |      #3       |
@@ -138,7 +159,6 @@ int16_t* imap;
 int8_t scanIndexMaps() {
 
   File entry;  
-  String file_name, fn;
   uint32_t file_size;
 
   mapListLen = 0;
@@ -163,27 +183,28 @@ int8_t scanIndexMaps() {
                    
     if (!entry.isDirectory()) {
             
-      file_name = entry.name();
       file_size = entry.size();
-
-      fn = file_name;
-      fn.toLowerCase();
-      
-      if (!fn.endsWith(".map") || file_size == 0) {
-        entry.close();
-        continue;    
+      {
+        String file_name(entry.name());  
+        String fn(file_name);
+        fn.toLowerCase();
+        
+        if (!fn.endsWith(".map") || file_size == 0) {
+          entry.close();
+          continue;    
+        }
+        
+        // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
+        int16_t p = file_name.lastIndexOf("/");
+        if (p >= 0) file_name = file_name.substring(p + 1);
+  
+        DEBUG("   ");
+        DEBUGLN(file_name);
+  
+        p = file_name.lastIndexOf(".");
+        if (p >= 0) file_name = file_name.substring(0, p);
+        mapFiles[mapListLen++] = file_name;
       }
-      
-      // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
-      int16_t p = file_name.lastIndexOf("/");
-      if (p >= 0) file_name = file_name.substring(p + 1);
-
-      DEBUG("   ");
-      DEBUGLN(file_name);
-
-      p = file_name.lastIndexOf(".");
-      if (p >= 0) file_name = file_name.substring(0, p);
-      mapFiles[mapListLen++] = file_name;
       
       entry.close();
 
@@ -205,7 +226,6 @@ int8_t scanIndexMaps() {
 
 bool loadIndexMap() {
 
-  String message;
   bool isLoaded = true;
   
 
@@ -217,10 +237,12 @@ bool loadIndexMap() {
   // Создать массив индексов с текущими размерами матрицы, заполнить значениями -1
   imap = new int16_t[NUM_LEDS];
   for (int16_t i = 0; i < NUM_LEDS; i++) imap[i] = -1;
+
+  String message;
     
   while (true) {
 
-    String fileName = String(pWIDTH) + "x" + String(pHEIGHT) + ".map";
+    String fileName(pWIDTH); fileName += 'x'; fileName += pHEIGHT; fileName += ".map";
     DEBUG(F("Загрузка файла индексов: "));
     DEBUG(fileName);
     DEBUGLN(F("..."));
@@ -229,7 +251,7 @@ bool loadIndexMap() {
     fileName = "/" + fileName;
     File file = LittleFS.open(fileName, "r");
     if (!file) {
-      message = String(F("Нет карты индексов для матрицы ")) + String(pWIDTH) + "x" + String(pHEIGHT);
+      message = F("Нет карты индексов для матрицы "); message += pWIDTH; message += 'x'; message += pHEIGHT;
       isLoaded = false;
       break;
     }
@@ -250,14 +272,17 @@ bool loadIndexMap() {
     ok = len == 2;
     uint8_t size_x = buf[0];
     uint8_t size_y = buf[1];
+    
     if (!ok || !(size_x <= 128 && size_y <= 128)) {
-      message = String(F("Неподдерживаемый размер матрицы в файле индексов: ")) + String(size_x) + "x" + String(size_y);
+      message = F("Неподдерживаемый размер матрицы в файле индексов: "); message += size_x; message += 'x'; message += size_y;
       isLoaded = false;
       break;
     }
+    
     if (!ok || !(size_x == pWIDTH && size_y == pHEIGHT)) {
-      message = String(F("Размер матрицы в файле индексов не сооответствует настроенному размеру матрицы\n")) +
-                String(F("Файл: ")) + String(size_x) + "x" + String(size_y) + "; Матрица: " + String(pWIDTH) + "x" + String(pHEIGHT);
+      message  = F("Размер матрицы в файле индексов не сооответствует настроенному размеру матрицы\n"); 
+      message += F("Файл: "); message += size_x; message += 'x'; message += size_y; message += F("; Матрица: ");
+      message += pWIDTH; message += 'x'; message += pHEIGHT;
       isLoaded = false;
       break;
     }

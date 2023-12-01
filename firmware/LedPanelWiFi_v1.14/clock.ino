@@ -72,12 +72,11 @@ void parseNTP() {
   unsigned long seventyYears = 2208988800UL ;
   int8_t sign = timeZoneOffset < 0 ? -1 : 1;
   unsigned long t = secsSince1900 - seventyYears + timeZoneOffset * 3600UL + (sign * timeZoneOffsetMinutes * 60);
-  String t2 = getDateTimeString(t);
 
   DEBUG(F("Секунд с 1970: "));
   DEBUGLN(t);
   DEBUG(F("Получено время: ")); 
-  DEBUGLN(t2);
+  DEBUGLN(getDateTimeString(t));
 
   // Замечена ситуация, когда полученное время при корректировке слишком кардинально отличается
   // от текущего установленного времени и после применения часы "сбиваются" на несеолько часов
@@ -97,7 +96,7 @@ void parseNTP() {
   setTime(t);  
   
   // этот вызов нужен, чтобы отработали сопутствующие установке времени процедуры
-  setCurrentTime(hour(),minute(),second(),day(),month(),year());
+  setCurrentTime(hour(), minute(), second(), day(), month(), year());
 
   // Если время запуска еще не определено - инициализировать его
   if (upTime == 0) {
@@ -106,15 +105,18 @@ void parseNTP() {
 
   ntp_t = 0; ntp_cnt = 0; init_time = true; refresh_time = false; not_check_time = false;
   
-  String out;
   doc.clear();
-  doc["act"] = F("TIME");
+  doc["act"] = String(sTIME);
   doc["server_name"] = ntpServerName;
   doc["server_ip"] = timeServerIP.toString();
   doc["result"] = F("OK");
   doc["time"] = secsSince1900;
-  doc["s_time2"] = t2;
+  doc["s_time2"] = getDateTimeString(t);
+  
+  String out;
   serializeJson(doc, out);      
+  doc.clear();
+  
   SendWeb(out, TOPIC_TME);
 }
 
@@ -139,13 +141,16 @@ void getNTP() {
   // wait to see if a reply is available
   ntp_t = millis();  
 
-  String out;
   doc.clear();
-  doc["act"] = F("TIME");
+  doc["act"] = String(sTIME);
   doc["server_name"] = ntpServerName;
   doc["server_ip"] = timeServerIP.toString();
   doc["result"] = F("REQUEST");
+
+  String out;
   serializeJson(doc, out);
+  doc.clear();
+  
   SendWeb(out, TOPIC_TME);
 }
 
@@ -154,11 +159,11 @@ String clockCurrentText() {
   hrs = hour();
   mins = minute();
 
-  String sHrs = "0" + String(hrs);  
-  String sMin = "0" + String(mins);
-  if (sHrs.length() > 2) sHrs = sHrs.substring(1);
-  if (sMin.length() > 2) sMin = sMin.substring(1);
-  return sHrs + ":" + sMin;
+  String str(padNum(hrs, 2));
+  str += ':';
+  str += padNum(mins, 2);
+  
+  return str;
 }
 
 String dateCurrentTextShort() {
@@ -167,12 +172,9 @@ String dateCurrentTextShort() {
   amnth = month();
   ayear = year();
 
-  String sDay = "0" + String(aday);  
-  String sMnth = "0" + String(amnth);
-  String sYear = String(ayear);
-  if (sDay.length() > 2) sDay = sDay.substring(1);
-  if (sMnth.length() > 2) sMnth = sMnth.substring(1);
-  return sDay + "." + sMnth + "." + sYear;
+  String str(padNum(aday, 2)); str += '.'; str += padNum(amnth, 2); str += '.'; str += ayear;
+  
+  return str; 
 }
 
 String dateCurrentTextLong() {
@@ -181,12 +183,9 @@ String dateCurrentTextLong() {
   amnth = month();
   ayear = year();
 
-  String sDay = "0" + String(aday);  
-  String sMnth = getMonthString(amnth);
-  String sYear = String(ayear);
-    
-  if (sDay.length() > 2) sDay = sDay.substring(1);
-  return sDay + " " + sMnth + " " + sYear + " года";
+  String str(padNum(aday, 2)); str += ' '; str += getMonthString(amnth); str += ' '; str += ayear; str += " года";
+  
+  return str; 
 }
 
 void clockColor() {
@@ -921,7 +920,7 @@ void clockTicker() {
       // Четырехкратное нажатие кнопки запускает отображение по частям текущего IP лампы  
       if (dotFlag && halfSec) {
         if (wifi_print_idx<=3) {
-          String  ip = WiFi.localIP().toString();
+          String ip(WiFi.localIP().toString());
           int16_t value = atoi(GetToken(ip, wifi_print_idx + 1, '.').c_str()); 
           display->displayInt(value);
           display->point(false);
@@ -1124,7 +1123,12 @@ void calculateDawnTime() {
     }
   }
 
-  DEBUGLN(String(F("Следующий рассвет в ")) + padNum(dawnHour,2)+ F(":") + padNum(dawnMinute,2) + ", " + getWeekdayString(dawnWeekDay));
+  DEBUG(F("Следующий рассвет в "));
+  DEBUG(padNum(dawnHour,2));
+  DEBUG(':');
+  DEBUG(padNum(dawnMinute,2));
+  DEBUG(", ");
+  DEBUGLN(getWeekdayString(dawnWeekDay));
 }
 
 // Проверка времени срабатывания будильника
@@ -1181,12 +1185,15 @@ void checkAlarmTime() {
          #endif
          DEBUGLN(String(F("Рассвет ВКЛ в ")) + padNum(h,2) + ":" + padNum(m,2));
 
-         String out;
          doc.clear();
          doc["act"]   = F("ALARM");
          doc["state"] = F("on");
          doc["type"]  = F("dawn");
+         
+         String out;
          serializeJson(doc, out);      
+         doc.clear();
+         
          SendWeb(out, TOPIC_ALM);
        }
     }
@@ -1210,12 +1217,16 @@ void checkAlarmTime() {
         PlayAlarmSound();
       }
       #endif      
-      String out;
+      
       doc.clear();
       doc["act"]   = F("ALARM");
       doc["state"] = F("on");
       doc["type"]  = F("alarm");
+
+      String out;
       serializeJson(doc, out);      
+      doc.clear();
+
       SendWeb(out, TOPIC_ALM);
     }
 
@@ -1256,12 +1267,15 @@ void checkAlarmTime() {
        setEffect(saveMode);
     }
 
-    String out;
     doc.clear();
     doc["act"]   = F("ALARM");
     doc["state"] = F("off");
     doc["type"]  = F("auto");
+
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+
     SendWeb(out, TOPIC_ALM);
   }
 
@@ -1297,7 +1311,11 @@ void checkAlarmTime() {
 
 void stopAlarm() {
   if ((isAlarming || isPlayAlarmSound) && !isAlarmStopped) {
-    DEBUGLN(String(F("Рассвет ВЫКЛ в ")) + padNum(hour(),2) + ":" + padNum(minute(),2));
+    DEBUG(F("Рассвет ВЫКЛ в "));
+    DEBUG(padNum(hour(),2));
+    DEBUG(':');
+    DEBUGLN(padNum(minute(),2));
+    
     set_isAlarming(false);
     set_isAlarmStopped(true);
     set_isPlayAlarmSound(false);
@@ -1326,12 +1344,15 @@ void stopAlarm() {
     }
     delay(0);    
 
-    String out;
     doc.clear();
     doc["act"]   = F("ALARM");
     doc["state"] = F("off");
     doc["type"]  = F("stop");
+
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+    
     SendWeb(out, TOPIC_ALM);
   }
 }
@@ -1481,16 +1502,16 @@ void SetAutoMode(uint8_t amode) {
   
   bool   no_action = false;
   
-  String text = F("Авторежим ");
-  String mode_name = "";
+  String mode_name;
   if (amode == 5)
-    mode_name = F("'Рассвет'");
+    mode_name += F("'Рассвет'");
   else if (amode == 6)    
-    mode_name = F("'Закат'");
+    mode_name += F("'Закат'");
   else  
-    mode_name = String(amode);
+    mode_name += amode;
     
-  text += mode_name + F(" [") + padNum(AM_hour,2) + ":" + padNum(AM_minute,2) + F("] - ");
+  String text(F("Авторежим "));
+  text += mode_name; text += " ["; text += padNum(AM_hour,2); text += ':'; text += padNum(AM_minute,2); text += "] - ";
 
   int8_t ef = AM_effect_id;
 
@@ -1517,25 +1538,22 @@ void SetAutoMode(uint8_t amode) {
     setSpecialMode(8);
     
   } else {
+    
     text += F("включение режима ");    
     // Если режим включения == 0 - случайный режим и автосмена по кругу
     resetModes();  
     setManualModeTo(ef != 0);    
 
-    String s_tmp = String(EFFECT_LIST);
-    
     if (ef == 0) {
       // "Случайный" режим и далее автосмена
       text += F("демонстрации эффектов:");
-      uint32_t cnt = CountTokens(s_tmp, ','); 
+      uint32_t cnt = CountTokens(EFFECT_LIST, ','); 
       ef = random8(0, cnt); 
     } else {
       ef -= 1; // Приведение номера эффекта (номер с 1) к индексу в массиве EFFECT_LIST (индекс c 0)
     }
 
-    s_tmp = GetToken(s_tmp, ef+1, ',');
-    text += F(" эффект ");
-    text += "'" + s_tmp + "'";
+    text += F(" эффект "); text += '\''; text += GetToken(EFFECT_LIST, ef + 1, ','); text +=  '\'';
 
     // Включить указанный режим из списка доступных эффектов без дальнейшей смены
     // Значение ef может быть 0..N-1 - указанный режим из списка EFFECT_LIST (приведенное к индексу с 0)      
@@ -1545,13 +1563,16 @@ void SetAutoMode(uint8_t amode) {
   if (!no_action) {
     DEBUGLN(text);  
 
-    String out;
     doc.clear();
     doc["act"]       = F("AUTO");
     doc["mode"]      = amode;
     doc["mode_name"] = mode_name;
     doc["text"]      = text;
+
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+    
     SendWeb(out, TOPIC_AMD);
   }
 }

@@ -5,7 +5,7 @@ uint8_t  lastOverlayX, lastOverlayY, lastOverlayW, lastOverlayH;
 uint32_t xxx = millis();
 
 void customRoutine(uint8_t aMode) {
-  doEffectWithOverlay(aMode); 
+  doEffectWithOverlay(aMode);
 }
 
 void doEffectWithOverlay(uint8_t aMode) {
@@ -14,7 +14,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool textReady = textTimer.isReady();
 
   bool effectReady = aMode == MC_IMAGE || effectTimer.isReady(); // "Анимация" использует собственные "таймеры" для отрисовки - отрисовка без задержек; Здесь таймер опрашивать нельзя - он после опроса сбросится. 
-                                                                 // А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона  
+                                                                 //  А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона  
 
   if (!(effectReady || (clockReady && !showTextNow) || (textReady && (showTextNow || thisMode == MC_TEXT)))) {
     // Вообще вывод изображения на матрицу подразумевался аосле того, как сделаны изменения в кадре - а это происходит либо на таймере эффекта, либо на таймере бегущей строки.
@@ -47,10 +47,10 @@ void doEffectWithOverlay(uint8_t aMode) {
       // Если передать строку с макросом отключения - processMacrosInText() вернет любую другую строку вместо отключенной
       // Чтобы это не произошло - нужно удалить признак отключенности
       currentTextLineIdx = momentTextIdx;
-      String text = getTextByIndex(currentTextLineIdx);
+      String text(getTextByIndex(currentTextLineIdx));
       if (text.length() > 0 && text[0] == '-') text = text.substring(1);
       while (text.indexOf("{-}") >= 0) text.replace("{-}","");
-      currentText = processMacrosInText(text);      
+      currentText = processMacrosInText(text);  
       ignoreTextOverlaySettingforEffect = textOverlayEnabled;
       loadingTextFlag = true;
     }
@@ -60,6 +60,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
+  
   String out;
 
   // Если команда отображения текущей строки передана из приложения или
@@ -70,6 +71,7 @@ void doEffectWithOverlay(uint8_t aMode) {
 
     // Обработать следующую строку для отображения, установить параметры;
     // Если нет строк к отображению - продолжать отображать оверлей часов
+ 
     if (prepareNextText(currentText)) {
       moment_active = momentTextIdx >= 0;
       fullTextFlag = false;
@@ -87,6 +89,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       doc.clear();
       doc["act"] = F("TEXT");
       doc["run"] = true;
+      
       if (textHasDateTime) {
         outText = processDateMacrosInText(currentText);         // Обработать строку, превратив макросы даты в отображаемые значения
         if (outText.length() == 0) {                            // Если дата еще не инициализирована - вернет другую строку, не требующую даты
@@ -95,8 +98,11 @@ void doEffectWithOverlay(uint8_t aMode) {
       } else {
         outText = currentText;
       }
+
       doc["text"] = outText;
       serializeJson(doc, out);    
+      doc.clear();
+      
       SendWeb(out, TOPIC_TXT);
 
       #if (USE_MP3 == 1)
@@ -176,7 +182,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   if (needStopText || mandatoryStopText) {    
     showTextNow = false; 
     mandatoryStopText = false;
-    currentText = "";
+    currentText.clear();
     ignoreTextOverlaySettingforEffect = nextTextLineIdx >= 0;
     specialTextEffectParam = -1;
     wifi_print_ip = false;
@@ -216,7 +222,10 @@ void doEffectWithOverlay(uint8_t aMode) {
     doc.clear();
     doc["act"] = F("TEXT");
     doc["run"] = false;
+
     serializeJson(doc, out);    
+    doc.clear();
+    
     SendWeb(out, TOPIC_TXT);
 
     // Если показ завершен и к отображению задана следующая строка - не нужно рисовать эффекты и все прочее - иначе экран мелькает
@@ -232,7 +241,7 @@ void doEffectWithOverlay(uint8_t aMode) {
        (aMode == MC_TEXT) ||                                                          // Если включен режим "Бегущая строка" (show IP address)       
       (!showTextNow && clockOvEn) || 
        (showTextNow && textOvEn);
-    
+
   if (effectReady) {
     if (showTextNow) {
       // Если указан другой эффект, поверх которого бежит строка - отобразить его
@@ -408,6 +417,7 @@ void processEffect(uint8_t aMode) {
       mem_bef = ESP.getFreeHeap();
     }
   #endif 
+
   switch (aMode) {
     case MC_NOISE_MADNESS:       madnessNoise(); break;
     case MC_NOISE_CLOUD:         cloudNoise(); break;
@@ -479,8 +489,10 @@ void processEffect(uint8_t aMode) {
         DEBUG(" --> ");
         DEBUG(mem_bef - mem_aft);
         #if defined(ESP8266)
-        DEBUG(String(F("  Max: ")) + String(ESP.getMaxFreeBlockSize()));
-        DEBUG(String(F("  Frag: ")) + String(ESP.getHeapFragmentation()));
+        DEBUG("  Max: ");
+        DEBUG(ESP.getMaxFreeBlockSize());
+        DEBUG("  Frag: ");
+        DEBUG(ESP.getHeapFragmentation());
         #endif    
         DEBUGLN();
       }
@@ -564,8 +576,10 @@ void releaseEffectResources(uint8_t aMode) {
     DEBUG(" <-- ");
     DEBUG(mem_aft - mem_bef);
     #if defined(ESP8266)
-    DEBUG(String(F("  Max: ")) + String(ESP.getMaxFreeBlockSize()));
-    DEBUG(String(F("  Frag: ")) + String(ESP.getHeapFragmentation()));
+    DEBUG("  Max: ");
+    DEBUG(ESP.getMaxFreeBlockSize());
+    DEBUG("  Frag: ");
+    DEBUG(ESP.getHeapFragmentation());
     #endif    
     DEBUGLN();
   }

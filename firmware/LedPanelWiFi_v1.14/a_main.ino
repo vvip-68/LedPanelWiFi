@@ -15,7 +15,7 @@ bool flag_2 = false;
 #endif
 
 // Forward declaration
-String getStateValue(String key, int8_t effect, JsonVariant* value = nullptr);
+String getStateValue(const String& key, int8_t effect, JsonVariant* value = nullptr);
 
 void process() {  
 
@@ -56,7 +56,7 @@ void process() {
     
   // принимаем данные
   parsing();
-
+  
   #if (USE_E131 == 1)
     streaming = e131 != NULL && (workMode == MASTER || (workMode == SLAVE && (e131_wait_command || ((!e131->isEmpty() || (millis() - e131_last_packet <= E131_TIMEOUT)))))); 
     if (!e131_streaming && streaming) {
@@ -92,30 +92,37 @@ void process() {
       prevSyncMode = syncMode;
       prevSyncGroup = syncGroup;
       
-      String out;
       doc.clear();
-      doc["act"]   = F("E131");
-      doc["mode"]  = workMode == MASTER ? F("MASTER") : F("SLAVE");
-      doc["type"]  = syncMode == PHYSIC ? F("PHYSIC") : (syncMode == LOGIC ? F("LOGIC"): F("COMMAND"));
+      doc["act"]   = String(sE131);
+      doc["mode"]  = String(workMode == MASTER ? sMASTER : sSLAVE);
+      doc["type"]  = String(syncMode == PHYSIC ? sPHYSIC : (syncMode == LOGIC ? sLOGIC : sCOMMAND));
       doc["group"] = syncGroup;
       doc["run"]   = true;
-      serializeJson(doc, out);      
+
+      String out;
+      serializeJson(doc, out); 
+      doc.clear();
+
       SendWeb(out, TOPIC_E131);
       FastLED.clear();
     }
+    
     if (e131_streaming && !streaming) {
       if (prevWorkMode == MASTER)
         DEBUGLN(F("Останов вещания E1.31 потока"));
       else
         DEBUGLN(F("Останов слушателя E1.31 потока"));            
       doc.clear();
-      String out;
-      doc["act"]   = F("E131");
-      doc["mode"]  = prevWorkMode == MASTER ? F("MASTER") : F("SLAVE");
-      doc["type"]  = prevSyncMode == PHYSIC ? F("PHYSIC") : (prevSyncMode == LOGIC ? F("LOGIC"): F("COMMAND"));
+      doc["act"]   = String(sE131);
+      doc["mode"]  = String(prevWorkMode == MASTER ? sMASTER : sSLAVE);
+      doc["type"]  = String(prevSyncMode == PHYSIC ? sPHYSIC : (prevSyncMode == LOGIC ? sLOGIC : sCOMMAND));
       doc["group"] = prevSyncGroup;
       doc["run"]   = false;
+      
+      String out;
       serializeJson(doc, out);      
+      doc.clear();
+
       SendWeb(out, TOPIC_E131);
     }
     e131_streaming = streaming;
@@ -136,31 +143,39 @@ void process() {
     } else {
       #if (USE_E131 == 1)
         if (!(e131_streaming && workMode == SLAVE)) {
-          DEBUG(String(F("Режим: ")) + effect_name);
-          //DEBUG(F(" - Free: "));
-          //DEBUG(ESP.getFreeHeap());
-          //DEBUG(F(" Max: "));
-          //#if defined(ESP8266)
-          //DEBUG(ESP.getMaxFreeBlockSize());
-          //DEBUG(F("  Frag: "));
-          //DEBUG(ESP.getHeapFragmentation());
-          //#else
-          //DEBUG(ESP.getMaxAllocHeap());        
-          //#endif     
-          DEBUGLN();       
+          DEBUG(F("Режим: ")); 
+          DEBUG(effect_name);
+          #if (DEBUG_MEM_EFF == 1)
+            DEBUG(F(" - Free: "));
+            DEBUG(ESP.getFreeHeap());
+            DEBUG(F(" Max: "));
+            #if defined(ESP8266)
+            DEBUG(ESP.getMaxFreeBlockSize());
+            DEBUG(F("  Frag: "));
+            DEBUG(ESP.getHeapFragmentation());
+            #else
+            DEBUG(ESP.getMaxAllocHeap());        
+            #endif     
+            DEBUGLN();       
+          #endif
         }
       #else
-        DEBUG(String(F("Режим: ")) + effect_name);
-        //DEBUG(F(" Max: "));
-        //#if defined(ESP8266)
-        //DEBUG(ESP.getMaxFreeBlockSize());
-        //DEBUG(F("  Frag: "));
-        //DEBUG(ESP.getHeapFragmentation());
-        //#else
-        //DEBUG(ESP.getMaxAllocHeap());        
-        //#endif     
-        DEBUGLN();       
-      #endif      
+        DEBUG(F("Режим: "));
+        DEBUG(effect_name);
+        #if (DEBUG_MEM_EFF == 1)
+          DEBUG(F(" - Free: "));
+          DEBUG(ESP.getFreeHeap());
+          DEBUG(F(" Max: "));
+          #if defined(ESP8266)
+          DEBUG(ESP.getMaxFreeBlockSize());
+          DEBUG(F("  Frag: "));
+          DEBUG(ESP.getHeapFragmentation());
+          #else
+          DEBUG(ESP.getMaxAllocHeap());        
+          #endif     
+          DEBUGLN();       
+        #endif
+      #endif 
       tmpSaveMode = thisMode;    
     }               
   }
@@ -189,14 +204,16 @@ void process() {
             refresh_time = false;
           }
           
-          String out;
           doc.clear();
-          doc["act"]         = F("TIME");
+          doc["act"]         = String(sTIME);
           doc["server_name"] = ntpServerName;
           doc["server_ip"]   = timeServerIP.toString();
-          doc["result"]      = F("TIMEOUT");
+          doc["result"]      = String(sTIMEOUT);
           
+          String out;
           serializeJson(doc, out);      
+          doc.clear();
+
           SendWeb(out, TOPIC_TME);
         }
         
@@ -221,12 +238,15 @@ void process() {
               refresh_weather = false;
               init_weather = false;
               
-              String out;              
               doc.clear();
-              doc["act"]    = F("WEATHER");
+              doc["act"]    = String(sWEATHER);
               doc["region"] = useWeather == 1 ? regionID : regionID2;
-              doc["result"] = F("TIMEOUT");
+              doc["result"] = String(sTIMEOUT);
+
+              String out;              
               serializeJson(doc, out);      
+              doc.clear();
+              
               SendWeb(out, TOPIC_WTR);
             }
           }
@@ -264,7 +284,7 @@ void process() {
       // Удалить первый '|' и последний '|' и отправить значения по сформированному списку
       if (changed_keys[0] == '|') changed_keys = changed_keys.substring(1);
       if (changed_keys[changed_keys.length() - 1] == '|') changed_keys = changed_keys.substring(0, changed_keys.length()-1);
-      SendCurrentState(changed_keys, TOPIC_STT, BOTH);      
+      SendCurrentState(changed_keys);
       changed_keys = "";
     }
         
@@ -371,7 +391,7 @@ void process() {
         customRoutine(thisMode);
       }
     }
-    
+
     clockTicker();
     
     checkAlarmTime();
@@ -574,7 +594,7 @@ void process() {
 }
 
 String getEffectName(int8_t mode) {
-  String ef_name = "";
+  String ef_name;
   switch (mode) {
     case MC_CLOCK:      
       if (isNightClock)
@@ -583,29 +603,20 @@ String getEffectName(int8_t mode) {
         ef_name = String(MODE_CLOCK);
       break;
     case MC_TEXT:
-      ef_name = MODE_RUNNING_TEXT;
+      ef_name = String(MODE_RUNNING_TEXT);
       break;
     case MC_LOADIMAGE:
-      ef_name = MODE_LOAD_PICTURE;
+      ef_name = String(MODE_LOAD_PICTURE);
       break;
     case MC_DRAW:
-      ef_name = MODE_DRAW;
+      ef_name = String(MODE_DRAW);
       break;
     case -1:      
-      ef_name = "";
+      ef_name.clear();
       break;
     default:
       // Определить какой эффект включился
-      String s_tmp = String(EFFECT_LIST);    
-      uint16_t len1 = s_tmp.length();
-      s_tmp = GetToken(s_tmp, mode + 1, ',');
-      uint16_t len2 = s_tmp.length();
-      if (len1 > len2) { 
-        ef_name = s_tmp;
-      } else {
-        // Если режим отсутствует в списке эффектов - имя не определено
-        ef_name = "";
-      }    
+      ef_name = GetToken(EFFECT_LIST, mode + 1, ',');
       break;
   } 
   return ef_name;
@@ -636,11 +647,11 @@ void processButtonStep() {
 void parsing() {
   
   // ****************** ОБРАБОТКА *****************
-  String  str, str1, str2;
+  String  str, str1, str2, pictureLine;
+
   char c;
   bool    err = false;
   int32_t pntX, pntY, pntColor, pntIdx, idx;
-  String  pictureLine;
   uint8_t alarmHourVal, alarmMinuteVal, b_tmp;
   int8_t  tmp_eff, tmp_idx;
 
@@ -905,7 +916,7 @@ void parsing() {
 
         idx = (byte)intData[11];
         if (mapListLen > 0 && idx >= 0 && idx < mapListLen) {
-          String file_name = mapFiles[idx]; // 32x16
+          String file_name(mapFiles[idx]); // 32x16
           int8_t p = file_name.lastIndexOf('x');
           if (p >= 0) {
             mapWIDTH = file_name.substring(0, p).toInt();
@@ -1105,14 +1116,13 @@ void parsing() {
           sendImageLine(cmdSource, (uint8_t)intData[2], (uint8_t)intData[3]);
         } else
         if (intData[1] == 5) {
-          str = getStateString(String(F("FL")) + String((intData[2] == 0 ? 0 : 1)));
-          str = String(F("{\"FL\":\"[")) + str + "]\"}";
+          String str2(getStateString(F("FL"))); str2 += (intData[2] == 0 ? 0 : 1);
+          str = F("{\"FL\":\"["); str += str2; str += "]\"}";
         } else
         if (intData[1] == 6) {
           // Нарисовать точку черным в позиции X Y - стереть точку, инструмент ластик
           drawPixelXY(intData[2], intData[3], 0);
-        } 
-        else {
+        } else {
           err = true;
           notifyUnknownCommand(incomeBuffer, cmdSource);
         }
@@ -1126,7 +1136,8 @@ void parsing() {
               sendAcknowledge();
           } else {
             if (intData[1] == 5) {
-              addKeyToChanged("FL" + String((intData[2] == 0 ? 0 : 1)));
+              String tmpp("FL"); tmpp += (intData[2] == 0 ? 0 : 1);               
+              addKeyToChanged(tmpp);
             }
           }
         }
@@ -1169,7 +1180,7 @@ void parsing() {
               if (tmp_eff == 0) {                
                  textIndecies = str;
                  if (!isFirstLineControl())  {
-                   textIndecies = "";
+                   textIndecies.clear();
                    sequenceIdx = -1;
                    saveTextLine(c, str);
                  } else {
@@ -1304,7 +1315,7 @@ void parsing() {
               
             // Прием строки передаваемого отображения по строкам  $6 11|Y colorHEX,colorHEX,...,colorHEX;
             case 11:
-              pictureLine = str + ',';
+              pictureLine = str; pictureLine += ',';
               
               if (thisMode != MC_LOADIMAGE) {
                 setManualModeTo(true);
@@ -1342,7 +1353,7 @@ void parsing() {
               
               // Строка подтверждения приема строки изображения              
               if (cmdSource == UDP) {
-                str = "{\"L\":\"" + String(pntY) + "\"}";
+                str = "{\"L\":\"";  str += pntY; str += "\"}";
                 sendStringData(str);
               } else {
                 SendWebKey("L", String(pntY));
@@ -1352,7 +1363,7 @@ void parsing() {
 
             // Прием строки передаваемого отображения по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX;
             case 12:
-              pictureLine = str + ',';
+              pictureLine = str; pictureLine += ',';
 
               if (thisMode != MC_LOADIMAGE) {
                 setManualModeTo(true);
@@ -1390,7 +1401,7 @@ void parsing() {
 
               // Строка подтверждения приема строки изображения              
               if (cmdSource == UDP) {
-                str = "{\"C\":\"" + String(pntX) + "\"}";
+                str = "{\"C\":\""; str += pntX; str += "\"}";
                 sendStringData(str);
               } else {
                 SendWebKey("C", String(pntX));
@@ -1398,7 +1409,7 @@ void parsing() {
               break;
 
             case 14:
-              // текст бегущей строки для немедленного отображения без сохранения 
+              // текст бегущей строки для немедленного отображения без сохранения               
               setImmediateText(str);
               break;
 
@@ -1415,7 +1426,7 @@ void parsing() {
               if (cmdSource != UDP) {
                 if (str.length() == 0) {
                   // Файл загружен
-                  str = MSG_FILE_LOADED;
+                  str = String(MSG_FILE_LOADED);
                   SendWebInfo(str);
                 } else {
                   // Ошибка загрузки файла
@@ -1437,7 +1448,7 @@ void parsing() {
               if (cmdSource != UDP) {
                 if (str.length() == 0) {
                   // Файл сохранен
-                  str = MSG_FILE_SAVED;
+                  str = String(MSG_FILE_SAVED);
                   SendWebInfo(str);
                 } else {
                   // Ошибка сохранения файла
@@ -1460,7 +1471,7 @@ void parsing() {
                 // При успешно завершившейся операции возвращается пустая строка
                 if (str.length() == 0) {
                   // Файл удален
-                  str = MSG_FILE_DELETED;
+                  str = String(MSG_FILE_DELETED);
                   SendWebInfo(str);
                 } else {
                   // Ошибка удаления файла
@@ -1663,24 +1674,30 @@ void parsing() {
         // Запрос параметров эффекта в виде объекта JSON (Web-интерфейс)
         if (intData[1] == 7) {
           // В сообщении может передаваться длинная строка - например список файлов с SD-карты (param2), требуется буфер значительного размера
-          
-          JsonVariant value;
-          String out;
-          
           doc.clear();
-          doc["act"] = F("EDIT");
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["id"] = String(tmp_eff);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["name"] = getEffectName(tmp_eff);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["usage"] = getStateValue("UE", tmp_eff, &value);
+          doc["act"]        = F("EDIT");
+          doc["id"]         = String(tmp_eff);
+          doc["name"]       = getEffectName(tmp_eff);
+          // -----------------
+          // На первый взгляд кажется что &value не используется. Однако формат строки, возвращаемой функцией getStateValue()
+          // разный в зависимости от того передан этот параметр или нет. В данном случае нам нужен формат именно тот, который функция возвращает
+          // в случае, когда передан параметр &value;
+          // -----------------
+          JsonVariant value;
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["usage"]      = getStateValue("UE", tmp_eff, &value);
           value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowClock"] = getStateValue("UC", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowText"] = getStateValue("UT", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["speed"] = getStateValue("SE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["contrast"] = getStateValue("BE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param1"] = getStateValue("SS", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param2"] = getStateValue("SQ", tmp_eff, &value);
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowText"]  = getStateValue("UT", tmp_eff, &value);
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["speed"]      = getStateValue("SE", tmp_eff, &value);
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["contrast"]   = getStateValue("BE", tmp_eff, &value);
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param1"]     = getStateValue("SS", tmp_eff, &value);
+          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param2"]     = getStateValue("SQ", tmp_eff, &value);          
+          // -----------------          
           doc["paramName1"] = getParamNameForMode(tmp_eff);
           doc["paramName2"] = getParam2NameForMode(tmp_eff);
+
+          String out;
           serializeJson(doc, out);
+          doc.clear();
           
           SendWeb(out, TOPIC_EDT);
         } else
@@ -1740,7 +1757,7 @@ void parsing() {
                refresh_weather = true; weather_t = 0; weather_cnt = 0;
              }
              if (cmdSource != UDP) {
-               str = MSG_OP_SUCCESS;
+               str = String(MSG_OP_SUCCESS);
                SendWebInfo(str);
              }
              break;
@@ -1792,7 +1809,7 @@ void parsing() {
              break;
            case 9:               // $13 9 D; - Периодичность отображения бегущей строки (в секундах D)
              set_TEXT_INTERVAL(intData[2]);
-             str = MSG_OP_SUCCESS;
+             str = String(MSG_OP_SUCCESS);
              SendWebInfo(str);
              break;
            case 11:               // $13 11 X; - Режим цвета бегущей строкой X: 0,1,2,           
@@ -1806,7 +1823,7 @@ void parsing() {
              // В строке цвет - "$13 15 00FFAA;" - цвет часов текстовой строкой для режима "монохромный", сохраняемый в globalTextColor
              str = String(incomeBuffer).substring(7,13);
              set_globalTextColor((uint32_t)HEXtoInt(str));
-             str = MSG_OP_SUCCESS;
+             str = String(MSG_OP_SUCCESS);
              SendWebInfo(str);
              break;
            case 18:               // $13 18 X; - сохранить настройку X "Бегущая строка в эффектах"
@@ -1933,7 +1950,7 @@ void parsing() {
           sendAcknowledge();
         }
         if (cmdSource != UDP) {
-          str = MSG_OP_SUCCESS;
+          str = String(MSG_OP_SUCCESS);
           SendWebInfo(str);
         }
         break;
@@ -1990,7 +2007,7 @@ void parsing() {
                refresh_time = true; ntp_t = 0; ntp_cnt = 0; not_check_time = true;
              }
              if (cmdSource != UDP) {
-               str = MSG_OP_SUCCESS;
+               str = String(MSG_OP_SUCCESS);
                SendWebInfo(str);
              }
              break;
@@ -2022,7 +2039,7 @@ void parsing() {
            case 8:               // $19 8 YYYY MM DD HH MM; - Установить текущее время YYYY.MM.DD HH:MM
              setCurrentTime((uint8_t)intData[5],(uint8_t)intData[6],0,(uint8_t)intData[4],(uint8_t)intData[3],(uint16_t)intData[2]);
              if (cmdSource != UDP) {
-               str = MSG_OP_SUCCESS;
+               str = String(MSG_OP_SUCCESS);
                SendWebInfo(str);
              }
              break;
@@ -2068,7 +2085,7 @@ void parsing() {
              set_showDateDuration(intData[2]);
              set_showDateInterval(intData[3]);
              if (cmdSource != UDP) {
-               str = MSG_OP_SUCCESS;
+               str = String(MSG_OP_SUCCESS);
                SendWebInfo(str);
              }
              break;
@@ -2234,7 +2251,7 @@ void parsing() {
               }
             }      
             if (cmdSource != UDP) {
-              str = MSG_OP_SUCCESS;
+              str = String(MSG_OP_SUCCESS);
               SendWebInfo(str);
             }
             break;
@@ -2301,7 +2318,7 @@ void parsing() {
           sendAcknowledge();
         } else {
           // Для команд, пришедших от Web отправить сообщение об успешном выполнении операции
-          str = MSG_OP_SUCCESS;
+          str = String(MSG_OP_SUCCESS);
           SendWebInfo(str);
         }        
         break;
@@ -2360,7 +2377,7 @@ void parsing() {
             if (cmdSource == UDP) {           
               sendAcknowledge();
             } else {
-               str = MSG_OP_SUCCESS;
+               str = String(MSG_OP_SUCCESS);
                SendWebInfo(str);
             }
             break;
@@ -2372,14 +2389,14 @@ void parsing() {
               } else {
                 str = F("{\"ER\":\"[I~Резервная копия настроек создана]\"|\"EE\":");
               }
-              str += "\"" + String(eeprom_backup) + "\"}";
+              str += "\""; str += eeprom_backup; str += "\"}";
               sendStringData(str);
             } else {
               if (err) {
-                str = MSG_BACKUP_SAVE_ERROR;
+                str = String(MSG_BACKUP_SAVE_ERROR);
                 SendWebError(str);
               } else {
-                str = MSG_BACKUP_SAVE_OK;
+                str = String(MSG_BACKUP_SAVE_OK);
                 SendWebInfo(str);
               }
               addKeyToChanged("EE");
@@ -2396,10 +2413,10 @@ void parsing() {
               sendStringData(str);
             } else {
               if (err) {
-                str = MSG_BACKUP_LOAD_ERROR;
+                str = String(MSG_BACKUP_LOAD_ERROR);
                 SendWebError(str);
               } else {
-                str = MSG_BACKUP_LOAD_OK;
+                str = String(MSG_BACKUP_LOAD_OK);
                 SendWebInfo(str);
               }
             }
@@ -2427,7 +2444,7 @@ void parsing() {
               if (cmdSource == UDP) {
                 sendAcknowledge();
               } else {
-                str = MSG_OP_SUCCESS;
+                str = String(MSG_OP_SUCCESS);
                 SendWebInfo(str);
               }
             }
@@ -2459,7 +2476,7 @@ void parsing() {
               if (cmdSource == UDP) {
                 sendAcknowledge();
               } else {
-                str = MSG_OP_SUCCESS;
+                str = String(MSG_OP_SUCCESS);
                 SendWebInfo(str);
               }
             }
@@ -2557,7 +2574,7 @@ void parsing() {
   if (!haveIncomeData) {
     // Есть ли поступившие по каналу Web команды?
     if (queueLength > 0) {
-      String command       = cmdQueue[queueReadIdx++];
+      String command(cmdQueue[queueReadIdx++]);
       if (queueReadIdx >= QSIZE_IN) queueReadIdx = 0;
       queueLength--;
       
@@ -2648,14 +2665,20 @@ void parsing() {
       if (intData[0] == 6) {  // текст
         receiveText = String(&incomeBuffer[bufIdx]);
         receiveText.trim();
+      } else {
+        receiveText.clear();
       }
                 
       incomingByte = ending;                       // сразу завершаем парс
       parseMode = NORMAL;
       bufIdx = 0; 
       packetSize = 0;                              // все байты из входящего пакета обработаны
+      
     } else {
+      
       incomingByte = incomeBuffer[bufIdx++];       // обязательно ЧИТАЕМ входящий символ
+      receiveText.clear();
+      
     } 
   }       
     
@@ -2688,7 +2711,7 @@ void parsing() {
         } else {
           intData[parse_index] = string_convert.toInt();  // преобразуем строку в int и кладём в массив
         }
-        string_convert = "";                        // очищаем строку
+        string_convert.clear();                     // очищаем строку
         parse_index++;                              // переходим к парсингу следующего элемента массива
       }
     }
@@ -2696,7 +2719,7 @@ void parsing() {
     if (incomingByte == header) {                   // если это $
       parseStarted = true;                          // поднимаем флаг, что можно парсить
       parse_index = 0;                              // сбрасываем индекс
-      string_convert = "";                          // очищаем строку
+      string_convert.clear();                       // очищаем строку
     }
 
     if (incomingByte == ending) {                   // если таки приняли ; - конец парсинга
@@ -2713,7 +2736,7 @@ void parsing() {
   }
 }
 
-void sendStringData(String &str) {
+void sendStringData(const String& str) {
   // Используется только для коммуникации по UDP
   uint16_t max_text_size = sizeof(incomeBuffer);        // Размер приемного буфера формирования текста загружаемой / отправляемой строки
   memset(incomeBuffer, '\0', max_text_size);
@@ -2722,10 +2745,16 @@ void sendStringData(String &str) {
   udp.write((const uint8_t*) incomeBuffer, str.length()+1);
   udp.endPacket();
   delay(0);
-  DEBUGLN(String(F("UDP ")) + udp.remoteIP().toString() + ":" + String(udp.remotePort()) + " >> " + String(incomeBuffer));
+  DEBUG(F("UDP "));
+  DEBUG(udp.remoteIP().toString());
+  DEBUG(':');
+  DEBUG(udp.remotePort());
+  DEBUG(" >> ");
+  DEBUG(String(incomeBuffer));
+  DEBUGLN();
 }
 
-String getStateValue(String key, int8_t effect, JsonVariant* value) {
+String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // W:число     ширина матрицы
   // H:число     высота матрицы
@@ -2878,7 +2907,6 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
   // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
  
-  String str = "", tmp;
   CRGB c;
 
   // Версия прошивки
@@ -2887,7 +2915,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(FIRMWARE_VER);
       return FIRMWARE_VER;
     }
-    return str + "VR:" + "[" + FIRMWARE_VER + "]";
+    String str("VR:[");
+    str += FIRMWARE_VER; str += ']';
+    return str;
   }
 
   // Имя устройства
@@ -2896,7 +2926,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(host_name);
       return host_name;
     }
-    return str + "HN:" + "[" + host_name + "]";
+    String str("HN:[");
+    str += host_name; str += ']';
+    return str;
   }
 
   // Идентификатор языка интерфейса
@@ -2905,7 +2937,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(UI);
       return UI;
     }
-    return str + "LG:" + "[" + UI + "]";
+    String str("LG:[");
+    str += UI; str += ']';
+    return str;
   }
 
   // Ширина матрицы
@@ -2914,7 +2948,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(pWIDTH);
       return String(pWIDTH);
     }
-    return str + "W:" + String(pWIDTH);
+    String str("W:");
+    str += pWIDTH;
+    return str;
   }
 
   // Высота матрицы
@@ -2923,7 +2959,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(pHEIGHT);
       return String(pHEIGHT);
     }
-    return str + "H:" + String(pHEIGHT);
+    String str("H:");
+    str += pHEIGHT;
+    return str;
   }
 
   // Программное вкл/выкл устройства
@@ -2932,7 +2970,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(!isTurnedOff);
       return String(!isTurnedOff);
     }
-    return str + "PS:" + String(!isTurnedOff);
+    String str("PS:");
+    str += !isTurnedOff;
+    return str;
   }
 
   // Текущая яркость
@@ -2941,7 +2981,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set((isNightClock ? nightClockBrightness : globalBrightness));
       return isNightClock ? String(nightClockBrightness) : String(globalBrightness);
     }
-    return str + "BR:" + String(isNightClock ? nightClockBrightness : globalBrightness);
+    String str("BR:");
+    str += (isNightClock ? nightClockBrightness : globalBrightness);
+    return str;
   }
 
   if (key == "BS") {
@@ -2950,7 +2992,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(val);
       return String(val);
     }
-    return str + "BS:" + String(val);
+    String str("BS:");
+    str += val;
+    return str;
   }
 
   // Ручной / Авто режим
@@ -2959,7 +3003,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(!manualMode);
       return String(!manualMode);
     }
-    return str + "DM:" + String(!manualMode);
+    String str("DM:");
+    str += !manualMode;
+    return str;
   }
 
   // Продолжительность режима в секундах
@@ -2968,7 +3014,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(autoplayTime / 1000);
       return String(autoplayTime / 1000);
     }
-    return str + "PD:" + String(autoplayTime / 1000); 
+    String str("PD:");
+    str += (autoplayTime / 1000);
+    return str; 
   }
 
   // Время бездействия в минутах
@@ -2977,7 +3025,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(idleTime / 60 / 1000);
       return String(idleTime / 60 / 1000);
     }
-    return str + "IT:" + String(idleTime / 60 / 1000);
+    String str("IT:");
+    str += (idleTime / 60 / 1000);
+    return str;
   }
 
   // Сработал будильник 0-нет, 1-да
@@ -2986,7 +3036,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
       return String((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
     }
-    return str + "AL:" + String(((isAlarming || isPlayAlarmSound) && !isAlarmStopped)); 
+    String str("AL:");
+    str +=  ((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
+    return str; 
   }
 
   // Смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
@@ -2995,7 +3047,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useRandomSequence);
       return String(useRandomSequence);
     }
-    return str + "RM:" + String(useRandomSequence);
+    String str("RM:");
+    str += useRandomSequence;
+    return str;
   }
 
   // Ограничение по току в миллиамперах
@@ -3004,7 +3058,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(CURRENT_LIMIT);
       return String(CURRENT_LIMIT);
     }
-    return str + "PW:" + String(CURRENT_LIMIT);
+    String str("PW:");
+    str += CURRENT_LIMIT;
+    return str;
   }
 
   // Прошивка поддерживает погоду 
@@ -3013,7 +3069,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_WEATHER == 1);
       return String(USE_WEATHER == 1);
     }
-    return str + "WZ:" + String(USE_WEATHER == 1);
+    String str("WZ:");
+    str += (USE_WEATHER == 1);
+    return str;
   }
 
 #if (USE_WEATHER == 1)                  
@@ -3023,7 +3081,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useWeather);
       return String(useWeather);
     }
-    return str + "WU:" + String(useWeather);
+    String str("WU:");
+    str += useWeather;
+    return str;
   }
 
   // Период запроса сведений о погоде в минутах
@@ -3032,7 +3092,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(SYNC_WEATHER_PERIOD);
       return String(SYNC_WEATHER_PERIOD);
     }
-    return str + "WT:" + String(SYNC_WEATHER_PERIOD);
+    String str("WT:");
+    str += SYNC_WEATHER_PERIOD;
+    return str;
   }
 
   // Регион погоды Yandex
@@ -3041,7 +3103,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(regionID);
       return String(regionID);
     }
-    return str + "WR:" + String(regionID);
+    String str("WR:");
+    str += regionID;
+    return str;
   }
 
   // Регион погоды OpenWeatherMap
@@ -3050,7 +3114,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(regionID2);
       return String(regionID2);
     }
-    return str + "WS:" + String(regionID2);
+    String str("WS:");
+    str += regionID2;
+    return str;
   }
 
   // Использовать цвет для отображения температуры в дневных часах: 0 - выключено; 1 - включено
@@ -3059,7 +3125,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useTemperatureColor);
       return String(useTemperatureColor);
     }
-    return str + "WC:" + String(useTemperatureColor);
+    String str("WC:");
+    str += useTemperatureColor;
+    return str;
   }
 
   // Использовать цвет для отображения температуры в ночных часах: 0 - выключено; 1 - включено
@@ -3068,7 +3136,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useTemperatureColorNight);
       return String(useTemperatureColorNight);
     }
-    return str + "WN:" + String(useTemperatureColorNight);
+    String str("WN:");
+    str += useTemperatureColorNight;
+    return str;
   }
 
   // Текущая погода
@@ -3077,7 +3147,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(weather);
       return weather;
     }
-    return str + "W1:" + "[" + weather + "]";
+    String str("W1:[");
+    str += weather; str += ']';
+    return str;
   }
 
   // Текущая температура
@@ -3086,27 +3158,33 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(temperature);
       return String(temperature);
     }
-    return str + "W2:" + String(temperature);
+    String str("W2:");
+    str += temperature;
+    return str;
   }
   
   // Время рассвета, полученное с погодного сервера
   if (key == "T1") {
-    String t1 = padNum(dawn_hour,2) + ":" + padNum(dawn_minute,2);
+    String t1(padNum(dawn_hour,2)); t1 += ':'; t1 += padNum(dawn_minute,2);
     if (value) {
       value->set(t1);
       return t1;
     }
-    return str + "T1:" + "[" + t1 + "]";
+    String str("T1:[");
+    str += t1; str += ']';
+    return str;
   }
 
   // Время заката, полученное с погодного сервера
   if (key == "T2") {
-    String t2 = padNum(dusk_hour,2) + ":" + padNum(dusk_minute,2);
+    String t2(padNum(dusk_hour,2)); t2 += ':'; t2 += padNum(dusk_minute,2);
     if (value) {
       value->set(t2);
       return t2;
     }
-    return str + "T2:" + "[" + t2 + "]";
+    String str("T2:[");
+    str += t2; str += ']';
+    return str;
   }
 #endif  
 
@@ -3116,7 +3194,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(effect);
       return String(effect);
     }
-    return str + "EF:" + String(effect); // +1 т.к эффекты считаются с нуля, а индекс в списке эффектов - с 1
+    String str("EF:");
+    str += effect;
+    return str;
   }
 
   // Текущий эффект - название
@@ -3128,7 +3208,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(effect_name);
       return effect_name;
     }
-    return str + "EN:" + "[" + effect_name + "]";
+    String str("EN:[");
+    str+= effect_name; str += ']';
+    return str;
   }
 
   // Использование эффектов - строка кодирования порядка следования эффектов в случае их последовательного воспроизведения
@@ -3140,23 +3222,27 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(effect_order);
       return effect_order;
     }
-    return str + "FV:" + "[" + effect_order + "]";
+    String str("FV:[");
+    str += effect_order; str += ']';
+    return str;
   }
-
+  
   // Оверлей бегущей строки
   if (key == "UT") {
-    tmp = String(getEffectTextOverlayUsage(effect));
+    String tmp(getEffectTextOverlayUsage(effect));
     if (value) {
       if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
         value->set("X");
-        return "X";
+        return String("X");
       }
       value->set(getEffectTextOverlayUsage(effect));
       return tmp;
     }
-    return str + "UT:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID 
-         ? "X"
-         : tmp);
+    String str("UT:");
+    str += (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) 
+      ? String("X") 
+      : tmp;
+    return str;
   }
 
   // Оверлей часов   
@@ -3169,9 +3255,11 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
        value->set(getEffectClockOverlayUsage(effect));
        return String(getEffectClockOverlayUsage(effect));
     }
-    return str + "UC:" +  (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK
-         ? "X" 
-         : (String(getEffectClockOverlayUsage(effect))));
+    String str("UC:");
+    str += (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK) 
+      ? String("X") 
+      : String(getEffectClockOverlayUsage(effect));
+    return str;     
   }
 
   // Настройка скорости
@@ -3180,48 +3268,56 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
         ) {
         value->set("X");
-        return "X";
+        return String("X");
       }
       value->set(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
       return String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
     }
-    return str + "SE:" +  (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
-         ? "X" 
+    String str("SE:");
+    str += (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
+         ? String("X")
          : String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255)));
+    return str;     
   }
 
   // Контраст
   if (key == "BE") {
-    tmp = String(getEffectContrast(effect));
+    String tmp(getEffectContrast(effect));
     if (value) {
       if (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD) {
         value->set("X");
-        return "X";
+        return String("X");
       }  
       value->set(getEffectContrast(effect));
       return tmp;
     }
-    return str + "BE:" +  (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD
-         ? "X" 
-         : tmp);
+    String str("BE:");
+    str += (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD)
+         ? String("X") 
+         : tmp;
+    return str;     
   }
 
   // Эффекты не имеющие настройки вариации (параметр #1) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SS") {
     if (value) {
       value->set(getParamForMode(effect));
-      return getParamForMode(effect);
+      return String(getParamForMode(effect));
     }
-    return str + "SS:" + getParamForMode(effect);
+    String str("SS:");
+    str += getParamForMode(effect);
+    return str;
   }
 
   // Эффекты не имеющие настройки вариации (параметр #2) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SQ") {
     if (value) {
       value->set(getParam2ForMode(effect));
-      return getParam2ForMode(effect);
+      return String(getParam2ForMode(effect));
     }
-    return str + "SQ:" + getParam2ForMode(effect);
+    String str("SQ:");
+    str += getParam2ForMode(effect);
+    return str;
   }
 
   // Разрешен оверлей бегущей строки
@@ -3230,7 +3326,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(textOverlayEnabled);
       return String(textOverlayEnabled);
     }
-    return str + "TE:" + String(textOverlayEnabled);
+    String str("TE:");
+    str += textOverlayEnabled;
+    return str;
   }
 
   // Интервал показа бегущей строки
@@ -3239,7 +3337,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(TEXT_INTERVAL);
       return String(TEXT_INTERVAL);
     }
-    return str + "TI:" + String(TEXT_INTERVAL);
+    String str("TI:");
+    str += TEXT_INTERVAL;
+    return str;
   }
 
   // Режим цвета отображения бегущей строки
@@ -3248,7 +3348,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(COLOR_TEXT_MODE);
       return String(COLOR_TEXT_MODE);
     }
-    return str + "CT:" + String(COLOR_TEXT_MODE);
+    String str("CT:");
+    str += COLOR_TEXT_MODE;
+    return str;
   }
 
   // Скорость прокрутки текста
@@ -3257,29 +3359,35 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(255 - textScrollSpeed);
       return String(255 - textScrollSpeed);
     }
-    return str + "ST:" + String(255 - textScrollSpeed);
+    String str("ST:");
+    str += (255 - textScrollSpeed);
+    return str;
   }
 
   // Цвет режима "монохром" часов
   if (key == "C1") {
     c = CRGB(globalClockColor);
-    tmp = String(c.r) + "," + String(c.g) + "," + String(c.b);
+    String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "C1:" + tmp;
+    String str("C1:");
+    str += tmp;
+    return str;
   }
 
   // Цвет режима "монохром" бегущей строки
   if (key == "C2") {
     c = CRGB(globalTextColor);
-    tmp = String(c.r) + "," + String(c.g) + "," + String(c.b);
+    String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "C2:" + tmp;
+    String str("C2:");
+    str += tmp;
+    return str;
   }
 
   // Строка состояния заполненности строк текста
@@ -3288,19 +3396,26 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(textStates);
       return textStates;
     }
-    return str + "TS:" + textStates;
+    String str("TS:");
+    str += textStates;
+    return str;
   }
 
   // Исходная строка с индексом editIdx без обработки для отправки в приложение для формирования
   if (key == "TY") {
-    tmp = (editIdx >= 0 && editIdx < TEXTS_MAX_COUNT ) 
-      ? String(editIdx) + ":" + String(getAZIndex(editIdx)) + " > " + getTextByIndex(editIdx)
-      : "-1: >";      
+    String tmp;
+    if (editIdx >= 0 && editIdx < TEXTS_MAX_COUNT) {
+      tmp += editIdx; tmp += ':'; tmp += getAZIndex(editIdx); tmp += " > "; tmp += getTextByIndex(editIdx);
+    } else {
+      tmp += "-1: >";      
+    }
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "TY:" + "[" + tmp + "]";
+    String str("TY:[");
+    str += tmp; str += ']';
+    return str;
   }
 
   // Оверлей часов вкл/выкл
@@ -3311,9 +3426,11 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
         return String(getClockOverlayEnabled());
       } 
       value->set("X");
-      return "X";
+      return String("X");
     }
-    return str + "CE:" + (allowVertical || allowHorizontal ? String(getClockOverlayEnabled()) : "X");
+    String str("CE:");
+    str += (allowVertical || allowHorizontal) ? String(getClockOverlayEnabled()) : String("X");
+    return str;
   }
 
   // Режим цвета часов оверлея
@@ -3322,7 +3439,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(COLOR_MODE);
       return String(COLOR_MODE);
     }
-    return str + "CC:" + String(COLOR_MODE);
+    String str("CC:");
+    str += COLOR_MODE;
+    return str;
   }
 
   // Доступны горизонтальные часы
@@ -3331,7 +3450,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(allowHorizontal);
       return String(allowHorizontal);
     }
-    return str + "CH:" + String(allowHorizontal);
+    String str("CH:");
+    str += allowHorizontal;
+    return str;
   }
 
   // Доступны вертикальные часы
@@ -3340,17 +3461,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(allowVertical);
       return String(allowVertical);
     }
-    return str + "CV:" + String(allowVertical);
+    String str("CV:");
+    str += allowVertical;
+    return str;
   }
 
   // Цвет рисования
   if (key == "CL") {
     if (value) {
-      str = IntToHex(drawColor);
-      value->set(str);
-      return str;
+      String tmp(IntToHex(drawColor));
+      value->set(tmp);
+      return tmp;
     }
-    return str + "CL:" + IntToHex(drawColor);
+    String str("CL:");
+    str += IntToHex(drawColor);
+    return str;
   }
 
   // Ориентация часов
@@ -3361,9 +3486,11 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
         return String(CLOCK_ORIENT);
       }
       value->set("X");
-      return "X";
+      return String("X");
     }
-    return str + "CO:" + (allowVertical || allowHorizontal ? String(CLOCK_ORIENT) : "X");
+    String str("CO:");
+    str += (allowVertical || allowHorizontal) ? String(CLOCK_ORIENT) : String("X");
+    return str;
   }
 
   // Размер (режим) горизонтальных часов
@@ -3372,7 +3499,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(CLOCK_SIZE);
       return String(CLOCK_SIZE);
     }
-    return str + "CK:" + String(CLOCK_SIZE);
+    String str("CK:");
+    str += CLOCK_SIZE;
+    return str;
   }
 
   // Яркость цвета ночных часов
@@ -3381,7 +3510,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(nightClockBrightness);
       return String(nightClockBrightness);
     }
-    return str + "NB:" + String(nightClockBrightness);
+    String str("NB:");
+    str += nightClockBrightness;
+    return str;
   }
 
   // Код цвета ночных часов
@@ -3390,7 +3521,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(nightClockColor);
       return String(nightClockColor);
     }
-    return str + "NC:" + String(nightClockColor);
+    String str("NC:");
+    str += nightClockColor;
+    return str;
   }
 
   // Скорость смещения (прокрутки) часов оверлея
@@ -3399,7 +3532,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(255 - clockScrollSpeed);
       return String(255 - clockScrollSpeed);
     }
-    return str + "SC:" + String(255 - clockScrollSpeed);
+    String str("SC:");
+    str += (255 - clockScrollSpeed);
+    return str;
   }
 
   // Показывать дату вместе с часами
@@ -3408,7 +3543,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(showDateInClock);
       return String(showDateInClock);
     }
-    return str + "DC:" + String(showDateInClock);
+    String str("DC:");
+    str += showDateInClock;
+    return str;
   }
 
   // Продолжительность отображения даты в режиме часов (сек)
@@ -3417,7 +3554,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(showDateDuration);
       return String(showDateDuration);
     }
-    return str + "DD:" + String(showDateDuration);
+    String str("DD:");
+    str += showDateDuration;
+    return str;
   }
 
   // Интервал отображения даты часов
@@ -3426,7 +3565,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(showDateInterval);
       return String(showDateInterval);
     }
-    return str + "DI:" + String(showDateInterval);
+    String str("DI:");
+    str += showDateInterval;
+    return str;
   }
 
   // Использовать получение времени с интернета
@@ -3435,7 +3576,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useNtp);
       return String(useNtp);
     }
-    return str + "NP:" + String(useNtp);
+    String str("NP:");
+    str += useNtp;
+    return str;
   }
 
   // Период синхронизации NTP в минутах
@@ -3444,7 +3587,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(SYNC_TIME_PERIOD);
       return String(SYNC_TIME_PERIOD); 
     }
-    return str + "NT:" + String(SYNC_TIME_PERIOD); 
+    String str("NT:");
+    str += SYNC_TIME_PERIOD;
+    return str; 
   }
 
   // Часовой пояс - часы
@@ -3453,7 +3598,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(timeZoneOffset);
       return String(timeZoneOffset);
     }
-    return str + "NZ:" + String(timeZoneOffset);
+    String str("NZ:");
+    str += timeZoneOffset;
+    return str;
   }
 
   // Часовой пояс - минты
@@ -3462,17 +3609,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(timeZoneOffsetMinutes);
       return String(timeZoneOffsetMinutes);
     }
-    return str + "NM:" + String(timeZoneOffsetMinutes);
+    String str("NM:");
+    str += timeZoneOffsetMinutes;
+    return str;
   }
 
   // Имя сервера NTP (url)
   if (key == "NS") {
-    tmp = String(ntpServerName);
+    String tmp(ntpServerName);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "NS:" + "[" + tmp + "]";
+    String str("NS:[");
+    str += tmp + ']';
+    return str;
   }
 
   // Показывать температуру вместе с малыми часами 0-нет, 1-да
@@ -3481,7 +3632,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(showWeatherInClock);
       return String(showWeatherInClock);
     }
-    return str + "DW:" + String(showWeatherInClock);
+    String str("DW:");
+    str += showWeatherInClock; 
+    return str;
   }
 
   // Выключать часы TM1637 вместе с лампой 0-нет, 1-да
@@ -3490,7 +3643,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(needTurnOffClock);
       return String(needTurnOffClock);
     }
-    return str + "OF:" + String(needTurnOffClock);
+    String str("OF:");
+    str += needTurnOffClock;
+    return str;
   }
 
   // Продолжительность рассвета, мин
@@ -3499,7 +3654,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(dawnDuration);
       return String(dawnDuration);
     }
-    return str + "AD:" + String(dawnDuration);
+    String str("AD:");
+    str += dawnDuration;
+    return str;
   }
 
   // Битовая маска дней недели будильника
@@ -3508,25 +3665,38 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(alarmWeekDay);
       return String(alarmWeekDay);
     }
-    str = "AW:";
+    String str("AW:");
+    str.reserve(22);
     for (uint8_t i=0; i<7; i++) {
-       if (((alarmWeekDay>>i) & 0x01) == 1) str+="1"; else str+="0";  
-       if (i<6) str+='.';
+       if (((alarmWeekDay>>i) & 0x01) == 1) str += "1"; else str += "0";  
+       if (i<6) str += '.';
     }
     return str;
   }
 
   // Часы-минуты времени будильника по дням недели
   if (key == "AT") {
+    String str;
+    str.reserve(80);
     if (value) {
       for (uint8_t i=0; i<7; i++) {      
-        str += "|" + String(i+1) + " " + String(alarmHour[i]) + " " + String(alarmMinute[i]);
+        str += "|";
+        str += i + 1; 
+        str += ' ';
+        str += alarmHour[i]; 
+        str += ' ';
+        str += alarmMinute[i];
       }
       value->set(str.substring(1));
       return str.substring(1);
     }
     for (uint8_t i=0; i<7; i++) {      
-      str += "|AT:" + String(i+1) + " " + String(alarmHour[i]) + " " + String(alarmMinute[i]);
+      str += "|AT:";
+      str += i + 1;
+      str += ' ';
+      str += alarmHour[i];
+      str += ' ';
+      str += alarmMinute[i];
     }
     // Убрать первый '|'
     return str.substring(1);
@@ -3538,7 +3708,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(alarmEffect);
       return String(alarmEffect);
     }
-    return str + "AE:" + String(alarmEffect);
+    String str("AE:");
+    str += alarmEffect;
+    return str;
   }
 
   // Сколько минут звучит будильник, если его не отключили
@@ -3547,7 +3719,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(alarmDuration);
       return String(alarmDuration);
     }
-    return str + "MD:" + String(alarmDuration); 
+    String str("MD:");
+    str += alarmDuration;
+    return str; 
   }
 
   // Текущий "специальный режим" или -1 если нет активного
@@ -3556,7 +3730,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(specialModeId);
       return String(specialModeId);
     }
-    return str + "SM:" + String(specialModeId); 
+    String str("SM:");
+    str += specialModeId;
+    return str; 
   }
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3? неважно подключен или нет
@@ -3565,7 +3741,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_MP3 == 1);
       return String(USE_MP3 == 1);
     }
-    return str + "MZ:" + String(USE_MP3 == 1);
+    String str("MZ:");
+    str +=(USE_MP3 == 1);
+    return str;
   }
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3 и обнаружено подключение    
@@ -3574,7 +3752,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(isDfPlayerOk);
       return String(isDfPlayerOk);
     }
-    return str + "MX:" + String(isDfPlayerOk);
+    String str("MX:");
+    str += isDfPlayerOk;
+    return str;
   }
 
   // Наличие индикатора TM1637    
@@ -3583,7 +3763,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_TM1637 == 1);
       return String(USE_TM1637 == 1);
     }
-    return str + "TM:" + String(USE_TM1637 == 1);
+    String str("TM:");
+    str += (USE_TM1637 == 1);
+    return str;
   }
 
 #if (USE_MP3 == 1)
@@ -3593,7 +3775,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useAlarmSound);
       return String(useAlarmSound); 
     }
-    return str + "MU:" + String(useAlarmSound); 
+    String str("MU:");
+    str += useAlarmSound; 
+    return str; 
   }
 
   // Максимальная громкость будильника
@@ -3602,7 +3786,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(maxAlarmVolume);
       return String(maxAlarmVolume);
     }
-    return str + "MV:" + String(maxAlarmVolume); 
+    String str("MV:");
+    str += maxAlarmVolume;
+    return str; 
   }
 
   // Номер файла звука будильника из SD:/01
@@ -3611,7 +3797,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(alarmSound);
       return String(alarmSound);
     }
-    return str + "MA:" + String(alarmSound+2);                      // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
+    String str("MA:");
+    str += (alarmSound + 2);
+    return str;                      // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
   }
 
   // Номер файла звука рассвета из SD:/02
@@ -3620,47 +3808,60 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(dawnSound);
       return String(dawnSound);
     }
-    return str + "MB:" + String(dawnSound+2);                       // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
+    String str("MB:");
+    str += (dawnSound + 2);
+    return str;                       // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
   }
 
   // Номер папки и файла звука который проигрывается
   if (key == "MP") {
-    tmp = String(soundFolder) + '~' + String(soundFile+2);
+    String tmp(soundFolder); tmp += '~'; tmp += (soundFile + 2);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "MP:" + tmp; 
+    String str("MP:");
+    str += tmp;
+    return str; 
   }
 
   // Запрос звуков будильника
   if (key == "S1") {
-    tmp = String(ALARM_SOUND_LIST);
+    String tmp(ALARM_SOUND_LIST);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "S1:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("S1:[");
+    str += tmp.substring(0, BUF_MAX_SIZE - 12); 
+    str + ']';
+    return str; 
   }
 
   // Запрос звуков рассвета
   if (key == "S2") {
-    tmp = String(DAWN_SOUND_LIST);
+    String tmp(DAWN_SOUND_LIST);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "S2:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("S2:[");
+    str += tmp.substring(0,BUF_MAX_SIZE - 12);
+    str += ']'; 
+    return str;
   }
 
   // Запрос звуков бегкщей строки
   if (key == "S3") {
-    tmp = String(NOTIFY_SOUND_LIST);
+    String tmp(NOTIFY_SOUND_LIST);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "S3:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("S3:[");
+    str += tmp.substring(0, BUF_MAX_SIZE - 12);
+    str += ']';
+    return str; 
   }
 #endif
 
@@ -3674,7 +3875,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(upt);
       return String(upt);  
     }
-    return str + "UP:" + String(upt);
+    String str("UP:");
+    str += upt;
+    return str;
   }
 
   // freemem - количество свободной памяти
@@ -3684,7 +3887,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(freemem);
       return String(freemem);  
     }
-    return str + "FM:" + String(freemem);
+    String str("FM:");
+    str += freemem;
+    return str;
   }
 
   // создавать точку доступа
@@ -3693,27 +3898,33 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(useSoftAP);
       return String(useSoftAP);  
     }
-    return str + "AU:" + String(useSoftAP);
+    String str("AU:");
+    str += useSoftAP;
+    return str;
   }
 
   // Имя точки доступа
   if (key == "AN") {
-    tmp = String(apName);
+    String tmp(apName);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AN:" + "[" + tmp + "]";
+    String str("AN:[");
+    str += tmp; str += ']';
+    return str;
   }
 
   // Пароль точки доступа - Web-канал
   if (key == "AB") {
-    tmp = String(apPass);
+    String tmp(apPass);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AB:" + "[" + tmp + "]";
+    String str("AB:[");
+    str += tmp; str += ']';
+    return str;
   }
 
   // Имя локальной сети (SSID)
@@ -3722,7 +3933,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(ssid);
       return ssid;
     }
-    return str + "NW:" + "[" + ssid + "]";
+    String str("NW:[");
+    str += ssid; str += ']';
+    return str;
   }
 
   // Пароль к сети - Web канал
@@ -3731,27 +3944,33 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(pass); 
       return pass;
     }
-    return str + "NX:" + "[" + pass + "]";
+    String str("NX:[");
+    str += pass; str += ']';
+    return str;
   }
 
   // IP адрес
   if (key == "IP") {
-    tmp = String(wifi_connected ? WiFi.localIP().toString() : "");
+    String tmp(wifi_connected ? WiFi.localIP().toString() : "");
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "IP:" + tmp;
+    String str("IP:");
+    str += tmp;
+    return str;
   }
 
   // Время Режима №1
   if (key == "AM1T") {
-    tmp = padNum(AM1_hour,2) + " " + padNum(AM1_minute,2);
+    String tmp(padNum(AM1_hour,2)); tmp += ' '; tmp += padNum(AM1_minute, 2);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AM1T:" + tmp;
+    String str("AM1T:");
+    str += tmp;
+    return str;
   }
 
   // Действие Режима №1
@@ -3760,17 +3979,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(AM1_effect_id);
       return String(AM1_effect_id);
     }
-    return str + "AM1A:" + String(AM1_effect_id);
+    String str("AM1A:");
+    str += AM1_effect_id;
+    return str;
   }
 
   // Время Режима №2
   if (key == "AM2T") {
-    tmp = padNum(AM2_hour,2) + " " + padNum(AM2_minute,2);
+    String tmp(padNum(AM2_hour,2)); tmp += ' '; tmp += padNum(AM2_minute, 2);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AM2T:" + tmp;
+    String str("AM2T:");
+    str += tmp;
+    return str;
   }
 
   // Действие Режима №2
@@ -3779,17 +4002,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(AM2_effect_id);
       return String(AM2_effect_id);
     }
-    return str + "AM2A:" + String(AM2_effect_id);
+    String str("AM2A:");
+    str += AM2_effect_id;
+    return str;
   }
 
   // Время Режима №3
   if (key == "AM3T") {
-    tmp = padNum(AM3_hour,2) + " " + padNum(AM3_minute,2);
+    String tmp(padNum(AM3_hour,2)); tmp += ' '; tmp += padNum(AM3_minute,2);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AM3T:" + tmp;
+    String str("AM3T:");
+    str += tmp;
+    return str;
   }
 
   // Действие Режима №3
@@ -3798,17 +4025,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(AM3_effect_id);
       return String(AM3_effect_id);
     }
-    return str + "AM3A:" + String(AM3_effect_id);
+    String str("AM3A:");
+    str += AM3_effect_id;
+    return str;
   }
 
   // Время Режима №4
   if (key == "AM4T") {
-    tmp = padNum(AM4_hour,2) + " " + padNum(AM4_minute,2);
+    String tmp(padNum(AM4_hour,2)); tmp += ' '; tmp += padNum(AM4_minute,2);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "AM4T:" + tmp;
+    String str("AM4T:");
+    str += tmp;
+    return str;
   }
 
   // Действие Режима №4
@@ -3817,7 +4048,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(AM4_effect_id);
       return String(AM4_effect_id);
     }
-    return str + "AM4A:" + String(AM4_effect_id);
+    String str("AM4A:");
+    str += AM4_effect_id;
+    return str;
   }
 
   // Действие Режима "Рассвет"
@@ -3826,7 +4059,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(dawn_effect_id);
       return String(dawn_effect_id);
     }
-    return str + "AM5A:" + String(dawn_effect_id);
+    String str("AM5A:");
+    str += dawn_effect_id;
+    return str;
   }
 
   // Действие Режима "Закат"
@@ -3835,7 +4070,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(dusk_effect_id);
       return String(dusk_effect_id);
     }
-    return str + "AM6A:" + String(dusk_effect_id);
+    String str("AM6A:");
+    str += dusk_effect_id;
+    return str;
   }
 
   // Наличие резервной копии EEPROM
@@ -3844,7 +4081,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(eeprom_backup);
       return String(eeprom_backup);
     }
-    return str + "EE:" + String(eeprom_backup); 
+    String str("EE:");
+    str += eeprom_backup;
+    return str; 
   }
 
   // Доступность внутренней файловой системы
@@ -3853,37 +4092,48 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(spiffs_ok);
       return String(spiffs_ok);
     }
-    return str + "FS:" + String(spiffs_ok); 
+    String str("FS:");
+    str += spiffs_ok;
+    return str; 
   }
 
   // Список картинок с внутренней файловой системы
   if (key == "FL0") {
-    tmp = getStoredImages("FS");
+    String tmp(getStoredImages("FS"));
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "FL:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("FL:[");
+    str += tmp.substring(0, BUF_MAX_SIZE - 12);
+    str += ']';
+    return str; 
   }
 
   // Список картинок с карты SD
   if (key == "FL1") {
-    tmp = getStoredImages("SD");
+    String tmp(getStoredImages("SD"));
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "FL:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("FL:[");
+    str += tmp.substring(0, BUF_MAX_SIZE - 12);
+    str += ']';
+    return str; 
   }
 
   // Список эффектов прошивки
   if (key == "LE") {
-    tmp = String(EFFECT_LIST);
+    String tmp(EFFECT_LIST);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "LE:" + "[" + tmp.substring(0,BUF_MAX_SIZE-12) + "]"; 
+    String str("LE:[");
+    str += tmp.substring(0, BUF_MAX_SIZE - 12);
+    str += ']';
+    return str; 
   }
 
   // Поддержка функционала SD-карты
@@ -3892,7 +4142,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_SD == 1);
       return String(USE_SD == 1);
     }
-    return str + "SZ:" + String(USE_SD == 1);
+    String str("SZ:");
+    str += (USE_SD == 1);
+    return str;
   }
 
 #if (USE_SD == 1)
@@ -3902,7 +4154,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(isSdCardExist);
       return String(isSdCardExist);
     }
-    return str + "SX:" + String(isSdCardExist); 
+    String str("SX:");
+    str += isSdCardExist;
+    return str; 
   }
 
   // Доступность на SD карте файлов эффектов (в т.ч и эмуляция в FS)
@@ -3911,11 +4165,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(isSdCardReady);
       return String(isSdCardReady);
     }
-    return str + "SD:" + String(isSdCardReady); 
+    String str("SD:");
+    str += isSdCardReady;
+    return str; 
   }
 
   // Cписок файлов эффектов с SD-карты, разделенный запятыми, ограничители [] обязательны
   if (key == "LF") {    
+    String tmp;
     for (uint8_t i=0; i < countFiles; i++) {
       tmp += "," + nameFiles[i];
     }
@@ -3924,112 +4181,136 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "LF:[" + tmp + "]"; 
+    String str("LF:[");
+    str += tmp;
+    str += ']';
+    return str; 
   }
 #endif
 
   // ширина одного сегмента матрицы
   if (key == "M0") {
-    tmp = String(sWIDTH);
+    String tmp(sWIDTH);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M0:" + tmp;
+    String str("M0:");
+    str += tmp;
+    return str;
   }
 
   // высота одного сегмента матрицы
   if (key == "M1") {
-    tmp = String(sHEIGHT);
+    String tmp(sHEIGHT);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M1:" + tmp;
+    String str("M1:");
+    str += tmp;
+    return str;
   }
 
   // тип соединения диодов в сегменте матрицы
   if (key == "M2") {
-    tmp = String(sMATRIX_TYPE);
+    String tmp(sMATRIX_TYPE);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M2:" + tmp;
+    String str("M2:");
+    str += tmp;
+    return str;
   }
 
   // угол подключения диодов в сегменте
   if (key == "M3") {
-    tmp = String(sCONNECTION_ANGLE);
+    String tmp(sCONNECTION_ANGLE);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M3:" + tmp;
+    String str("M3:");
+    str += tmp;
+    return str;
   }
 
   // направление ленты из угла сегмента
   if (key == "M4") {
-    tmp = String(sSTRIP_DIRECTION);
+    String tmp(sSTRIP_DIRECTION);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M4:" + tmp;
+    String str("M4:");
+    str += tmp;
+    return str;
   }
 
   // количество сегментов в ширину составной матрицы
   if (key == "M5") {
-    tmp = String(mWIDTH);
+    String tmp(mWIDTH);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M5:" + tmp;
+    String str("M5:");
+    str += tmp;
+    return str;
   }
 
   // количество сегментов в высоту составной матрицы
   if (key == "M6") {
-    tmp = String(mHEIGHT);
+    String tmp(mHEIGHT);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M6:" + tmp;
+    String str("M6:");
+    str += tmp;
+    return str;
   }
 
   // соединение сегментов составной матрицы
   if (key == "M7") {
-    tmp = String(mTYPE);
+    String tmp(mTYPE);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M7:" + tmp;
+    String str("M7:");
+    str += tmp;
+    return str;
   }
 
   // угол 1-го сегмента составной матрицы
   if (key == "M8") {
-    tmp = String(mANGLE);
+    String tmp(mANGLE);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M8:" + tmp;
+    String str("M8:");
+    str += tmp;
+    return str;
   }
 
   // направление следующих сегментов составной матрицы из угла
   if (key == "M9") {
-    tmp = String(mDIRECTION);
+    String tmp(mDIRECTION);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M9:" + tmp;
+    String str("M9:");
+    str += tmp;
+    return str;
   }
 
   // Cписок файлов карт индексов, разделенный запятыми, ограничители [] обязательны
-  if (key == "M10") {    
+  if (key == "M10") {   
+    String tmp; 
     for (uint8_t i=0; i < mapListLen; i++) {
       tmp += "," + mapFiles[i];
     }
@@ -4038,25 +4319,30 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M10:[" + tmp + "]"; 
+    String str("M10:[");
+    str += tmp;
+    str += ']';
+    return str; 
   }
 
   // Индекс текущей используемой карты индексов (элемента в массиве mapFiles)
   if (key == "M11") {
     int8_t idx = -1;
-    String curr = String(pWIDTH) + "x" + String(pHEIGHT);
+    String curr(pWIDTH); curr += 'x'; curr += pHEIGHT;
     for (uint8_t i=0; i<mapListLen; i++) {
       if (mapFiles[i] == curr) {
         idx = i;
         break;
       }
     }
-    tmp = String(idx);
+    String tmp(idx);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "M11:" + tmp;
+    String str("M11:");
+    str += tmp;
+    return str;
   }
 
   // Поддержка протокола E1.31
@@ -4065,99 +4351,119 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_E131 == 1);
       return String(USE_E131 == 1);
     }
-    return str + "E0:" + String(USE_E131 == 1);
+    String str("E0:");
+    str += (USE_E131 == 1);
+    return str;
   }
 
   #if (USE_E131 == 1)
   
   // режим работы 0 - STANDALONE, 1 - MASTER, 2 - SLAVE
   if (key == "E1") {
-    tmp = String(workMode);
+    String tmp(workMode);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "E1:" + tmp;
+    String str("E1:");
+    str += tmp;
+    return str;
   }
   
   // тип данных работы 0 - PHYSIC, 1 - LOGIC, 2 - COMMAND
   if (key == "E2") {
-    tmp = String(syncMode);
+    String tmp(syncMode);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "E2:" + tmp;
+    String str("E2:");
+    str += tmp;
+    return str;
   }
   
   // Группа синхронизации 0..9
   if (key == "E3") {
-    tmp = String(syncGroup);
+    String tmp(syncGroup);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "E3:" + tmp;
+    String str("E3:");
+    str += tmp;
+    return str;
   }
 
   // Позиция X окна трансляции мастера
   if (key == "EMX") {
-    tmp = String(masterX);
+    String tmp(masterX);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "EMX:" + tmp;
+    String str("EMX:");
+    str +=  tmp;
+    return str;
   }
   
   // Позиция Y окна трансляции мастера
   if (key == "EMY") {
-    tmp = String(masterY);
+    String tmp(masterY);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "EMY:" + tmp;
+    String str("EMY:");
+    str += tmp;
+    return str;
   }
   
   // Позиция X локального окна окна приема трансляции с мастера
   if (key == "ELX") {
-    tmp = String(localX);
+    String tmp(localX);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "ELX:" + tmp;
+    String str("ELX:");
+    str += tmp;
+    return str;
   }
   
   // Позиция Y локального окна окна приема трансляции с мастера
   if (key == "ELY") {
-    tmp = String(localY);
+    String tmp(localY);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "ELX:" + tmp;
+    String str("ELY:");
+    str += tmp;
+    return str;
   }
   
   // Ширина локального окна окна приема трансляции с мастера
   if (key == "ELW") {
-    tmp = String(localW);
+    String tmp(localW);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "ELW:" + tmp;
+    String str("ELW:");
+    str += tmp;
+    return str;
   }
   
   // Высота локального окна окна приема трансляции с мастера
   if (key == "ELH") {
-    tmp = String(localH);
+    String tmp(localH);
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "ELH:" + tmp;
+    String str("ELH:");
+    str += tmp;
+    return str;
   }
   
   #endif
@@ -4168,17 +4474,21 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_POWER == 1);
       return String(USE_POWER == 1);
     }
-    return str + "PZ:" + String(USE_POWER == 1);
+    String str("PZ:");
+    str += (USE_POWER == 1);
+    return str;
   }
 
   // Тип микроконтроллера
   if (key == "MC") {
-    String mcType = MCUType();
+    String mcType(MCUType());
     if (value) {
       value->set(mcType);
       return mcType;
     }
-    return str + "MC:" + mcType;
+    String str("MC:");
+    str += mcType;
+    return str;
   }
 
   // Наличие кнопки
@@ -4187,7 +4497,9 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(USE_BUTTON == 1);
       return String(USE_BUTTON == 1);
     }
-    return str + "UB:" + String(USE_BUTTON == 1);
+    String str("UB:");
+    str += (USE_BUTTON == 1);
+    return str;
   }
 
   // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
@@ -4197,12 +4509,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    tmp = String(getLedLineUsage(1) ? 1 : 0) + ' ' + String(getLedLinePin(1)) + ' ' + String(led_start) + ' ' + String(led_count);
+    String tmp(getLedLineUsage(1) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(1); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "2306:" + tmp;
+    String str("2306:");
+    str += tmp;
+    return str;
   }
 
   // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
@@ -4212,12 +4526,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    tmp = String(getLedLineUsage(2) ? 1 : 0) + ' ' + String(getLedLinePin(2)) + ' ' + String(led_start) + ' ' + String(led_count);
+    String tmp(getLedLineUsage(2) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(2); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "2307:" + tmp;
+    String str("2307:");
+    str += tmp;
+    return str;
   }
 
   // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
@@ -4227,12 +4543,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    tmp = String(getLedLineUsage(3) ? 1 : 0) + ' ' + String(getLedLinePin(3)) + ' ' + String(led_start) + ' ' + String(led_count);
+    String tmp(getLedLineUsage(3) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(3); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "2308:" + tmp;
+    String str("2308:");
+    str += tmp;
+    return str;
   }
 
   // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
@@ -4242,12 +4560,14 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    tmp = String(getLedLineUsage(4) ? 1 : 0) + ' ' + String(getLedLinePin(4)) + ' ' + String(led_start) + ' ' + String(led_count);
+    String tmp(getLedLineUsage(4) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(4); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
     if (value) {
       value->set(tmp);
       return tmp;
     }
-    return str + "2309:" + tmp;
+    String str("2309:");
+    str += tmp;
+    return str;
   }
 
   // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
@@ -4256,37 +4576,45 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(vDEVICE_TYPE);
       return String(vDEVICE_TYPE);
     }
-    return str + "2310:" + String(vDEVICE_TYPE);
+    String str("2310:");
+    str += vDEVICE_TYPE;
+    return str;
   }
 
   // 2311:X Y    X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
   if (key == "2311") {
-    tmp = String(getButtonPin()) + ' ' + String(vBUTTON_TYPE);
+    String tmp(getButtonPin()); tmp += ' '; tmp += vBUTTON_TYPE;
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
-    return str + "2311:" + tmp;
+    String str("2311:");
+    str += tmp;
+    return str;
   }
 
   // 2312:X Y    X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
   if (key == "2312") {
-    tmp = String(getPowerPin()) + ' ' + String(getPowerActiveLevel());
+    String tmp(getPowerPin()); tmp += ' '; tmp += getPowerActiveLevel();
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
-    return str + "2312:" + tmp;
+    String str("2312:");
+    str += tmp;
+    return str;
   }
 
   // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
   if (key == "2313") {
-    tmp = String(getWaitPlayFinished()) + ' ' + String(getRepeatPlay());
+    String tmp(getWaitPlayFinished()); tmp += ' '; tmp += getRepeatPlay();
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
-    return str + "2313:" + tmp;
+    String str("2313:");
+    str += tmp;
+    return str;
   }
 
   // 2314:X      vDEBUG_SERIAL
@@ -4295,36 +4623,48 @@ String getStateValue(String key, int8_t effect, JsonVariant* value) {
       value->set(vDEBUG_SERIAL);
       return String(vDEBUG_SERIAL);
     }
-    return str + "2314:" + String(vDEBUG_SERIAL);
+    String str("2314:");
+    str += vDEBUG_SERIAL;
+    return str;
   }
 
   // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   if (key == "2315") {
-    tmp = String(getDFPlayerSTXPin()) + ' ' + String(getDFPlayerSRXPin());
+    String tmp(getDFPlayerSTXPin()); tmp += ' '; tmp += getDFPlayerSRXPin();
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
-    return str + "2315:" + tmp;
+    String str("2315:");
+    str += tmp;
+    return str;
   }
 
   // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
   if (key == "2316") {
-    tmp = String(getTM1637DIOPin()) + ' ' + String(getTM1637CLKPin());
+    String tmp(getTM1637DIOPin()); tmp += ' '; tmp += getTM1637CLKPin();
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
-    return str + "2316:" + tmp;
+    String str("2316:");
+    str += tmp;
+    return str;
   }
     
   // Запрошенный ключ не найден - вернуть пустую строку
   return "";
 }
 
-String getStateString(String keys) {
-  String str = "", s_tmp, key;
-
+String getStateString(const String& pKeys) {
+  String keys(pKeys), str, s_tmp, key;
+  
+  key.reserve(6);
+  s_tmp.reserve(80);
+  
+  if (hasBigSizeKey(keys)) str.reserve(512);
+  else str.reserve(200);
+  
   // Ключи буквы/цифры, разделенные пробелами или пайпами '|' 
   // Если строка ключей ограничена квадратными скобками или кавычками - удалить их;
   // В конце может быть ";" - не требуется - удалить ее (в середине ее быть не может)
@@ -4405,11 +4745,11 @@ String getParamForMode(uint8_t mode) {
      break;
    case MC_CLOCK:
      str = isNightClock 
-       ? String(map(nightClockColor, 0,6, 1,255))
-       : String(effectScaleParam[mode]);
+       ? map(nightClockColor, 0,6, 1,255)
+       : effectScaleParam[mode];
      break;
    default:
-     str = String(effectScaleParam[mode]);
+     str = effectScaleParam[mode];
      break;
  }
  return str;   
@@ -4442,13 +4782,13 @@ String getParamNameForMode(uint8_t mode) {
      str = "X";
      break;
    case MC_FILL_COLOR:
-     str = String(F("Насыщенность"));
+     str = F("Насыщенность");
      break;
    case MC_CLOCK:
-     str = String(F("Цвет часов"));
+     str = F("Цвет часов");
      break;
    default:
-     str = String(F("Вариант"));
+     str = F("Вариант");
      break;
  }
  return str;   
@@ -4457,39 +4797,39 @@ String getParamNameForMode(uint8_t mode) {
 // Второй параметр эффекта thisMode для отправки на телефон параметра "SQ:"
 String getParam2ForMode(uint8_t mode) {
  // Эффекты не имеющие настройки вариации (параметр #2) отправляют значение "Х" - программа делает ползунок настройки недоступным 
- String str = "X"; 
+ String str; 
  switch (mode) {
    case MC_RAINBOW:
      // Эффект "Радуга" имеет несколько вариантов - список выбора варианта отображения
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0               1                   2                     3                   4
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,Вертикальная радуга,Горизонтальная радуга,Диагональная радуга,Вращающаяся радуга"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Вертикальная радуга,Горизонтальная радуга,Диагональная радуга,Вращающаяся радуга");
      break;
    case MC_ARROWS:
      // Эффект "Стрелки" имеет несколько вариантов - список выбора варианта отображения
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0               1       2       3       4          5
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,1-центр,2-центр,4-центр,2-смещение,4-смещение"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,1-центр,2-центр,4-центр,2-смещение,4-смещение");
      break;
    case MC_PATTERNS:
      // Эффект "Узоры" имеет несколько вариантов - список выбора варианта отображения
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0               1    2, 3, ...
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,")) + GetPatternsList();
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += GetPatternsList();
      break;
    case MC_RUBIK:
      // Эффект "Кубик рубика" имеет несколько вариантов - список выбора варианта отображения
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0               1      2      3       4
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,На шаг,Полоса,Спираль,Пятнашки"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,На шаг,Полоса,Спираль,Пятнашки");
      break;
    #if (USE_SD == 1)     
    case MC_SDCARD:
      // Эффект "SD-card" имеет несколько вариантов - список выбора файла эффекта
      // Дополнительный параметр представлен в приложении списком выбора
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,Последовательно"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Последовательно");
      for (uint8_t i=0; i < countFiles; i++) {
-       str += "," + nameFiles[i];
+       str += ","; str += nameFiles[i];
      }     
      break;
      #endif
@@ -4497,7 +4837,7 @@ String getParam2ForMode(uint8_t mode) {
      // Эффект "Анимация" имеет несколько вариантов - список выбора отображаемой картинки
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0                     1, 2, ...
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,")) + GetAnimationsList();
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += GetAnimationsList();
      break;
    case MC_PAINTBALL:
    case MC_SWIRL:
@@ -4510,20 +4850,23 @@ String getParam2ForMode(uint8_t mode) {
      //        Если ширина матрицы не кратна ширине сегмента - между сегментами добавляются промежутки
      // Дополнительный параметр представлен в приложении чекбоксов - 0-выкл, 1-вкл
      //       Маркер типа - чекбокс                             false true            Текст чекбокса
-     str = String(F("C>")) + (effectScaleParam2[mode] == 0 ? "0" : "1") + String(F(">Сегменты")); // "C>1>Сегменты"
+     str = String(sFC); str += (effectScaleParam2[mode] == 0 ? "0" : "1"); str += F(">Сегменты"); // "C>1>Сегменты"
      break;
    case MC_STARS:
      //           Маркер типа - список выбора         0,1,2,3,4               0               1         2      3      4
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,Без лучей,Лучи '+',Лучи 'X',Лучи '+' и 'X'"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Без лучей,Лучи '+',Лучи 'X',Лучи '+' и 'X'");
      break;
    case MC_STARS2:
      //           Маркер типа - список выбора         0,1,2,3,4               0         1         2         3
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Вариант 1,Вариант 2,Вариант 3,Вариант 4"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Вариант 1,Вариант 2,Вариант 3,Вариант 4");
      break;
    case MC_TRAFFIC:
      //           Маркер типа - список выбора         0,1,2,3,4               0               1       2
-     str = String(F("L>")) + String(effectScaleParam2[mode]) + String(F(">Случайный выбор,Цветной,Монохром"));
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Цветной,Монохром");
      break;
+   default:
+     str = 'X';
+     break;  
  }
  return str;   
 }
@@ -4531,7 +4874,7 @@ String getParam2ForMode(uint8_t mode) {
 // Название второго параметра эффекта для отображения в Web-интерфейсе
 String getParam2NameForMode(uint8_t mode) {
  // Эффекты не имеющие настройки вариации (параметр #2) отправляют значение "Х" - программа делает ползунок настройки недоступным 
- String str = "X"; 
+ String str; 
  switch (mode) {
    case MC_RAINBOW:
    case MC_ARROWS:
@@ -4540,38 +4883,48 @@ String getParam2NameForMode(uint8_t mode) {
    case MC_STARS:
    case MC_STARS2:
    case MC_TRAFFIC:
-     str = String(F("Вариант"));
+     str = F("Вариант");
      break;
    #if (USE_SD == 1)
    case MC_SDCARD:
-     str = String(F("Ролик"));
+     str = F("Ролик");
      break;
      #endif
    case MC_IMAGE:
-     str = String(F("Анимация"));
+     str = F("Анимация");
      break;
    case MC_PAINTBALL:
    case MC_SWIRL:
    case MC_CYCLON:
-     str = String(F("Сегменты"));
+     str = F("Сегменты");
      break;
+   default:
+     str = 'X';
+     break;  
  }
  return str;   
 }
 
 void sendAcknowledge() {
   // Отправить подтверждение, чтобы клиентский сокет прервал ожидание
-  String reply = "";
-  uint8_t L = 0;
+  String reply("ack");
+  reply += ackCounter++;
+  reply += ";";  
 
-  reply = "ack" + String(ackCounter++) + ";";  
-  L = reply.length();
-  memset(replyBuffer, '\0', L+1);
-  reply.toCharArray(replyBuffer, reply.length()+1);
+  uint8_t L = reply.length() + 1;
+  
+  memset(replyBuffer, '\0', L);
+  reply.toCharArray(replyBuffer, L);
+  
   udp.beginPacket(udp.remoteIP(), udp.remotePort());
-  udp.write((const uint8_t*) replyBuffer, reply.length()+1);
+  udp.write((const uint8_t*) replyBuffer, L);
   udp.endPacket();
-  DEBUGLN(String(F("Ответ на ")) + udp.remoteIP().toString() + ":" + String(udp.remotePort()) + " >> " + String(replyBuffer));  
+  
+  DEBUG(F("Ответ на "));  
+  DEBUG(udp.remoteIP().toString());  
+  DEBUG(':');  
+  DEBUG(udp.remotePort());  
+  DEBUGLN(replyBuffer);    
 }
 
 void setSpecialMode(int8_t spc_mode) {
@@ -4907,7 +5260,7 @@ void turnOn() {
   }
 }
 
-void setImmediateText(String str) {
+void setImmediateText(const String& str) {
   // текст бегущей строки для немедленного отображения без сохранения 
   currentText = str;
   showTextNow = false;
@@ -4928,6 +5281,5 @@ void setCurrentTime(uint8_t hh, uint8_t mm, uint8_t ss, uint8_t dd, uint8_t nn, 
   calculateDawnTime();      
   #if (USE_E131 == 1)
     commandSetCurrentTime(hh,mm,ss,dd,nn,yy);
-  #endif  
-  
+  #endif    
 }

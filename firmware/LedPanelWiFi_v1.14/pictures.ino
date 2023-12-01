@@ -47,8 +47,7 @@ void initialisePictures() {
   // Результат из процедуры getStoredImages() - строка с именами файлов, разделенные запятыми
   #if (USE_SD == 1 && FS_AS_SD == 0)
     if (sd_card_ok) {
-      DEBUG(F("Поиск слайдов на SD в папке '"));
-      DEBUGLN(String(pWIDTH) + "p" + String(pHEIGHT) + "'...");
+      DEBUG(F("Поиск слайдов на SD в папке '")); DEBUG(pWIDTH); DEBUG('p'); DEBUG(pHEIGHT); DEBUGLN("'...");
       pictureStorage = "SD";
       pictureList = getStoredImages(pictureStorage);
       if (pictureList.length() != 0) {
@@ -59,8 +58,7 @@ void initialisePictures() {
   #endif
 
   if (pictureList.length() == 0) {
-    DEBUG(F("Поиск слайдов на FS в папке '"));
-    DEBUGLN(String(pWIDTH) + "p" + String(pHEIGHT) + "'...");
+    DEBUG(F("Поиск слайдов на FS в папке '")); DEBUG(pWIDTH); DEBUG('p'); DEBUG(pHEIGHT); DEBUGLN("'...");
     pictureStorage = "FS";
     pictureList = getStoredImages(pictureStorage);
     if (pictureList.length() != 0) {
@@ -102,10 +100,10 @@ void initialisePictures() {
     pictureWidth = 16;
     pictureHeight = 16;
     // Найти анимацию "Погода", посчитать сколько фреймов в анимации (макс MAX_FRAMES_COUNT)
-    String animList = String(IMAGE_LIST);
+    String animList(IMAGE_LIST);
     tokenCount = CountTokens(animList, ',');
     FOR_i(0,tokenCount) {
-      String animName = GetToken(animList, i + 1, ',');
+      String animName(GetToken(animList, i + 1, ','));
       if (animName == "Погода") {        
         weatherIndex = i;
         animation_t weather = animations[weatherIndex];
@@ -126,10 +124,9 @@ void initialisePictures() {
   } else {
     // Печатаем список найденных файлов картинок
     pictureIndexMax = CountTokens(pictureList, ',');
-    DEBUG(String(F("Найдено ")) + String(pictureIndexMax) + String(F(" слайд(oв) размером ")));
-    DEBUGLN(String(pictureWidth) + "x" + String(pictureHeight) + ":");
+    DEBUG(F("Найдено ")); DEBUG(pictureIndexMax); DEBUG(F(" слайд(oв) размером ")); DEBUG(pictureWidth); DEBUG('x'); DEBUG(pictureHeight); DEBUGLN(':');
     FOR_i(0,pictureIndexMax) {
-      DEBUGLN("   " + GetToken(pictureList, i + 1, ',') + ".p");  
+      DEBUG("   "); DEBUG(GetToken(pictureList, i + 1, ',')); DEBUGLN(".p");  
     }
   }
   DEBUGLN();
@@ -157,10 +154,9 @@ bool getNextSlide() {
     }      
   } else {
     // Загрузка картинки из файла. В файле цвета уже в 24-битном формате RGB888 - расширения не требуют
-    String picFile = GetToken(pictureList, pictureIndex + 1, ',') + ".p";      
-    DEBUG(F("Загрузка слайда '"));
-    DEBUGLN(picFile + "'");      
-    String file = "/" + String(pictureWidth) + "p" + String(pictureHeight) + "/" + picFile;
+    String picFile(GetToken(pictureList, pictureIndex + 1, ',')); picFile += ".p";      
+    DEBUG(F("Загрузка слайда '")); DEBUG(picFile); DEBUGLN("'");      
+    String file('/'); file += pictureWidth; file += 'p'; file += pictureHeight; file += '/'; file += picFile;
     String error = openImage(pictureStorage, file, picture, true);
     // Была ошибка при загрузке файла?
     res = error.length() == 0;

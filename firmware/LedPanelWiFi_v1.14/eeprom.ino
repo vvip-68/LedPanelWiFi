@@ -336,8 +336,6 @@ void loadSettings() {
     
     DEBUGLN();
   }  
-    
-  changed_keys = "";
 }
 
 void clearEEPROM() {
@@ -446,21 +444,21 @@ void saveDefaults() {
   pass = NETWORK_PASS;
 
   #if (USE_E131 == 1)
-    workMode = STANDALONE;      // По умолчанию - самостоятельный режим работы
-    syncMode = LOGIC;           // По умолчанию - размещение данных в логическом порядке - левый верхний угол, далее вправо и вниз.
+    workMode = STANDALONE;                  // По умолчанию - самостоятельный режим работы
+    syncMode = LOGIC;                       // По умолчанию - размещение данных в логическом порядке - левый верхний угол, далее вправо и вниз.
     syncGroup = 0;
     putSyncWorkMode(workMode);
     putSyncDataMode(syncMode);
     putSyncGroup(syncGroup);
   #endif
 
-  putSoftAPName(String(apName));
-  putSoftAPPass(String(apPass));
+  putSoftAPName(apName);
+  putSoftAPPass(apPass);
   putSsid(ssid);
   putPass(pass);
 
   strcpy(ntpServerName, DEFAULT_NTP_SERVER);
-  putNtpServer(String(ntpServerName));
+  putNtpServer(ntpServerName);
 
   putAM1hour(AM1_hour);                 // Режим 1 по времени - часы
   putAM1minute(AM1_minute);             // Режим 1 по времени - минуты
@@ -1136,7 +1134,7 @@ String getSoftAPName() {
   return EEPROM_string_read(54, 10);
 }
 
-void putSoftAPName(String SoftAPName) {
+void putSoftAPName(const String& SoftAPName) {
   if (SoftAPName != getSoftAPName()) {
     EEPROM_string_write(54, SoftAPName, 10);
   }
@@ -1146,7 +1144,7 @@ String getSoftAPPass() {
   return EEPROM_string_read(64, 16);
 }
 
-void putSoftAPPass(String SoftAPPass) {
+void putSoftAPPass(const String& SoftAPPass) {
   if (SoftAPPass != getSoftAPPass()) {
     EEPROM_string_write(64, SoftAPPass, 16);
   }
@@ -1154,15 +1152,18 @@ void putSoftAPPass(String SoftAPPass) {
 
 // ssid – символьная строка, содержащая SSID точки доступа, к которой мы хотим подключиться (может содержать не более 32 символов).
 String getSsid() {
-  String ssid = "";
   File file;
   bool ok = true;
+  
   #if defined(ESP32)
-    String fileName = "/ssid";
+    String fileName("/ssid");
   #else
-    String fileName = "ssid";
+    String fileName("ssid");
   #endif  
+  
   file = LittleFS.open(fileName, "r");
+
+  String ssid;
   if (file) {
     // считываем содержимое файла ssid
     char buf[33];
@@ -1172,18 +1173,18 @@ String getSsid() {
     file.close();
     if (ok) ssid = String(buf);
   } else {
-    DEBUGLN(String(F("Нет конфигурации сети: SSID не задан")));    
+    DEBUGLN(F("Нет конфигурации сети: SSID не задан"));    
   }
   return ssid;
 }
 
-bool putSsid(String Ssid) {
+bool putSsid(const String& Ssid) {
   File file;
   bool ok = true;
   #if defined(ESP32)
-    String fileName = "/ssid";
+    String fileName("/ssid");
   #else
-    String fileName = "ssid";
+    String fileName("ssid");
   #endif  
   if (LittleFS.exists(fileName)) {
     ok = LittleFS.remove(fileName);
@@ -1204,21 +1205,24 @@ bool putSsid(String Ssid) {
     }
   }
   if (!ok) {
-    DEBUGLN(String(F("Ошибка сохранения SSID")));
+    DEBUGLN(F("Ошибка сохранения SSID"));
   } 
   return ok; 
 }
 
 // password – это пароль к точке доступа в виде символьной строки, которая может содержать от 8 до 64 символов
 String getPass() {
-  String pass = "";
   File file;
   bool ok = true;
+  
   #if defined(ESP32)
-    String fileName = "/pass";
+    String fileName("/pass");
   #else
-    String fileName = "pass";
+    String fileName("pass");
   #endif  
+
+  String pass = "";
+  
   file = LittleFS.open(fileName, "r");
   if (file) {
     // считываем содержимое файла pass
@@ -1229,22 +1233,25 @@ String getPass() {
     file.close();
     if (ok) pass = String(buf);
   } else {
-    DEBUGLN(String(F("Нет конфигурации сети: пароль не задан")));    
+    DEBUGLN(F("Нет конфигурации сети: пароль не задан"));    
   }
   return pass;
 }
 
-bool putPass(String Pass) {
+bool putPass(const String& Pass) {
   File file;
   bool ok = true;
+  
   #if defined(ESP32)
-    String fileName = "/pass";
+    String fileName("/pass");
   #else
-    String fileName = "pass";
+    String fileName("pass");
   #endif  
+  
   if (LittleFS.exists(fileName)) {
     ok = LittleFS.remove(fileName);
   }
+  
   if (ok) {
     file = LittleFS.open(fileName, "w");
     if (file) {
@@ -1261,7 +1268,7 @@ bool putPass(String Pass) {
     }
   }
   if (!ok) {
-    DEBUGLN(String(F("Ошибка сохранения пароля")));
+    DEBUGLN(F("Ошибка сохранения пароля"));
   } 
   return ok; 
 }
@@ -1272,7 +1279,7 @@ String getNtpServer() {
   return EEPROM_string_read(120, 30);
 }
 
-void putNtpServer(String server) {
+void putNtpServer(const String& server) {
   if (server != getNtpServer()) {
     EEPROM_string_write(120, server, 30);
   }
@@ -1777,7 +1784,7 @@ void loadEffectOrder() {
   // Перебрать в цикле параметры для каждого эффекта, получить номер в определенном порядке использования
   // Если номер больше чем MAX_EFFECT - эффект не используется
   // Нсли используется - перевести ID эффекта в букву кодирования ID и поместить ее в позицию строки определяющей очередность воспроизведения эффекта
-  String codes = String(IDX_LINE);
+  String codes(IDX_LINE);
   char buffer[MAX_EFFECT + 1];
   memset(buffer,'\0',MAX_EFFECT + 1);
   FOR_i (0, MAX_EFFECT) {
@@ -1797,8 +1804,8 @@ void loadEffectOrder() {
 void printEffectUsage() {
 
   int8_t cnt = 0;  
-  String codes = String(IDX_LINE);
-  String name_list = String(EFFECT_LIST);
+  String codes(IDX_LINE);
+  String name_list(EFFECT_LIST);
   String effect_name;
 
   DEBUGLN(F("Выбранные эффекты и их порядок: "));
@@ -1809,7 +1816,7 @@ void printEffectUsage() {
     if (eff_idx >= 0) {
       effect_name = GetToken(name_list, eff_idx+1, ',');
       cnt++;
-      DEBUGLN("   " + padNum(cnt, 2) + ". " + effect_name);
+      DEBUG("   "); DEBUG(padNum(cnt, 2)); DEBUG(". "); DEBUGLN(effect_name);
     }
   }
 
@@ -1819,7 +1826,7 @@ void printEffectUsage() {
     char eff = codes[i];
     if (effect_order.indexOf(eff) < 0) {
       effect_name = GetToken(name_list, i+1, ',');      
-      DEBUGLN("   " + effect_name);
+      DEBUG("   "); DEBUGLN(effect_name);
     }
   }  
 }
@@ -1835,7 +1842,7 @@ void saveEffectOrder() {
     putEffectOrder(i, 255);
   }
   
-  String codes = String(IDX_LINE);
+  String codes(IDX_LINE);
   
   // Теперь проставить индекс использования в соответствии с текущим содержимым effect_order
   FOR_i (0, effect_order.length()) {
@@ -2212,7 +2219,7 @@ String EEPROM_string_read(uint16_t addr, int16_t len) {
    return String(buffer);
 }
 
-void EEPROM_string_write(uint16_t addr, String buffer, uint16_t max_len) {
+void EEPROM_string_write(uint16_t addr, const String& buffer, uint16_t max_len) {
   uint16_t len = buffer.length();
   uint16_t i = 0;
 
@@ -2239,7 +2246,7 @@ void EEPROM_string_write(uint16_t addr, String buffer, uint16_t max_len) {
 // Возврат: 0 - не найден; 1 - найден в FS микроконтроллера; 2 - найден на SD-карте; 3 - найден в FS и на SD
 uint8_t checkEepromBackup() {
   File file;
-  String  fileName = F("/eeprom.bin");
+  String  fileName(F("/eeprom.bin"));
   uint8_t existsFS = 0; 
   uint8_t existsSD = 0; 
   
@@ -2268,29 +2275,32 @@ uint8_t checkEepromBackup() {
 // storage = "FS" - внутренняя файловая система
 // storage = "SD" - на SD-карту
 // возврат: true - успех; false - ошибка
-bool saveEepromToFile(String storage) {
+bool saveEepromToFile(const String& pStorage) {
 
   const uint8_t part_size = 128;
   bool ok = true;
   uint8_t buf[part_size];
-  String message = "", fileName;
   size_t len = 0;
   uint16_t cnt = 0, idx = 0;  
   File file;
   
   #if defined(ESP32)
-    fileName = F("/eeprom.bin");
+    String fileName(F("/eeprom.bin"));
   #else
-    fileName = F("eeprom.bin");
+    String fileName(("eeprom.bin"));
   #endif
-    
+
   saveSettings();
+
+  String storage(pStorage);
+    
   if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
 
-  DEBUG(F("Сохранение файла: "));
-  DEBUGLN(storage + String(F(":/")) + fileName);
+  DEBUG(F("Сохранение файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fileName);
 
   memset(buf, 0, part_size);
+
+  String message;
 
   if (storage == "FS") {
 
@@ -2298,7 +2308,7 @@ bool saveEepromToFile(String storage) {
     if (LittleFS.exists(fileName)) {
       ok = LittleFS.remove(fileName);
       if (!ok) {
-        message = String(F("Ошибка создания файла '")) + fileName + "'";
+        message = F("Ошибка создания файла '"); message += fileName; message += '\'';
         DEBUGLN(message);
         return false;
       }
@@ -2314,7 +2324,7 @@ bool saveEepromToFile(String storage) {
     if (SD.exists(fileName)) {
       ok = SD.remove(fileName);
       if (!ok) {
-        message = String(F("Ошибка создания файла '")) + fileName + "'";
+        message = F("Ошибка создания файла '"); message += fileName; message += '\'';
         DEBUGLN(message);
         return false;
       }
@@ -2325,7 +2335,7 @@ bool saveEepromToFile(String storage) {
   #endif
 
   if (!file) {
-    message = String(F("Ошибка создания файла '")) + fileName + "'";
+    message = F("Ошибка создания файла '"); message += fileName; message += '\'';
     DEBUGLN(message);
     return false;
   }
@@ -2349,7 +2359,7 @@ bool saveEepromToFile(String storage) {
   }
   
   if (!ok) {
-    message = String(F("Ошибка записи в файл '")) + fileName + "'";
+    message = F("Ошибка записи в файл '"); message += fileName; message += '\'';
     DEBUGLN(message);
     file.close();
     return false;
@@ -2363,8 +2373,8 @@ bool saveEepromToFile(String storage) {
   // Сделать резервную копию строк текста бегущей строки
   for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
     char c = getAZIndex(i);
-    String tmp = getTextByIndex(i);
-    DEBUGLN(String(F("Сохранение строки [")) + String(c) + String(F("] : '")) + tmp + "'");
+    String tmp(getTextByIndex(i));
+    DEBUG(F("Сохранение строки [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(tmp); DEBUGLN("'");
     if (storage == "FS") {
       saveTextLineFS(c, tmp, true);
     } else {
@@ -2379,26 +2389,31 @@ bool saveEepromToFile(String storage) {
 // storage = "FS" - внутренняя файловая система
 // storage = "SD" - на SD-карту
 // возврат: true - успех; false - ошибка
-bool loadEepromFromFile(String storage) {
+bool loadEepromFromFile(const String& pStorage) {
 
   const uint8_t part_size = 128;
   bool ok = true;
   uint8_t buf[part_size];
-  String message = "", fileName;
+
   size_t len = 0;
   uint16_t idx = 0;  
   File file;
 
   #if defined(ESP32)
-    fileName = F("/eeprom.bin");
+    String fileName = F("/eeprom.bin");
   #else
-    fileName = F("eeprom.bin");
+    String fileName = F("eeprom.bin");
   #endif
 
+  String storage(pStorage);
   if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
-
+  
+  String message;
+  
   DEBUG(F("Загрузка файла: "));
-  DEBUGLN(storage + String(F(":/")) + fileName);
+  DEBUG(storage);
+  DEBUG(F(":/"));
+  DEBUGLN(fileName);
 
   if (storage == "FS") {
     file = LittleFS.open(fileName, "r");
@@ -2411,7 +2426,7 @@ bool loadEepromFromFile(String storage) {
   #endif
 
   if (!file) {
-    message = String(F("Файл '")) + fileName + String(F("' не найден."));
+    message = F("Файл '"); message += fileName; message += F("' не найден.");
     DEBUGLN(message);
     return false;
   }
@@ -2431,7 +2446,7 @@ bool loadEepromFromFile(String storage) {
   ok = idx == EEPROM_MAX;
 
   if (!ok) {
-    message = String(F("Ошибка чтения файла '")) + fileName + "'";
+    message = F("Ошибка чтения файла '"); message += fileName; message += '\'';
     DEBUGLN(message);
     return false;
   }          
@@ -2451,7 +2466,7 @@ bool loadEepromFromFile(String storage) {
     } else {
       tmp = getTextByIndexSD(i, true);
     }
-    DEBUGLN(String(F("Загружена строка [")) + String(c) + String(F("] : '")) + tmp + "'");
+    DEBUG(F("Загружена строка [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(tmp); DEBUGLN("'");
     saveTextLineFS(c, tmp, false);
   }
   

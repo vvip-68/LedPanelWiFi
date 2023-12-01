@@ -46,7 +46,7 @@ const uint8_t font3x5_s[][3] PROGMEM = {
 void displayScore(uint16_t score) {
   uint8_t score_size = SCORE_SIZE;
   uint8_t score_width = 0, num_one = 0, X = 0, Y = 0;
-  String  str = String(score);
+  String  str(score);
   uint8_t str_len = str.length();
   char c;
 
@@ -485,15 +485,18 @@ void fadePixel(uint8_t i, uint8_t j, uint8_t step) {     // новый фейд�
 }
 
 // hex string to uint32_t
-uint32_t HEXtoInt(String hexValue) {
+uint32_t HEXtoInt(const String& sValue) {
 
+  String hexValue(sValue);
   hexValue.toUpperCase();
   if (hexValue.charAt(0) == '#') {
-    hexValue = hexValue.substring(1);
+    hexValue.replace('#',' ');
+    hexValue.trim();
   }
 
   if (hexValue.startsWith("0X")) {
-    hexValue = hexValue.substring(2);
+    hexValue.replace('0X',' ');
+    hexValue.trim();
   }
 
   uint8_t tens, ones, number1, number2, number3;
@@ -514,7 +517,9 @@ uint32_t HEXtoInt(String hexValue) {
 
 // uint32_t to Hex string
 String IntToHex(uint32_t value) {
-  String sHex = "00000" + String(value, HEX);
+  String sHex("00000");  
+  sHex.reserve(8);
+  sHex += String(value, HEX);
   uint8_t len = sHex.length();
   if (len > 6) {
     sHex = sHex.substring(len - 6);
@@ -524,7 +529,8 @@ String IntToHex(uint32_t value) {
 }
 
 String IntToHex(uint32_t value, uint8_t n) {
-  String sHex = "";
+  String sHex;
+  sHex.reserve(8);
   for(uint8_t i=0; i<n; i++) sHex += "0";
   sHex += String(value, HEX);
   uint8_t len = sHex.length();
@@ -535,27 +541,31 @@ String IntToHex(uint32_t value, uint8_t n) {
   return sHex;
 }
 
-uint32_t CountTokens(String &str, char separator) {
+uint32_t CountTokens(const String &str, char separator) {
 
   uint32_t count = 0;
   int16_t  pos = 0;
-  String   l_str = str;
+  String l_str(str);
 
   l_str.trim();
+  
   if (l_str.length() <= 0) return 0;
   pos = l_str.indexOf(separator);
+  
   while (pos >= 0) {
     count++;
     pos = l_str.indexOf(separator, pos + 1);
   }
+  
   return ++count;
 }
 
-String GetToken(String &str, uint32_t index, char separator) {
+String GetToken(const String& str, uint32_t index, char separator) {
 
   uint32_t count = CountTokens(str, separator);
 
-  if (count <= 1 || index < 1 || index > count) return str;
+  if (index < 1 || index > count) return str;
+  if (count == 1) return str;
 
   uint32_t pos_start = 0;
   uint32_t pos_end = str.length();
@@ -572,6 +582,7 @@ String GetToken(String &str, uint32_t index, char separator) {
       }
     }
   }
+  
   return str.substring(pos_start, pos_end);
 }
 
@@ -588,81 +599,86 @@ uint8_t getBrightnessCalculated(uint8_t brightness, uint8_t contrast) {
 }
 
 String getMonthString(uint8_t month) {
-  String sMnth = "";
+  String sMnth;
   switch (month) {
-    case  1: sMnth = SMonth_01; break;
-    case  2: sMnth = SMonth_02; break;
-    case  3: sMnth = SMonth_03; break;
-    case  4: sMnth = SMonth_04; break;
-    case  5: sMnth = SMonth_05; break;
-    case  6: sMnth = SMonth_06; break;
-    case  7: sMnth = SMonth_07; break;
-    case  8: sMnth = SMonth_08; break;
-    case  9: sMnth = SMonth_09; break;
-    case 10: sMnth = SMonth_10; break;
-    case 11: sMnth = SMonth_11; break;
-    case 12: sMnth = SMonth_12; break;
+    case  1: sMnth = String(SMonth_01); break;
+    case  2: sMnth = String(SMonth_02); break;
+    case  3: sMnth = String(SMonth_03); break;
+    case  4: sMnth = String(SMonth_04); break;
+    case  5: sMnth = String(SMonth_05); break;
+    case  6: sMnth = String(SMonth_06); break;
+    case  7: sMnth = String(SMonth_07); break;
+    case  8: sMnth = String(SMonth_08); break;
+    case  9: sMnth = String(SMonth_09); break;
+    case 10: sMnth = String(SMonth_10); break;
+    case 11: sMnth = String(SMonth_11); break;
+    case 12: sMnth = String(SMonth_12); break;
+    default: sMnth = "";                break;
   }  
   return sMnth;
 }
 
 String getMonthShortString(uint8_t month) {
-  String sMnth = "";
+  String sMnth;
   switch (month) {
-    case  1: sMnth = SMnth_01; break;
-    case  2: sMnth = SMnth_02; break;
-    case  3: sMnth = SMnth_03; break;
-    case  4: sMnth = SMnth_04; break;
-    case  5: sMnth = SMnth_05; break;
-    case  6: sMnth = SMnth_06; break;
-    case  7: sMnth = SMnth_07; break;
-    case  8: sMnth = SMnth_08; break;
-    case  9: sMnth = SMnth_09; break;
-    case 10: sMnth = SMnth_10; break;
-    case 11: sMnth = SMnth_11; break;
-    case 12: sMnth = SMnth_12; break;
+    case  1: sMnth = String(SMnth_01); break;
+    case  2: sMnth = String(SMnth_02); break;
+    case  3: sMnth = String(SMnth_03); break;
+    case  4: sMnth = String(SMnth_04); break;
+    case  5: sMnth = String(SMnth_05); break;
+    case  6: sMnth = String(SMnth_06); break;
+    case  7: sMnth = String(SMnth_07); break;
+    case  8: sMnth = String(SMnth_08); break;
+    case  9: sMnth = String(SMnth_09); break;
+    case 10: sMnth = String(SMnth_10); break;
+    case 11: sMnth = String(SMnth_11); break;
+    case 12: sMnth = String(SMnth_12); break;
+    default: sMnth = "";               break;
   }  
   return sMnth;
 }
 
 String getWeekdayString(uint8_t wd) {
-  String str = "";
+  String str;
   switch (wd) {
-    case  1: str = SDayFull_1; break;
-    case  2: str = SDayFull_2; break;
-    case  3: str = SDayFull_3; break;
-    case  4: str = SDayFull_4; break;
-    case  5: str = SDayFull_5; break;
-    case  6: str = SDayFull_6; break;
-    case  7: str = SDayFull_7; break;
+    case  1: str = String(SDayFull_1); break;
+    case  2: str = String(SDayFull_2); break;
+    case  3: str = String(SDayFull_3); break;
+    case  4: str = String(SDayFull_4); break;
+    case  5: str = String(SDayFull_5); break;
+    case  6: str = String(SDayFull_6); break;
+    case  7: str = String(SDayFull_7); break;
+    default: str = "";                 break;
   }  
   return str;
 }
 
 String getWeekdayShortString(uint8_t wd) {
-  String str = "";
+  String str;
   switch (wd) {
-    case  1: str = SDayShort_1; break;
-    case  2: str = SDayShort_2; break;
-    case  3: str = SDayShort_3; break;
-    case  4: str = SDayShort_4; break;
-    case  5: str = SDayShort_5; break;
-    case  6: str = SDayShort_6; break;
-    case  7: str = SDayShort_7; break;
+    case  1: str = String(SDayShort_1); break;
+    case  2: str = String(SDayShort_2); break;
+    case  3: str = String(SDayShort_3); break;
+    case  4: str = String(SDayShort_4); break;
+    case  5: str = String(SDayShort_5); break;
+    case  6: str = String(SDayShort_6); break;
+    case  7: str = String(SDayShort_7); break;
+    default: str = "";                  break;
   }  
   return str;
 }
 
 String getWeekdayShortShortString(uint8_t wd) {
-  String str = "";
+  String str;
   switch (wd) {
-    case  1: str = SDayShrt_1; break;
-    case  2: str = SDayShrt_2; break;
-    case  3: str = SDayShrt_3; break;
-    case  4: str = SDayShrt_4; break;
-    case  5: str = SDayShrt_5; break;
-    case  6: str = SDayShrt_6; break;
-    case  7: str = SDayShrt_7; break;
+    case  1: str = String(SDayShrt_1); break;
+    case  2: str = String(SDayShrt_2); break;
+    case  3: str = String(SDayShrt_3); break;
+    case  4: str = String(SDayShrt_4); break;
+    case  5: str = String(SDayShrt_5); break;
+    case  6: str = String(SDayShrt_6); break;
+    case  7: str = String(SDayShrt_7); break;
+    default: str = "";                 break;
   }  
   return str;
 }
@@ -672,32 +688,32 @@ String getWeekdayShortShortString(uint8_t wd) {
 String WriteDays(uint16_t iDays) {
   uint16_t iDays2 = (iDays / 10) % 10;
   iDays = iDays %10;
-  if (iDays2 == 1) return SDayForm_1;                 // F(" дней")
-  if (iDays  == 1) return SDayForm_2;                 // F(" день")
-  if (iDays  >= 2 && iDays <= 4) return SDayForm_3;   // F(" дня") 
-  return SDayForm_1;                                  // F(" дней")
+  if (iDays2 == 1) return String(SDayForm_1);                 // F(" дней")
+  if (iDays  == 1) return String(SDayForm_2);                 // F(" день")
+  if (iDays  >= 2 && iDays <= 4) return String(SDayForm_3);   // F(" дня") 
+  return String(SDayForm_1);                                  // F(" дней")
 }
 
 String WriteHours(uint8_t iHours) {
-  if (iHours == 1 || iHours == 21) return SHourForm_1;                                     // F(" час")
-  if ((iHours >= 2 && iHours <= 4) || (iHours >= 22 && iHours <= 24))return SHourForm_2;   // F(" часа")
-  return SHourForm_3;                                                                      // F(" часов")
+  if (iHours == 1 || iHours == 21) return String(SHourForm_1);                                     // F(" час")
+  if ((iHours >= 2 && iHours <= 4) || (iHours >= 22 && iHours <= 24))return String(SHourForm_2);   // F(" часа")
+  return String(SHourForm_3);                                                                      // F(" часов")
 }
 
 String WriteMinutes(uint8_t iMinutes){
-  if (iMinutes >= 5 && iMinutes <= 20) return SMinuteForm_1;  // F(" минут")
+  if (iMinutes >= 5 && iMinutes <= 20) return String(SMinuteForm_1);  // F(" минут")
   iMinutes = iMinutes %10; 
-  if (iMinutes == 1) return SMinuteForm_2;                    // F(" минута")
-  if (iMinutes >= 2 && iMinutes <= 4) return SMinuteForm_3;   // F(" минуты")
-  return SMinuteForm_1;                                       // F(" минут")
+  if (iMinutes == 1) return String(SMinuteForm_2);                    // F(" минута")
+  if (iMinutes >= 2 && iMinutes <= 4) return String(SMinuteForm_3);   // F(" минуты")
+  return String(SMinuteForm_1);                                       // F(" минут")
 }
 
 String WriteSeconds(uint8_t iSeconds){
-  if (iSeconds >= 5 && iSeconds <= 20) return SSecondForm_1;  // F(" секунд")
+  if (iSeconds >= 5 && iSeconds <= 20) return String(SSecondForm_1);  // F(" секунд")
   iSeconds = iSeconds %10;
-  if (iSeconds == 1) return SSecondForm_2;                    // F(" секунда")
-  if (iSeconds >= 2 && iSeconds <= 4) return SSecondForm_3;   // F(" секунды")
-  return SSecondForm_1;                                       // F(" секунд")
+  if (iSeconds == 1) return String(SSecondForm_2);                    // F(" секунда")
+  if (iSeconds >= 2 && iSeconds <= 4) return String(SSecondForm_3);   // F(" секунды")
+  return String(SSecondForm_1);                                       // F(" секунд")
 }
 
 // ------------------------- CRC16 -------------------------
@@ -769,7 +785,7 @@ void shiftDiag() {
   }
 }
 
-String padRight(String &str, uint8_t cnt) {
+String padRight(const String &str, uint8_t cnt) {
   uint16_t len = str.length();
   if (len >= cnt) return str;
   char data[cnt + 1];
@@ -780,7 +796,7 @@ String padRight(String &str, uint8_t cnt) {
   return String(data);
 }
 
-String padLeft(String &str, uint8_t cnt) {
+String padLeft(const String &str, uint8_t cnt) {
   uint16_t len = str.length();
   if (len >= cnt) return str;
   char data[cnt + 1];
@@ -792,7 +808,7 @@ String padLeft(String &str, uint8_t cnt) {
 
 String padNum(int16_t num, uint8_t cnt) {
   char data[12];
-  String fmt = "%0" + String(cnt) + 'd';
+  String fmt("%0"); fmt += cnt; fmt += 'd';
   sprintf(data, fmt.c_str(), num);
   return String(data);
 }
@@ -804,7 +820,18 @@ String getDateTimeString(time_t t) {
   uint8_t dy = day(t);
   uint8_t mh = month(t);
   uint16_t yr = year(t);
-  return padNum(dy,2) + '.' + padNum(mh,2) + '.' + padNum(yr,4) + ' ' + padNum(hr,2) + ':' + padNum(mn,2) + ':' + padNum(sc,2);  
+  String str(padNum(dy,2)); 
+  str += '.'; 
+  str += padNum(mh,2); 
+  str += '.'; 
+  str += padNum(yr,4); 
+  str += ' '; 
+  str += padNum(hr,2); 
+  str += ':'; 
+  str += padNum(mn,2); 
+  str += ':'; 
+  str += padNum(sc,2);  
+  return str;
 }
 
 // leap year calulator expects year argument as years offset from 1970
@@ -816,16 +843,22 @@ bool LEAP_YEAR(uint16_t Y) {
 
 void notifyUnknownCommand(const char* text, eSources source) {  
   if (source == WEB || source == BOTH) {
-    String out;
     doc.clear();
-    doc["message"] = F("unknown command");
-    doc["text"]    = String(F("неизвестная команда '")) + String(text) +'\'';
+    doc["message"] = String(F("unknown command"));
+
+    String tmp(F("неизвестная команда '"));
+    tmp += text; tmp += '\'';    
+    doc["text"] = tmp;
+
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+    
     if (source == WEB  || source == BOTH) SendWeb(out, TOPIC_ERR);
   }
 }
 
-bool hasBigSizeKey(String keys) {
+bool hasBigSizeKey(const String& keys) {
   // Значеня для этих ключей - большого размера.
   // Это спиский эффектов, файлов, музыки и т.д.
   // Для формирования ответа по одному из этих ключей требуется выделений буфера достаточного размера, больше чем для других
@@ -842,7 +875,7 @@ bool hasBigSizeKey(String keys) {
     keys.startsWith("FL");  
 }
 
-bool isBigSizeKey(String key) {
+bool isBigSizeKey(const String& key) {
   // Значеня для этих ключей - большого размера.
   // Это спиский эффектов, файлов, музыки и т.д.
   // Для формирования ответа по одному из этих ключей требуется выделений буфера достаточного размера, больше чем для других
@@ -850,15 +883,15 @@ bool isBigSizeKey(String key) {
 }
 
 // Отправка в WEB канал - текущие значения переменных
-void SendCurrentState(String keys, String topic, eSources src) {
+void SendCurrentState(const String& pKeys) {
 
+  String keys(pKeys); 
   if (keys[0] == '|') keys = keys.substring(1);
-  if (keys[keys.length() - 1] == '|') keys = keys.substring(0, keys.length()-1);
+  if (keys[keys.length() - 1] == '|') keys = keys.substring(0, keys.length() - 1);
     
   JsonVariant value;
 
-  String out, key, s_tmp;
-  bool big_size_key, retain;
+  bool big_size_key;
   int16_t pos_start = 0;
   int16_t pos_end = keys.indexOf('|', pos_start);
   int16_t len = keys.length();
@@ -867,25 +900,20 @@ void SendCurrentState(String keys, String topic, eSources src) {
   // Строка keys содержит ключи запрашиваемых данных, разделенных знаком '|', например "CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
   while (pos_start < len && pos_end >= pos_start) {
     if (pos_end > pos_start) {      
-      key = keys.substring(pos_start, pos_end);
-      // Все значения состояния кроме UpTime ("UP") отправляются с retain == true;
-      retain = key != "UP";
+      String key(keys.substring(pos_start, pos_end));
       if (key.length() > 0) {
         value_doc.clear();
         value = value_doc.to<JsonVariant>();
-        s_tmp = getStateValue(key, thisMode, &value);
+        String s_tmp(getStateValue(key, thisMode, &value));
         // Если режим отправки сообщений - каждый параметр индивидуально или ключ имеет значение большой длины - отправить полученный параметр отдельным сообщением  
         // Параметр "UP" также всегда отправляется отдельным сообщением
         big_size_key = isBigSizeKey(key);
         // Топик сообщения - основной топик плюс ключ (имя параметра)
         if (big_size_key) {
-          out = s_tmp;
+          SendWebKey(key, s_tmp);
         } else {
-          out = value.isNull() ? "" : value.as<String>();
-        }
-        // Web message sample in topic 'stt' --> topic = 'stt'; value = 'key=value'
-        if (src == WEB || src == BOTH) {
-          SendWebKey(key, out);            
+          String out(value.isNull() ? "" : value.as<String>());
+          SendWebKey(key, out);
         }
       }      
     }
@@ -897,11 +925,15 @@ void SendCurrentState(String keys, String topic, eSources src) {
 }
 
 // Получение строки пары ключ-значение в формате json;
-String getKVP(String &key, JsonVariant &value) {
-  String out;
+String getKVP(const String &key, JsonVariant &value) {
+
   doc.clear();
   doc[key] = value;
+
+  String out;
   serializeJson(doc, out);
+  doc.clear();
+  
   return out;  
 }
 
@@ -909,7 +941,11 @@ void allocateLeds() {
   int32_t freeMemory1 = ESP.getFreeHeap();
   int32_t requireMemory = NUM_LEDS * sizeof(CRGB);
   if (leds == nullptr && freeMemory1 <= requireMemory) {
-     DEBUGLN(String(F("Недостаточно памяти для LEDS: нужно ")) + String(requireMemory) + String(F(" байт")) + String(F(" есть ")) + String(freeMemory1) + String(F(" байт")));
+     DEBUG(F("Недостаточно памяти для LEDS: нужно "));
+     DEBUG(requireMemory);
+     DEBUG(F(" байт, есть "));
+     DEBUG(freeMemory1);
+     DEBUGLN(F(" байт"));
      return;
   }
   DEBUG(F("Выделение памяти для LEDS   : "));
@@ -991,14 +1027,22 @@ void allocateLeds() {
   int32_t freeMemory3 = freeMemory1 - freeMemory2;
   if (freeMemory3 == 0) restartGuard++;
   else restartGuard = 0;
-  DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory3));
+  DEBUG(freeMemory1);
+  DEBUG(F(" -> "));
+  DEBUG(freeMemory2);
+  DEBUG(F(" -- "));
+  DEBUGLN(freeMemory3);
 }
 
 void allocateOverlay() {
   int32_t freeMemory1 = ESP.getFreeHeap();
   int32_t requireMemory = OVERLAY_SIZE * sizeof(CRGB);
   if (overlayLEDs == nullptr && freeMemory1 <= requireMemory) {
-     DEBUGLN(String(F("Недостаточно памяти для OVERLAY: нужно ")) + String(requireMemory) + String(F(" байт")) + String(F(" есть ")) + String(freeMemory1) + String(F(" байт")));
+     DEBUG(F("Недостаточно памяти для OVERLAY: нужно "));
+     DEBUG(requireMemory);
+     DEBUG(F(" байт, есть "));
+     DEBUG(freeMemory1);
+     DEBUGLN(F(" байт"));
      return;
   }
   DEBUG(F("Выделение памяти для OVERLAY: "));
@@ -1007,31 +1051,43 @@ void allocateOverlay() {
   int32_t freeMemory3 = freeMemory1 - freeMemory2;
   if (freeMemory3 == 0) restartGuard++;
   else restartGuard = 0;
-  DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory3));
+  DEBUG(freeMemory1);
+  DEBUG(F(" -> "));
+  DEBUG(freeMemory2);
+  DEBUG(F(" -- "));
+  DEBUGLN(freeMemory3);
 }
 
 void freeLeds() {
   if (leds == nullptr) return;
   int32_t freeMemory1 = ESP.getFreeHeap();
-  DEBUG(String(F("Освобождение памяти для LEDS: ")));
+  DEBUG(F("Освобождение памяти для LEDS: "));
   delete[] leds;
   leds = nullptr;
   int32_t freeMemory2 = ESP.getFreeHeap();
-  DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory2 - freeMemory1));
+  DEBUG(freeMemory1);
+  DEBUG(F(" -> "));
+  DEBUG(freeMemory2);
+  DEBUG(F(" -- "));
+  DEBUGLN(freeMemory2 - freeMemory1);
 }
 
 void freeOverlay() {
   if (overlayLEDs == nullptr) return;
   int32_t freeMemory1 = ESP.getFreeHeap();
-  DEBUG(String(F("Освобождение памяти для OVERLAY: ")));
+  DEBUG(F("Освобождение памяти для OVERLAY: "));
   delete[] overlayLEDs;
   overlayLEDs = nullptr;
   int32_t freeMemory2 = ESP.getFreeHeap();
-  DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory2 - freeMemory1));
+  DEBUG(freeMemory1);
+  DEBUG(F(" -> "));
+  DEBUG(freeMemory2);
+  DEBUG(F(" -- "));
+  DEBUGLN(freeMemory2 - freeMemory1);
 }
 
 String MCUType() {
-  String mcType = F("Unknown");
+  String mcType(F("Unknown"));
   #if defined(ESP8266)
     // LED_BUILTIN_AUX определен только для "NodeMCU"
     #if defined(LED_BUILTIN_AUX)
@@ -1049,21 +1105,21 @@ String MCUType() {
 String pinName(uint8_t pin) {
   #if defined(ESP8266) 
     switch (pin) {
-      case 16: return F("D0"); /* D0     */
-      case  5: return F("D1"); /* D1     */ 
-      case  4: return F("D2"); /* D2     */ 
-      case  0: return F("D3"); /* D3     */ 
-      case  2: return F("D4"); /* D4     */ 
-      case 14: return F("D5"); /* D5     */ 
-      case 12: return F("D6"); /* D6     */ 
-      case 13: return F("D7"); /* D7     */ 
-      case 15: return F("D8"); /* D8     */ 
+      case 16: return String(F("D0")); /* D0     */
+      case  5: return String(F("D1")); /* D1     */ 
+      case  4: return String(F("D2")); /* D2     */ 
+      case  0: return String(F("D3")); /* D3     */ 
+      case  2: return String(F("D4")); /* D4     */ 
+      case 14: return String(F("D5")); /* D5     */ 
+      case 12: return String(F("D6")); /* D6     */ 
+      case 13: return String(F("D7")); /* D7     */ 
+      case 15: return String(F("D8")); /* D8     */ 
       #if defined(RX)
-      case  3: return F("RX"); /* D9/RX  */ 
-      case  1: return F("TX"); /* D10/TX */ 
+      case  3: return String(F("RX")); /* D9/RX  */ 
+      case  1: return String(F("TX")); /* D10/TX */ 
       #else
-      case  3: return F("D9"); /* D9/RX  */ 
-      case  1: return F("D10");/* D10/TX */ 
+      case  3: return String(F("D9")); /* D9/RX  */ 
+      case  1: return String(F("D10"));/* D10/TX */ 
       #endif
      }
   #endif
@@ -1072,8 +1128,54 @@ String pinName(uint8_t pin) {
     // 1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27
     // 1/TX, 3/RX - - если включен отладочный вывод в COM-порт - лента работать не будет 
     // 21/SDA, 22/SCL - шина I2С - предпочтительна для использования TM1637
-    return "G" + String(pin);
+    String str("G"); str += pin;
+    return str;
   #else  
-    return F("N/A");
+    return String(F("N/A"));
   #endif
+}
+
+void InitializeQueues() {
+  // cmdQueueб outWQueue, tpcWQueue - массивы строк. Каждое присвоение элементу массива строки входящей команды приводит к выделению
+  // памяти под строку в Heap. Если текущая длина строки элемента очереди меньше уже выделенного размера буфера,
+  // память не используется повторно, а выделяется заново в новом участке. Это приводит к фрагментации Heap и
+  // невозможности выделить большой целый кусок памяти из за фрагментации
+  // Попытка - изначально зарезервировать память под массив очереди строк входящих команд
+  // Если новая команда (длина строки) менее зарезервированной - будет использован тот же кусок памяти без выделения нового
+  // Это позволит избежать излишней фрагментации
+  if (isQueueInitialized) return;
+  
+  int32_t mem_prv, mem_now, mem_dff;
+  isQueueInitialized = true;
+  mem_prv = ESP.getFreeHeap();
+
+  changed_keys = "";
+  changed_keys.reserve(60);
+
+  for (uint8_t i = 0; i < QSIZE_IN; i++) {
+    cmdQueue[i] = ""; cmdQueue[i].reserve(66);
+  }
+  for (uint8_t i = 0; i < QSIZE_OUT; i++) {
+    outWQueue[i] = ""; outWQueue[i].reserve(80);
+  }
+  for (uint8_t i = 0; i < QSIZE_OUT; i++) {
+    tpcWQueue[i] = ""; tpcWQueue[i].reserve(5);
+  }
+  
+  mem_now = ESP.getFreeHeap();
+  DEBUGLN(DELIM_LINE);
+  DEBUGLN(F("Резервирование памяти под очередь сообщений:"));
+  DEBUG(mem_prv); DEBUG(" - "); DEBUG(mem_now); DEBUG(" -> ");  DEBUG(mem_prv - mem_now);
+  
+  #if defined(ESP8266)
+  DEBUG(F("  Max: "));
+  DEBUG(ESP.getMaxFreeBlockSize());
+  DEBUG(F("  Frag: "));
+  DEBUG(ESP.getHeapFragmentation());
+  #else
+  DEBUG(F("; Max: "));
+  DEBUG(ESP.getMaxAllocHeap());        
+  #endif 
+  DEBUGLN();  
+  DEBUGLN(DELIM_LINE);        
 }

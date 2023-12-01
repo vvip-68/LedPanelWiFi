@@ -87,9 +87,10 @@ const animation_t animations[] = {
 };
 
 // Список картинок, доступных для отрисовки в эффекте "Анимация"
-#ifndef LANG_IMAGE_LIST
+#ifndef LANG_IMAGE_LIST_DEF
 #error Не определен список названий анимаций, соответствующий выбранному языку интерфейса в файле 'a_def_lang.h'
 #endif
+
 #define IMAGE_LIST LANG_IMAGE_LIST
 
 #define MAX_IMAGE_WIDTH   16         // Здесь указаны максимальные размеры картинки, используемые в прошивке для которого нужен оверлей
@@ -100,8 +101,8 @@ const animation_t animations[] = {
 void initAnimations() {  
   
   // Полный список анимаций, которые определены в приложении
+  String  name_list(IMAGE_LIST);
   String  anim_name;
-  String  name_list = String(IMAGE_LIST);
   uint8_t image_num = CountTokens(name_list, ',');
   uint8_t use_num = 0;  
   
@@ -113,7 +114,12 @@ void initAnimations() {
   animations_list += anim_name + ",";
   
   DEBUGLN(F("\nНайденные анимации:"));
-  DEBUGLN(String(F("   ")) + anim_name + "\t" + String(animations[0].frame_width) + "x" + String(animations[0].frame_height));
+  DEBUG(F("   "));
+  DEBUG(anim_name);
+  DEBUG('\t');
+  DEBUG(animations[0].frame_width);
+  DEBUG('x');
+  DEBUGLN(animations[0].frame_height);
 
   // Другие анимации добавляются в список используемых, только если размер матрицы позволяет отображать
   // анимацию с заданными в ней размерами
@@ -122,9 +128,14 @@ void initAnimations() {
     int8_t anim_height = animations[i].frame_height;
     if (anim_width <= pWIDTH && anim_height <= pHEIGHT) {
       anim_name = GetToken(name_list, i + 1, ',');
-      animations_list += anim_name + ",";
+      animations_list += anim_name; animations_list +=  ',';
       use_animations[use_num++] = i;
-      DEBUGLN(String(F("   ")) + anim_name + "\t" + String(anim_width) + "x" + String(anim_height));
+      DEBUG(F("   "));
+      DEBUG(anim_name);
+      DEBUG('\t');
+      DEBUG(anim_width);
+      DEBUG('x');
+      DEBUGLN(anim_height);
     }
   }
   DEBUGLN();
@@ -682,9 +693,14 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
 
   File file;
   bool ok = true;
-  String message = "";
-  String directoryName = '/' + String(pWIDTH) + 'p' + String(pHEIGHT);
-  String fileName = exactName ? fName : (directoryName + '/' + fName + String(F(".p")));
+  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
+  String fileName;
+  if (exactName) 
+    fileName = fName; 
+  else {
+    fileName = directoryName; fileName += '/'; fileName += fName; fileName += ".p";
+  }
+  String message;
 
   // Если нет поддержки SD=карты - работать с внутренней файловой системой МК
   if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
@@ -696,7 +712,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
     if (!SD.exists(directoryName)) {
       ok = SD.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_NOT_FOUND) + String(F(" '")) + directoryName + '\'';
+        message = String(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -709,7 +725,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
     if (!LittleFS.exists(directoryName)) {
       ok = LittleFS.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_NOT_FOUND) + String(F(" '")) + directoryName + '\'';
+        message = String(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -718,7 +734,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   }
 
   if (!file) {
-    message = String(MSG_FILE_NOT_FOUND) + String(F(" '")) + fileName + '\'';
+    message = String(MSG_FILE_NOT_FOUND); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     return message;
   }
@@ -728,7 +744,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   len = file.read(buf, 3);
   ok = len == 3;
   if (!ok) {
-    message = String(MSG_FILE_LOAD_ERROR) + String(F(" '")) + fileName + '\'';
+    message = String(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     file.close();
     return message;
@@ -745,7 +761,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
       len = file.read(buf, 3);
       ok = len == 3;
       if (!ok) {
-        message = String(MSG_FILE_LOAD_ERROR) + String(F(" '")) + fileName + '\'';
+        message = String(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         file.close();
         return message;
@@ -780,13 +796,13 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   return message;
 }
 
-String saveImage(String storage, String fName) {
+String saveImage(String storage, const String& fName) {
   
   File file;
   bool ok = true;
+  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
+  String fileName(directoryName); fileName += '/'; fileName += fName; fileName += ".p";
   String message = "";
-  String directoryName = '/' + String(pWIDTH) + 'p' + String(pHEIGHT);
-  String fileName = directoryName + '/' + fName + String(F(".p"));
 
   // Если нет поддержки SD=карты - работать с внутренней файловой системой МК
   if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = String(F("FS"));
@@ -799,7 +815,7 @@ String saveImage(String storage, String fName) {
     if (!SD.exists(directoryName)) {
       ok = SD.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'';
+        message = String(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -809,7 +825,7 @@ String saveImage(String storage, String fName) {
     if (SD.exists(fileName)) {
       ok = SD.remove(fileName);
       if (!ok) {
-        message = String(MSG_FILE_CREATE_ERROR) + String(F(" '")) + fileName + '\'';
+        message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -823,7 +839,7 @@ String saveImage(String storage, String fName) {
     if (!LittleFS.exists(directoryName)) {
       ok = LittleFS.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_CREATE_ERROR) + String(F(" '")) + directoryName + '\'';
+        message = String(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -833,7 +849,7 @@ String saveImage(String storage, String fName) {
     if (LittleFS.exists(fileName)) {
       ok = LittleFS.remove(fileName);
       if (!ok) {
-        message = String(MSG_FILE_CREATE_ERROR) + String(F(" '")) + fileName + '\'';
+        message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -843,7 +859,7 @@ String saveImage(String storage, String fName) {
   }
 
   if (!file) {
-    message = String(MSG_FILE_CREATE_ERROR) + String(F(" '")) + fileName + '\'';
+    message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     return message;
   }
@@ -853,7 +869,7 @@ String saveImage(String storage, String fName) {
   len = file.write(buf, 3);
   ok = len == 3;
   if (!ok) {
-    message = String(MSG_FILE_SAVE_ERROR) + String(F(" '")) + fileName + '\'';
+    message = String(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     file.close();
     return message;
@@ -867,7 +883,7 @@ String saveImage(String storage, String fName) {
       len = file.write(buf, 3);
       ok = len == 3;
       if (!ok) {
-        message = String(MSG_FILE_SAVE_ERROR) + String(F(" '")) + fileName + '\'';
+        message = String(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         file.close();
         return message;
@@ -882,11 +898,12 @@ String saveImage(String storage, String fName) {
 
 String deleteImage(String storage, String fName) {
   bool ok = false;
-  String message = "";
-  String fileName = '/' + String(pWIDTH) + 'p' + String(pHEIGHT) + '/' + fName + String(F(".p"));
+  String fileName('/'); fileName += pWIDTH; fileName += 'p'; fileName += pHEIGHT; fileName += '/'; fileName += fName; fileName += ".p";
 
   DEBUG(F("Удаление файла: "));
-  DEBUGLN(storage + String(F(":/")) + fileName);
+  DEBUG(storage);
+  DEBUG(F(":/"));
+  DEBUGLN(fileName);
   
   #if (USE_SD == 1 && FS_AS_SD == 0)
   if (storage == "SD") {
@@ -899,26 +916,25 @@ String deleteImage(String storage, String fName) {
   }
 
   if (!ok) {
-    message = String(MSG_FILE_DELETE_ERROR) + String(F(" '")) + fileName + '\'';
+    String message(MSG_FILE_DELETE_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     return message;
   }
   DEBUGLN(F("Файл удален."));
   
-  return message;
+  return "";
 }
 
 String getStoredImages(String storage) {
 
   File entry;
+  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
   String list = "";
-  String directoryName = "/" + String(pWIDTH) + "p" + String(pHEIGHT);
   
   #if (USE_SD == 1 && FS_AS_SD == 0)
   if (storage == "SD") {
     if (SD.exists(directoryName)) {
       
-      String file_name, fn;
       uint32_t file_size;      
       File folder = SD.open(directoryName);
         
@@ -930,23 +946,26 @@ String getStoredImages(String storage) {
             
         if (!entry.isDirectory()) {
                 
-          file_name = entry.name();
           file_size = entry.size();
-    
-          fn = file_name;
-          fn.toLowerCase();
-          
-          if (!fn.endsWith(".p") || file_size == 0) {
-            entry.close();
-            continue;    
-          }
-    
-          // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
-          int16_t p = file_name.lastIndexOf("/");
-          if (p>=0) file_name = file_name.substring(p + 1);
-          file_name = file_name.substring(0, file_name.length() - 2);
 
-          list += "," + file_name;
+          {
+            String file_name(entry.name());   
+            String fn(file_name);
+            fn.toLowerCase();
+            
+            if (!fn.endsWith(".p") || file_size == 0) {
+              entry.close();
+              continue;    
+            }
+      
+            // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
+            int16_t p = file_name.lastIndexOf("/");
+            if (p >= 0) file_name = file_name.substring(p + 1);
+            file_name = file_name.substring(0, file_name.length() - 2);
+  
+            list += "," + file_name;
+          }
+          
           entry.close();
         }
       }
@@ -958,7 +977,6 @@ String getStoredImages(String storage) {
   if (storage == "FS" || storage == "SD" && FS_AS_SD == 1) {
     if (LittleFS.exists(directoryName)) {
       
-      String file_name, fn;
       uint32_t file_size;
 
       #if defined(ESP32)
@@ -979,23 +997,26 @@ String getStoredImages(String storage) {
                        
         if (!entry.isDirectory()) {
                 
-          file_name = entry.name();
           file_size = entry.size();
-    
-          fn = file_name;
-          fn.toLowerCase();
-          
-          if (!fn.endsWith(".p") || file_size == 0) {
-            entry.close();
-            continue;    
-          }
-    
-          // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
-          int16_t p = file_name.lastIndexOf("/");
-          if (p>=0) file_name = file_name.substring(p + 1);
-          file_name = file_name.substring(0, file_name.length() - 2);
 
-          list += "," + file_name;
+          {
+            String file_name(entry.name());    
+            String fn(file_name);
+            fn.toLowerCase();
+            
+            if (!fn.endsWith(".p") || file_size == 0) {
+              entry.close();
+              continue;    
+            }
+      
+            // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
+            int16_t p = file_name.lastIndexOf("/");
+            if (p >=0 ) file_name = file_name.substring(p + 1);
+            file_name = file_name.substring(0, file_name.length() - 2);
+  
+            list += "," + file_name;
+          }
+          
           entry.close();
         }
       }

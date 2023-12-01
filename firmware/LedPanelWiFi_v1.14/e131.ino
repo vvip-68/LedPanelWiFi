@@ -104,19 +104,19 @@ void DisposeE131() {
 // ---------------------------------------------------
 void printE131packet(e131_packet_t *packet) {
   int16_t val;
-  DEBUGLN(F("-------------------------------------------"));
+  DEBUGLN(DELIM_LINE);
   // Root Layer
-  DEBUG(F("preamble_size="));         DEBUGLN("0x" + IntToHex(htons(packet->preamble_size),4));
-  DEBUG(F("postamble_size="));        DEBUGLN("0x" + IntToHex(htons(packet->postamble_size),4));
-  DEBUG(F("acn_id="));                for(uint8_t i=0; i<12; i++) DEBUG("0x" + IntToHex(packet->acn_id[i],2) + ", "); DEBUGLN();
-  DEBUG(F("root_flength="));          val = htons(packet->root_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUGLN("0x" + IntToHex((val & 0xF000) >> 12, 2));
-  DEBUG(F("root_vector="));           DEBUGLN("0x" + IntToHex(htonl(packet->root_vector),8));
-  DEBUG(F("cid="));                   for(uint8_t i=0; i<16; i++) DEBUG(IntToHex(packet->cid[i],2)); DEBUGLN();
+  DEBUG(F("preamble_size="));         DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->preamble_size),4));
+  DEBUG(F("postamble_size="));        DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->postamble_size),4));
+  DEBUG(F("acn_id="));                for(uint8_t i=0; i<12; i++) {DEBUG("0x"); DEBUG(IntToHex(packet->acn_id[i],2)); DEBUG(", ");} DEBUGLN();
+  DEBUG(F("root_flength="));          val = htons(packet->root_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUG("0x"); DEBUGLN(IntToHex((val & 0xF000) >> 12, 2));
+  DEBUG(F("root_vector="));           DEBUG("0x"); DEBUGLN(IntToHex(htonl(packet->root_vector),8));
+  DEBUG(F("cid="));                   for(uint8_t i=0; i<16; i++) { DEBUG(IntToHex(packet->cid[i],2)); } DEBUGLN();
   DEBUGLN();
   // Frame Layer
-  DEBUG(F("frame_flength="));         val = htons(packet->frame_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUGLN("0x" + IntToHex((val & 0xF000) >> 12, 2));
-  DEBUG(F("frame_vector="));          DEBUGLN("0x" + IntToHex(htonl(packet->frame_vector),8));
-  DEBUG(F("source_name="));           DEBUGLN("'" + String((char*)packet->source_name) + "'");
+  DEBUG(F("frame_flength="));         val = htons(packet->frame_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUG("0x"); DEBUGLN(IntToHex((val & 0xF000) >> 12, 2));
+  DEBUG(F("frame_vector="));          DEBUG("0x"); DEBUGLN(IntToHex(htonl(packet->frame_vector),8));
+  DEBUG(F("source_name="));           DEBUG("'"); DEBUG((char*)packet->source_name); DEBUGLN("'");
   DEBUG(F("priority="));              DEBUGLN(packet->priority);
   DEBUG(F("reserved="));              DEBUGLN(packet->reserved);
   DEBUG(F("sequence_number="));       DEBUGLN(packet->sequence_number);
@@ -124,14 +124,14 @@ void printE131packet(e131_packet_t *packet) {
   DEBUG(F("universe="));              DEBUGLN(htons(packet->universe));
   DEBUGLN();
   // DMP Layer
-  DEBUG(F("dmp_flength="));           val = htons(packet->dmp_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUGLN("0x" + IntToHex((val & 0xF000) >> 12, 2));
-  DEBUG(F("dmp_vector="));            DEBUGLN("0x" + IntToHex(packet->dmp_vector,2));
-  DEBUG(F("type="));                  DEBUGLN("0x" + IntToHex(packet->type,2));
-  DEBUG(F("first_address="));         DEBUGLN("0x" + IntToHex(htons(packet->first_address),4));
-  DEBUG(F("address_increment="));     DEBUGLN("0x" + IntToHex(htons(packet->address_increment),4));
+  DEBUG(F("dmp_flength="));           val = htons(packet->dmp_flength); DEBUG(val & 0x0FFF); DEBUG(", Flag="); DEBUG("0x"); DEBUGLN(IntToHex((val & 0xF000) >> 12, 2));
+  DEBUG(F("dmp_vector="));            DEBUG("0x"); DEBUGLN(IntToHex(packet->dmp_vector,2));
+  DEBUG(F("type="));                  DEBUG("0x"); DEBUGLN(IntToHex(packet->type,2));
+  DEBUG(F("first_address="));         DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->first_address),4));
+  DEBUG(F("address_increment="));     DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->address_increment),4));
   DEBUG(F("property_value_count="));  DEBUGLN(htons(packet->property_value_count));
-  DEBUG(F("property_values="));       for(uint8_t i=0; i<32; i++) DEBUG("0x" + IntToHex(packet->property_values[i],2) + ", "); DEBUGLN();
-  DEBUGLN(F("-------------------------------------------"));  
+  DEBUG(F("property_values="));       for(uint8_t i=0; i<32; i++) { DEBUG("0x"); DEBUG(IntToHex(packet->property_values[i],2)); DEBUG(", "); } DEBUGLN();
+  DEBUGLN(DELIM_LINE);
 }
 
 // ---------------------------------------------------
@@ -411,7 +411,7 @@ void processCommandPacket(e131_packet_t *packet) {
     case CMD_RUNTEXT: {
       // property_values[4] - char* null terminated string 
       char* buf = (char*)(&packet->property_values[4]);
-      String text = String(buf);
+      String text(buf);
       setImmediateText(text);
       //DEBUGLN("GOT CMD_RUNTEXT");
       break;
@@ -552,7 +552,7 @@ void commandSetSpecialBrightness(uint8_t value) {
   //DEBUGLN("SEND CMD_SPCBRIGHTNESS");
 }
 
-void commandSetImmediateText(String str) {
+void commandSetImmediateText(const String& str) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
   e131_packet_t *packet = makeCommandPacket(CMD_RUNTEXT);
   if (!packet) return;

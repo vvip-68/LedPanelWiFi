@@ -7,7 +7,7 @@
 File fxdata;
 
 int8_t  file_idx;    // Служебное - для определения какой следующий файл воспроизводить
-String  fileName;    // Полное имя файла эффекта, включая имя папки
+String fileName;
 
 void InitializeSD1() {  
   set_isSdCardReady(false);
@@ -29,14 +29,14 @@ void InitializeSD2() {
     return;
   }
   DEBUGLN(F("SD-карта подключена."));
-  String file_name;
+
   File file;
   bool ok = true;
   
   #if defined(ESP32)
-    file_name = F("/t.t");
+    String file_name(F("/t.t"));
   #else
-    file_name = F("t.t");
+    String file_name(F("t.t"));
   #endif
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
@@ -45,7 +45,7 @@ void InitializeSD2() {
   if (ok) {    
     file.println(FIRMWARE_VER);
     file.close();
-    ok = SD.remove(fileName);
+    ok = SD.remove(file_name);
   }
   if (ok) {    
     DEBUGLN(F("SD-карта только для чтения"));    
@@ -65,7 +65,8 @@ void InitializeSD2() {
 
 void loadDirectory() {
 
-  String directoryName = "/" + String(pWIDTH) + "x" + String(pHEIGHT);
+  String directoryName('/'); directoryName += pWIDTH; directoryName += 'x'; directoryName += pHEIGHT;
+  
   DEBUG(F("Папка с эффектами "));
   DEBUG(directoryName);
   
@@ -82,11 +83,9 @@ void loadDirectory() {
   
   DEBUGLN(F("Загрузка списка файлов с эффектами..."));  
 
-  String   file_name, fn;
   uint32_t file_size;
   float    fsize;
   uint8_t  sz = 0;
-  String   fs_name;  
   
   #if (USE_SD == 1 && FS_AS_SD == 0)
     File folder = SD.open(directoryName);     
@@ -98,24 +97,25 @@ void loadDirectory() {
           
       if (!entry.isDirectory()) {
               
-        file_name = entry.name();
         file_size = entry.size();
-  
-        fn = file_name;
-        fn.toLowerCase();
-        
-        if (!fn.endsWith(".out") || file_size == 0) {
-          entry.close();
-          continue;    
+        {
+          String file_name(entry.name());
+          String fn(file_name);
+          fn.toLowerCase();
+          
+          if (!fn.endsWith(".out") || file_size == 0) {
+            entry.close();
+            continue;    
+          }
+      
+          // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
+          int16_t p = file_name.lastIndexOf("/");
+          if (p >= 0) file_name = file_name.substring(p + 1);
+          p = file_name.lastIndexOf(".");
+          if (p >= 0) file_name = file_name.substring(0, p);
+                      
+          nameFiles[countFiles++] = file_name;
         }
-    
-        // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
-        int16_t p = file_name.lastIndexOf("/");
-        if (p >= 0) file_name = file_name.substring(p + 1);
-        p = file_name.lastIndexOf(".");
-        if (p >= 0) file_name = file_name.substring(0, p);
-                    
-        nameFiles[countFiles++] = file_name;
         
         if (countFiles >= MAX_FILES) {
           DEBUG(F("Максимальное количество эффектов: "));        
@@ -148,24 +148,25 @@ void loadDirectory() {
                      
       if (!entry.isDirectory()) {
               
-        file_name = entry.name();
         file_size = entry.size();
-  
-        fn = file_name;
-        fn.toLowerCase();
-        
-        if (!fn.endsWith(".out") || file_size == 0) {
-          entry.close();
-          continue;    
+        {
+          String file_name(entry.name());
+          String fn(file_name);
+          fn.toLowerCase();
+          
+          if (!fn.endsWith(".out") || file_size == 0) {
+            entry.close();
+            continue;    
+          }
+    
+          // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
+          int16_t p = file_name.lastIndexOf("/");
+          if (p >= 0) file_name = file_name.substring(p + 1);
+          p = file_name.lastIndexOf(".");
+          if (p >= 0) file_name = file_name.substring(0, p);
+                      
+          nameFiles[countFiles++] = file_name;
         }
-  
-        // Если полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
-        int16_t p = file_name.lastIndexOf("/");
-        if (p >= 0) file_name = file_name.substring(p + 1);
-        p = file_name.lastIndexOf(".");
-        if (p >= 0) file_name = file_name.substring(0, p);
-                    
-        nameFiles[countFiles++] = file_name;
         
         if (countFiles >= MAX_FILES) {
           DEBUG(F("Максимальное количество эффектов: "));        
@@ -190,20 +191,19 @@ void loadDirectory() {
 // ----------------------------------
 // --------- alex-3ton part ---------
 
-void bbSort( String *arr, int sz) {
+void bbSort(String *arr, int sz) {
   // Простейшая сортировка (пузырёк)
   // Находим наименьшее значение и определяем на первую позицию,
   // Когда поиск наименьшего значения закончен следующая позиция 
   //   устанавливается следующей по положению.
   // И т.д. тупым перебором
-  String a, b;
   if (sz > 1) {
     for( int i=0; i<sz; i++)  {
       for( int j=i+1; j<sz; j++)  {
-        a = arr[i]; a.toLowerCase();
-        b = arr[j]; b.toLowerCase();
+        String a(arr[i]); a.toLowerCase();
+        String b(arr[j]); b.toLowerCase();
         if( b < a) {
-          String q = arr[i];
+          String q(arr[i]);
           arr[i] = arr[j];
           arr[j] = q;
         } 
@@ -215,36 +215,35 @@ void bbSort( String *arr, int sz) {
 String fileSizeToString(uint32_t file_size){
   uint8_t  sz = 0;
   float    fsize = file_size;
-  String   fs_out = "";
+  String   fs_out("байт");
+  String   str;
   
-  fs_out = "байт";
   if (fsize > 1024) { fsize /= 1024.0; fs_out = "К"; sz++;}
   if (fsize > 1024) { fsize /= 1024.0; fs_out = "М"; sz++;}
   if (fsize > 1024) { fsize /= 1024.0; fs_out = "Г"; sz++;}
 
-  if (sz == 0) fs_out = (String)file_size + " " + fs_out; 
-  else {
+  if (sz == 0) {
+    str += file_size; str += ' '; str += fs_out;
+  } else {
     char buf[32];
     snprintf(buf, sizeof(buf), "%.2f", fsize);
-    fs_out = (String)buf + " " + fs_out;
-    //fs_out = format("{:.2f}", fsize) + " " + fs_out;
+    str += buf; str += ' '; str += fs_out;    
   }
 
-  return fs_out;
+  return str;
 }
 
-void sortAndShow(String directoryName) {
+void sortAndShow(const String& directoryName) {
 
   // сортируем
   bbSort( nameFiles, countFiles );
 
   bool     error = false;
-  String   file_name;
   uint32_t file_size;
   uint16_t frame_sz = NUM_LEDS * 3 + 1;
     
   for (uint8_t x = 0; x < countFiles; x++) {
-    fileName = directoryName + "/" + nameFiles[x] + ".out";
+    String fileName(directoryName); fileName += '/'; fileName += nameFiles[x]; fileName += ".out";
     
     #if (USE_SD == 1 && FS_AS_SD == 0)    
     fxdata = SD.open(fileName);
@@ -267,9 +266,10 @@ void sortAndShow(String directoryName) {
     String s_fsize = fileSizeToString(file_size);
     s_fsize = padLeft(s_fsize, 10);
 
-    DEBUG("   " + padRight(nameFiles[x],16));
+    DEBUG("   "); 
+    DEBUG(padRight(nameFiles[x],16));
     if (cnt == 0) {
-      s_fsize = s_fsize + ", " + String(frames) + String(F(" кадр."));
+      s_fsize += ", "; s_fsize += frames; s_fsize += F(" кадр.");
       DEBUG(padRight(s_fsize, 29));
       DEBUGLN(F("OK"));
     } else {
@@ -283,7 +283,7 @@ void sortAndShow(String directoryName) {
   if (error) {
     uint8_t idx = 0;
     for (uint8_t x = 0; x < countFiles; x++) {
-      file_name = nameFiles[x];
+      String file_name(nameFiles[x]);
       if (file_name.length() > 0) {
         if (x != idx) {
           nameFiles[idx] = file_name;
@@ -292,12 +292,12 @@ void sortAndShow(String directoryName) {
       }
     }
     for (uint8_t x = idx; x < countFiles; x++) {
-      nameFiles[x] = "";
+      nameFiles[x].clear();
     }
     countFiles = idx;
     DEBUGLN(F("Файлы с ошибками пропущены."));
   }
-  DEBUGLN(String(F("Доступно ")) + String(countFiles) + " файлов эффектов.");
+  DEBUG(F("Доступно ")); DEBUG(countFiles); DEBUGLN(F(" файлов эффектов."));
 }
 
 // --------- alex-3ton part ---------
@@ -356,14 +356,14 @@ void sdcardRoutine() {
     }
 
     // При загрузке имен файлов с SD-карты в nameFiles только имя файла внутри выбранной папки -- чтобы получить полное имя файла для загрузки  нужно к имени файла добавить имя папки
-    fileName = "/" + String(pWIDTH) + "x" + String(pHEIGHT) + "/" + nameFiles[file_idx] + ".out";
+    fileName.clear();
+    fileName += '/'; fileName += pWIDTH; fileName += 'x'; fileName += pHEIGHT; fileName += '/'; fileName += nameFiles[file_idx]; fileName += ".out";
 
     play_file_finished = false;
     DEBUG(F("Загрузка файла эффекта: '"));
     DEBUG(fileName);
 
     bool error = false;
-    String out;
 
     if (fxdata) fxdata.close();
     
@@ -388,7 +388,11 @@ void sdcardRoutine() {
       doc["result"] = F("OK");
     }
     doc["file"] = fileName;
+    
+    String out;
     serializeJson(doc, out);    
+    doc.clear();
+
     SendWeb(out, TOPIC_SDC);
 
     FastLED.clear();
@@ -413,8 +417,10 @@ void sdcardRoutine() {
   }
 
   if (play_file_finished) {
-    DEBUGLN("'" + fileName + String(F("' - завершено")));
+    DEBUG("'"); DEBUG(fileName); DEBUGLN(F("' - завершено"));
     fxdata.close();
+    fileName.clear();
+    
     /*
     if (currentFile >= 0) {
       currentFile++; 

@@ -25,11 +25,11 @@ void handleRoot(AsyncWebServerRequest *request) {
     return;
   }
   
-  String index_file = String(BASE_WEB) + String(F("/index.html"));
-  String gz_file = index_file + F(".gz");
+  String index_file(BASE_WEB); index_file += F("/index.html");
+  String gz_file(index_file); gz_file += ".gz";
   
   if (LittleFS.exists(gz_file.c_str())) {
-    DEBUGLN(String(F("web -> '")) + gz_file + String(F("' -> send (text/html)")));
+    DEBUG(F("web -> '")); DEBUG(gz_file); DEBUGLN(F("' -> send (text/html)"));
     AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), F("text/html"), false);
     response->addHeader(F("Content-Encoding"), F("gzip"));
     response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
@@ -70,46 +70,50 @@ void handleNotFound(AsyncWebServerRequest *request) {
     releaseEffectResources(resourcesMode);
     setEffect(MC_CLOCK);
     int32_t freeMemory2 = ESP.getFreeHeap();
-    DEBUGLN(String(freeMemory1) + String(F(" -> ")) + String(freeMemory2) +  String(F(" -- ")) + String(freeMemory2 - freeMemory1));    
+    DEBUG(freeMemory1);    
+    DEBUG(F(" -> "));    
+    DEBUG(freeMemory2);    
+    DEBUG(F(" -- "));    
+    DEBUGLN(freeMemory2 - freeMemory1);    
   }
 
   String file = request->url();
 
-  if (!file.startsWith(String(BASE_WEB))) {
+  if (!file.startsWith(BASE_WEB)) {
     file = String(BASE_WEB) + file;
   }
   
-  String gz_file = file + F(".gz");
-  String type = "";    
+  String gz_file(file); gz_file += ".gz";
+  String type;    
   
   if (file.endsWith(F(".css")))
-    type = F("text/css");
+    type += F("text/css");
   else if (file.endsWith(F(".js")))
-    type = F("text/javascript");
+    type += F("text/javascript");
   else if (file.endsWith(F(".gif")))
-    type = F("image/gif");
+    type += F("image/gif");
   else if (file.endsWith(F(".jpg")))
-    type = F("image/jpeg");
+    type += F("image/jpeg");
   else if (file.endsWith(F(".png")))
-    type = F("image/png");
+    type += F("image/png");
   else if (file.endsWith(F(".svg")))
-    type = F("image/svg+xml");
+    type += F("image/svg+xml");
   else if (file.endsWith(F(".txt")))
-    type = F("text/plain");
+    type += F("text/plain");
   else if (file.endsWith(F(".htm")))
-    type = F("text/html");
+    type += F("text/html");
   else if (file.endsWith(F(".html")))
-    type = F("text/html");
+    type += F("text/html");
   else if (file.endsWith(F(".ico")))
-    type = F("image/x-icon");
+    type += F("image/x-icon");
   else if (file.endsWith(F(".json")))
-    type = F("application/json");
+    type += F("application/json");
   else if (file.endsWith(F(".woff2")))
-    type = F("font/woff2");    
+    type += F("font/woff2");    
 
   if (type.length() > 0) {  
     if (LittleFS.exists(gz_file.c_str())) {
-      DEBUGLN(String(F("web -> '")) + gz_file + String(F("' -> send (")) + type + ')');
+      DEBUG(F("web -> '")); DEBUG(gz_file); DEBUG(F("' -> send (")); DEBUG(type); DEBUGLN(')');
       AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), type.c_str(), false);
       response->addHeader(F("Content-Encoding"), F("gzip"));
       response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
@@ -128,7 +132,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
     }
     
     if (LittleFS.exists(file.c_str())) {      
-      DEBUGLN(String(F("web -> '")) + file + String(F("' -> send (")) + type + ')');
+      DEBUG(F("web -> '")); DEBUG(file); DEBUG(F("' -> send (")); DEBUG(type); DEBUGLN(')');
       
       // При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
       DEBUG(F("FM: "));
@@ -144,9 +148,9 @@ void handleNotFound(AsyncWebServerRequest *request) {
     }
   }
 
-  String message = String(F("File Not Found\nURI: ")) + file + '\n';
+  String message(F("File Not Found\nURI: ")); message += file; message += '\n';
   request->send(404, F("text/plain"), message);
-  DEBUGLN(String(F("web -> '")) + file + String(F("' -> not found")));
+  DEBUG(F("web -> '")); DEBUG(file); DEBUGLN(F("' -> not found"));
 }
 
 // --------------- WEB-SOCKET CALLBACK ----------------
@@ -155,34 +159,33 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
   // обрабатываем получаемые сообщения
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-    data[len] = 0;
-    memset(incomeCmdBuffer, 0, BUF_CMD_SIZE);
-    memcpy(incomeCmdBuffer, data, len);
-    
-    String json = String(incomeCmdBuffer);
-    //DEBUGLN("json='" + json + "'");
+
     doc.clear();
-    DeserializationError error = deserializeJson(doc, json.c_str());
+    DeserializationError error = deserializeJson(doc,  (const char*)data, len);  // deserialize with deep-copy
     if (error) {
-      DEBUGLN(String(F("Ошибка в JSON: '")) + json + "'; err: " + String(error.f_str()));
+      DEBUG(F("Ошибка в JSON: '"));
+      DEBUGWR(data, len);
+      DEBUG("'; err: ");
+      DEBUGLN(error.f_str());
       return;
     }
     
-    String event = doc["e"].as<String>();   
-    String command = doc["d"].as<String>(); 
+    if (!isQueueInitialized) InitializeQueues();
 
-    // DEBUGLN(String(F("<-- ")) + json);
-
+    String event(doc["e"].as<const char*>());
+    String command(doc["d"].as<const char*>()); 
+    
     if (event == "cmd" && command.length() > 0) {  
       // В одном сообщении может быть несколько команд. Каждая команда начинается с '$' и заканчивается ';'/ Пробелы между ';' и '$' НЕ допускаются.
       command.replace("\n", "~");
       command.replace(";$", "\n");
       uint32_t count = CountTokens(command, '\n');
 
-      for (uint8_t i=1; i<=count; i++) {
-        String cmd = GetToken(command, i, '\n');
+      for (uint8_t i = 1; i <= count; i++) {
+        String cmd(GetToken(command, i, '\n'));
         cmd.replace('~', '\n');
         cmd.trim();
+        
         // После разделения команд во 2 и далее строке '$' (начало команды) удален - восстановить
         if (!cmd.startsWith(F("$"))) {
           cmd = '$' + cmd;
@@ -198,7 +201,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
             cmdQueue[queueWriteIdx++] = cmd;
             if (queueWriteIdx >= QSIZE_IN) queueWriteIdx = 0;
           } else {
-            DEBUGLN(String(F("Переполнение очереди входящих команд - ")) + String(QSIZE_IN));
+            DEBUG(F("Переполнение очереди входящих команд - "));
+            DEBUGLN(QSIZE_IN);
             DEBUG(F("Free: "));
             DEBUG(ESP.getFreeHeap());
             DEBUG(F(" Max: "));
@@ -244,17 +248,19 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 
-String prepareMessage(String &message, String &topic) {
-  String out;
+String prepareMessage(const String& message, const String& topic) {
   doc.clear();
   doc["e"] = topic;
   doc["d"] = message;
-  serializeJson(doc, out);      
-//DEBUGLN(out);
+  
+  String out;
+  serializeJson(doc, out);
+  doc.clear();
+
   return out;
 }
 
-void putOutQueueW(String topic, String message) {
+void putOutQueueW(const String& topic, const String& message) {
   
   // Если нет подключенных клиентов - ничего никому отправлять не нужно
   if (web_client_count == 0) {
@@ -265,38 +271,42 @@ void putOutQueueW(String topic, String message) {
   }  
 
   // Помещаем сообщение в очередь отправки
-  if (outWQueueLength < QSIZE_OUT) {
+  if (outWQueueLength < QSIZE_OUT) {    
     outWQueueLength++;
     outWQueue[outWQueueWriteIdx] = message;
     tpcWQueue[outWQueueWriteIdx] = topic;
     outWQueueWriteIdx++;
     if (outWQueueWriteIdx >= QSIZE_OUT) outWQueueWriteIdx = 0;
   } else {
-    DEBUGLN(String(F("Переполнение очереди исходящих команд - ")) + String(QSIZE_OUT));
+    DEBUG(F("Переполнение очереди исходящих команд - "));
+    DEBUGLN(QSIZE_OUT);
   }
 }
 
-void SendWeb(String &message, String topic) {
+void SendWeb(const String& message, const String& topic) {
   if (web_client_count < 0) web_client_count = 0;
   if (web_client_count == 0) return;
 
   putOutQueueW(topic, message);
 }
 
-void SendWebError(String &message) {
+void SendWebError(const String& message) {
   SendWebKey("ER", message);
 }
 
-void SendWebInfo(String &message) {
+void SendWebInfo(const String& message) {
   SendWebKey("NF", message);
 }
 
-void SendWebKey(String key, String value) {
-  String out, topic = TOPIC_STT;
+void SendWebKey(const String& key, const String& value) {
+  String topic(TOPIC_STT);
 
   doc.clear();
   doc[key] = value;
+
+  String out;
   serializeJson(doc, out);      
+  doc.clear();
   
   // Если key - ключ с возможно большим значением - отправлять как готовый json-объект
   // Если key - обычный ключ - удалить начальную и конечную фигурные скобки - тогда это будет
@@ -323,7 +333,7 @@ void processOutQueueW() {
   long interval = millis() - lastWebSend;
   if (interval < 250) return;
 
-  String message, topic, out, outMessage = "";
+  String outMessage;
     
   // Пока есть сообщения в очереди и WebSocket способен их отправлять (не заполнена внутренняя очередь сокета)
   // выполнить отправку накопившихся сообшщений из очереди
@@ -332,9 +342,10 @@ void processOutQueueW() {
     bool canWrite = ws.availableForWriteAll();      
     if (!canWrite) {
       if (!isClosed) {        
-        DEBUGLN(F("-----------------------------"));                      // !!!
+        DEBUGLN(DELIM_LINE);                                              // !!!
         DEBUGLN(F("Запись в сокет недоступна!"));                         // !!!
-        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // !!!
+        DEBUG(F("Клиентов подключено: "));                                // !!!
+        DEBUGLN( ws.count());                                             // !!!
         DEBUGLN(F("Перезапуск сокета..."));                               // !!!
         // !!! Этой функции нет в стандартной библиотеке. Она есть только в измененной из папки проекта.
         // !!! Если здесь возникает ошибка - скопируйте библиотеку ESPAsyncWebServer из папки проекта libraries в
@@ -350,7 +361,8 @@ void processOutQueueW() {
           delay(10);
           cnt++;
         }
-        DEBUGLN(String(F("Клиентов подключено: ")) + String(ws.count())); // !!!
+        DEBUG(F("Клиентов подключено: ")); // !!!
+        DEBUGLN(ws.count());               // !!!
         isClosed = true;        
       }
       break;
@@ -359,8 +371,8 @@ void processOutQueueW() {
     isClosed = false;
     
     // Cодержимое отправляемого сообщения
-    message = outWQueue[outWQueueReadIdx];
-    topic = tpcWQueue[outWQueueReadIdx];
+    String message(outWQueue[outWQueueReadIdx]);
+    String topic(tpcWQueue[outWQueueReadIdx]);
 
     if (message.length() > 0) {
       // Если message начинается с '{' - это готовое сообщение для отправки клиентам, только обернуть в конверт
@@ -369,7 +381,7 @@ void processOutQueueW() {
         // {"act":"TIME","server_name":"ru.pool.ntp.org","server_ip":"85.21.78.23","result":"REQUEST"}
         // {FM":"9008"}
         // Такие сообщения могут быть а в любом топике
-        out = prepareMessage(message, topic);          
+        String out(prepareMessage(message, topic));          
         ws.textAll(out);          
         lastWebSend = millis();  
       } else {
@@ -379,8 +391,10 @@ void processOutQueueW() {
       }
     }
     
-    // Извлекаем сообщение из очереди
-    outWQueue[outWQueueReadIdx] = "";
+    // Очищаем строку в очереди. Использовать .clear() нельзя, поскольку он не только обнуляет содержимое строки, но и очищает (освобождает) память
+    // ранее занимаемую строкой. Если память не освобождать, то в следующий раз запись туда нового значения строки будет повторно использовать уже выделенную память.
+    // Если память, занимаемую строкой освобождать - она будет выделена заново в Heap, что приведет к его фрагментации, а нам это не нужно
+    outWQueue[outWQueueReadIdx] = "";  
     tpcWQueue[outWQueueReadIdx] = "";
     outWQueueReadIdx++;
     
@@ -393,8 +407,8 @@ void processOutQueueW() {
     // сформировать сообщение и отправить клиентам
     outMessage = '{' + outMessage.substring(0, outMessage.length() - 1) + '}';
     // Такие сообщения могут быть а в любом топике
-    topic = TOPIC_STT;
-    out = prepareMessage(outMessage, topic);
+    String topic(TOPIC_STT);
+    String out(prepareMessage(outMessage, topic));
     ws.textAll(out);
     lastWebSend = millis();  
   }
@@ -403,7 +417,8 @@ void processOutQueueW() {
 
 void checkWebDirectory() {
 
-  String directoryName = String(BASE_WEB);
+  String directoryName(BASE_WEB);
+  
   DEBUG(F("Папка '"));
   DEBUG(directoryName);
   
@@ -416,63 +431,60 @@ void checkWebDirectory() {
   
   DEBUGLN(F("Cпискок файлов web-интерфейса:"));  
 
-  String dir_name = directoryName;
+  String dir_name(directoryName);
   int16_t p = dir_name.lastIndexOf("/");
   if (p >= 0) dir_name = dir_name.substring(p + 1);
 
   checkWebSubDir(1, directoryName, dir_name);  
 }
 
-void checkWebSubDir(uint8_t level, String full_dir_name, String dir_name) {
+void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& dir_name) {
   
-  String   file_name, fs, sp;
   uint32_t file_size;
   uint8_t  lvl;
 
-  sp = " ";
-  DEBUGLN(padRight(sp, level * 3) + "[" + dir_name + "]");
+  DEBUG(padRight(" ", level * 3)); DEBUG('['); DEBUG(dir_name); DEBUGLN(']');
   
   #if defined(ESP32)
     File folder = LittleFS.open(full_dir_name);
   #else
     Dir  folder = LittleFS.openDir(full_dir_name);
   #endif
-    
+  
   while (true) {
 
     #if defined(ESP32)
       File entry = folder.openNextFile();
       if (!entry) break;
-      file_name = entry.name();
+      String file_name(entry.name());
       // Полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
       int16_t p = file_name.lastIndexOf("/");
       if (p >= 0) file_name = file_name.substring(p + 1);
     #else        
       if (!folder.next()) break;
       File entry = folder.openFile("r");
-      file_name = entry.name();
+      String file_name(entry.name());
     #endif
 
     if (!entry.isDirectory()) {
             
       file_size = entry.size();
-      fs = String(file_size);
-      sp = " ";
+      String fs(file_size);
       
       if (file_size == 0) {
         entry.close();
         continue;    
       }
 
-      sp = padRight(sp, (level + 1) * 3) + padRight(file_name, 26);
-      sp = padRight(sp, 40);
-      
-      DEBUGLN(sp + padLeft(fs, 8));
+      String sp(padRight(" ", (level + 1) * 3)); sp += padRight(file_name, 26);
+      DEBUG(padRight(sp, 40));      
+      DEBUGLN(padLeft(fs, 8));
       
     } else {
       lvl = level + 1;
-      checkWebSubDir(lvl, full_dir_name + "/" + file_name, file_name);
+      String str(full_dir_name); str += '/'; str += file_name;
+      checkWebSubDir(lvl, str, file_name);
     }
     entry.close();
-  }        
+  }
 }

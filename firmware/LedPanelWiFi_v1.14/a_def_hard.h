@@ -21,7 +21,7 @@
                               // Пример содержимого файла можно взять из архива public.zip
 
                               // Ключ доступа к информации о погоде с сервиса OpenWeatherMap (зарегистрируйтесь на сервере https://openweathermap.org/api и получите свой ключ!)
-#define WEATHER_API_KEY "6a4ba421859c9f4166697758b68d889b"  
+#define WEATHER_API_KEY F("6a4ba421859c9f4166697758b68d889b")  
 
 #define INITIALIZE_TEXTS 0    // Заполнить память текстов бегущей строки текстом из примеров при первичной загрузке прошивки или при смене значения EEPROM_OK, когда
                               // все настройки сбрасываются в значения по-умолчанию
@@ -161,7 +161,7 @@
 #define META_MATRIX_DIRECTION 0 // направление следующих сегментов сборной матрицы из угла: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз            | для MATRIX_TYPE == 2 - не используется
 
 #define COLOR_ORDER       GRB   // Порядок цветов на ленте - RGB,RBG,GRB,GBR,BRG,BGR; Если цвет отображается некорректно - меняйте. Начать можно с RGB
-#define LED_CHIP      WS2812B   // CHIP ленты для библиотеки FASTLED - это 3-х проводные чипы с программныь SPI.   // Для чипов с аппаратным CLK потребуется изменить функцию allocateLeds() в utility.ino;
+#define LED_CHIP      WS2812B   // CHIP ленты для библиотеки FASTLED - это 3-х проводные чипы с программным SPI.   // Для чипов с аппаратным CLK потребуется изменить функцию allocateLeds() в utility.ino;
                                 //   WS2811, WS2812, WS2812B, WS2813, WS2852, APA104, APA106, SK6812, SK6822,      // Поддерживается до 4-х сегментов вывода на свои аппаратные пины, вывод на которые
                                 //   TM1803, TM1804, TM1809, TM1812, TM1829, UCS1903, UCS1903B, UCS1904, UCS2903,  // назначены одинаковым LED_CHIP и COLOR_ORDER, Если ленты или порядок цвета в сегментах разные - требуется изменить функцию allocateLeds() в utility.ino;
                                 //   PL9823, GE8822, GS1903, GW6205, LPD1886, SM16703
@@ -512,6 +512,7 @@
 
 // =======================================================
 
-#define DEBUGLN(x)   if (vDEBUG_SERIAL) Serial.println(x)
-#define DEBUG(x)     if (vDEBUG_SERIAL) Serial.print(x)
-#define DEBUGR(x, r) if (vDEBUG_SERIAL) Serial.print(x, r)
+#define DEBUGLN(x)    if (vDEBUG_SERIAL) Serial.println(x)
+#define DEBUG(x)      if (vDEBUG_SERIAL) Serial.print(x)
+#define DEBUGR(x, r)  if (vDEBUG_SERIAL) Serial.print(x, r)
+#define DEBUGWR(b, l) if (vDEBUG_SERIAL) Serial.write(b, l)

@@ -14,24 +14,32 @@ bool getWeather() {
   DEBUGLN();
   DEBUGLN(F("Запрос текущей погоды"));
 
+  // Объект для работы с удалёнными хостами - соединение с сервером погоды
+  WiFiClient w_client;                        
+
   if (useWeather == 1) {
     if (!w_client.connect("yandex.com",443)) return false;                 // Устанавливаем соединение с указанным хостом (Порт 443 для https)
     // Отправляем запрос
-    w_client.println(String(F("GET /time/sync.json?geo=")) + String(regionID) + String(F("&lang=")) +  String(WTR_LANG_YA) + String(F(" HTTP/1.1\r\nHost: yandex.com\r\n\r\n"))); 
+    String wtr_lang(WTR_LANG_YA);
+    String str(F("GET /time/sync.json?geo=")); str += regionID; str += F("&lang="); str += wtr_lang; str += F(" HTTP/1.1\r\nHost: yandex.com\r\n\r\n");
+    w_client.println(str); 
   } else if (useWeather == 2) {
     if (!w_client.connect("api.openweathermap.org",80)) return false;      // Устанавливаем соединение с указанным хостом (Порт 80 для http)
     // Отправляем запрос    
-    w_client.println(String(F("GET /data/2.5/weather?id=")) + String(regionID2) + String(F("&units=metric&lang=")) + String(WTR_LANG_OWM) + String(F("&appid=")) + String(WEATHER_API_KEY) + String(F(" HTTP/1.1\r\nHost: api.openweathermap.org\r\n\r\n")));     
+    String wtr_lang(WTR_LANG_OWM);
+    String wtr_api_key(WEATHER_API_KEY);
+    String str(F("GET /data/2.5/weather?id=")); str += regionID2; str += F("&units=metric&lang="); str += wtr_lang; str += F("&appid="); str += wtr_api_key; str += F(" HTTP/1.1\r\nHost: api.openweathermap.org\r\n\r\n");
+    w_client.println(str);     
   }  
 
-  String out;
   doc.clear();
-  doc["act"] = F("WEATHER");
+  doc["act"] = String(sWEATHER);
   doc["region"] = useWeather == 1 ? regionID : regionID2;
   
   // Проверяем статус запроса
   char status[32] = {0};
   w_client.readBytesUntil('\r', status, sizeof(status));
+  
   // It should be "HTTP/1.0 200 OK" or "HTTP/1.1 200 OK"
   if (strcmp(status + 9, "200 OK") != 0) {
     DEBUG(F("Ошибка сервера погоды: "));
@@ -39,28 +47,39 @@ bool getWeather() {
     
     doc["result"] = F("ERROR");
     doc["status"] = status;
+    
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+    
     SendWeb(out, TOPIC_WTR);
 
+    w_client.stop();
     return false;
   } 
 
-    // Пропускаем заголовки                                                                
+  // Пропускаем заголовки                                                                
   char endOfHeaders[] = "\r\n\r\n";                                         // Системные заголовки ответа сервера отделяются от остального содержимого двойным переводом строки
   if (!w_client.find(endOfHeaders)) {                                       // Отбрасываем системные заголовки ответа сервера
     DEBUGLN(F("Нераспознанный ответ сервера погоды"));                      // Если ответ сервера не содержит системных заголовков, значит что-то пошло не так
 
     doc["result"] = F("ERROR");
     doc["status"] = F("unexpected answer");
+    
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+
     SendWeb(out, TOPIC_WTR);
 
+    w_client.stop();
     return false;                                                           // и пора прекращать всё это дело
   }
 
   // Parse JSON object
   doc.clear();
   DeserializationError error = deserializeJson(doc, w_client);
+  w_client.stop();
 
   if (error) {
     DEBUG(F("JSON не разобран: "));
@@ -69,15 +88,17 @@ bool getWeather() {
     doc.clear();
     doc["result"] = F("ERROR");
     doc["status"] = F("json error");
+    
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+
     SendWeb(out, TOPIC_WTR);
     
     return false;
   }
 
-  w_client.stop();
-
-  String regId = useWeather == 1 ? String(regionID) : String(regionID2);
+  String regId(useWeather == 1 ? regionID : regionID2);
   String town, sunrise, sunset;
   
   if (useWeather == 1) {
@@ -176,8 +197,8 @@ bool getWeather() {
     if (dawn_hour >= 24) dawn_hour -= 24;
     if (dusk_hour >= 24) dusk_hour -= 24;
     
-    sunrise = padNum(dawn_hour,2) + ":" + padNum(dawn_minute,2);
-    sunset = padNum(dusk_hour,2) + ":" + padNum(dusk_minute,2);
+    sunrise = padNum(dawn_hour,2); sunrise += ':'; sunrise += padNum(dawn_minute,2);
+    sunset = padNum(dusk_hour,2); sunset += ':'; sunset += padNum(dusk_minute,2);
     
     // Для срабатывания триггера на изменение значений
     set_temperature(temperature);
@@ -188,8 +209,13 @@ bool getWeather() {
     DEBUG(F("JSON не содержит данных о погоде"));  
     doc["result"] = F("ERROR");
     doc["status"] = F("no data");
+
+    String out;
     serializeJson(doc, out);      
+    doc.clear();
+
     SendWeb(out, TOPIC_WTR);
+    
     return false;
   }
 
@@ -214,14 +240,14 @@ bool getWeather() {
   DEBUG(F("Город: "));
   DEBUGLN(town);
   DEBUG(F("Сейчас: "));
-  DEBUG(weather + ", "); 
+  DEBUG(weather); DEBUG(", "); 
   if (temperature > 0) DEBUG("+"); 
-  DEBUGLN(String(temperature) + "ºC"); // 'º'
-  DEBUGLN(String(F("Код иконки: '")) + icon + "'");
+  DEBUG(temperature); DEBUGLN("ºC"); // 'º'
+  DEBUG(F("Код иконки: '")); DEBUG(icon); DEBUGLN("'");
   if (useWeather == 1)
-    DEBUGLN(String(F("Цвет неба: '")) + skyColor + "'");
+    { DEBUG(F("Цвет неба: '")); DEBUG(skyColor); DEBUGLN("'"); }
   else
-    DEBUGLN(String(F("Код погоды: ")) + String(weather_code));
+    { DEBUG(F("Код погоды: ")); DEBUGLN(weather_code); }
   DEBUG(F("Сейчас: "));
   DEBUGLN(dayTime);
   DEBUG(F("Рассвет: "));
@@ -243,7 +269,11 @@ bool getWeather() {
     doc["code"]   = weather_code;  // для OpenWeatherMap
   doc["sunrise"]  = sunrise;
   doc["sunset"]   = sunset;
+
+  String out;
   serializeJson(doc, out);      
+  doc.clear();
+  
   SendWeb(out, TOPIC_WTR);
 
   if (thisMode == MC_WEATHER) {
@@ -279,7 +309,7 @@ bool getWeather() {
 void decodeWeather(){  
   bool hasDay   = icon.endsWith("-d");
   bool hasNight = icon.endsWith("-n");
-  String ico = icon;
+  String ico(icon);
   
   if (hasDay)
     dayTime = F("Светлое время суток");  // Сейчас день
@@ -408,7 +438,7 @@ String getTemperatureColor(int8_t temp) {
 }
 
 // Получить индекс иконки в массиве иконок погоды
-int8_t getWeatherFrame(String icon) {
+int8_t getWeatherFrame(const String& icon) {
   if (icon == "skc-d") return 0;                                    // Ясно, день
   if (icon == "skc-n") return 1;                                    // Ясно, ночь
   if (icon == "bkn-d") return 2;                                    // Переменная облачность, день
@@ -438,7 +468,7 @@ int8_t getWeatherFrame(String icon) {
   return -1;
 }
 
-int8_t getWeatherFrame2(String icon) {
+int8_t getWeatherFrame2(const String& icon) {
   // https://openweathermap.org/weather-conditions#How-to-get-icon-URL
   bool hasDay   = icon.endsWith("d");
   switch (weather_code) {
