@@ -240,6 +240,14 @@ void setup() {
     }
   }
   
+  {
+    String fv(FASTLED_VERSION);
+    String fv_maj(fv.substring(1,4).toInt());
+    String fv_min(fv.substring(4).toInt());
+    DEBUG(F("FastLED: ")); DEBUG(fv[0]); DEBUG('.');  DEBUG(fv_maj); DEBUG('.'); DEBUG(fv_min);    
+    DEBUGLN();
+  }
+  
   if (!isEEPROMInitialized) {
     // Сама инициализация выполняется выше по коду. Тут - просто вывод сообщения о событии
     DEBUGLN(F("Инициализация EEPROM..."));
