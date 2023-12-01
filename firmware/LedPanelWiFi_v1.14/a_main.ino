@@ -23,7 +23,7 @@ void process() {
   uint16_t duration = millis() - last_ms;  
   last_ms = millis();
   //DEBUG(F("duration="));
-  //DEBUG(duration);
+  //DEBUGLN(duration);
     
   #if (DEBUG_MEM_STP == 1)
     mem_now = ESP.getFreeHeap();
@@ -156,8 +156,8 @@ void process() {
             #else
             DEBUG(ESP.getMaxAllocHeap());        
             #endif     
-            DEBUGLN();       
           #endif
+          DEBUGLN();       
         }
       #else
         DEBUG(F("Режим: "));
@@ -173,8 +173,8 @@ void process() {
           #else
           DEBUG(ESP.getMaxAllocHeap());        
           #endif     
-          DEBUGLN();       
         #endif
+        DEBUGLN();       
       #endif 
       tmpSaveMode = thisMode;    
     }               

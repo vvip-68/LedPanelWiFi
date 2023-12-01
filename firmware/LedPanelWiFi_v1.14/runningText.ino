@@ -532,14 +532,7 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
 
 // Сдвинуть позицию отображения строки
 void shiftTextPosition() {
-  #if defined(ESP32)
-    if (pWIDTH > 28)
-      offset -= 2;
-    else
-      offset--;
-  #else
-    offset--;
-  #endif
+  offset -= TEXT_SHIFT;
 }
 
 // Получить / установить настройки отображения очередного текста бегущей строки
