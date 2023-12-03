@@ -1,5 +1,20 @@
 @use '../../../app-theme';
 
+::ng-deep.mat-mdc-fab .mat-mdc-button-ripple,
+::ng-deep.mat-mdc-fab .mat-mdc-button-persistent-ripple,
+::ng-deep.mat-mdc-fab .mat-mdc-button-persistent-ripple::before,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-ripple,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple::before {
+  display: none !important;
+}
+
+::ng-deep button.mat-mdc-fab.mat-primary,
+::ng-deep button.mat-mdc-mini-fab.mat-primary {
+  background-color: var(--time-picker-touch-color);
+  color: var(--time-picker-touch-fore-color)
+}
+
 :host .tab-alarm {
   align-items: center;
   display: flex;

@@ -29,6 +29,7 @@
   --toolbar-foreground-color: #{darken($toolbar-foreground-color, 15%)};
 
   --mdc-plain-tooltip-supporting-text-size: 13px;
+  --mdc-fab-container-shape: 50%;
 
   $card-icon-fill-color: #888;
 
@@ -83,6 +84,8 @@
     --radio-button-checked-disabled: #059d05;
     --radio-button-unchecked-disabled: rgba(255, 255, 255, 0.6);
     --time-picker-touch-color: #303F9F;
+    --time-picker-touch-fore-color: #FFFFFF;
+    --time-picker-touch-color-hover: #303F9F;
     --play-button-container-color: #303F9F;
     --play-button-disabled-color: #646464;
     --play-button-label-text-color: #fff;
@@ -149,6 +152,8 @@
     --radio-button-checked-disabled: #a0d7a0;
     --radio-button-unchecked-disabled: rgba(0, 0, 0, 0.3);
     --time-picker-touch-color: #1976d2;
+    --time-picker-touch-fore-color: #FFFFFF;
+    --time-picker-touch-color-hover: #1976d2;
     --play-button-container-color: #1976d2;
     --play-button-disabled-color: #ccc;
     --play-button-label-text-color: #fff;

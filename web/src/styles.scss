@@ -47,6 +47,7 @@ $dark-theme: mat.define-dark-theme((
 // that you are using.
 :root {
   //@include mat.all-component-themes($light-theme);
+
   @include mat.core-theme($light-theme);
   @include mat.button-theme($light-theme);
   @include mat.toolbar-theme($light-theme);
@@ -66,6 +67,7 @@ $dark-theme: mat.define-dark-theme((
 
 .dark-theme {
   //@include mat.all-component-colors($dark-theme);
+
   @include mat.core-color($dark-theme);
   @include mat.button-color($dark-theme);
   @include mat.toolbar-color($dark-theme);

@@ -495,7 +495,7 @@ uint32_t HEXtoInt(const String& sValue) {
   }
 
   if (hexValue.startsWith("0X")) {
-    hexValue.replace('0X',' ');
+    hexValue.replace("0X"," ");
     hexValue.trim();
   }
 

@@ -1,23 +1,18 @@
 @use '../../../app-theme';
 
-::ng-deep.clock-face__clock-hand_minute {
-  height: 103px !important;
+::ng-deep.mat-mdc-fab .mat-mdc-button-ripple,
+::ng-deep.mat-mdc-fab .mat-mdc-button-persistent-ripple,
+::ng-deep.mat-mdc-fab .mat-mdc-button-persistent-ripple::before,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-ripple,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple,
+::ng-deep.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple::before {
+  display: none !important;
 }
 
-::ng-deep.clock-face__center {
-  height: 8px !important;
-}
-
-::ng-deep.mdc-fab__ripple {
+::ng-deep button.mat-mdc-fab.mat-primary,
+::ng-deep button.mat-mdc-mini-fab.mat-primary {
   background-color: var(--time-picker-touch-color);
-}
-
-::ng-deep ngx-mat-timepicker-dialog {
-  .mat-mdc-dialog-actions {
-    .mdc-button__label {
-      color: var(--card-active-color);
-    }
-  }
+  color: var(--time-picker-touch-fore-color)
 }
 
 :host .tab-modes {
