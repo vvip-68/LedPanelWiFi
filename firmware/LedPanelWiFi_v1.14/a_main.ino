@@ -3265,8 +3265,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Настройка скорости
   if (key == "SE") {
     if (value) {
-      if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE 
-        ) {
+      if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE) {
         value->set("X");
         return String("X");
       }

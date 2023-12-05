@@ -712,6 +712,7 @@ uint8_t getMetaMatrixDirection() {
 }
 
 void putEffectParams(uint8_t effect, uint8_t spd, bool use_text_overlay, bool use_clock_overlay, uint8_t value1, uint8_t value2, uint8_t contrast, uint8_t order) {
+  if (effect >= MAX_EFFECT) return;
   uint8_t value = 0;
 
   if (use_text_overlay)  value |= 0x01;
@@ -734,11 +735,13 @@ void putEffectParams(uint8_t effect, uint8_t spd, bool use_text_overlay, bool us
 }
 
 bool getEffectTextOverlayUsage(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return false;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
   return (value & 0x01) != 0;                                            // b1 - использовать в эффекте бегущую строку поверх эффекта
 }
 
 void putEffectTextOverlayUsage(uint8_t effect, bool use) {
+  if (effect >= MAX_EFFECT) return;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
   uint8_t new_value = use ? (value | 0x01) : (value & ~0x01);
   if (value != new_value) {
@@ -747,11 +750,13 @@ void putEffectTextOverlayUsage(uint8_t effect, bool use) {
 }
 
 bool getEffectClockOverlayUsage(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return false;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
   return (value & 0x02) != 0;                                            // b2 - использовать в эффекте часы поверх эффекта
 }
 
 void putEffectClockOverlayUsage(uint8_t effect, bool use) {
+  if (effect >= MAX_EFFECT) return;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 1);
   uint8_t new_value = use ? (value | 0x02) : (value & ~0x02);
   if (value != new_value) {
@@ -760,6 +765,7 @@ void putEffectClockOverlayUsage(uint8_t effect, bool use) {
 }
 
 void putScaleForEffect(uint8_t effect, uint8_t value) {
+  if (effect >= MAX_EFFECT) return;
   if (value != getScaleForEffect(effect)) {
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 2, value);
     effectScaleParam[effect] = value;
@@ -767,12 +773,14 @@ void putScaleForEffect(uint8_t effect, uint8_t value) {
 }
 
 uint8_t getScaleForEffect(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return 0;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 2);
   effectScaleParam[effect] = value;
   return value;
 }
 
 void putScaleForEffect2(uint8_t effect, uint8_t value) {
+  if (effect >= MAX_EFFECT) return;
   if (value != getScaleForEffect2(effect)) {
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 3, value);
     effectScaleParam2[effect] = value;
@@ -780,18 +788,21 @@ void putScaleForEffect2(uint8_t effect, uint8_t value) {
 }
 
 uint8_t getScaleForEffect2(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return 0;
   uint8_t value = EEPROMread(EFFECT_EEPROM + effect*10 + 3);
   effectScaleParam2[effect] = value;
   return value;
 }
 
 uint8_t getEffectContrast(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return 0;
   uint8_t contrast = constrain(EEPROMread(EFFECT_EEPROM + effect*10 + 4),10,255);
   effectContrast[effect] = contrast;
   return contrast;
 }
 
 void putEffectContrast(uint8_t effect, uint8_t contrast) {
+  if (effect >= MAX_EFFECT) return;
   if (contrast != getEffectContrast(effect)) {
     effectContrast[effect] = constrain(contrast,10,255);
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 4, effectContrast[effect]);
@@ -799,6 +810,7 @@ void putEffectContrast(uint8_t effect, uint8_t contrast) {
 }
 
 void putEffectSpeed(uint8_t effect, uint8_t speed) {
+  if (effect >= MAX_EFFECT) return;
   if (speed != getEffectSpeed(effect)) {
     effectSpeed[effect] = constrain(map(speed, D_EFFECT_SPEED_MIN, D_EFFECT_SPEED_MAX, 0, 255), 0, 255);
     EEPROMwrite(EFFECT_EEPROM + effect*10, effectSpeed[effect]);        // Скорость эффекта    
@@ -806,18 +818,21 @@ void putEffectSpeed(uint8_t effect, uint8_t speed) {
 }
 
 uint8_t getEffectSpeed(uint8_t effect) {
-  uint8_t speed = map8(EEPROMread(EFFECT_EEPROM + effect*10),D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX);
-  effectSpeed[effect] = speed;
+  if (effect >= MAX_EFFECT) return 0;
+  uint8_t speed = map8(EEPROMread(EFFECT_EEPROM + effect*10),D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX);  
+  effectSpeed[effect] = speed; 
   return speed; 
 }
 
 uint8_t getEffectOrder(uint8_t effect) {
+  if (effect >= MAX_EFFECT) return 0;
   uint8_t order = EEPROMread(EFFECT_EEPROM + effect*10 + 5);
   if (order >= MAX_EFFECT) order = 255;
   return order;
 }
 
 void putEffectOrder(uint8_t effect, uint8_t order) {
+  if (effect >= MAX_EFFECT) return;
   if (order >= MAX_EFFECT) order = 255;
   if (order != getEffectOrder(effect)) {
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 5, order);
