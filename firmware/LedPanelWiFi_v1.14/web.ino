@@ -383,11 +383,9 @@ void processOutQueueW() {
       }
     }
     
-    // Очищаем строку в очереди. Использовать .clear() нельзя, поскольку он не только обнуляет содержимое строки, но и очищает (освобождает) память
-    // ранее занимаемую строкой. Если память не освобождать, то в следующий раз запись туда нового значения строки будет повторно использовать уже выделенную память.
-    // Если память, занимаемую строкой освобождать - она будет выделена заново в Heap, что приведет к его фрагментации, а нам это не нужно
-    outWQueue[outWQueueReadIdx] = "";  
-    tpcWQueue[outWQueueReadIdx] = "";
+    // Очищаем строку в очереди
+    outWQueue[outWQueueReadIdx].clear();  
+    tpcWQueue[outWQueueReadIdx].clear();
     outWQueueReadIdx++;
     
     if (outWQueueReadIdx >= QSIZE_OUT) outWQueueReadIdx = 0;
