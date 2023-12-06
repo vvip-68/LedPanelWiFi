@@ -28,7 +28,14 @@
 
 static const String SharedEmptyString = String();
 
-#define __is_param_char(c) ((c) && ((c) != '{') && ((c) != '[') && ((c) != '&') && ((c) != '='))
+bool is_param_char(char c) {
+  return 
+	(c != 0) && 
+	(c != '{') && 
+	(c != '[') && 
+	(c != '&') && 
+	(c != '=');
+}
 
 enum { PARSE_REQ_START, PARSE_REQ_HEADERS, PARSE_REQ_BODY, PARSE_REQ_END, PARSE_REQ_FAIL };
 
@@ -145,9 +152,9 @@ void AsyncWebServerRequest::_onData(void *buf, size_t len){
       if(_parsedLength == 0){
         if(_contentType.startsWith("application/x-www-form-urlencoded")){
           _isPlainPost = true;
-        } else if(_contentType == "text/plain" && __is_param_char(((char*)buf)[0])){
+        } else if(_contentType == "text/plain" && is_param_char(((char*)buf)[0])){
           size_t i = 0;
-          while (i<len && __is_param_char(((char*)buf)[i++]));
+      	  while (i<len && is_param_char(((char*)buf)[i++]));
           if(i < len && ((char*)buf)[i-1] == '='){
             _isPlainPost = true;
           }
@@ -535,7 +542,7 @@ void AsyncWebServerRequest::_parseMultipartPostByte(uint8_t data, bool last){
     } else {
       _multiParseState = WAIT_FOR_RETURN1;
       itemWriteByte('\r'); itemWriteByte('\n'); itemWriteByte('-');  itemWriteByte('-');
-      uint8_t i; for(i=0; i<_boundary.length(); i++) itemWriteByte(_boundary.c_str()[i]);
+      uint32_t i; for(i=0; i<_boundary.length(); i++) itemWriteByte(_boundary.c_str()[i]);
       _parseMultipartPostByte(data, last);
     }
   } else if(_multiParseState == EXPECT_FEED2){
@@ -545,7 +552,7 @@ void AsyncWebServerRequest::_parseMultipartPostByte(uint8_t data, bool last){
     } else {
       _multiParseState = WAIT_FOR_RETURN1;
       itemWriteByte('\r'); itemWriteByte('\n'); itemWriteByte('-');  itemWriteByte('-');
-      uint8_t i; for(i=0; i<_boundary.length(); i++) itemWriteByte(_boundary.c_str()[i]);
+      uint32_t i; for(i=0; i<_boundary.length(); i++) itemWriteByte(_boundary.c_str()[i]);
       itemWriteByte('\r'); _parseMultipartPostByte(data, last);
     }
   }

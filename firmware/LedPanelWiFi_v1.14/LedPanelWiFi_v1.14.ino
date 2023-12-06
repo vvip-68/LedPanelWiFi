@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1205")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1206")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -104,6 +104,9 @@
 // Точнее перенесено в область if() else - для download=true.
 // Почему-то наличие этого заголовка в айфонах не открывает запрошенную страничку в браузере, а предлагает мохранить
 // загружаемый файл intex.html.gz на диск как обычный download- файл.
+//
+// Сама библиотека с хотфиксами взята отсюда: https://github.com/vortigont/ESPAsyncWebServer/tree/hotfixes
+// Но в ней нет переноса addHeader("Content-Disposition", buf) что описано выше
 //
 // Прошивка требует компиляции с выделением места под файловую систему LittleFS, в которой хранятся файлы настроки подключения к сети,
 // файлы резервного копирования настроек, файл карты индексов адресации светодиодов матрицы, файлы Web-интерфейва, а также файлы картинок, 

@@ -2196,8 +2196,7 @@ void EEPROMwrite(uint16_t addr, uint8_t value) {
 uint16_t EEPROM_int_read(uint16_t addr) {    
   uint8_t raw[2];
   for (uint8_t i = 0; i < 2; i++) raw[i] = EEPROMread(addr+i);
-  uint16_t &num = (uint16_t&)raw;
-  return num;
+  return  *((uint16_t*) raw);
 }
 
 // запись uint16_t
@@ -2211,8 +2210,7 @@ void EEPROM_int_write(uint16_t addr, uint16_t num) {
 uint32_t EEPROM_long_read(uint16_t addr) {    
   uint8_t raw[4];
   for (uint8_t i = 0; i < 4; i++) raw[i] = EEPROMread(addr+i);
-  uint32_t &num = (uint32_t&)raw;
-  return num;
+  return  *((uint32_t*) raw);
 }
 
 // запись uint32_t

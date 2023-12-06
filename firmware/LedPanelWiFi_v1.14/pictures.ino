@@ -109,7 +109,7 @@ void initialisePictures() {
         animation_t weather = animations[weatherIndex];
         pictureWidth  = weather.frame_width;
         pictureHeight = weather.frame_height;        
-        FOR_j(j, MAX_FRAMES_COUNT) {
+        FOR_j(0, MAX_FRAMES_COUNT) {
           if (weather.frames[j] == NULL) break;
           pictureIndexMax = j + 1;
         }

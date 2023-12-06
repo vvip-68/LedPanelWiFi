@@ -46,6 +46,8 @@
 #define DEFAULT_MAX_WS_CLIENTS 4
 #endif
 
+#define WS_MAX_HEADER_LEN 16
+
 class AsyncWebSocket;
 class AsyncWebSocketResponse;
 class AsyncWebSocketClient;
@@ -166,6 +168,8 @@ class AsyncWebSocketClient {
 
     uint8_t _pstate;
     AwsFrameInfo _pinfo;
+    uint8_t *_partialHeader;
+    uint8_t _partialHeaderLen;
 
     uint32_t _lastMessageTime;
     uint32_t _keepAlivePeriod;
@@ -193,7 +197,6 @@ class AsyncWebSocketClient {
     //control frames
     void close(uint16_t code=0, const char * message=NULL);
     void ping(uint8_t *data=NULL, size_t len=0);
-    void clearQueue();
 
     //set auto-ping period in seconds. disabled if zero (default)
     void keepAlivePeriod(uint16_t seconds){
@@ -268,7 +271,6 @@ class AsyncWebSocket: public AsyncWebHandler {
     void close(uint32_t id, uint16_t code=0, const char * message=NULL);
     void closeAll(uint16_t code=0, const char * message=NULL);
     void cleanupClients(uint16_t maxClients = DEFAULT_MAX_WS_CLIENTS);
-    void clearQueueAll();
 
     void ping(uint32_t id, uint8_t *data=NULL, size_t len=0);
     void pingAll(uint8_t *data=NULL, size_t len=0); //  done
