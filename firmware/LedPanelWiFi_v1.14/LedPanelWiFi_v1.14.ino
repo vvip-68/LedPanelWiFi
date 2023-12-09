@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1206")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1209")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -21,7 +21,7 @@
 //                              // нет вывода на матрицу (до 2.0.6) или цифровые артефакты и подергивание эффектов и бегущей строки.
 //
 // -------------------------------------------------------------------------------------------------------
-////
+//
 // Для ядра ESP8266 v3.1.2
 //   тип микроконтроллера в меню "Инструменты -> Плата" для ESP8266:
 //     - для устройств на базе NodeMCU выбирать       -- "NodeMCU 1.0 (ESP12E Module)"

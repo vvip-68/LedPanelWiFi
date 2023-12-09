@@ -378,6 +378,8 @@
   "macros-14_20": "- restricciones de días de la semana-1234567 si se omite el elemento # W",
   "macros-14_21": "una linea que contiene una macro {p} no aparece regularmente como lineas con otras macros. Esta línea se muestra #B segundos antes de que ocurra el evento, luego #a segundos, después de que ocurra el evento, se muestra una línea sustituta si hay un elemento #N y la línea especificada no está vacía.",
   "macros-14_22": "si se especifica una fecha específica y un día de la semana, pero la fecha especificada no es ese día de la semana, la linea no se mostrará.",
+  "macros-14_23": "- si el último elemento de el macro está indicado #T - el texto se mostrará por lo menos una vez, y después cuando se queda menos de 60 segundos hasta el evento - se encenderá la cuenta regresiva en el centro de la matriz",
+  "macros-14_24": "- encender la cuenta regresiva en el centro de la matriz en 60 segundos antes del evento",
   "macros-15_01": "período de visualización de la linea donde:",
   "macros-15_02": "- fecha de Inicio en formato DD.MM. AAAA",
   "macros-15_03": "- hora de Inicio en formato HH: MM",

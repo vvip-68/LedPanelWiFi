@@ -73,12 +73,18 @@ void doEffectWithOverlay(uint8_t aMode) {
     // Если нет строк к отображению - продолжать отображать оверлей часов
  
     if (prepareNextText(currentText)) {
-      moment_active = momentTextIdx >= 0;
+      moment_active = momentTextIdx >= 0;      
       fullTextFlag = false;
       loadingTextFlag = false;
       showTextNow = true;                  // Флаг переключения в режим текста бегущей строки 
       textCurrentCount = 0;                // Сбросить счетчик количества раз, сколько строка показана на матрице;
       textStartTime = millis();            // Запомнить время начала отображения бегущей строки
+
+      if (moment_active) {
+        ignoreTextOverlaySettingforEffect = true;
+      } else {
+        pTextCount = 0;
+      }
 
       #if (USE_E131 == 1)
         commandSetTextSpeed(textScrollSpeed);
@@ -155,7 +161,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     }
   }
 
-  // Нет активного события? но флаг что оно отображается стоит
+  // Нет активного события, но флаг что оно отображается стоит?
   if (moment_active && momentTextIdx < 0) {
     moment_active = false;
     needStopText = true;
