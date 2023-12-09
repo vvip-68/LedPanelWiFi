@@ -157,9 +157,8 @@ void fillString(const String& text) {
   if (loadingTextFlag) {
     offset = pWIDTH;   // перемотка в правый край
     // modeCode = MC_TEXT;
-    loadingTextFlag = false;    
+    loadingTextFlag = false;  
   }
-
 
   uint32_t color;
 
@@ -167,9 +166,31 @@ void fillString(const String& text) {
   // Задан ли специальный цвет отображения строки?
   // Если режим цвета - монохром (0) или задан неверно (>2) - использовать глобальный или специальный цвет
   
-  uint16_t i = 0, j = 0, pos = 0, modif = 0;
+  uint16_t i = 0, j = 0, pos = 0, modif = 0, restSec = -1, restTextPos = 0, restTextOffset = 0, restTextWidth = 0;
+  bool showRestSeconds = false;
+  String restSecStr;
 
-  while (text[i] != '\0') {
+  if (momentIdx >= 0 && momentTextIdx >= 0 && pTextCount > 0 && isPTextCentered) {
+    // Отображаемый текст - с макросом {P} и один раз он уже отобразился полностью, 
+    // текст содержит флаг отображения остатка секнд по центру матрицы и остаток времени до события - менее минуты
+    // Теперь просто отображаем остчет оставшегося времени по центру матрицы
+
+    // Сколько секунд осталосб до события?
+    restSec = moments[momentIdx].moment - now();
+    showRestSeconds = restSec > 0 && restSec < 60;
+    
+    // Остаток секунд в виде строки
+    restSecStr = padNum(restSec,2);
+
+    // Получить ширину строки в точках, чтобы высчитать центр отображения на матрице
+    uint8_t letter_1_width = BIG_FONT == 0 ? LET_WIDTH - 1 : LET_WIDTH - 2;
+    restTextWidth = (restSecStr[0] == '1' ? letter_1_width : LET_WIDTH) + SPACE + LET_WIDTH;
+
+    // Начальная позиция вывода остатка секунд по центру экрана
+    restTextOffset = ((pWIDTH - restTextWidth) / 2 + 1);
+  }
+  
+  while (true) {
 
     // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
     if (textHasMultiColor) {
@@ -185,15 +206,30 @@ void fillString(const String& text) {
       }
     }
 
-    // Определились с цветом - выводим очередную букву  
-    if ((uint16_t)text[i] > 191) {    // работаем с русскими буквами!
-      modif = (uint16_t)text[i];
-    } else {
-      drawLetter(j, text[i], modif, offset + j * (LET_WIDTH + SPACE), color);
+    if (showRestSeconds) {
+
+      // Определились с цветом - выводим очередную цифру  
+      drawLetter(j, restSecStr[i], 0, restTextOffset + j * (LET_WIDTH + SPACE), color);
       j++;
-      modif = 0;
+      
+      if (restSecStr[i] == '\0') break;
+      i++; 
+      
+    } else {
+
+      // Определились с цветом - выводим очередную букву  
+      if ((uint16_t)text[i] > 191) {    // работаем с русскими буквами!
+        modif = (uint16_t)text[i];
+      } else {
+        drawLetter(j, text[i], modif, offset + j * (LET_WIDTH + SPACE), color);
+        j++;
+        modif = 0;
+      }
+      if (text[i] == '\0') break;
+      i++;
+      
     }
-    i++;
+
   }
   fullTextFlag = false;
 
@@ -201,7 +237,9 @@ void fillString(const String& text) {
   if (offset < -j * (LET_WIDTH + SPACE)) {
     offset = pWIDTH + 3;
     fullTextFlag = true;
+    if (momentIdx >= 0 && momentTextIdx >= 0) pTextCount++;
   }      
+  
 }
 
 uint8_t getTextY() {
@@ -565,9 +603,7 @@ bool prepareNextText(const String& text) {
 
   offset = pWIDTH;   // перемотка новой строки в правый край
   if (text.length() != 0) {
-    syncText = text;
-    currentText = processMacrosInText(text);
-    
+    syncText = text;    
   } else {
   
     // Если nextIdx >= 0 - значит в предыдущей строке было указано какую строку показывать следующей - показываем ее
@@ -1553,7 +1589,7 @@ String processDateMacrosInText(const String& text) {
           if (textLine[0] == '-') textLine = textLine.substring(1);
           if (textLine.indexOf("{-}") >= 0) textLine.replace("{-}", "");
           if (textLine.length() == 0) return "";    
-          
+
           textLine = processMacrosInText(textLine);
           
           // Строка замены содержит в себе макросы даты? Если да - вычислить всё снова для новой строки                   
@@ -2032,7 +2068,7 @@ void saveTextLineSD(char index, const String& text, bool backup) {
 // Сканировать массив текстовых строк на наличие событий постоянного отслеживания - макросов {P}
 void rescanTextEvents() {
 /*
- "{PДД.ММ.ГГГГ#N#B#A#F}"
+ "{PДД.ММ.ГГГГ#N#B#A#F#T}"
    - где после P указаны опционально дата и время до которой нужно отсчитывать оставшееся время, выводя строку остатка в формате:
      X дней X часов X минут X секунд; 
      Если дней не осталось - выводится только X часов X минут; 
@@ -2061,6 +2097,8 @@ void rescanTextEvents() {
      - #A - отображать строку-заместитель указанное количество секунд ПОСЛЕ наступления события (after). Если не указано - 60 секунд по умолчанию
      - #F - дни недели для которых работает эта строка, когда дата не определена 1-пн..7-вс
             Если указана точная дата и указан день недели, который не соответствует дате - строка выведена не будет
+     - #T - если в конце строки есть флаг '#T' - вывести строку с обратным отсчетом один раз (или до тех пор пока до события не останется меньше минуты),
+            затем просто по центру выводить обратный отсчет в секундах до события
 */
   // Предварительная очистка массива постоянно отслеживаемых событий
   for (uint8_t i = 0; i < MOMENTS_NUM; i++) {
@@ -2068,6 +2106,7 @@ void rescanTextEvents() {
   }
 
   bool     found = false;
+  bool     flagT = false;
   uint8_t  stage = 0;         // 0 - разбор даты (день); 1 - месяц; 2 - год; 3 - часы; 4- минуты; 5 - строка замены; 6 - секунд ДО; 7 - секунд ПОСЛЕ; 8 - дни недели
   uint8_t  iDay = 0, iMonth = 0, iHour = 0, iMinute = 0, iSecond = 0, star_cnt = 0;
   uint16_t iYear = 0;
@@ -2106,6 +2145,19 @@ void rescanTextEvents() {
     // Сбрасываем переменные перед разбором очередной строки
     stage = 0; iDay = 0; iMonth = 0; iYear = 0; iHour = 0; iMinute = 0; iSecond = 0; iBefore = 60; iAfter = 60; star_cnt = 0; num = 0;
     wdays = "1234567";
+    flagT = false;
+
+    // Если в строке более чем 1 знак '#' и строка заканчивается на #T - это FlagT. Более 1 раза, т.к если один раз - это строка заместитель с индексом T
+    idx = str.indexOf("#");
+    if (idx >= 0) {
+      idx = str.indexOf("#", idx + 1);
+      if (idx > 0) {
+        flagT = str.endsWith("#T");
+        if (flagT) {
+          str = str.substring(0, str.length() - 2);
+        }
+      }
+    }
     
     // Побайтово разбираем строку макроса
     bool err = false;
@@ -2297,9 +2349,12 @@ void rescanTextEvents() {
       str += iAfter;
       str += F("; days='");
       str += wdays;
+      str += F("'; text='");
+      str += getAZIndex(t_idx);
       str += F("'; replace='");
       str += getAZIndex(text_idx);
-      str += "'";
+      str += "'; center=";
+      str += flagT ? "true" : "false";
       DEBUGLN(str);
       str.clear();
         
@@ -2307,8 +2362,9 @@ void rescanTextEvents() {
       moments[moment_idx].moment  = t_event;
       moments[moment_idx].before  = iBefore;
       moments[moment_idx].after   = iAfter;
-      moments[moment_idx].index_b = i;
+      moments[moment_idx].index_b = t_idx;
       moments[moment_idx].index_a = text_idx;
+      moments[moment_idx].flagT   = flagT;
 
       // Строка-заместитель должна быть отключена, чтобы она не отображалась как регулярная строка
       if (text_idx >= 0) {
@@ -2342,13 +2398,15 @@ void checkMomentText() {
     // Время за #B секунд до наступления события? - отдать index_b
     if ((uint32_t)this_moment >= moments[i].moment - moments[i].before && this_moment < moments[i].moment) {
       momentIdx = i;
-      momentTextIdx = moments[i].index_b; // before
+      momentTextIdx = moments[i].index_b; // before 
+      isPTextCentered = moments[i].flagT;
       break;
     }    
     // Время #А секунд после наступления события? - отдать index_a
     if ((time_t)this_moment >= moments[i].moment && (time_t)this_moment <= moments[i].moment + (time_t)moments[i].after) {
       momentIdx = i;
       momentTextIdx = moments[i].index_a; // after
+      isPTextCentered = false;
       break;
     }    
   }
