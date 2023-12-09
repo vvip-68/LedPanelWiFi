@@ -1,7 +1,7 @@
 // функции работы с http и вебсокетом
 
 #include <ESPAsyncWebServer.h>
-
+#include "ArduinoJson.h"
 
 /**
  * @brief serialize JsonVarian data directly to WebSocket buffer and send to ALL clients connected to WS Server

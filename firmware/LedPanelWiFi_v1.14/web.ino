@@ -1,5 +1,7 @@
+#include "wsfunctions.h"
+
 // --------------- WEB-SERVER CALLBACK ----------------
-#define BASE_WEB F("/web")
+
 // Эта страница отображается, если по какой-то причине файловая система не активирована
 // например, прошивка загружена, а файлы WebServer`a не загружены или прошивка скомпилирована
 // без выделения места под файловую систему
@@ -18,7 +20,7 @@ section .box.box2 h2 {color:#fff;}
 void handleNotActive(AsyncWebServerRequest *request) {
   request->send_P(200, F("text/html"), PGindex_page);
 }
-
+/*
 void handleRoot(AsyncWebServerRequest *request) {
   if (!spiffs_ok) {
     handleNotActive(request);
@@ -44,13 +46,17 @@ void handleRoot(AsyncWebServerRequest *request) {
   
   handleNotActive(request);
 }
- 
+*/ 
 void handleNotFound(AsyncWebServerRequest *request) {
   if (!spiffs_ok) {
     handleNotActive(request);
     return;  
   }  
 
+  String message(F("File Not Found\nURI: ")); message += request->url();
+  request->send(404, F("text/plain"), message);
+  return;
+/*
   // Запрос на отправку файла требует не менее 4Кбайт. Если свободной памяти не хватает - запрошенный файл либо не отправляется,
   // либо микроконтроллер перезагружается из за недостатка памяти. Чтобы освободить память - временно освобождаем память оверлея часов и бегущей строки
   // Если этого недостаточно - временно освобождаем память под массив светодиодов
@@ -151,6 +157,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
   String message(F("File Not Found\nURI: ")); message += file; message += '\n';
   request->send(404, F("text/plain"), message);
   DEBUG(F("web -> '")); DEBUG(file); DEBUGLN(F("' -> not found"));
+*/
 }
 
 // --------------- WEB-SOCKET CALLBACK ----------------
@@ -272,7 +279,7 @@ void prepareAndSendMessage(const String& message, const String& topic) {
   doc["e"] = topic.c_str();    // т.к. объект короткоживущий - создаем через указатель
   doc["d"] = message.c_str();
 
-  wsSrvSendAll(&ws, doc);
+  wsSrvSendAll(&ws, doc);  
   doc.clear();
 }
 
