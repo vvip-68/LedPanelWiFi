@@ -184,10 +184,10 @@ void fillString(const String& text) {
 
     // Получить ширину строки в точках, чтобы высчитать центр отображения на матрице
     uint8_t letter_1_width = BIG_FONT == 0 ? LET_WIDTH - 1 : LET_WIDTH - 2;
-    restTextWidth = (restSecStr[0] == '1' ? letter_1_width : LET_WIDTH) + SPACE + LET_WIDTH;
+    restTextWidth = 2 * LET_WIDTH + SPACE;    
 
     // Начальная позиция вывода остатка секунд по центру экрана
-    restTextOffset = ((pWIDTH - restTextWidth) / 2 + 1);
+    restTextOffset = ((pWIDTH - restTextWidth) / 2);
   }
   
   while (true) {
@@ -603,7 +603,11 @@ bool prepareNextText(const String& text) {
 
   offset = pWIDTH;   // перемотка новой строки в правый край
   if (text.length() != 0) {
-    syncText = text;    
+    syncText = text;
+    if (needProcessMacros) {
+      currentText = processMacrosInText(currentText);
+      needProcessMacros = false;
+    }
   } else {
   
     // Если nextIdx >= 0 - значит в предыдущей строке было указано какую строку показывать следующей - показываем ее
@@ -1639,6 +1643,11 @@ String processDateMacrosInText(const String& text) {
         // Если осталось несколько часов - отображать часы и минуты
         // Если осталось меньше-равно 7 дней - отображать дни и часы
         // Если осталось больше 7 дней - отображать дни
+
+        // Когда, реально, скажем, осталось 22 дня и 2 часа - гугль на вопрос "Сколько осталось до ..." пишет не 22, а 23
+        // Будем следовать методике расчета гугля - если осталось более 7 дней - пишем на 1 больше
+        // Если осталось менее 7 целых дней - там уже начнут выводиться часы. При выводе часов не округляем количество дней в большую сторону
+        if (restDays > 7) restDays++; 
         
         String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0)
