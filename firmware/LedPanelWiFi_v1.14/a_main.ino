@@ -333,13 +333,13 @@ void process() {
         */
 
         /*
-            Serial.print(CURRENT_UNIVERSE);
-            Serial.print(",");
-            ccnt++; 
-            if (ccnt>60) {
-              Serial.println();
-              ccnt=0;
-            }
+        Serial.print(CURRENT_UNIVERSE);
+        Serial.print(",");
+        ccnt++; 
+        if (ccnt>60) {
+          Serial.println();
+          ccnt=0;
+        }
         */
 
         bool isCommand = isCommandPacket(&e131_packet);
@@ -367,7 +367,8 @@ void process() {
         // Для всех остальных пакетов - просто разбирать их и помещать принятые данные части кадра в массив leds[];
         // Если дожидаться последнего пакета группы и только потом выводить - для MASTER матриц чей размер меньше SLAVE - последний пакет не придет никогда
         // и будет создаваться впечатление "зависшей" матрицы - нет вывода. Конечно, в этом случае при несовпадении размеров матриц MASTER и SLAVE
-        // быдет выведена "каша", но хотя бы видно, что устройство не зависло...
+        // будет выведена "каша", но хотя бы видно, что устройство не зависло...
+        
         if (syncMode == PHYSIC || syncMode == LOGIC) {
           if (CURRENT_UNIVERSE == START_UNIVERSE) FastLED.show();
           drawE131frame(&e131_packet, syncMode);
@@ -376,6 +377,7 @@ void process() {
     }
 
     #endif
+
 
     if (needProcessEffect) {
       // Сформировать и вывести на матрицу текущий демо-режим
@@ -470,7 +472,6 @@ void process() {
               set_globalColor(0xFFFFFF);
               isButtonHold = false;
               setSpecialMode(1);
-              FastLED.setBrightness(globalBrightness);
             } else {
               // Клик + удержание во включенном состоянии - включить ночные часы
               setSpecialMode(8);
@@ -508,7 +509,6 @@ void process() {
             set_globalColor(0xFFFFFF);
             isButtonHold = false;
             setSpecialMode(1);
-            FastLED.setBrightness(globalBrightness);
             clicks = 0;
             one_click_time = 0;
           }          
@@ -624,6 +624,7 @@ String getEffectName(int8_t mode) {
 
 #if (USE_BUTTON == 1)
 void processButtonStep() {
+  if (isTurnedOff) return;
   if (brightDirection) {
     if (globalBrightness < 10) set_globalBrightness(globalBrightness + 1);
     else if (globalBrightness < 250) set_globalBrightness(globalBrightness + 5);
@@ -637,8 +638,7 @@ void processButtonStep() {
       set_globalBrightness(2);
     }
   }
-  set_specialBrightness(globalBrightness);
-  if (!isTurnedOff) FastLED.setBrightness(globalBrightness);    
+  set_specialBrightness(globalBrightness);  
 }
 #endif
 
@@ -1056,11 +1056,9 @@ void parsing() {
           if (isNightClock) {
             set_nightClockBrightness(intData[2]); // setter            
             set_specialBrightness(nightClockBrightness);
-            FastLED.setBrightness(specialBrightness);
           } else {
             set_globalBrightness(intData[2]);
             if (specialMode) set_specialBrightness(globalBrightness);
-            if (!isTurnedOff) FastLED.setBrightness(globalBrightness);
             if (thisMode == MC_DRAW || thisMode == MC_LOADIMAGE) {
               FastLEDshow();
             }
@@ -1573,9 +1571,6 @@ void parsing() {
                // Для ночных часов - полученное значение -> в map 0..6 - код цвета ночных часов
                set_nightClockColor(map(intData[3], 0,255, 0,6));
                set_specialBrightness(nightClockBrightness);
-               if (thisMode == tmp_eff) {
-                 FastLED.setBrightness(specialBrightness);
-               }
              } else {
                // Для дневных часов - меняется цвет часов (параметр HUE цвета, hue < 2 - белый)
                set_EffectScaleParam(tmp_eff, intData[3]);
@@ -2054,14 +2049,12 @@ void parsing() {
              set_nightClockColor(intData[2]);
              if (isNightClock) {
                 set_specialBrightness(nightClockBrightness);
-                FastLED.setBrightness(specialBrightness);
              }             
              break;
            case 11:               // $19 11 X; - Яркость ночных часов:  1..255;
              set_nightClockBrightness(intData[2]); // setter             
              if (isNightClock) {
                 set_specialBrightness(nightClockBrightness);
-                FastLED.setBrightness(specialBrightness);
              }             
              break;
            case 12:               // $19 12 X; - скорость прокрутки часов оверлея или 0, если часы остановлены по центру
@@ -4939,7 +4932,7 @@ void setSpecialMode(int8_t spc_mode) {
 
   String str;
   int8_t tmp_eff = -1;
-  // set_specialBrightness(globalBrightness);
+  
   specialClock = getClockOverlayEnabled() && ((CLOCK_ORIENT == 0 && allowHorizontal) || (CLOCK_ORIENT == 1 && allowVertical)); 
 
   switch(spc_mode) {
@@ -4997,7 +4990,7 @@ void setSpecialMode(int8_t spc_mode) {
     set_thisMode(tmp_eff);
     setTimersForMode(thisMode);
     setIdleTimer();             
-    FastLED.setBrightness(specialBrightness);
+    FastLEDsetBrightness(specialBrightness);
     set_CurrentSpecialMode(spc_mode);
   }  
 
@@ -5076,7 +5069,7 @@ void setEffect(uint8_t eff) {
   }
   
   if (thisMode != MC_DAWN_ALARM) {
-    FastLED.setBrightness(globalBrightness);      
+    FastLEDsetBrightness(globalBrightness);      
   }
 }
 

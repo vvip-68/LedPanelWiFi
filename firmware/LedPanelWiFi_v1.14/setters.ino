@@ -56,6 +56,7 @@ void set_globalBrightness(uint8_t value) {
   if (globalBrightness == value) return;
   putMaxBrightness(value);
   globalBrightness = getMaxBrightness();
+  FastLEDsetBrightness(globalBrightness);
   addKeyToChanged("BR");
 }
 
@@ -66,6 +67,7 @@ void set_specialBrightness(uint8_t value) {
   #endif
   if (specialBrightness == value) return;;
   specialBrightness = value;
+  FastLEDsetBrightness(specialBrightness);
   addKeyToChanged("BR");
 }
 

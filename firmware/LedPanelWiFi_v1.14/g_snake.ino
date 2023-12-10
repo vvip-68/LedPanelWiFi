@@ -93,7 +93,7 @@ void snakeRoutine() {
 
     // ну в общем плавно моргнуть, типо змейке "больно"
     for (uint8_t bright = 0; bright < 15; bright++) {
-      FastLED.setBrightness(bright);
+      FastLEDsetBrightness(bright);
       for (uint16_t i = 0; i < NUM_LEDS; i++) {
         leds[i] = CRGB::Red;
       }
@@ -103,7 +103,7 @@ void snakeRoutine() {
 
     delay(100);
     FastLED.clear();
-    FastLED.setBrightness(globalBrightness);
+    FastLEDsetBrightness(globalBrightness);
 
     //if (!gameDemo) {
       displayScore(snakeLength - START_LENGTH);

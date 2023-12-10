@@ -1517,7 +1517,7 @@ void dawnProcedure() {
     // modeCode = MC_DAWN_ALARM;
     
     FastLED.clear();  // очистить
-    FastLED.setBrightness(dawnBrightness);        
+    FastLEDsetBrightness(dawnBrightness);        
 
     if (realDawnDuration <= 0 || realDawnDuration > dawnDuration) realDawnDuration = dawnDuration;
     uint32_t interval = realDawnDuration * 60000UL / (MAX_DAWN_BRIGHT - MIN_DAWN_BRIGHT);
@@ -1527,7 +1527,7 @@ void dawnProcedure() {
   // Пришло время увеличить яркость рассвета?
   if (dawnTimer.isReady() && dawnBrightness < 255) {
     dawnBrightness++;
-    FastLED.setBrightness(dawnBrightness);
+    FastLEDsetBrightness(dawnBrightness);
   }
 
   uint8_t effect = isAlarming ? alarmEffect : MC_DAWN_ALARM;

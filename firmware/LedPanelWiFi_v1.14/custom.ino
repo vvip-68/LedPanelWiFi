@@ -9,7 +9,7 @@ void customRoutine(uint8_t aMode) {
 }
 
 void doEffectWithOverlay(uint8_t aMode) {
-
+  
   bool clockReady = clockTimer.isReady();
   bool textReady = textTimer.isReady();
 
@@ -390,7 +390,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     }
     runningText();
   }
-
+  
   FastLEDshow();
 }
 
@@ -406,6 +406,15 @@ void FastLEDshow() {
     FastLED.show();
     prevShowTimer = millis();
   }
+}
+
+void FastLEDsetBrightness(uint8_t value) {
+  #if (USE_E131 == 1)
+  if (workMode == MASTER) {
+    commandSetCurrentBrightness(value);
+  }
+  #endif
+  FastLED.setBrightness(value);
 }
 
 void processEffect(uint8_t aMode) {
@@ -650,7 +659,7 @@ void nextModeHandler() {
   setTimersForMode(thisMode);
   
   FastLED.clear();
-  FastLED.setBrightness(globalBrightness);
+  FastLEDsetBrightness(globalBrightness);
 }
 
 void prevModeHandler() {
@@ -700,7 +709,7 @@ void prevModeHandler() {
   setTimersForMode(thisMode);
   
   FastLED.clear();
-  FastLED.setBrightness(globalBrightness);
+  FastLEDsetBrightness(globalBrightness);
 }
 
 void setTimersForMode(uint8_t aMode) {

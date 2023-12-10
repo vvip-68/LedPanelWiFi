@@ -18,33 +18,7 @@ section .box.box2 h2 {color:#fff;}
 void handleNotActive(AsyncWebServerRequest *request) {
   request->send_P(200, F("text/html"), PGindex_page);
 }
-/*
-void handleRoot(AsyncWebServerRequest *request) {
-  if (!spiffs_ok) {
-    handleNotActive(request);
-    return;
-  }
-  
-  String index_file(BASE_WEB); index_file += F("/index.html");
-  String gz_file(index_file); gz_file += ".gz";
-  
-  if (LittleFS.exists(gz_file.c_str())) {
-    DEBUG(F("web -> '")); DEBUG(gz_file); DEBUGLN(F("' -> send (text/html)"));
-    AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), F("text/html"), false);
-    response->addHeader(F("Content-Encoding"), F("gzip"));
-    response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
-    request->send(response);
-    return;
-  }
-  
-  if (LittleFS.exists(index_file)) {
-    request->send(LittleFS, index_file, F("text/html"));
-    return;
-  }
-  
-  handleNotActive(request);
-}
-*/ 
+
 void handleNotFound(AsyncWebServerRequest *request) {
   if (!(spiffs_ok && web_ok)) {
     handleNotActive(request);
@@ -54,108 +28,6 @@ void handleNotFound(AsyncWebServerRequest *request) {
   String message(F("File Not Found\nURI: ")); message += request->url();
   request->send(404, F("text/plain"), message);
   return;
-/*
-  // Запрос на отправку файла требует не менее 4Кбайт. Если свободной памяти не хватает - запрошенный файл либо не отправляется,
-  // либо микроконтроллер перезагружается из за недостатка памяти. Чтобы освободить память - временно освобождаем память оверлея часов и бегущей строки
-  // Если этого недостаточно - временно освобождаем память под массив светодиодов
-  // Массивы овердея и светодиодов будут воссозданы в основном цикле как только это позводит объем свободной памяти
-
-  if (ESP.getFreeHeap() < 4096) {
-    freeOverlay();
-  }
-  
-  if (ESP.getFreeHeap() < 4096) {
-    freeLeds();
-  }
-
-  if (ESP.getFreeHeap() < 4096) {
-    int32_t freeMemory1 = ESP.getFreeHeap();
-    DEBUGLN(F("Смена режима для освобождения памяти - Часы: "));
-    releaseEffectResources(resourcesMode);
-    setEffect(MC_CLOCK);
-    int32_t freeMemory2 = ESP.getFreeHeap();
-    DEBUG(freeMemory1);    
-    DEBUG(F(" -> "));    
-    DEBUG(freeMemory2);    
-    DEBUG(F(" -- "));    
-    DEBUGLN(freeMemory2 - freeMemory1);    
-  }
-
-  String file = request->url();
-
-  if (!file.startsWith(BASE_WEB)) {
-    file = String(BASE_WEB) + file;
-  }
-  
-  String gz_file(file); gz_file += ".gz";
-  String type;    
-  
-  if (file.endsWith(F(".css")))
-    type += F("text/css");
-  else if (file.endsWith(F(".js")))
-    type += F("text/javascript");
-  else if (file.endsWith(F(".gif")))
-    type += F("image/gif");
-  else if (file.endsWith(F(".jpg")))
-    type += F("image/jpeg");
-  else if (file.endsWith(F(".png")))
-    type += F("image/png");
-  else if (file.endsWith(F(".svg")))
-    type += F("image/svg+xml");
-  else if (file.endsWith(F(".txt")))
-    type += F("text/plain");
-  else if (file.endsWith(F(".htm")))
-    type += F("text/html");
-  else if (file.endsWith(F(".html")))
-    type += F("text/html");
-  else if (file.endsWith(F(".ico")))
-    type += F("image/x-icon");
-  else if (file.endsWith(F(".json")))
-    type += F("application/json");
-  else if (file.endsWith(F(".woff2")))
-    type += F("font/woff2");    
-
-  if (type.length() > 0) {  
-    if (LittleFS.exists(gz_file.c_str())) {
-      DEBUG(F("web -> '")); DEBUG(gz_file); DEBUG(F("' -> send (")); DEBUG(type); DEBUGLN(')');
-      AsyncWebServerResponse *response = request->beginResponse(LittleFS, gz_file.c_str(), type.c_str(), false);
-      response->addHeader(F("Content-Encoding"), F("gzip"));
-      response->addHeader(F("Cache-Control"), F("public, max-age=31536000"));
-
-      // При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
-      DEBUG(F("FM: "));
-      DEBUG(ESP.getFreeHeap());
-      
-      request->send(response);
-
-      // Вывод ДО и ПОСЛЕ
-      DEBUG(F(" - "));
-      DEBUGLN(ESP.getFreeHeap());
-
-      return;
-    }
-    
-    if (LittleFS.exists(file.c_str())) {      
-      DEBUG(F("web -> '")); DEBUG(file); DEBUG(F("' -> send (")); DEBUG(type); DEBUGLN(')');
-      
-      // При поступлении запроса на загрузку каждого файла вывести в консоль информацию о свободной памяти
-      DEBUG(F("FM: "));
-      DEBUG(ESP.getFreeHeap());
-
-      request->send(LittleFS, file.c_str(), type.c_str());
-      
-      // ДО и ПОСЛЕ
-      DEBUG(F(" - "));
-      DEBUGLN(ESP.getFreeHeap());
-
-      return;
-    }
-  }
-
-  String message(F("File Not Found\nURI: ")); message += file; message += '\n';
-  request->send(404, F("text/plain"), message);
-  DEBUG(F("web -> '")); DEBUG(file); DEBUGLN(F("' -> not found"));
-*/
 }
 
 // --------------- WEB-SOCKET CALLBACK ----------------
@@ -253,20 +125,6 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 
-/*
-String prepareMessage(const String& message, const String& topic) {
-  doc.clear();
-  doc["e"] = topic;
-  doc["d"] = message;
-  
-  String out;
-  serializeJson(doc, out);
-  doc.clear();
-
-  return out;
-}
-*/
-
 /**
  * @brief подготовить и отправить сообщение активным вебсокет-клиентам
  * 
@@ -282,7 +140,6 @@ void prepareAndSendMessage(const String& message, const String& topic) {
   wsSrvSendAll(&ws, doc);  
   doc.clear();
 }
-
 
 void putOutQueueW(const String& topic, const String& message) {
   
@@ -514,10 +371,38 @@ void wsSrvSendAll(AsyncWebSocket *ws, const JsonVariantConst& data){
 
     size_t length = measureJson(data);
     auto buffer = ws->makeBuffer(length);
+
     if (!buffer) {
-      DEBUGLN(F("Недостаточно памяти для отправки в WebSocket"));
+      
+      if (ESP.getFreeHeap() < 2 * length) {
+        freeOverlay();
+      }
+      
+      if (ESP.getFreeHeap() < 2 * length) {
+        freeLeds();
+      }
+    
+      if (ESP.getFreeHeap() < 2 * length) {
+        int32_t freeMemory1 = ESP.getFreeHeap();
+        DEBUGLN(F("Смена режима для освобождения памяти - Часы: "));
+        releaseEffectResources(resourcesMode);
+        setEffect(MC_CLOCK);
+        int32_t freeMemory2 = ESP.getFreeHeap();
+        DEBUG(freeMemory1);    
+        DEBUG(F(" -> "));    
+        DEBUG(freeMemory2);    
+        DEBUG(F(" -- "));    
+        DEBUGLN(freeMemory2 - freeMemory1);    
+      }
+      
+      buffer = ws->makeBuffer(length);      
+    }
+    
+    if (!buffer) {
+      DEBUGLN(F("Недостаточно памяти для буфера отправки в WebSocket"));
       return;    // not enough mem to send data
     }
+    
     serializeJson(data, reinterpret_cast<char*>(buffer->get()), length);
     ws->textAll(buffer);
 }
