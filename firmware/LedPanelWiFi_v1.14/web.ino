@@ -1,5 +1,7 @@
+#include "wsfunctions.h"
+
 // --------------- WEB-SERVER CALLBACK ----------------
-#define BASE_WEB F("/web")
+
 // Эта страница отображается, если по какой-то причине файловая система не активирована
 // например, прошивка загружена, а файлы WebServer`a не загружены или прошивка скомпилирована
 // без выделения места под файловую систему
@@ -18,7 +20,7 @@ section .box.box2 h2 {color:#fff;}
 void handleNotActive(AsyncWebServerRequest *request) {
   request->send_P(200, F("text/html"), PGindex_page);
 }
-
+/*
 void handleRoot(AsyncWebServerRequest *request) {
   if (!spiffs_ok) {
     handleNotActive(request);
@@ -44,13 +46,17 @@ void handleRoot(AsyncWebServerRequest *request) {
   
   handleNotActive(request);
 }
- 
+*/ 
 void handleNotFound(AsyncWebServerRequest *request) {
   if (!spiffs_ok) {
     handleNotActive(request);
     return;  
   }  
 
+  String message(F("File Not Found\nURI: ")); message += request->url();
+  request->send(404, F("text/plain"), message);
+  return;
+/*
   // Запрос на отправку файла требует не менее 4Кбайт. Если свободной памяти не хватает - запрошенный файл либо не отправляется,
   // либо микроконтроллер перезагружается из за недостатка памяти. Чтобы освободить память - временно освобождаем память оверлея часов и бегущей строки
   // Если этого недостаточно - временно освобождаем память под массив светодиодов
@@ -151,6 +157,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
   String message(F("File Not Found\nURI: ")); message += file; message += '\n';
   request->send(404, F("text/plain"), message);
   DEBUG(F("web -> '")); DEBUG(file); DEBUGLN(F("' -> not found"));
+*/
 }
 
 // --------------- WEB-SOCKET CALLBACK ----------------
@@ -247,7 +254,7 @@ void initWebSocket() {
   ws.onEvent(onEvent);
   server.addHandler(&ws);
 }
-
+/*
 String prepareMessage(const String& message, const String& topic) {
   doc.clear();
   doc["e"] = topic;
@@ -259,6 +266,23 @@ String prepareMessage(const String& message, const String& topic) {
 
   return out;
 }
+*/
+/**
+ * @brief подготовить и отправить сообщение активным вебсокет-клиентам
+ * 
+ * @param message - строка с телом сообщения
+ * @param topic - топик
+ */
+void prepareAndSendMessage(const String& message, const String& topic) {
+  // здесь создаётся вложенный сериализованный джейсон-объект, некрасиво, но так работает бэкэнд 
+  doc.clear();
+  doc["e"] = topic.c_str();    // т.к. объект короткоживущий - создаем через указатель
+  doc["d"] = message.c_str();
+
+  wsSrvSendAll(&ws, doc);  
+  doc.clear();
+}
+
 
 void putOutQueueW(const String& topic, const String& message) {
   
@@ -317,8 +341,7 @@ void SendWebKey(const String& key, const String& value) {
   } else {
     bool canWrite = ws.availableForWriteAll(); 
     if (canWrite) {
-      out = prepareMessage(out, topic);
-      ws.textAll(out);          
+      prepareAndSendMessage(out, topic);
     } else {
       SendWeb(out, topic);
     }
@@ -373,8 +396,7 @@ void processOutQueueW() {
         // {"act":"TIME","server_name":"ru.pool.ntp.org","server_ip":"85.21.78.23","result":"REQUEST"}
         // {FM":"9008"}
         // Такие сообщения могут быть а в любом топике
-        String out(prepareMessage(message, topic));          
-        ws.textAll(out);          
+        prepareAndSendMessage(message, topic);
         lastWebSend = millis();  
       } else {
         // "FM":"9008" -- выделить значение ключа
@@ -397,9 +419,7 @@ void processOutQueueW() {
     // сформировать сообщение и отправить клиентам
     outMessage = '{' + outMessage.substring(0, outMessage.length() - 1) + '}';
     // Такие сообщения могут быть а в любом топике
-    String topic(TOPIC_STT);
-    String out(prepareMessage(outMessage, topic));
-    ws.textAll(out);
+    prepareAndSendMessage(outMessage, TOPIC_STT);
     lastWebSend = millis();  
   }
   

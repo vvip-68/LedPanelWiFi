@@ -581,8 +581,11 @@ void setup() {
   connectToNetwork();
 
   // Обработчики событий web-сервера
-  server.on("/", handleRoot); 
-  server.onNotFound(handleNotFound);  
+  server.serveStatic("/", LittleFS, BASE_WEB)
+    .setDefaultFile("index.html")
+    .setCacheControl("public, max-age=3600, must-revalidate");  // 1 hr for caching, then revalidate based on etag/IMS headers
+
+  server.onNotFound(handleNotFound);
   server.begin();
   
   if (spiffs_ok) {

@@ -356,6 +356,7 @@ String   pass       = NETWORK_PASS;         // пароль роутера
 uint16_t localPort  = DEFAULT_PORT;         // локальный порт на котором слушаются входящие команды управления от приложения на смартфоне, передаваемые через локальную сеть
 
 // --------------------- WEB parameters -----------------
+static const char BASE_WEB[] PROGMEM = "/web";  // префикс директории с статическими файлами веб-сервера
 
 AsyncWebServer server(80);                  // Web-сервер для управления через браузер
 AsyncWebSocket ws("/ws");                   // Web-socket для коммуникации с Web-приложением
