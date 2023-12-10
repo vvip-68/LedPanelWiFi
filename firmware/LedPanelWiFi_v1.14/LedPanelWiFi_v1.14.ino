@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1209")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1210")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -525,7 +525,7 @@ void setup() {
   // Поиск картинок, пригодных для эффекта "Слайды"
   initialisePictures();
 
-  checkWebDirectory();
+  web_ok = checkWebDirectory();
    
   #if (USE_POWER == 1)
     if (vPOWER_PIN >= 0) {

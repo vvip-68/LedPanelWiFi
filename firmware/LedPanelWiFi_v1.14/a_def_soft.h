@@ -361,6 +361,7 @@ static const char BASE_WEB[] PROGMEM = "/web";  // префикс директо
 AsyncWebServer server(80);                  // Web-сервер для управления через браузер
 AsyncWebSocket ws("/ws");                   // Web-socket для коммуникации с Web-приложением
 
+bool     web_ok = false;                    // Флаг - папка web найдена, значит, скорее всего WebUI загружена в файловую систему
 int8_t   web_client_count = 0;              // Количество подключенных Web-клиентов;
 int32_t  last_web_client_id;                // id последнего подключившегося клиента
 

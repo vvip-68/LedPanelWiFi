@@ -1,5 +1,3 @@
-#include "wsfunctions.h"
-
 // --------------- WEB-SERVER CALLBACK ----------------
 
 // Эта страница отображается, если по какой-то причине файловая система не активирована
@@ -48,7 +46,7 @@ void handleRoot(AsyncWebServerRequest *request) {
 }
 */ 
 void handleNotFound(AsyncWebServerRequest *request) {
-  if (!spiffs_ok) {
+  if (!(spiffs_ok && web_ok)) {
     handleNotActive(request);
     return;  
   }  
@@ -254,6 +252,7 @@ void initWebSocket() {
   ws.onEvent(onEvent);
   server.addHandler(&ws);
 }
+
 /*
 String prepareMessage(const String& message, const String& topic) {
   doc.clear();
@@ -267,6 +266,7 @@ String prepareMessage(const String& message, const String& topic) {
   return out;
 }
 */
+
 /**
  * @brief подготовить и отправить сообщение активным вебсокет-клиентам
  * 
@@ -425,7 +425,7 @@ void processOutQueueW() {
   
 }
 
-void checkWebDirectory() {
+bool checkWebDirectory() {
 
   String directoryName(BASE_WEB);
   
@@ -436,7 +436,7 @@ void checkWebDirectory() {
     DEBUGLN(F("' обнаружена."));
   } else {
     DEBUGLN(F("' не обнаружена."));
-    return;
+    return false;
   }
   
   DEBUGLN(F("Cпискок файлов web-интерфейса:"));  
@@ -446,6 +446,8 @@ void checkWebDirectory() {
   if (p >= 0) dir_name = dir_name.substring(p + 1);
 
   checkWebSubDir(1, directoryName, dir_name);  
+
+  return true;
 }
 
 void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& dir_name) {
@@ -497,4 +499,25 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
     }
     entry.close();
   }
+}
+
+/**
+ * @brief serialize JsonVarian data directly to WebSocket buffer and send to ALL clients connected to WS Server
+ * функция сериализует объект непосредственно в буфер вебсокет-сервера (если достаточно памяти)
+ * и не требует создания промежуточной копии сериализованной строки в памяти
+ * 
+ * @param ws - pointer to ws server instance
+ * @param data - json object to send
+ */
+void wsSrvSendAll(AsyncWebSocket *ws, const JsonVariantConst& data){
+    if (!ws->count()) return;   // no client connected, nowhere to send
+
+    size_t length = measureJson(data);
+    auto buffer = ws->makeBuffer(length);
+    if (!buffer) {
+      DEBUGLN(F("Недостаточно памяти для отправки в WebSocket"));
+      return;    // not enough mem to send data
+    }
+    serializeJson(data, reinterpret_cast<char*>(buffer->get()), length);
+    ws->textAll(buffer);
 }
