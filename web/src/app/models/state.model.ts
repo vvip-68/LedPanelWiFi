@@ -36,6 +36,7 @@ export interface IStateModel {
   e131_mode: number;               // E1 - режим - 0 - автономный, 1 - вещатель, 2 - слушатель
   e131_type: number;               // E2 - тип потока 0 - физический; 1 - логический, 2 - команды
   e131_group: number;              // E3 - номер группы синхронизации
+  e131_streaming: boolean;         // E4 - активно ли вещание в настоящий момент
   mtx_seg_width: number;           // M0 - ширина сегмента матрицы 1..128
   mtx_seg_height: number;          // M1 - высота сегмента матрицы 1..128
   mtx_seg_type: number;            // M2 - тип сегмента матрицы - 0 - зигзаг; 1 - параллельная; 2 - карта индексов
@@ -178,6 +179,7 @@ export class StateModel implements IStateModel {
   public e131_mode = 0;
   public e131_type = 0;
   public e131_group = 0;
+  public e131_streaming = false;
   public mtx_seg_width = 16;
   public mtx_seg_height = 16;
   public mtx_seg_type = 0;
@@ -327,6 +329,7 @@ export class StateModel implements IStateModel {
       case 'E1':   return this.e131_mode;
       case 'E2':   return this.e131_type;
       case 'E3':   return this.e131_group;
+      case 'E4':   return this.e131_streaming;
       case 'M0':   return this.mtx_seg_width;
       case 'M1':   return this.mtx_seg_height;
       case 'M2':   return this.mtx_seg_type;
@@ -467,6 +470,7 @@ export class StateModel implements IStateModel {
       case 'E1':   this.e131_mode = Number(value);                                break;
       case 'E2':   this.e131_type = Number(value);                                break;
       case 'E3':   this.e131_group = Number(value);                               break;
+      case 'E4':   this.e131_streaming = ('' + value).toLowerCase() === 'true';   break;
       case 'M0':   this.mtx_seg_width = Number(value);                            break;
       case 'M1':   this.mtx_seg_height = Number(value);                           break;
       case 'M2':   this.mtx_seg_type = Number(value);                             break;

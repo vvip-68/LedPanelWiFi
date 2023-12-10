@@ -66,6 +66,11 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   autoModeTimeFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 255)]);
   matcher = new AppErrorStateMatcher();
 
+  e131_mode: number = -1;
+  e131_type: number = -1;
+  e131_group: number = -1;
+  e131_streaming: boolean = false;
+
   private destroy$ = new Subject();
 
   constructor(
@@ -128,7 +133,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в главном экране
-          const request = 'PS|BR|DM|RM|FV|PD|IT|EF|EN';
+          const request = 'E1|E2|E3|E4|PS|BR|DM|RM|FV|PD|IT|EF|EN';
           this.managementService.getKeys(request);
         }
       });
@@ -138,6 +143,18 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       .subscribe((key: string) => {
         if (!isNullOrUndefinedOrEmpty(key)) {
           switch (key) {
+            case 'E1':
+              this.e131_mode = this.managementService.state.e131_mode;
+              break;
+            case 'E2':
+              this.e131_type = this.managementService.state.e131_type;
+              break;
+            case 'E3':
+              this.e131_group = this.managementService.state.e131_group;
+              break;
+            case 'E4':
+                this.e131_streaming = this.managementService.state.e131_streaming;
+                break;
             case 'EF':
               this.managementService.effects.forEach((effect) => {
                 effect.active = effect.id == this.managementService.state.effect;
@@ -245,6 +262,64 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       this.managementService.usageUnselectAll();
     }
     this.managementService.saveCardsUsage();
+  }
+
+  getSyncType(): string {
+    return this.managementService.state.e131_mode == 1
+      ? 'MASTER'
+      : this.managementService.state.e131_mode == 2
+        ? 'SLAVE'
+        : '';
+  }
+
+  getSyncTypeTooltip(): string {
+    return this.managementService.state.e131_mode == 1
+      ? this.L.$('MASTER, группа ') + this.managementService.state.e131_group
+      : this.managementService.state.e131_mode == 2
+        ? this.L.$('SLAVE, группа ') + this.managementService.state.e131_group
+        : '';
+  }
+
+  getSyncClass(): string {
+    switch (this.managementService.state.e131_mode) {
+      case 1:
+        return 'master ' + (this.managementService.state.power ? 'power-on' : 'power-off');
+      case 2:
+        return 'slave ' + (this.managementService.state.e131_streaming ? 'stream-on' : 'stream-off');
+      default:
+        return '';
+    }
+  }
+
+  getPowerButtonClass(): string {
+    let str = 'power-btn';
+    if (!this.managementService.state.power) {
+      str += this.managementService.state.e131_streaming &&  this.managementService.state.e131_mode == 2 ? ' power-on slave' : ' power-off';
+    } else {
+      str += ' power-on';
+      switch (this.managementService.state.e131_mode) {
+        case 1:
+          str += ' master';
+          break;
+        case 2:
+          str += this.managementService.state.e131_streaming ? ' slave' : ' standalone';
+          break;
+        default:
+          str += ' standalone';
+          break;
+      }
+    }
+    return str;
+  }
+
+  getBrightnessLabelClass(): string {
+    let str = 'brightness-label';
+    if (!this.managementService.state.power) {
+      str += ' power-off';
+    } else {
+      str += ' power-on';
+    }
+    return str;
   }
 
   ngOnDestroy() {

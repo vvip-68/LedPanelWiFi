@@ -6,9 +6,12 @@
 
         <div class="block3">
           <div class="power-brightness">
-            <div class="power-btn">
+            <div [ngClass]="getPowerButtonClass()">
               <app-action [config]="power" [disabled]="!this.socketService.isConnected" [tooltip]="managementService.state.power ? L.$('Выключить') : L.$('Включить')"></app-action>
-              <span>{{ L.$('Яркость') }}</span>
+              <span [ngClass]="getBrightnessLabelClass()">{{ L.$('Яркость') }}</span>
+            </div>
+            <div class="sync-type" [matTooltip]="getSyncTypeTooltip()" [ngClass]="getSyncClass()">
+              <span>{{ getSyncType() }}</span>
             </div>
             <div class="brightness-container">
               <div class="brightness-buttons">

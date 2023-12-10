@@ -475,5 +475,7 @@
   "MOSI:": "MOSI:",
   "TM1637": "TM1637",
   "matrix_warning": "Cambiar el Tamaño total de la matriz puede requerir ajustar la longitud del segmento de la línea de diodos en 'Configuración' - 'Hardware', de lo contrario la imagen no se mostrará completamente, solo en una parte de la matriz.",
-  "sync_warning": "el modo asistente no está disponible para matrices con un número total de LED superior a 2040"
+  "sync_warning": "el modo asistente no está disponible para matrices con un número total de LED superior a 2040",
+  "MASTER, группа ": "MASTER, grupo ",
+  "SLAVE, группа ": "SLAVE, grupo "
 }

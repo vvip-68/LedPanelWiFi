@@ -44,7 +44,7 @@
     font-size: 30px;
 
     &.state_ON {
-      color: var(--power-ON);
+      color: inherit;
     }
   }
 

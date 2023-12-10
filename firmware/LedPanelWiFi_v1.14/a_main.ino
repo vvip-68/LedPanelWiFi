@@ -62,7 +62,9 @@ void process() {
     if (!e131_streaming && streaming) {
       flag_1 = false;
       flag_2 = false;
-
+      
+      addKeyToChanged("E4");
+      
       if (workMode == MASTER) {
         DEBUGLN(F("Запуск вещания E1.31 потока"));
         commandSetDimension(pWIDTH, pHEIGHT);
@@ -108,10 +110,14 @@ void process() {
     }
     
     if (e131_streaming && !streaming) {
+
       if (prevWorkMode == MASTER)
         DEBUGLN(F("Останов вещания E1.31 потока"));
       else
         DEBUGLN(F("Останов слушателя E1.31 потока"));            
+
+      addKeyToChanged("E4");
+      
       doc.clear();
       doc["act"]   = String(sE131);
       doc["mode"]  = String(prevWorkMode == MASTER ? sMASTER : sSLAVE);
@@ -2791,6 +2797,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // E1:X        режим работы 0 - STANDALONE, 1 - MASTER, 2 - SLAVE  
   // E2:X        тип данных работы 0 - PHYSIC, 1 - LOGIC, 2 - COMMAND
   // E3:X        группа синхронизации 0..9
+  // E4:X        0 - вещание не идет (нет приема или передачи в режиме MASTER/SLAVE или текущий режим STANDALONE); 1 - идет вещание мастера, слушатели получают пакеты от мастера
   // EMX:X       X-позиция окна захвата изображения с мастера
   // EMY:X       Y-позиция окна захвата изображения с мастера
   // ELX:X       X-позиция окна вывода изображения с мастера в локальный viewport
@@ -4383,6 +4390,17 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     }
     String str("E3:");
     str += tmp;
+    return str;
+  }
+
+  // Идет вещание в режиме мастера или пакуты от мастера поступают - 1; Режим STANDALONE или вещение прервалось - 0
+  if (key == "E4") {
+    if (value) {
+      value->set(streaming);
+      return String(streaming);
+    }
+    String str("E4:");
+    str += streaming;
     return str;
   }
 
