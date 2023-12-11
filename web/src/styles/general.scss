@@ -542,6 +542,7 @@ ngx-mat-timepicker-dialog {
 
 .mat-mdc-menu-panel {
   .mat-mdc-menu-content {
+    background-color: var(--menu-back-color);
     .mat-mdc-menu-item {
       min-height: 28px;
     }
