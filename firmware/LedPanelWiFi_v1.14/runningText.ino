@@ -1667,6 +1667,7 @@ String processDateMacrosInText(const String& text) {
 
     // "{P01.01.2021#N#B#A#F}" 
     // "{P7:00#N#B#A#F}" 
+    // "{P7:00#N#B#A#F#T}" или  "{P7:00#N#B#A#F#t}"
     // "{P**.01.2021 7:00#N#B#A#F}" 
     idx = textLine.indexOf("{P");
     if (idx >= 0) {
@@ -1687,7 +1688,7 @@ String processDateMacrosInText(const String& text) {
       uint16_t insertPoint = idx;
 
       // Текущее активное событие - momentIdx, который указывает на элемент массива moments[]
-      if (momentIdx >= 0) {
+      if (momentIdx >= 0 && !noCounterInText) {
         // Вычислить сколько до наступления события осталось времени. 
         // Время события - поле moment структуры Moment элемента массива
         // Данная строка, содержавшая макрос {P} - всегда ДО события, строка ПОСЛЕ события макроса {P} содержать не может и в этот блок не попадает
@@ -1716,8 +1717,9 @@ String processDateMacrosInText(const String& text) {
           { tmp += restDays; tmp += WriteDays(restDays); tmp += ' '; tmp += restHours; tmp += WriteHours(restHours); }
         else  
           { tmp += restDays; tmp += WriteDays(restDays); }
-        
-        textLine = textLine.substring(0, insertPoint) + tmp + textLine.substring(insertPoint);
+          
+        String tl_str(textLine.substring(0, insertPoint)); tl_str += tmp; tl_str += textLine.substring(insertPoint);         
+        textLine = tl_str;
       }
     }
 
@@ -2108,14 +2110,16 @@ void rescanTextEvents() {
             Если указана точная дата и указан день недели, который не соответствует дате - строка выведена не будет
      - #T - если в конце строки есть флаг '#T' - вывести строку с обратным отсчетом один раз (или до тех пор пока до события не останется меньше минуты),
             затем просто по центру выводить обратный отсчет в секундах до события
+     - #t - то же, что и #T, только остаток секунд на месте макроса {P} в строке не выводится
 */
   // Предварительная очистка массива постоянно отслеживаемых событий
   for (uint8_t i = 0; i < MOMENTS_NUM; i++) {
     moments[i].moment = 0;
   }
 
-  bool     found = false;
-  bool     flagT = false;
+  bool     found  = false;
+  bool     flagT  = false;
+  bool     flagT2 = false;
   uint8_t  stage = 0;         // 0 - разбор даты (день); 1 - месяц; 2 - год; 3 - часы; 4- минуты; 5 - строка замены; 6 - секунд ДО; 7 - секунд ПОСЛЕ; 8 - дни недели
   uint8_t  iDay = 0, iMonth = 0, iHour = 0, iMinute = 0, iSecond = 0, star_cnt = 0;
   uint16_t iYear = 0;
@@ -2152,16 +2156,18 @@ void rescanTextEvents() {
     DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
 
     // Сбрасываем переменные перед разбором очередной строки
-    stage = 0; iDay = 0; iMonth = 0; iYear = 0; iHour = 0; iMinute = 0; iSecond = 0; iBefore = 60; iAfter = 60; star_cnt = 0; num = 0;
-    wdays = "1234567";
-    flagT = false;
+    stage  = 0; iDay = 0; iMonth = 0; iYear = 0; iHour = 0; iMinute = 0; iSecond = 0; iBefore = 60; iAfter = 60; star_cnt = 0; num = 0;
+    wdays  = "1234567";
+    flagT  = false;
+    flagT2 = false;
 
     // Если в строке более чем 1 знак '#' и строка заканчивается на #T - это FlagT. Более 1 раза, т.к если один раз - это строка заместитель с индексом T
     idx = str.indexOf("#");
     if (idx >= 0) {
       idx = str.indexOf("#", idx + 1);
       if (idx > 0) {
-        flagT = str.endsWith("#T");
+        flagT  = str.endsWith("#T") || str.endsWith("#t");
+        flagT2 = str.endsWith("#t");
         if (flagT) {
           str = str.substring(0, str.length() - 2);
         }
@@ -2374,6 +2380,7 @@ void rescanTextEvents() {
       moments[moment_idx].index_b = t_idx;
       moments[moment_idx].index_a = text_idx;
       moments[moment_idx].flagT   = flagT;
+      moments[moment_idx].flagT2  = flagT2;
 
       // Строка-заместитель должна быть отключена, чтобы она не отображалась как регулярная строка
       if (text_idx >= 0) {
@@ -2409,6 +2416,7 @@ void checkMomentText() {
       momentIdx = i;
       momentTextIdx = moments[i].index_b; // before 
       isPTextCentered = moments[i].flagT;
+      noCounterInText = moments[i].flagT2;
       break;
     }    
     // Время #А секунд после наступления события? - отдать index_a
@@ -2416,6 +2424,7 @@ void checkMomentText() {
       momentIdx = i;
       momentTextIdx = moments[i].index_a; // after
       isPTextCentered = false;
+      noCounterInText = false;
       break;
     }    
   }

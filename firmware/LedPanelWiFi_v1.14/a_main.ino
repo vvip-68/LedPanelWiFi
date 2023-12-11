@@ -5244,10 +5244,21 @@ void turnOff() {
     saveSpecialModeId = specialModeId;
     saveMode = thisMode;
     bool mm = manualMode;
+    // Запомнить текущий используемый уровень яркости.
+    uint8_t bright = specialModeId < 0 ? globalBrightness : specialBrightness;
     // Выключить панель - черный экран
     setSpecialMode(0);
     putCurrentManualMode(saveMode);
     putAutoplay(mm);
+    // Если устройство в режиме приемника и идет прием пакетов от мастера - вызов выше setSpecialMode(0) - выключение устройства
+    // Уберет яркость в 0, хотя трансляция с мастера продолжает идти. Следующее правильное значение яркости придет
+    // только со сменой эффекта или изменение контролов яркости мастера - когда мастер отсылает текущее значение яркости
+    // Чтобы избежать черного экрана после выключения устройства-приемника - восстанавливаем сохраненный выше текущий уровень яркости.
+    #if (USE_E131 == 1)
+      if (workMode == SLAVE && streaming) {
+        FastLED.setBrightness(bright);
+      }
+    #endif
   }
 }
 
