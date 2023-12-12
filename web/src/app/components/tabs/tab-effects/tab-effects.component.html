@@ -13,15 +13,15 @@
             <div class="sync-type" [matTooltip]="getSyncTypeTooltip()" [ngClass]="getSyncClass()">
               <span>{{ getSyncType() }}</span>
             </div>
-            <div class="brightness-container">
+            <div class="brightness-container" [matTooltip]="getDisabledTooltip()">
               <div class="brightness-buttons">
-                <app-action [config]="bright_5" [disabled]="isDisabled()" tooltip="5%"></app-action>
-                <app-action [config]="bright_25" [disabled]="isDisabled()" tooltip="25%"></app-action>
-                <app-action [config]="bright_50" [disabled]="isDisabled()" tooltip="50%"></app-action>
-                <app-action [config]="bright_75" [disabled]="isDisabled()" tooltip="75%"></app-action>
-                <app-action [config]="bright_100" [disabled]="isDisabled()" tooltip="100%"></app-action>
+                <app-action [config]="bright_5" [disabled]="isDisabledByIncomeStream()" tooltip="5%"></app-action>
+                <app-action [config]="bright_25" [disabled]="isDisabledByIncomeStream()" tooltip="25%"></app-action>
+                <app-action [config]="bright_50" [disabled]="isDisabledByIncomeStream()" tooltip="50%"></app-action>
+                <app-action [config]="bright_75" [disabled]="isDisabledByIncomeStream()" tooltip="75%"></app-action>
+                <app-action [config]="bright_100" [disabled]="isDisabledByIncomeStream()" tooltip="100%"></app-action>
               </div>
-              <app-brightness-slider class="brightness-slider" [disabled]="isDisabled()" [value]="managementService.state.brightness"></app-brightness-slider>
+              <app-brightness-slider class="brightness-slider" [disabled]="isDisabledByIncomeStream()" [value]="managementService.state.brightness"></app-brightness-slider>
             </div>
           </div>
         </div>
@@ -82,28 +82,29 @@
         <div class="block3">
           <div class="block-params mode-params">
             <div class="togglers">
-              <div class="toggler">
+              <div class="toggler" [matTooltip]="getDisabledTooltip()">
                 <mat-slide-toggle color="primary" class="switch" disableRipple
                                   [(ngModel)]="managementService.state.isAutomatic"
-                                  [disabled]="isDisabled()"
+                                  [disabled]="isDisabledByIncomeStream()"
                                   (change)="toggleAutoMode($event)">
                   <p>{{ L.$('Автосмена эффекта') }}</p>
                 </mat-slide-toggle>
               </div>
-              <div class="toggler">
+              <div class="toggler" [matTooltip]="getDisabledTooltip()">
                 <mat-slide-toggle color="primary" class="switch" disableRipple
                                   [(ngModel)]="managementService.state.isRandom"
-                                  [disabled]="isDisabled()"
+                                  [disabled]="isDisabledByIncomeStream()"
+                                  [matTooltip]="getDisabledTooltip()"
                                   (change)="toggleRandomMode($event)">
                   <p>{{ L.$('Случайный выбор эффекта') }}</p>
                 </mat-slide-toggle>
               </div>
             </div>
-            <div class="buttons">
-              <button mat-raised-button color="primary" class="prev" [disabled]="isDisabled()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
+            <div class="buttons" [matTooltip]="getDisabledTooltip()" [ngClass]="{'disabled': isDisabledByIncomeStream()}">
+              <button mat-raised-button color="primary" class="prev" [disabled]="isDisabledByIncomeStream()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
                 {{ L.$('Назад') }}
               </button>
-              <button mat-raised-button color="primary" class="next" [disabled]="isDisabled()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
+              <button mat-raised-button color="primary" class="next" [disabled]="isDisabledByIncomeStream()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
                 {{ L.$('Вперед') }}
               </button>
             </div>
@@ -111,10 +112,10 @@
 
           <div class="clock-button-spacer"></div>
 
-          <div class="block-params mode-params clock-button">
+          <div class="block-params mode-params clock-button" [matTooltip]="getNightClockTooltip()">
             <button mat-raised-button color="primary" class="night"
-                    [ngClass]="{'active': managementService.state.isNightClockRunnung()}"
-                    [disabled]="isDisabled()" [matTooltip]="getNightClockTooltip()" (click)="toggleNightClock()">
+                    [ngClass]="{'active': managementService.state.isNightClockRunnung(), 'disabled': isDisabledByIncomeStream()}"
+                    [disabled]="isDisabledByIncomeStream()" (click)="toggleNightClock()">
               <mat-icon>snooze</mat-icon>
               @if (!managementService.state.isNightClockRunnung()) {
                 <span>{{ L.$('Включить ночные часы') }}</span>
@@ -159,11 +160,14 @@
                     <span>{{ L.$('Отключить все') }}</span>
                     <mat-icon class="tab-icon show-label" (click)="selectAll(false)">arrow_forward</mat-icon>
                   </div>
-                  <div cdkDropList #list1="cdkDropList" [cdkDropListData]="managementService.effects_in_use" [cdkDropListConnectedTo]="list2" class="effect-list" (cdkDropListDropped)="drop($event)">
+                  <div cdkDropList #list1="cdkDropList"
+                       [cdkDropListData]="managementService.effects_in_use"
+                       [cdkDropListConnectedTo]="list2"
+                       (cdkDropListDropped)="drop($event)"
+                       class="effect-list">
                     @for (idx of managementService.effects_in_use; track idx) {
                       <div cdkDrag>
                         <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
-                        <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
                       </div>
                     }
                   </div>
@@ -175,11 +179,14 @@
                     <mat-icon class="tab-icon show-label" (click)="selectAll(true)">arrow_backward</mat-icon>
                     <span>{{ L.$('Добавить все') }}</span>
                   </div>
-                  <div cdkDropList #list2="cdkDropList"  [cdkDropListData]="managementService.effects_not_use" [cdkDropListConnectedTo]="list1" class="effect-list" (cdkDropListDropped)="drop($event)">
+                  <div cdkDropList #list2="cdkDropList"
+                       [cdkDropListData]="managementService.effects_not_use"
+                       [cdkDropListConnectedTo]="list1"
+                       (cdkDropListDropped)="drop($event)"
+                       class="effect-list">
                     @for (idx of managementService.effects_not_use; track idx) {
                       <div cdkDrag>
                         <app-effect [model]="managementService.effects[idx]" [disabled]="isDisabled()" [choosing]="true"></app-effect>
-                        <!--div class="card-drop-item">{{managementService.effects[idx].name}}</div-->
                       </div>
                     }
                   </div>

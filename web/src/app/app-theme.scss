@@ -31,8 +31,6 @@
   --mdc-plain-tooltip-supporting-text-size: 13px;
   --mdc-fab-container-shape: 50%;
 
-  $card-icon-fill-color: #888;
-
   :root .mat-mdc-slider.mat-primary {
     --mdc-slider-handle-color: #42a5f5;
     --mdc-slider-focus-handle-color: #42a5f5;
@@ -51,8 +49,10 @@
     --card-background-color: #393939;
     --card-active-color: #03afef;
     --card-box-shadow: #aaa;
-    --card-icon-fill-color: #{$card-icon-fill-color};
-    --card-icon-fill-highlight-color: #{lighten($card-icon-fill-color, 20%)}; // rgb(105, 103, 103);
+    --card-text-color: rgba(255, 255, 255, 0.9);
+    --card-icon-disabled-color: rgba(255, 255, 255, 0.6);
+    --card-icon-fill-color: rgba(255, 255, 255, 0.9);
+    --card-icon-fill-highlight-color: rgba(255, 255, 255, 0.8); // rgb(105, 103, 103);
     --card-icon-normal-color: #{darken($toolbar-foreground-color, 15%)};
     --card-icon-active-color: #ffa4a4;
     --color-picker-background: #464646;
@@ -66,6 +66,7 @@
     --bright_75: rgba(255, 255, 255, .7);
     --bright_100: rgba(255, 255, 255, .8);
     --indicator-ON: #22d722;
+    --indicator-slave-ON: #bf65dc;
     --indicator-OFF: rgba(255, 255, 255, .5);
     --wifi-sign-color: #03afef;
     --app-tilt-color: rgba(72, 72, 72, .25);
@@ -122,9 +123,9 @@
     --card-background-color: #fdfdfd;
     --card-active-color: #1976d2;
     --card-box-shadow: #ccc;
-    --card-icon-fill-color: #{$card-icon-fill-color};
-    --card-icon-fill-highlight-color: #{darken($card-icon-fill-color, 20%)}; // rgb(105, 103, 103);
-    --card-icon-normal-color: #{darken($toolbar-foreground-color, 15%)};
+    --card-text-color: rgba(0, 0, 0, 0.9);
+    --card-icon-disabled-color: rgba(0, 0, 0, 0.4);
+    --card-icon-fill-color: rgba(0, 0, 0, 0.6);
     --card-icon-active-color: #ffa4a4;
     --color-picker-background: #ааа;
     --color-picker-border: rgba(0, 0, 0, .2);
@@ -137,6 +138,7 @@
     --bright_75: rgba(0, 0, 0, .4);
     --bright_100: rgba(0, 0, 0, .5);
     --indicator-ON: #03ab03;
+    --indicator-slave-ON: #bf65dc;
     --indicator-OFF: rgba(0, 0, 0, .1);
     --wifi-sign-color: #03afef;
     --app-tilt-color: rgba(175, 175, 175, .5);

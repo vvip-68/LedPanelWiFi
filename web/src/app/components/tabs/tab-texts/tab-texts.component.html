@@ -93,8 +93,8 @@
                   [matTooltip]="L.$('Очистить текст')">
             {{L.$('Очистить')}}
           </button>
-          <div [matTooltip]="this.managementService.state.isNightClockRunnung() ? L.$('В режиме ночных часов просмотр недоступен') : L.$('Просмотр строки без сохранения')">
-            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabled() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
+          <div [matTooltip]="getPreviewButtonTooltip()">
+            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabledByIncomeStream() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
               {{L.$('Просмотр')}}
             </button>
           </div>

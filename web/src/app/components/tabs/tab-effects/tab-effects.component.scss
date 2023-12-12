@@ -68,6 +68,7 @@
           }
 
           .brightness-label {
+            cursor: default;
             &.power-on {
               color: var(--power-ON);
             }
@@ -95,6 +96,7 @@
           justify-content: center;
           align-items: center;
           margin: 0 4px;
+          cursor: default;
 
           &.master {
             &.power-on {
@@ -187,12 +189,16 @@
           flex-direction: row;
           margin-left: auto;
           height: 72px;
+          color: var(--app-foreground-color);
+
+          &.disabled {
+            color: var(--button-disabled-color);
+          }
 
           button {
             width: 74px;
             height: 100%;
             background-color: var(--card-background-color);
-            color: var(--app-foreground-color);
             transition: color, background-color 0.2s ease-in-out;
 
             .prev {
@@ -214,10 +220,15 @@
           color: var(--night-fore-color);
           transition: color, background-color 0.2s ease-in-out;
 
-          &.active {
+          &.active:not(.disabled) {
             background-color: var(--night-active-back-color);
             color: var(--night-active-fore-color);
             animation: breath infinite 4s;
+          }
+
+          &.disabled {
+            background-color: var(--night-back-color);
+            color: var(--button-disabled-color);
           }
 
           .mat-icon {

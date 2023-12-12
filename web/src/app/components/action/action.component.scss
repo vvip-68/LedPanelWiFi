@@ -88,6 +88,10 @@
 
     &.state_ON {
       background-color: var(--indicator-ON);
+
+      &.streaming {
+        background-color: var(--indicator-slave-ON);
+      }
     }
 
     &.state_OFF {

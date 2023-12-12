@@ -6,7 +6,7 @@ import { debounceTime, Subject, takeUntil } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ColorPickerComponent } from './components/color-picker/color-picker.component';
 import { CommonService, MessageType } from './services/common/common.service';
-import { getUptime, isNullOrUndefinedOrEmpty } from './services/helper';
+import {getUptime, isNullOrUndefined, isNullOrUndefinedOrEmpty} from './services/helper';
 import { LanguagesService } from './services/languages/languages.service';
 import { ManagementService} from './services/management/management.service';
 import { WebsocketService } from './services/websocket/websocket.service';
@@ -124,6 +124,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   isDisabled(): boolean {
     return !this.managementService.state.power || !this.socketService.isConnected;
+  }
+
+  isStreaming(): boolean {
+    return this.managementService.state.e131_mode === 2 && this.managementService.state.e131_streaming === true;
+  }
+
+
+  isInitialized(): boolean {
+    return !isNullOrUndefined(this.managementService.state.e131_streaming);
   }
 
   getUptimeAndMemoryUsage() {

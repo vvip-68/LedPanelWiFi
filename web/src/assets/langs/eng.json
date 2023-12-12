@@ -487,5 +487,6 @@
   "matrix_warning": "Changing size of matrix may require change length of led-segment line in section 'Setup' - 'Wiring', otherwise image on matrix will not be display fully, only partially.",
   "sync_warning": "Master mode unavailable for matrix with LEDs amount greater than 2040",
   "MASTER, group ": "",
-  "SLAVE, group ": ""
+  "SLAVE, group ": "",
+  "В режиме приема вещания в группе недоступно": "Disabled when listen translation from MASTER device"
 }

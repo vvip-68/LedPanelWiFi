@@ -22,21 +22,26 @@
     pointer-events: unset;
   }
 
+  &.streaming {
+    cursor: default !important;
+    pointer-events: unset;
+  }
+
   &.disabled {
     cursor: default !important;
     pointer-events: none;
   }
 
-  &.active:not(.disabled) {
+  &.active:not(.disabled, .streaming) {
     color: var(--card-active-color);
   }
 
-  &.active:not(.disabled, .choosing),
-  &:hover:not(.choosing) {
+  &.active:not(.disabled, .choosing, .streaming),
+  &:hover:not(.choosing, .streaming) {
     filter: drop-shadow(0px 0px 9px var(--card-box-shadow));
   }
 
-  &:hover:not(.choosing) {
+  &:hover:not(.choosing, .streaming) {
     transform: translateY(-3px);
   }
 
@@ -58,6 +63,15 @@
       justify-content: flex-start;
       align-items: center;
       line-height: 1em;
+      color: var(--card-text-color);
+
+      &.disabled {
+        color: var(--button-disabled-color);
+      }
+
+      &.streaming {
+        color: var(--button-disabled-color);
+      }
     }
 
     .settings {
@@ -65,10 +79,15 @@
       right: 11px;
       top: calc(50% - 12px);
       cursor: pointer;
-      color: var(--toolbar-foreground-color);
       width: 24px;
       height: 24px;
       font-size: 24px;
+
+      color: var(--card-icon-normal-color);
+
+      &.disabled {
+        color: var(--card-icon-disabled-color);
+      }
     }
   }
 

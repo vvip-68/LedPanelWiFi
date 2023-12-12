@@ -304,10 +304,13 @@ void process() {
     }
 
     bool needProcessEffect = true;
-
+    
     #if (USE_E131 == 1)
-        
-    // Если сработал будильник - отрабатывать его эффект, даже если идет стриминг с мастера    
+
+    // В режиме MASTER или STANDALONE эффект отрабатывать, если устройство не выключено или если сработал будильник
+    needProcessEffect = (workMode != SLAVE && !isTurnedOff) || isAlarming || isPlayAlarmSound;
+    
+    // Если сработал будильник - отрабатывать его эффект, даже если идет стриминг с мастера
     if (workMode == SLAVE && (e131_streaming || e131_wait_command) && (!(isAlarming || isPlayAlarmSound))) {      
       needProcessEffect = e131_wait_command;
       // Если идет прием потока данных с MASTER-устройства - проверить наличие пакета от мастера
@@ -384,7 +387,6 @@ void process() {
 
     #endif
 
-
     if (needProcessEffect) {
       // Сформировать и вывести на матрицу текущий демо-режим
       // При яркости = 1 остаются гореть только красные светодиоды и все эффекты теряют вид.
@@ -393,11 +395,18 @@ void process() {
       if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
         if (allowHorizontal || allowVertical) 
           customRoutine(MC_CLOCK);    
-        else
+        else {
           FastLED.clear();  
+          FastLEDshow();
+          delay(10);
+        }
       } else {    
         customRoutine(thisMode);
       }
+    } else {
+      FastLED.clear();
+      FastLEDshow();
+      delay(10);
     }
 
     clockTicker();

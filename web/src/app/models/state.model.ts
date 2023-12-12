@@ -36,7 +36,7 @@ export interface IStateModel {
   e131_mode: number;               // E1 - режим - 0 - автономный, 1 - вещатель, 2 - слушатель
   e131_type: number;               // E2 - тип потока 0 - физический; 1 - логический, 2 - команды
   e131_group: number;              // E3 - номер группы синхронизации
-  e131_streaming: boolean;         // E4 - активно ли вещание в настоящий момент
+  e131_streaming: boolean | undefined;  // E4 - активно ли вещание в настоящий момент
   mtx_seg_width: number;           // M0 - ширина сегмента матрицы 1..128
   mtx_seg_height: number;          // M1 - высота сегмента матрицы 1..128
   mtx_seg_type: number;            // M2 - тип сегмента матрицы - 0 - зигзаг; 1 - параллельная; 2 - карта индексов
@@ -179,7 +179,7 @@ export class StateModel implements IStateModel {
   public e131_mode = 0;
   public e131_type = 0;
   public e131_group = 0;
-  public e131_streaming = false;
+  public e131_streaming: boolean | undefined = undefined;
   public mtx_seg_width = 16;
   public mtx_seg_height = 16;
   public mtx_seg_type = 0;

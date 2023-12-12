@@ -40,9 +40,7 @@ export class TabNetworkComponent implements OnInit, OnDestroy {
   }
 
   isDisabled(): boolean {
-    return (
-      !this.managementService.state.power || !this.socketService.isConnected
-    );
+    return !this.socketService.isConnected;
   }
 
   ngOnDestroy() {

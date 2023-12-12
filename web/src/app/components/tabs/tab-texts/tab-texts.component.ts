@@ -95,6 +95,9 @@ export class TabTextsComponent implements OnInit, OnDestroy {
   private macros_back_color: RGBA = {r: 0, g: 0, b: 0, a: 1};
   private dateApplied: boolean = false;
 
+  private e131_mode: number = -1;
+  private e131_streaming: boolean | undefined = undefined;
+
   constructor(
     public socketService: WebsocketService,
     public managementService: ManagementService,
@@ -105,7 +108,6 @@ export class TabTextsComponent implements OnInit, OnDestroy {
     const str = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < str.length; i++) {
       this.buttons.push(new TextButtonItem(str[i], i, 0, ''));
-
       this.buttons[i].text = this.managementService.text_lines[i];
     }
 
@@ -130,7 +132,7 @@ export class TabTextsComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          const request = 'CT|TE|TI|ST|TS|C2|MX|WZ';
+          const request = 'CT|TE|TI|ST|TS|C2|MX|WZ|E1|E4';
           this.managementService.getKeys(request);
         }
       });
@@ -193,6 +195,12 @@ export class TabTextsComponent implements OnInit, OnDestroy {
             case 'WZ':
               this.supportWeather = this.managementService.state.supportWeather;
               break;
+            case 'E1':
+              this.e131_mode = this.managementService.state.e131_mode;
+              break;
+            case 'E4':
+              this.e131_streaming = this.managementService.state.e131_streaming;
+              break;
           }
         }
       });
@@ -210,13 +218,24 @@ export class TabTextsComponent implements OnInit, OnDestroy {
   }
 
   isDisabled(): boolean {
-    return (
-      !this.managementService.state.power || !this.socketService.isConnected
-    );
+    return !this.socketService.isConnected;
+  }
+
+  isDisabledByIncomeStream(): boolean {
+    // Нет подключения или режим - слушатель и идет вещание
+    return this.isDisabled() || (this.e131_mode === 2 && this.e131_streaming === true);
   }
 
   isDisabled2(): boolean {
     return this.isDisabled() || this.text_index < 0;
+  }
+
+  getPreviewButtonTooltip(): string {
+    return this.managementService.state.isNightClockRunnung()
+      ? this.L.$('В режиме ночных часов просмотр недоступен')
+      : (this.e131_mode === 2 && this.e131_streaming === true
+        ? this.L.$('В режиме приема вещания в группе недоступно')
+        : this.L.$('Просмотр строки без сохранения'));
   }
 
   formatLabel(value: number) {

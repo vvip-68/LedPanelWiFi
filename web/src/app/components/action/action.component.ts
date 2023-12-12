@@ -112,7 +112,7 @@ export class ActionComponent implements OnInit, OnDestroy {
   }
 
   getIndicatorClass(): string {
-    return `indicator state_${this.isActive ? 'ON' : 'OFF'}`
+    return `indicator state_${this.isActive ? 'ON' : 'OFF'}` + (this.managementService.state.e131_mode == 2 && this.managementService.state.e131_streaming === true ? ' streaming' : '');
   }
 
   ngOnDestroy() {

@@ -113,33 +113,37 @@
           </ng-template>
         </mat-tab>
 
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon" matTooltip="{{L.$('Рисование ')}}">brush</mat-icon>
-            <span>{{ L.$('Рисование ') }}</span>
-          </ng-template>
-          <ng-template matTabContent>
-            @defer (on viewport) {
-              <app-tab-draw></app-tab-draw>
-            } @placeholder {
-              <div>{{ L.$('Рисование ') }}</div>
-            }
-          </ng-template>
-        </mat-tab>
+        @if (isInitialized() && !isStreaming()) {
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon" matTooltip="{{L.$('Рисование ')}}">brush</mat-icon>
+              <span>{{ L.$('Рисование ') }}</span>
+            </ng-template>
+            <ng-template matTabContent>
+              @defer (on viewport) {
+                <app-tab-draw></app-tab-draw>
+              } @placeholder {
+                <div>{{ L.$('Рисование ') }}</div>
+              }
+            </ng-template>
+          </mat-tab>
+        }
 
+        @if (isInitialized() && !isStreaming()) {
         <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon class="tab-icon" matTooltip="{{L.$('Игры ')}}">sports_esports</mat-icon>
-            <span>{{ L.$('Игры ') }}</span>
-          </ng-template>
-          <ng-template matTabContent>
-            @defer (on viewport) {
-              <app-tab-games></app-tab-games>
-            } @placeholder {
-              <div>{{ L.$('Игры ') }}</div>
-            }
-          </ng-template>
-        </mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon" matTooltip="{{L.$('Игры ')}}">sports_esports</mat-icon>
+              <span>{{ L.$('Игры ') }}</span>
+            </ng-template>
+            <ng-template matTabContent>
+              @defer (on viewport) {
+                <app-tab-games></app-tab-games>
+              } @placeholder {
+                <div>{{ L.$('Игры ') }}</div>
+              }
+            </ng-template>
+          </mat-tab>
+        }
 
         <mat-tab>
           <ng-template mat-tab-label>

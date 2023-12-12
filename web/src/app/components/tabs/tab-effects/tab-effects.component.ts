@@ -66,10 +66,10 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   autoModeTimeFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 255)]);
   matcher = new AppErrorStateMatcher();
 
-  e131_mode: number = -1;
-  e131_type: number = -1;
-  e131_group: number = -1;
-  e131_streaming: boolean = false;
+  private e131_mode: number = -1;
+  private e131_type: number = -1;
+  private e131_group: number = -1;
+  private e131_streaming: boolean | undefined = undefined;
 
   private destroy$ = new Subject();
 
@@ -153,7 +153,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
               this.e131_group = this.managementService.state.e131_group;
               break;
             case 'E4':
-                this.e131_streaming = this.managementService.state.e131_streaming;
+                this.e131_streaming = this.managementService.state.e131_streaming === true;
                 break;
             case 'EF':
               this.managementService.effects.forEach((effect) => {
@@ -175,9 +175,13 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   }
 
   isDisabled(): boolean {
-    return (
-      !this.managementService.state.power || !this.socketService.isConnected
-    );
+    // Выключено иди нет подключения
+    return !this.managementService.state.power || !this.socketService.isConnected;
+  }
+
+  isDisabledByIncomeStream(): boolean {
+    // Выключено иди нет подключения или режим - слушатель и идет вещание
+    return this.isDisabled() || (this.e131_mode === 2 && this.e131_streaming === true);
   }
 
   showEffectInformation(duration?: number) {
@@ -225,9 +229,17 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   }
 
   getNightClockTooltip() {
-    return this.managementService.state.isNightClockRunnung()  // MC_NIGHT_CLOCK
-      ? this.L.$('Выключить ночные часы')
-      : this.L.$('Включить ночные часы');
+    return this.e131_mode === 2 && this.e131_streaming === true
+    ? this.L.$('В режиме приема вещания в группе недоступно')
+    : (this.managementService.state.isNightClockRunnung()  // MC_NIGHT_CLOCK
+        ? this.L.$('Выключить ночные часы')
+        : this.L.$('Включить ночные часы'));
+  }
+
+  getDisabledTooltip() {
+    return this.e131_mode === 2 && this.e131_streaming === true
+      ? this.L.$('В режиме приема вещания в группе недоступно')
+      : "";
   }
 
   toggleNightClock() {
@@ -285,7 +297,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       case 1:
         return 'master ' + (this.managementService.state.power ? 'power-on' : 'power-off');
       case 2:
-        return 'slave ' + (this.managementService.state.e131_streaming ? 'stream-on' : 'stream-off');
+        return 'slave ' + (this.managementService.state.e131_streaming === true ? 'stream-on' : 'stream-off');
       default:
         return '';
     }
@@ -294,7 +306,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   getPowerButtonClass(): string {
     let str = 'power-btn';
     if (!this.managementService.state.power) {
-      str += this.managementService.state.e131_streaming &&  this.managementService.state.e131_mode == 2 ? ' power-on slave' : ' power-off';
+      str += this.managementService.state.e131_streaming === true &&  this.managementService.state.e131_mode == 2 ? ' power-on slave' : ' power-off';
     } else {
       str += ' power-on';
       switch (this.managementService.state.e131_mode) {
@@ -302,7 +314,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
           str += ' master';
           break;
         case 2:
-          str += this.managementService.state.e131_streaming ? ' slave' : ' standalone';
+          str += this.managementService.state.e131_streaming === true ? ' slave' : ' standalone';
           break;
         default:
           str += ' standalone';
