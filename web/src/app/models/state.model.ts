@@ -151,7 +151,7 @@ export interface IStateModel {
 
 export class StateModel implements IStateModel {
   public version = '';
-  public hostName = 'WiFiPanel';
+  public hostName = '';
   public last_error = '';
   public last_info = '';
   public width = 0;

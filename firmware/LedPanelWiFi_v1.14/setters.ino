@@ -604,6 +604,13 @@ void set_Ssid(const String& value) {
   addKeyToChanged("NW");
 }
 
+// HN - system/host name
+void set_SystemName(const String& value) {
+  putSystemName(value);
+  system_name = value;
+  addKeyToChanged("HN");
+}
+
 // NA|NX pass
 void set_pass(const String& value) {
   putPass(value);

@@ -294,6 +294,9 @@ void loadSettings() {
     ssid = getSsid();                               //          - имя сети WiFi
     pass = getPass();                               //          - пароль сети WiFi
     
+    system_name = getSystemName();                  //          - Отображаемое имя системы
+    if (system_name.length() == 0) system_name = host_name;
+        
     if (strlen(apName) == 0) strcpy(apName, DEFAULT_AP_NAME);
     if (strlen(apPass) == 0) strcpy(apPass, DEFAULT_AP_PASS);
     if (strlen(ntpServerName) == 0) strcpy(ntpServerName, DEFAULT_NTP_SERVER);
@@ -2307,6 +2310,16 @@ uint16_t getAuxLineModes() {
 void putAuxLineModes(uint16_t value) {
   if (value != getAuxLineModes()) {
     EEPROM_int_write(316, value);
+  }
+}
+
+String getSystemName() {
+  return EEPROM_string_read(319, 32);
+}
+
+void putSystemName(const String& name) {
+  if (name != getSystemName()) {
+    EEPROM_string_write(319, name, 32);
   }
 }
 

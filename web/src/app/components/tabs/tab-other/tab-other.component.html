@@ -3,6 +3,31 @@
     <legend>{{ L.$('Прочие настройки') }}</legend>
 
     <div class="field-container">
+      <mat-form-field floatLabel="always">
+        <mat-label>{{ L.$('Имя системы') }}</mat-label>
+        <input matInput autocomplete="new-password" class="left" type="text" [maxLength]="16"
+               [formControl]="systemNameFormControl"
+               [disableControl]="isDisabled()"
+               [errorStateMatcher]="matcher">
+        @if (systemNameFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="field-container">
+      <div class="action-button">
+        <button mat-raised-button color="primary" (click)="applySystemName($event)" [disabled]="isDisabled() || !isSystemNameValid()">{{L.$('Применить')}}</button>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="app-fieldset other-fieldset">
+    <legend>{{ L.$('Прочие настройки') }}</legend>
+
+    <div class="field-container">
       <mat-form-field [hintLabel]="getHintForLimit()" floatLabel="always">
         <mat-label>{{ L.$('Лимит по току') }}</mat-label>
         <input matInput #input2 autocomplete="new-password" class="right" type="number" [min]="0" [max]="50000" [step]="500"

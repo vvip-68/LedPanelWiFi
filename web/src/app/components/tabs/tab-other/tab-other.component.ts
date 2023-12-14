@@ -39,6 +39,7 @@ export class TabOtherComponent implements OnInit, OnDestroy {
   @ViewChild('input2') input2: ElementRef;
 
   autoLimitFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 50000)]);
+  systemNameFormControl = new FormControl('', [Validators.required]);
   matcher = new AppErrorStateMatcher();
 
   fs_allow: boolean = true;
@@ -59,7 +60,7 @@ export class TabOtherComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'PW|FS|SX|EE';
+          const request = 'PW|HN|FS|SX|EE';
           this.managementService.getKeys(request);
         }
       });
@@ -69,6 +70,9 @@ export class TabOtherComponent implements OnInit, OnDestroy {
       .subscribe((key: string) => {
         if (!isNullOrUndefinedOrEmpty(key)) {
           switch (key) {
+            case 'HN':
+              this.systemNameFormControl.setValue(this.managementService.state.hostName);
+              break;
             case 'PW':
               this.autoLimitFormControl.setValue(this.managementService.state.curr_limit);
               break;
@@ -102,11 +106,22 @@ export class TabOtherComponent implements OnInit, OnDestroy {
     return this.autoLimitFormControl.valid;
   }
 
+  isSystemNameValid(): boolean {
+    return this.systemNameFormControl.valid;
+  }
+
   applySettings($event: MouseEvent) {
     const PW = this.managementService.state.curr_limit = Number(this.autoLimitFormControl.value);
 
     // $23 0 VAL;  - лимит по потребляемому току
     this.socketService.sendText(`$23 0 ${PW};`);
+  }
+
+  applySystemName($event: MouseEvent) {
+    const SN = this.managementService.state.hostName = this.systemNameFormControl.value ?? "";
+
+    // $6 19|text;  - имя системы
+    this.socketService.sendText(`$6 19|${SN}`);
   }
 
   loadFrom(from: number) {

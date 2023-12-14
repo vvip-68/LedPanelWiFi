@@ -493,5 +493,6 @@
   "SLAVE, group ": "",
   "В режиме приема вещания в группе недоступно": "Disabled when listen translation from MASTER device",
   "ВКЛ. дополнительную линию питания": "Turn ON auxiliary power line",
-  "ВЫКЛ. дополнительную линию питания": "Turn OFF auxiliary power line"
+  "ВЫКЛ. дополнительную линию питания": "Turn OFF auxiliary power line",
+  "Имя системы": "System name"
 }
