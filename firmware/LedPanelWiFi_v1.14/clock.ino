@@ -1085,6 +1085,7 @@ void calculateDawnTime() {
   if (w == 0) w = 7;
 
   uint8_t cnt = 0;
+  
   while (cnt < 2) {
     cnt++;
     while ((alarmWeekDay & (1 << (alrmWeekDay - 1))) == 0) {
@@ -1097,7 +1098,7 @@ void calculateDawnTime() {
   
     // "Сегодня" время будильника уже прошло? 
     if (alrmWeekDay == w && (h * 60L + m > alrmHour * 60L + alrmMinute)) {
-      alrmWeekDay++;
+      if (alrmWeekDay == w && cnt == 0) alrmWeekDay++;
       if (alrmWeekDay == 8) alrmWeekDay = cnt == 1 ? 1 : 7;
     }
   }
@@ -1271,7 +1272,12 @@ void checkAlarmTime() {
       // специальный режим выключит его и сбросит яркость в 0, так что возобновленная трансляция будет не видна.
       // Восстановить уровень яркости, чтобы трансляция нормально отображалась
       if (isTurnedOff && streaming) {
-       FastLED.setBrightness(getMaxBrightness());
+        // Кадр выведен на экран - очистить матрицу перед вормированием нового кадра
+        // Это нужно для случая -  кадр автономной работы по размерам больше кадра получаемого с мастера
+        // Если не очищать матрицу - при включении вещания мы получим изображение с мастера, но в остальной области останется
+        // изображение кадра с автономной работы           
+        FastLED.clear();  
+        FastLED.setBrightness(getMaxBrightness());
       }
 
     } else {
