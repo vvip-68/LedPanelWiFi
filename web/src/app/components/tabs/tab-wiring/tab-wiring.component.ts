@@ -83,6 +83,8 @@ export class TabWiringComponent implements OnInit, OnDestroy {
   // 2314:X           vDEBUG_SERIAL
   // 2315:X Y         X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
+  // 2317:X Y         X - GPIO пин управления питанием по каналу будильника; Y - уровень управления питанием по каналу будильника - 0 - LOW; 1 - HIGH
+  // 2318:X Y         X - GPIO пин управления питанием по дополнительному каналу; Y - уровень управления питанием по дополнительному каналу - 0 - LOW; 1 - HIGH
 
   assignment: Assignment[] = [
     {id:  0, name: 'N/A'},
@@ -99,7 +101,9 @@ export class TabWiringComponent implements OnInit, OnDestroy {
     {id: 11, name: 'MP3 SRX'},
     {id: 12, name: 'TM1637 CLK'},
     {id: 13, name: 'TM1637 DIO'},
-    {id: 14, name: 'POWER'}
+    {id: 14, name: 'POWER'},
+    {id: 15, name: 'ALARM'},
+    {id: 16, name: 'AUX'}
  ];
 
   controller = "";
@@ -110,36 +114,44 @@ export class TabWiringComponent implements OnInit, OnDestroy {
   supportTM1637 = false;
   supportButton = false;
   supportPower = false;
+  supportAlarmPower = false;
+  supportAuxPower = false;
 
   device_type: number = 1;
   button_type: number = 1;
   power_level: number = 1;
+  power_alarm_level: number = 1;
+  power_aux_level: number = 1;
   wait_play_finished: boolean = false;
   repeat_play: boolean = true;
   debug_serial: boolean = true;
 
-  button_pin:     Pin;
-  power_pin:      Pin;
-  player_tx_pin:  Pin;
-  player_rx_pin:  Pin;
-  tm1637_dio_pin: Pin;
-  tm1637_clk_pin: Pin;
+  button_pin:      Pin;
+  power_pin:       Pin;
+  power_alarm_pin: Pin;
+  power_aux_pin:   Pin;
+  player_tx_pin:   Pin;
+  player_rx_pin:   Pin;
+  tm1637_dio_pin:  Pin;
+  tm1637_clk_pin:  Pin;
 
-  sd_cs_pin:      Pin;
-  sd_miso_pin:    Pin;
-  sd_mosi_pin:    Pin;
-  sd_clk_pin:     Pin;
+  sd_cs_pin:       Pin;
+  sd_miso_pin:     Pin;
+  sd_mosi_pin:     Pin;
+  sd_clk_pin:      Pin;
 
-  button_pin_list:     Pin[] = [];
-  power_pin_list:      Pin[] = [];
-  player_tx_pin_list:  Pin[] = [];
-  player_rx_pin_list:  Pin[] = [];
-  tm1637_dio_pin_list: Pin[] = [];
-  tm1637_clk_pin_list: Pin[] = [];
-  sd_cs_pin_list:      Pin[] = [];
-  sd_miso_pin_list:    Pin[] = [];
-  sd_mosi_pin_list:    Pin[] = [];
-  sd_clk_pin_list:     Pin[] = [];
+  button_pin_list:      Pin[] = [];
+  power_pin_list:       Pin[] = [];
+  power_alarm_pin_list: Pin[] = [];
+  power_aux_pin_list:   Pin[] = [];
+  player_tx_pin_list:   Pin[] = [];
+  player_rx_pin_list:   Pin[] = [];
+  tm1637_dio_pin_list:  Pin[] = [];
+  tm1637_clk_pin_list:  Pin[] = [];
+  sd_cs_pin_list:       Pin[] = [];
+  sd_miso_pin_list:     Pin[] = [];
+  sd_mosi_pin_list:     Pin[] = [];
+  sd_clk_pin_list:      Pin[] = [];
 
   lines: LineParameters[] = [];
 
@@ -176,6 +188,8 @@ export class TabWiringComponent implements OnInit, OnDestroy {
     public L: LanguagesService) {
       this.button_pin = this.createEmptyPin();
       this.power_pin = this.createEmptyPin();
+      this.power_alarm_pin = this.createEmptyPin();
+      this.power_aux_pin = this.createEmptyPin();
       this.player_tx_pin = this.createEmptyPin();
       this.player_rx_pin = this.createEmptyPin();
       this.tm1637_dio_pin = this.createEmptyPin();
@@ -206,7 +220,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'MC|MZ|SZ|TM|UB|PZ';
+          const request = 'MC|MZ|SZ|TM|UB|PZ0|PZ1|PZ2';
           this.managementService.getKeys(request);
         }
       });
@@ -218,7 +232,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
           switch (key) {
             case 'MC':
               this.setControllerType();
-              const request = '2306|2307|2308|2309|2310|2311|2312|2313|2314|2315|2316';
+              const request = '2306|2307|2308|2309|2310|2311|2312|2313|2314|2315|2316|2317|2318';
               this.managementService.getKeys(request);
               break;
             case 'MZ':
@@ -251,7 +265,9 @@ export class TabWiringComponent implements OnInit, OnDestroy {
               break;
             case 'TM':   this.supportTM1637 = this.managementService.state.supportTM1637; break;
             case 'UB':   this.supportButton = this.managementService.state.supportButton; break;
-            case 'PZ':   this.supportPower  = this.managementService.state.supportPower; break;
+            case 'PZ0':  this.supportPower  = this.managementService.state.supportPower; break;
+            case 'PZ1':  this.supportAlarmPower = this.managementService.state.supportAlarmPower; break;
+            case 'PZ2':  this.supportAuxPower= this.managementService.state.supportAuxPower; break;
             case '2306': this.setLineParams(1, this.managementService.state.led_line_1); break;
             case '2307': this.setLineParams(2, this.managementService.state.led_line_2); break;
             case '2308': this.setLineParams(3, this.managementService.state.led_line_3); break;
@@ -301,6 +317,18 @@ export class TabWiringComponent implements OnInit, OnDestroy {
               if (this.supportTM1637) {
                 this.tm1637_dio_pin = this.assignPin(this.managementService.state.tm1637_dio_pin, 'TM1637 DIO');
                 this.tm1637_clk_pin = this.assignPin(this.managementService.state.tm1637_clk_pin, 'TM1637 CLK');
+              }
+              break;
+            case '2317':
+              if (this.supportAlarmPower) {
+                this.power_alarm_pin = this.assignPin(this.managementService.state.power_alarm_pin, 'ALARM');
+                this.power_alarm_level = this.managementService.state.power_alarm_level;
+              }
+              break;
+            case '2318':
+              if (this.supportAuxPower) {
+                this.power_aux_pin = this.assignPin(this.managementService.state.power_aux_pin, 'AUX');
+                this.power_aux_level = this.managementService.state.power_aux_level;
               }
               break;
           }
@@ -417,6 +445,8 @@ export class TabWiringComponent implements OnInit, OnDestroy {
   private rebuildFreePins() {
     this.button_pin_list = this.updateFreePins(this.button_pin);
     this.power_pin_list = this.updateFreePins(this.power_pin);
+    this.power_alarm_pin_list = this.updateFreePins(this.power_alarm_pin);
+    this.power_aux_pin_list = this.updateFreePins(this.power_aux_pin);
     this.player_tx_pin_list = this.updateFreePins(this.player_tx_pin);
     this.player_rx_pin_list = this.updateFreePins(this.player_rx_pin);
     this.tm1637_dio_pin_list = this.updateFreePins(this.tm1637_dio_pin);
@@ -452,7 +482,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
           if (idx !== -1) this.button_pin_list.splice(idx, 1);
         }
       }
-      // Управление питанием
+      // Управление питанием матрицы
       if (this.supportPower) {
         // Управление питанием (реле) не может работать на пинах D3(0), D4(2), D10/TX(1)
         idx = this.power_pin_list.findIndex(p => p.gpio === 0);
@@ -461,6 +491,26 @@ export class TabWiringComponent implements OnInit, OnDestroy {
         if (idx !== -1) this.power_pin_list.splice(idx, 1);
         idx = this.power_pin_list.findIndex(p => p.gpio === 2);
         if (idx !== -1) this.power_pin_list.splice(idx, 1);
+      }
+      // Управление питанием по линии будильника
+      if (this.supportAlarmPower) {
+        // Управление питанием (реле) не может работать на пинах D3(0), D4(2), D10/TX(1)
+        idx = this.power_alarm_pin_list.findIndex(p => p.gpio === 0);
+        if (idx !== -1) this.power_alarm_pin_list.splice(idx, 1);
+        idx = this.power_alarm_pin_list.findIndex(p => p.gpio === 1);
+        if (idx !== -1) this.power_alarm_pin_list.splice(idx, 1);
+        idx = this.power_alarm_pin_list.findIndex(p => p.gpio === 2);
+        if (idx !== -1) this.power_alarm_pin_list.splice(idx, 1);
+      }
+      // Управление питанием по дополнительной линии
+      if (this.supportAuxPower) {
+        // Управление питанием (реле) не может работать на пинах D3(0), D4(2), D10/TX(1)
+        idx = this.power_aux_pin_list.findIndex(p => p.gpio === 0);
+        if (idx !== -1) this.power_aux_pin_list.splice(idx, 1);
+        idx = this.power_aux_pin_list.findIndex(p => p.gpio === 1);
+        if (idx !== -1) this.power_aux_pin_list.splice(idx, 1);
+        idx = this.power_aux_pin_list.findIndex(p => p.gpio === 2);
+        if (idx !== -1) this.power_aux_pin_list.splice(idx, 1);
       }
       // TM1637
       if (this.supportTM1637) {
@@ -571,7 +621,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
     // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
     // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
     //         Ux - 1 - использовать линию, 0 - линия не используется
-    //         Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+    //         Px - пин GPIO, на который назначен вывод сигнала на матрицу для линии х
     //         Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
     //         Lx - длина цепочки светодиодов, подключенной к линии x
     let pin = this.lines[0].pin.gpio;
@@ -615,12 +665,28 @@ export class TabWiringComponent implements OnInit, OnDestroy {
       this.socketService.sendText(`$23 11 ${this.button_pin.gpio} ${this.button_type};`);
     }
 
-    // Управление питанием
-    // - $23 12 X Y; - управление питанием
+    // Управление питанием матрицы
+    // - $23 12 X Y; - управление питанием матрицы
     //         X - GPIO пин к которому подключено реле управления питанием
     //         Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
     if (this.supportPower) {
       this.socketService.sendText(`$23 12 ${this.power_pin.gpio} ${this.power_level};`);
+    }
+
+    // Управление питанием по линии будильника
+    // - $23 17 X Y; - управление питанием по линии будильника
+    //         X - GPIO пин к которому подключено реле управления питанием
+    //         Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+    if (this.supportAlarmPower) {
+      this.socketService.sendText(`$23 17 ${this.power_alarm_pin.gpio} ${this.power_alarm_level};`);
+    }
+
+    // Управление питанием по дополнительной линии
+    // - $23 18 X Y; - управление питанием по дополнительной линии
+    //         X - GPIO пин к которому подключено реле управления питанием
+    //         Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+    if (this.supportAuxPower) {
+      this.socketService.sendText(`$23 18 ${this.power_aux_pin.gpio} ${this.power_aux_level};`);
     }
 
     // SD-карта

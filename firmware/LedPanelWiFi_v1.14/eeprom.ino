@@ -142,8 +142,15 @@ void loadSettings() {
   // 308 - DFPlayer SRX
   // 309 - DIO TM1637
   // 310 - CLK TM1627
-  // 311 - активный уровень сигнала управления аитанием  
-  // **312 - не используется
+  // 311 - активный уровень сигнала управления питанием  
+  // 312 - ALARM_PIN - пин вывода при срабатывании будильника
+  // 313 - активный уровень сигнала на пине управления будильника
+  // 314 - AUX_PIN - пин вывода дополнительного управления
+  // 315 - активный уровень сигнала на пине дополнительного управления
+  // 316,317 - битовая маска включения дополнительного пина по режимам 00 00 00 00, где  b0,b2,b4,b6 0 - включить пин, 1 - выключить пин; b1,b3,b5,b7 - включен режим времени (1) или нет (0). b1,b0 - Режим 1 .. b7,b6 - Режим 4
+  // 318 - текущее состояние дополнительной линии 0 - выключена; 1 - включена
+  // 319-350 - 16 символов UTF8 имени устройства (строка)
+  // **351 - не используется
   //  ...
   //**399 - не используется
   //  400 - 400+(Nэфф*10)   - скорость эффекта
@@ -212,7 +219,9 @@ void loadSettings() {
       OVERLAY_SIZE =   pWIDTH * 18;                    // высота шрифта 13 + 3 строки диакритич символов над знакоместом и две - под знакоместом
     #endif
     
-    globalBrightness = getMaxBrightness();
+    globalBrightness    = getMaxBrightness();
+    isAuxActive         = getAuxLineState(); 
+    auxLineModes        = getAuxLineModes();
 
     autoplayTime        = getAutoplayTime();
     idleTime            = getIdleTime();
@@ -475,6 +484,9 @@ void saveDefaults() {
   putAM5effect(dawn_effect_id);         // Режим по времени "Рассвет" - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
   putAM6effect(dusk_effect_id);         // Режим по времени "Закат"   - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
 
+  putAuxLineState(false); 
+  putAuxLineModes(0);
+
 #if (USE_WEATHER == 1)       
   putUseWeather(useWeather);
   putWeatherRegion(regionID);
@@ -516,9 +528,18 @@ void loadWiring() {
   vBUTTON_TYPE = getButtonType();              // BUTTON_TYPE
   vWAIT_PLAY_FINISHED = getWaitPlayFinished(); // WAIT_PLAY_FINISHED
   vREPEAT_PLAY = getRepeatPlay();              // REPEAT_PLAY  
+
   vPOWER_ON = getPowerActiveLevel();           // POWER_ON 
   vPOWER_OFF = vPOWER_ON == HIGH ? LOW : HIGH; // POWER_OFF
   vPOWER_PIN = getPowerPin();                  // POWER_PIN
+
+  vALARM_ON = getAlarmActiveLevel();           // ALARM_ON 
+  vALARM_OFF = vALARM_ON == HIGH ? LOW : HIGH; // ALARM_OFF
+  vALARM_PIN = getAlarmPin();                  // ALARM_PIN
+
+  vAUX_ON = getAuxActiveLevel();               // AUX_ON 
+  vAUX_OFF = vAUX_ON == HIGH ? LOW : HIGH;     // AUX_OFF
+  vAUX_PIN = getAuxPin();                      // AUX_PIN  
 }
 
 // Инициализация параметров приложения, описывающих типы оборудования и пины подключения
@@ -529,7 +550,13 @@ void initializeWiring() {
   putButtonType(BUTTON_TYPE);
   putWaitPlayFinished(WAIT_PLAY_FINISHED == 1);
   putRepeatPlay(REPEAT_PLAY == 1);
+
   putPowerActiveLevel(POWER_ON);                    // Активный уровень HIGH (1) / LOW (0) для POWER_ON; POWER_OFF - противоположное значение 
+  putAlarmActiveLevel(ALARM_ON);                    // Активный уровень HIGH (1) / LOW (0) для ALARM_ON; ALARM_OFF - противоположное значение 
+  putAlarmActiveLevel(AUX_ON);                      // Активный уровень HIGH (1) / LOW (0) для AUX_ON; AUX_OFF - противоположное значение 
+
+  putAuxLineState(false);                           // Начальное состояние дополнительной линии управления питанием - выключено  
+  putAuxLineModes(0);                               // Использование дополнительной линии управления питанием - выключено для всех режимов  
   
   // Инициализировать пины подключения
   // По умолчанию - используется единственная линия, все светодиоды назначены на нее
@@ -554,12 +581,47 @@ void initializeWiring() {
   putLedLineStartIndex(4, 0);                       // Индекс начала вывода - N/A   
   putLedLineLength(4, NUM_LEDS);                    // Длина сегмента - N/A
 
-  putButtonPin(PIN_BTN);                            // Пин подключения кнопки
-  putPowerPin(POWER_PIN);                           // Пин подключения управления питанием
-  putDFPlayerSTXPin(STX);                           // Пин TX для отправки на DFPlayer - подключено к RX плеера
-  putDFPlayerSRXPin(SRX);                           // Пин RX для получения данных с DFPlayer - подключено к TX плеера
-  putTM1637DIOPin(DIO);                             // Пин DIO индикатора TM1637
-  putTM1637CLKPin(CLK);                             // Пин CLK индикатора TM1637
+  #if (USE_BTN == 1)
+    putButtonPin(PIN_BTN);                          // Пин подключения кнопки
+  #else
+    putButtonPin(-1);                               // Пин подключения кнопки
+  #endif
+
+  #if (USE_MP3 == 1)
+    putDFPlayerSTXPin(STX);                         // Пин TX для отправки на DFPlayer - подключено к RX плеера
+    putDFPlayerSRXPin(SRX);                         // Пин RX для получения данных с DFPlayer - подключено к TX плеера
+  #else
+    putDFPlayerSTXPin(-1);                          // Пин TX для отправки на DFPlayer - подключено к RX плеера
+    putDFPlayerSRXPin(-1);                          // Пин RX для получения данных с DFPlayer - подключено к TX плеера
+  #endif
+  
+  #if (USE_TM1637 == 1)
+    putTM1637DIOPin(DIO);                           // Пин DIO индикатора TM1637
+    putTM1637CLKPin(CLK);                           // Пин CLK индикатора TM1637
+  #else
+    putTM1637DIOPin(-1);                            // Пин DIO индикатора TM1637
+    putTM1637CLKPin(-1);                            // Пин CLK индикатора TM1637
+  #endif
+
+
+  #if (USE_POWER == 1)
+    putPowerPin(POWER_PIN);                         // Пин подключения управления питанием матрицы
+  #else
+    putPowerPin(-1);                                // Пин подключения управления питанием матрицы
+  #endif
+
+  
+  #if (USE_ALARM == 1)
+    putAlarmPin(ALARM_PIN);                         // Пин подключения управления питанием - линия будильника
+  #else
+    putAlarmPin(-1);                                // Пин подключения управления питанием - линия будильника
+  #endif
+
+  #if (USE_ALARM == 1)
+    putAuxPin(AUX_PIN);                             // Пин подключения управления питанием - линия дополнительного управления
+  #else
+    putAuxPin(-1);                                  // Пин подключения управления питанием - линия дополнительного управления
+  #endif  
 }
 
 void putMatrixMapWidth(uint8_t width) {
@@ -2109,15 +2171,39 @@ void putRepeatPlay(uint8_t value) {
   }
 }
 
-// Пин подключения выхода на реле
+// Пин подключения выхода на реле управления питанием матрицы
 int8_t getPowerPin() {
   return (int8_t)EEPROMread(306);
 }
 
-// Пин подключения выхода на реле
+// Пин подключения выхода на реле управления питанием матрицы
 void putPowerPin(int8_t value) {
   if (value != (int8_t)getPowerPin()) {
     EEPROMwrite(306, value);
+  }
+}
+
+// Пин подключения выхода на реле управления по линии будильника
+int8_t getAlarmPin() {
+  return (int8_t)EEPROMread(312);
+}
+
+// Пин подключения выхода на реле управления по линии будильника
+void putAlarmPin(int8_t value) {
+  if (value != (int8_t)getAlarmPin()) {
+    EEPROMwrite(312, value);
+  }
+}
+
+// Пин подключения выхода на реле управления по дополнительной линии
+int8_t getAuxPin() {
+  return (int8_t)EEPROMread(314);
+}
+
+// Пин подключения выхода на реле управления по дополнительной линии
+void putAuxPin(int8_t value) {
+  if (value != (int8_t)getAuxPin()) {
+    EEPROMwrite(314, value);
   }
 }
 
@@ -2177,6 +2263,50 @@ uint8_t getPowerActiveLevel() {
 void putPowerActiveLevel(uint8_t value) {
   if (value != getPowerActiveLevel()) {
     EEPROMwrite(311, value);
+  }
+}
+
+// Активный уровень управляющего сигнала на управление по линии будильника - HIGH - 0x01 или LOW - 0x00
+uint8_t getAlarmActiveLevel() {
+  return EEPROMread(313) == HIGH ? HIGH : LOW;
+}
+
+void putAlarmActiveLevel(uint8_t value) {
+  if (value != getAlarmActiveLevel()) {
+    EEPROMwrite(313, value);
+  }
+}
+
+// Активный уровень управляющего сигнала на управление по дополнительной линии - HIGH - 0x01 или LOW - 0x00
+uint8_t getAuxActiveLevel() {
+  return EEPROMread(315) == HIGH ? HIGH : LOW;
+}
+
+void putAuxActiveLevel(uint8_t value) {
+  if (value != getAuxActiveLevel()) {
+    EEPROMwrite(315, value);
+  }
+}
+
+// Текущее состояние линии дополнительного управлления питанием
+bool getAuxLineState() {
+  return EEPROMread(318) != 0;    // 0 - выключена; 1 - включено
+}
+
+void putAuxLineState(bool value) {
+  if (value != getAuxLineState()) {
+    EEPROMwrite(318, value ? 1 : 0);
+  }
+}
+
+// Использование дополнительной линии управления питанием - для всех режимов  
+uint16_t getAuxLineModes() {
+  return EEPROM_int_read(316);
+}
+
+void putAuxLineModes(uint16_t value) {
+  if (value != getAuxLineModes()) {
+    EEPROM_int_write(316, value);
   }
 }
 

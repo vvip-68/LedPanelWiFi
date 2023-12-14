@@ -1,6 +1,6 @@
 <div class="card" [ngClass]="{'disabled': disabled, 'active': model.active, 'choosing': choosing, 'streaming': isStreaming()}" [matTooltip]="getDisabledTooltip()">
   <div class="card-content">
-    <div class="card-name" [ngClass]="{'disabled': disabled, 'streaming': isStreaming()}" (click)="activate()"><p>{{model.name}}</p></div>
+    <div class="card-name" [ngClass]="{'disabled': disabled, 'active': model.active, 'streaming': isStreaming()}" (click)="activate()"><p>{{model.name}}</p></div>
     <mat-icon class="settings" [ngClass]="{'disabled': disabled}" matTooltip="{{L.$('Настройки')}}" matTooltipPosition="below" (click)="settings()">settings</mat-icon>
   </div>
 </div>

@@ -41,6 +41,28 @@ void set_isTurnedOff(bool value) {
   #endif
 }
 
+// FK isAuxActive
+void set_isAuxActive(bool value) {
+  if (isAuxActive == value) return;
+  isAuxActive = value;
+  putAuxLineState(value);
+  addKeyToChanged("FK");
+  #if (USE_E131 == 1)
+    commandAuxActive(value);
+  #endif
+  DEBUG(F("Питaние дополнительной линии "));
+  if (isAuxActive) { DEBUGLN(F("включено"));  }
+  else             { DEBUGLN(F("выключено")); }
+}
+
+// FG состояние режимов линии управления - битовая маска
+void set_AuxLineModes(uint16_t value) {
+  if (auxLineModes == value) return;
+  auxLineModes = value;
+  putAuxLineModes(value);
+  addKeyToChanged("FG");
+}
+
 // BR isNightClock
 void set_isNightClock(bool value) {
   if (isNightClock == value) return;
@@ -99,7 +121,7 @@ void set_idleTime(uint32_t value) {
 void set_isAlarming(bool value) {
   if (isAlarming == value) return;
   isAlarming = value;
-  addKeyToChanged("AL");
+  addKeyToChanged("AL");  
 }
 
 // AL isPlayAlarmSound

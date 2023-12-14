@@ -474,7 +474,7 @@
 
     @if (supportButton) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label">
+        <div class="toggler-label pin-name">
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="button_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
@@ -499,7 +499,7 @@
       </div>
     }
 
-    @if (supportPower) {
+    @if (supportPower || supportAlarmPower || supportAuxPower) {
       <div class="section-header">
         <h3>{{ L.$('Управление питанием') }}</h3>
       </div>
@@ -507,8 +507,8 @@
 
     @if (supportPower) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label">
-          <p>{{L.$('Пин:')}}</p>
+        <div class="toggler-label pin-name">
+          <p>{{L.$('POWER:')}}</p>
         </div>
         <mat-select [ngModel]="power_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
                     (valueChange)="unassignPin(power_pin.gpio); power_pin = assignPin($event, 'POWER'); updateRxTxUsage();">
@@ -521,7 +521,59 @@
         <div class="toggler-label left-space">
           <p>{{L.$('Тип:')}}</p>
         </div>
-        <mat-select [(ngModel)]="button_type" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
+        <mat-select [(ngModel)]="power_level" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          @for (item of this.power_type_list; track item) {
+            <mat-option [value]="item.value">
+              {{item.displayText}}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
+
+    @if (supportAlarmPower) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label pin-name">
+          <p>{{L.$('ALARM:')}}</p>
+        </div>
+        <mat-select [ngModel]="power_alarm_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(power_alarm_pin.gpio); power_alarm_pin = assignPin($event, 'ALARM');">
+          @for (pin of this.power_alarm_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label left-space">
+          <p>{{L.$('Тип:')}}</p>
+        </div>
+        <mat-select [(ngModel)]="power_alarm_level" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
+          @for (item of this.power_type_list; track item) {
+            <mat-option [value]="item.value">
+              {{item.displayText}}
+            </mat-option>
+          }
+        </mat-select>
+      </div>
+    }
+
+    @if (supportAuxPower) {
+      <div class="toggler-container led-lines">
+        <div class="toggler-label pin-name">
+          <p>{{L.$('AUX:')}}</p>
+        </div>
+        <mat-select [ngModel]="power_aux_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
+                    (valueChange)="unassignPin(power_aux_pin.gpio); power_aux_pin = assignPin($event, 'AUX');">
+          @for (pin of this.power_aux_pin_list; track pin) {
+            <mat-option [value]="pin.gpio">
+              {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <div class="toggler-label left-space">
+          <p>{{L.$('Тип:')}}</p>
+        </div>
+        <mat-select [(ngModel)]="power_aux_level" class="wide" panelClass="app-select-panel" [disableControl]="isDisabled()">
           @for (item of this.power_type_list; track item) {
             <mat-option [value]="item.value">
               {{item.displayText}}

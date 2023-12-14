@@ -18,6 +18,7 @@
 #define CMD_TEXTSPEED     14
 #define CMD_CLOCKSPEED    15
 #define CMD_CURBRIGHTNESS 16
+#define CMD_AUXACTIVE     17
 
 // ---------------------------------------------------
 // Инициализация протокола E1.31 для устройства в роли приемника или передатчика
@@ -179,6 +180,7 @@ bool drawE131frame(e131_packet_t *packet, eSyncModes syncMode) {
       }
     } 
   }
+
   return true;
 }
 
@@ -377,6 +379,11 @@ void processCommandPacket(e131_packet_t *packet) {
       //DEBUGLN("GOT CMD_TURNONOFF");
       break;
 
+    case CMD_AUXACTIVE:
+      set_isAuxActive(packet->property_values[4] == 0);
+      //DEBUGLN("GOT CMD_AUXACTIVE");
+      break;
+
     // Установить яркость
     case CMD_BRIGHTNESS:
       set_globalBrightness(packet->property_values[4]);
@@ -535,6 +542,17 @@ void commandTurnOnOff(bool value) {
   delay(5);
   free(packet);  
   //DEBUGLN("SEND CMD_TURNONOFF");
+}
+
+void commandAuxActive(bool value) {
+  if (workMode != MASTER) return;
+  e131_packet_t *packet = makeCommandPacket(CMD_AUXACTIVE);
+  if (!packet) return;
+  packet->property_values[4] = value ? 1 :0;
+  e131->sendPacket(packet, 1, 170);
+  delay(5);
+  free(packet);  
+  //DEBUGLN("SEND CMD_AUXACTIVE");
 }
 
 void commandSetBrightness(uint8_t value) {

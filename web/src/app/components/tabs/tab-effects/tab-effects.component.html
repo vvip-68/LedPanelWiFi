@@ -112,18 +112,31 @@
 
           <div class="clock-button-spacer"></div>
 
-          <div class="block-params mode-params clock-button" [matTooltip]="getNightClockTooltip()">
-            <button mat-raised-button color="primary" class="night"
-                    [ngClass]="{'active': managementService.state.isNightClockRunnung(), 'disabled': isDisabledByIncomeStream()}"
-                    [disabled]="isDisabledByIncomeStream()" (click)="toggleNightClock()">
-              <mat-icon>snooze</mat-icon>
-              @if (!managementService.state.isNightClockRunnung()) {
-                <span>{{ L.$('Включить ночные часы') }}</span>
-              }
-              @if (managementService.state.isNightClockRunnung()) {
-                <span>{{ L.$('Ночные часы. Выключить.') }}</span>
-              }
-            </button>
+          <div style="display:flex;flex-direction:row">
+            <div class="block-params mode-params clock-button" [matTooltip]="getNightClockTooltip()">
+              <button mat-raised-button color="primary" class="night"
+                      [ngClass]="{'active': managementService.state.isNightClockRunnung(), 'disabled': isDisabledByIncomeStream()}"
+                      [disabled]="isDisabledByIncomeStream()" (click)="toggleNightClock()">
+                <mat-icon>snooze</mat-icon>
+                @if (!managementService.state.isNightClockRunnung()) {
+                  <span>{{ L.$('Включить ночные часы') }}</span>
+                }
+                @if (managementService.state.isNightClockRunnung()) {
+                  <span>{{ L.$('Ночные часы. Выключить.') }}</span>
+                }
+              </button>
+            </div>
+
+            <div style="width:12px"></div>
+
+            <div class="block-params mode-params aux-button" [matTooltip]="getAuxTooltip()">
+              <button mat-raised-button color="primary" class="aux"
+                      [ngClass]="{'active': isAuxActive, 'disabled': isDisabled()}"
+                      [disabled]="isDisabled()" (click)="toggleAuxLine()">
+                <mat-icon>power_settings_new</mat-icon>
+                <span>{{ L.$('AUX') }}</span>
+              </button>
+            </div>
           </div>
 
         </div>

@@ -2,7 +2,15 @@
   <fieldset class="app-fieldset modes-fieldset">
     <legend>{{ L.$('Режимы по времени') }}</legend>
 
-    <div class="field-container">
+    @if (supportAuxLine) {
+      <div class="aux-title">
+        <span>{{ L.$('AUX') }}</span>
+        <span>&nbsp;&nbsp;&nbsp;</span>
+        <span>{{ L.$('ВКЛ/ВЫКЛ') }}</span>
+      </div>
+    }
+
+    <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Режим 1') }}</mat-label>
         <input matInput [ngxMatTimepicker]="picker1" readonly [format]="24" [(ngModel)]="mode1_time" [disableControl]="isDisabled()">
@@ -12,15 +20,22 @@
       <mat-form-field floatLabel="always" class="select">
         <mat-select [(ngModel)]="mode1_effect" panelClass="app-select-panel" [disableControl]="isDisabled()">
           @for (effect of effects; track effect; let i = $index) {
-            <mat-option [value]="effect.value" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
+            <mat-option [value]="effect.value" [ngClass]="{'aux':supportAuxLine}" [ngStyle]="{'font-weight': i < 4 ? 'bold' : 'normal', 'font-size': i < 4 ? '13px' : '12px'}">
               {{effect.displayText}}
             </mat-option>
           }
         </mat-select>
       </mat-form-field>
+
+      @if (supportAuxLine) {
+        <div class="aux-ctrls">
+          <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode1AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 1)"></mat-slide-toggle>
+          <mat-checkbox class="example-margin" [(ngModel)]="isMode1AuxOn" [disableControl]="isDisabled() || !isMode1AuxUse" color="primary"></mat-checkbox>
+        </div>
+      }
     </div>
 
-    <div class="field-container">
+    <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Режим 2') }}</mat-label>
         <input matInput [ngxMatTimepicker]="picker2" readonly [format]="24" [(ngModel)]="mode2_time" [disableControl]="isDisabled()">
@@ -36,9 +51,16 @@
           }
         </mat-select>
       </mat-form-field>
+
+      @if (supportAuxLine) {
+        <div class="aux-ctrls">
+          <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode2AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 2)"></mat-slide-toggle>
+          <mat-checkbox class="example-margin" [(ngModel)]="isMode2AuxOn" [disableControl]="isDisabled() || !isMode2AuxUse" color="primary"></mat-checkbox>
+        </div>
+      }
     </div>
 
-    <div class="field-container">
+    <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Режим 3') }}</mat-label>
         <input matInput [ngxMatTimepicker]="picker3" readonly [format]="24" [(ngModel)]="mode3_time" [disableControl]="isDisabled()">
@@ -54,9 +76,16 @@
           }
         </mat-select>
       </mat-form-field>
+
+      @if (supportAuxLine) {
+        <div class="aux-ctrls">
+          <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode3AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 3)"></mat-slide-toggle>
+          <mat-checkbox class="example-margin" [(ngModel)]="isMode3AuxOn" [disableControl]="isDisabled() || !isMode3AuxUse" color="primary"></mat-checkbox>
+        </div>
+      }
     </div>
 
-    <div class="field-container">
+    <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
       <mat-form-field floatLabel="always">
         <mat-label>{{ L.$('Режим 4') }}</mat-label>
         <input matInput [ngxMatTimepicker]="picker4" readonly [format]="24" [(ngModel)]="mode4_time" [disableControl]="isDisabled()">
@@ -72,10 +101,17 @@
           }
         </mat-select>
       </mat-form-field>
+
+      @if (supportAuxLine) {
+        <div class="aux-ctrls">
+          <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode4AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 4)"></mat-slide-toggle>
+          <mat-checkbox class="example-margin" [(ngModel)]="isMode4AuxOn" color="primary" [disableControl]="isDisabled() || !isMode4AuxUse"></mat-checkbox>
+        </div>
+      }
     </div>
 
     @if (supportWeather) {
-      <div class="field-container">
+      <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
         <mat-form-field floatLabel="always">
           <mat-label><b>{{ L.$('Рассвет') }}</b></mat-label>
           <input matInput readonly [(ngModel)]="mode5_time" [disableControl]="isDisabled()">
@@ -90,11 +126,18 @@
             }
           </mat-select>
         </mat-form-field>
+
+        @if (supportAuxLine) {
+          <div class="aux-ctrls">
+            <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode5AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 5)"></mat-slide-toggle>
+            <mat-checkbox class="example-margin" [(ngModel)]="isMode5AuxOn" color="primary" [disableControl]="isDisabled() || !isMode5AuxUse"></mat-checkbox>
+          </div>
+        }
       </div>
     }
 
     @if (supportWeather) {
-      <div class="field-container">
+      <div class="field-container" [ngClass]="{'aux': supportAuxLine}">
         <mat-form-field floatLabel="always">
           <mat-label><b>{{ L.$('Закат') }}</b></mat-label>
           <input matInput readonly [(ngModel)]="mode6_time" [disableControl]="isDisabled()">
@@ -109,6 +152,13 @@
             }
           </mat-select>
         </mat-form-field>
+
+        @if (supportAuxLine) {
+          <div class="aux-ctrls">
+            <mat-slide-toggle class="aux-switch" [(ngModel)]="isMode6AuxUse" [disableControl]="isDisabled()" (change)="toggleChange($event, 6)"></mat-slide-toggle>
+            <mat-checkbox class="example-margin" [(ngModel)]="isMode6AuxOn" [disableControl]="isDisabled() || !isMode6AuxUse" color="primary"></mat-checkbox>
+          </div>
+        }
       </div>
     }
 

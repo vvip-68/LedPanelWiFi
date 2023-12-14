@@ -84,6 +84,9 @@ void process() {
       } else {
         masterWidth = 0;
         masterHeight = 0;
+        if (isTurnedOff) {
+          FastLED.setBrightness(getMaxBrightness());
+        }
         if (syncMode == COMMAND)
           DEBUGLN(F("Ожидание поступления потока команд E1.31...\n"));        
         else
@@ -379,7 +382,16 @@ void process() {
         // будет выведена "каша", но хотя бы видно, что устройство не зависло...
         
         if (syncMode == PHYSIC || syncMode == LOGIC) {
-          if (CURRENT_UNIVERSE == START_UNIVERSE) FastLED.show();
+          if (CURRENT_UNIVERSE == START_UNIVERSE) {
+            // При получении первого фрейма группы - вывести на матрицу накопленный кадр
+            FastLEDshow();
+            // Кадр выведен на экран - очистить матрицу перед вормированием нового кадра
+            // Это нужно для случая -  кадр автономной работы по размерам больше кадра получаемого с мастера
+            // Если не очищать матрицу - при включении вещания мы получим изображение с мастера, но в остальной области останется
+            // изображение кадра с автономной работы           
+            FastLED.clear();  
+          }
+          // Поместить полученный кадр в буфер светодиодов
           drawE131frame(&e131_packet, syncMode);
         }
       }
@@ -391,24 +403,24 @@ void process() {
       // Сформировать и вывести на матрицу текущий демо-режим
       // При яркости = 1 остаются гореть только красные светодиоды и все эффекты теряют вид.
       // поэтому отображать эффект "ночные часы"
-      uint8_t br = specialMode ? specialBrightness : globalBrightness;
-      if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
-        if (allowHorizontal || allowVertical) 
-          customRoutine(MC_CLOCK);    
-        else {
-          FastLED.clear();  
-          FastLEDshow();
-          delay(10);
+      if (isTurnedOff && !(isAlarming || isPlayAlarmSound)) {
+        FastLED.clear();  
+        FastLEDshow();
+      } else {
+        uint8_t br = specialMode ? specialBrightness : globalBrightness;
+        if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
+          if (allowHorizontal || allowVertical) {
+            customRoutine(MC_CLOCK);    
+          } else {
+            FastLED.clear();  
+            FastLEDshow();
+          }
+        } else {    
+          customRoutine(thisMode);
         }
-      } else {    
-        customRoutine(thisMode);
       }
-    } else {
-      FastLED.clear();
-      FastLEDshow();
-      delay(10);
     }
-
+  
     clockTicker();
     
     checkAlarmTime();
@@ -502,7 +514,27 @@ void process() {
            one_click_time = 0;
          }          
        }
-        
+    
+       #if (USE_ALARM == 1)
+         if (vALARM_PIN >= 0) {
+           if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
+             digitalWrite(vALARM_PIN, vALARM_ON);
+           } else {
+             digitalWrite(vALARM_PIN, vALARM_OFF);
+           }
+         }  
+       #endif      
+
+       #if (USE_AUX == 1)
+         if (vAUX_PIN >= 0) {
+           if (isAuxActive) {
+             digitalWrite(vAUX_PIN, vAUX_ON);
+           } else {
+             digitalWrite(vAUX_PIN, vAUX_OFF);
+           }
+         }  
+       #endif      
+
        // Прочие клики работают только если не выключено
        if (isTurnedOff) {
           // Выключить питание матрицы
@@ -842,7 +874,7 @@ void parsing() {
         - $23 11 X Y; - кнопка 
              X - GPIO пин к которому подключена кнопка
              Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
-        - $23 12 X Y; - управление питанием
+        - $23 12 X Y; - управление питанием матрицы
              X - GPIO пин к которому подключено реле управления питанием
              Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
         - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
@@ -855,6 +887,14 @@ void parsing() {
         - $23 16 X Y;  - Подключение пинов TM1637
              X - DIO - GPIO пин контроллера к DIO индикатора
              Y - CLK - GPIO пин контроллера к CLK индикатора
+        - $23 17 X Y; - управление питанием по линии будтльника
+             X - GPIO пин к которому подключено реле управления питанием
+             Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+        - $23 18 X Y; - управление питанием по дополнительной линии
+             X - GPIO пин к которому подключено реле управления питанием
+             Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+        - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
+        - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
   */  
 
   // Если прием данных завершен и управляющая команда в intData[0] распознана
@@ -2362,7 +2402,7 @@ void parsing() {
       // - $23 11 X Y; - кнопка 
       //     X - GPIO пин к которому подключена кнопка
       //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
-      // - $23 12 X Y; - управление питанием
+      // - $23 12 X Y; - управление питанием матрицы
       //     X - GPIO пин к которому подключено реле управления питанием
       //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
       // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
@@ -2375,19 +2415,22 @@ void parsing() {
       // - $23 16 X Y;  - Подключение пинов TM1637
       //     X - DIO - GPIO пин контроллера к DIO индикатора
       //     Y - CLK - GPIO пин контроллера к CLK индикатора
+      // - $23 17 X Y; - управление питанием по линии будильника
+      //     X - GPIO пин к которому подключено реле управления питанием
+      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+      // - $23 18 X Y; - управление питанием по дополнительной линии управления
+      //     X - GPIO пин к которому подключено реле управления питанием по дополнительной линии
+      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+      // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
+      // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
       // ----------------------------------------------------
 
-      case 23:
+      case 23: {
+        bool needSendAck = true;
         switch(intData[1]) {
           case 0:
             set_CURRENT_LIMIT(intData[2]);
             FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT == 0 ? 100000 : CURRENT_LIMIT); 
-            if (cmdSource == UDP) {           
-              sendAcknowledge();
-            } else {
-               str = String(MSG_OP_SUCCESS);
-               SendWebInfo(str);
-            }
             break;
           case 1:
             err = !saveEepromToFile(intData[2] == 1 ? F("SD") : F("FS"));
@@ -2409,6 +2452,7 @@ void parsing() {
               }
               addKeyToChanged("EE");
             }
+            needSendAck = false;
             break;
           case 2:
             err = !loadEepromFromFile(intData[2] == 1 ? F("SD") : F("FS"));
@@ -2428,6 +2472,7 @@ void parsing() {
                 SendWebInfo(str);
               }
             }
+            needSendAck = false;
             // Если настройки загружены без ошибок - перезагрузить устройство
             if (!err) {
               delay(500);
@@ -2448,12 +2493,6 @@ void parsing() {
                 InitializeE131();
               } else {
                 printWorkMode();  
-              }
-              if (cmdSource == UDP) {
-                sendAcknowledge();
-              } else {
-                str = String(MSG_OP_SUCCESS);
-                SendWebInfo(str);
               }
             }
             #endif
@@ -2479,14 +2518,7 @@ void parsing() {
               localH  = intData[7];
 
               // Сохранить настройки Viewport
-              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);
-                    
-              if (cmdSource == UDP) {
-                sendAcknowledge();
-              } else {
-                str = String(MSG_OP_SUCCESS);
-                SendWebInfo(str);
-              }
+              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);                    
             }
             #endif
             break;
@@ -2561,11 +2593,44 @@ void parsing() {
             putTM1637DIOPin(intData[2]);
             putTM1637CLKPin(intData[3]);
             break;
+          case 17:
+            // - $23 17 X Y; - управление дополнительной линией будильника
+            //     X - GPIO пин к которому подключено реле управления линии будильника
+            //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
+            putAlarmPin(intData[2]);
+            putAlarmActiveLevel(intData[3]);
+            break;
+          case 18:
+            // - $23 18 X Y; - управление дополнительной линией
+            //     X - GPIO пин к которому подключено реле управления линии
+            //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
+            putAuxPin(intData[2]);
+            putAuxActiveLevel(intData[3]);
+            break;
+          case 19:
+            // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
+            set_isAuxActive(intData[2] != 0);
+            saveSettings();
+            break;
+          case 20:
+            // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
+            set_AuxLineModes(intData[2]);
+            break;
           default:
             notifyUnknownCommand(incomeBuffer, cmdSource);
             break;
         }
+
+        if (needSendAck) {
+          if (cmdSource == UDP) {           
+            sendAcknowledge();
+          } else {
+             str = String(MSG_OP_SUCCESS);
+             SendWebInfo(str);
+          }
+        }
         break;
+      }
 
       // ----------------------------------------------------
       default:
@@ -2817,10 +2882,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // EF:число    текущий эффект - id
   // EN:[текст]  текущий эффект - название
   // ER:[текст]  отправка клиенту сообщения инфо/ошибки последней операции (WiFiPanel - сохр. резервной копии настроек; WiFiPlayer - сообщение операции с изображением)
-  // FS:X        доступность внутренней файловой системы микроконтроллера для хранения файлов: 0 - нет, 1 - да
+  // FG:X        состояние линии дополнительного управления битовая маска по режимам Use-OnOff
+  // FK:X        состояние линии дополнительного управления 0: выключенаж 1 - включена
   // FL0:[список] список файлов картинок нарисованных пользователем с внутренней памяти, разделенный запятыми, ограничители [] обязательны
   // FL1:[список] список файлов картинок нарисованных пользователем с SD-карты, разделенный запятыми, ограничители [] обязательны
   // FM:X        количество свободной памяти
+  // FS:X        доступность внутренней файловой системы микроконтроллера для хранения файлов: 0 - нет, 1 - да
   // FV:[текст]  строка использовать/не использовать эффект вида '0010011100...010', 0 - не использовать, 1 - использовать. Длина - по кол-ву эффектов, позиция в строке - индекс эффекта
   // HN:[текст]  Имя устройства (Host Name)
   // IP:xx.xx.xx.xx Текущий IP адрес WiFi соединения в сети
@@ -2862,7 +2929,9 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // PD:число    продолжительность режима в секундах
   // PS:X        состояние программного вкл/выкл панели 0-выкл, 1-вкл
   // PW:число    ограничение по току в миллиамперах
-  // PZ:X        использовать управление питанием 0-нет, 1-да --> USE_POWER
+  // PZ0:X       использовать управление питанием матрицы 0-нет, 1-да --> USE_POWER
+  // PZ1:X       использовать управление питанием по линии будильника 0-нет, 1-да --> USE_ALARM
+  // PZ2:X       использовать управление питанием по дополнительной линии 0-нет, 1-да --> USE_AUX
   // RM:Х        смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
   // S1:[список] список звуков будильника, разделенный запятыми, ограничители [] обязательны        
   // S2:[список] список звуков рассвета, разделенный запятыми, ограничители [] обязательны        
@@ -2910,11 +2979,13 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
   // 2311:X Y    X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
-  // 2312:X Y    X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
+  // 2312:X Y    X - GPIO пин управления питанием матрицы; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
   // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
   // 2314:X      vDEBUG_SERIAL
   // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
+  // 2317:X Y    X - GPIO пин управления питанием по линии будильника; Y - уровень управления питанием по линии будильника - 0 - LOW; 1 - HIGH
+  // 2318:X Y    X - GPIO пин управления дополнительной линии питания; Y - уровень управления дополнительной линии питания - 0 - LOW; 1 - HIGH
  
   CRGB c;
 
@@ -2981,6 +3052,28 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     }
     String str("PS:");
     str += !isTurnedOff;
+    return str;
+  }
+
+  // Текущее состояние дополнительной линии управления питанием
+  if (key == "FK") {
+    if (value) {
+      value->set(isAuxActive);
+      return String(isAuxActive);
+    }
+    String str("FK:");
+    str += isAuxActive;
+    return str;
+  }
+
+  // Битовая маска режимов использования дополнительной линии управления питанием
+  if (key == "FG") {
+    if (value) {
+      value->set(auxLineModes);
+      return String(auxLineModes);
+    }
+    String str("FG:");
+    str += auxLineModes;
     return str;
   }
 
@@ -4487,14 +4580,36 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   
   #endif
 
-  // Поддержка управления питанием
-  if (key == "PZ") {
+  // Поддержка управления питанием матрицы
+  if (key == "PZ0") {
     if (value) {
       value->set(USE_POWER == 1);
       return String(USE_POWER == 1);
     }
-    String str("PZ:");
+    String str("PZ0:");
     str += (USE_POWER == 1);
+    return str;
+  }
+
+  // Поддержка управления питанием линии будильника
+  if (key == "PZ1") {
+    if (value) {
+      value->set(USE_ALARM == 1);
+      return String(USE_ALARM == 1);
+    }
+    String str("PZ1:");
+    str += (USE_ALARM == 1);
+    return str;
+  }
+
+    // Поддержка управления питанием дополнительной линии управления
+  if (key == "PZ2") {
+    if (value) {
+      value->set(USE_AUX == 1);
+      return String(USE_AUX == 1);
+    }
+    String str("PZ2:");
+    str += (USE_AUX == 1);
     return str;
   }
 
@@ -4602,7 +4717,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2311:X Y    X - GPIO пин кнопки, Y - тип кнопки vBUTTON_TYPE: 0 - сенсорная; 1 - тактовая
   if (key == "2311") {
-    String tmp(getButtonPin()); tmp += ' '; tmp += vBUTTON_TYPE;
+    int8_t pin = USE_BUTTON == 1 ? getButtonPin() : -1; 
+    String tmp(pin); tmp += ' '; tmp += vBUTTON_TYPE;
     if (value) {
       value->set(tmp);
       return String(tmp);
@@ -4614,7 +4730,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2312:X Y    X - GPIO пин управления питанием; Y - уровень управления питанием - 0 - LOW; 1 - HIGH
   if (key == "2312") {
-    String tmp(getPowerPin()); tmp += ' '; tmp += getPowerActiveLevel();
+    int8_t pin = USE_POWER == 1 ? getPowerPin() : -1; 
+    String tmp(pin); tmp += ' '; tmp += getPowerActiveLevel();
     if (value) {
       value->set(tmp);
       return String(tmp);
@@ -4649,7 +4766,9 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2315:X Y    X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   if (key == "2315") {
-    String tmp(getDFPlayerSTXPin()); tmp += ' '; tmp += getDFPlayerSRXPin();
+    int8_t pin1 = USE_MP3 == 1 ? getDFPlayerSTXPin() : -1; 
+    int8_t pin2 = USE_MP3 == 1 ? getDFPlayerSRXPin() : -1; 
+    String tmp(pin1); tmp += ' '; tmp += pin2;
     if (value) {
       value->set(tmp);
       return String(tmp);
@@ -4661,12 +4780,40 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2316:X Y    X - GPIO пин DIO на TN1637; Y - GPIO пин CLK на TN1637
   if (key == "2316") {
-    String tmp(getTM1637DIOPin()); tmp += ' '; tmp += getTM1637CLKPin();
+    int8_t pin1 = USE_TM1637 == 1 ? getTM1637DIOPin() : -1; 
+    int8_t pin2 = USE_TM1637 == 1 ? getTM1637CLKPin() : -1; 
+    String tmp(pin1); tmp += ' '; tmp += pin2;
     if (value) {
       value->set(tmp);
       return String(tmp);
     }
     String str("2316:");
+    str += tmp;
+    return str;
+  }
+
+  // 2317:X Y    X - GPIO пин управления питанием линии будильника; Y - уровень управления питанием линии будильника - 0 - LOW; 1 - HIGH
+  if (key == "2317") {
+    int8_t pin = USE_ALARM == 1 ? getAlarmPin() : -1; 
+    String tmp(pin); tmp += ' '; tmp += getAlarmActiveLevel();
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    String str("2317:");
+    str += tmp;
+    return str;
+  }
+    
+  // 2318:X Y    X - GPIO пин управления дополнительной линии питания; Y - уровень управления дополнительной линии питания - 0 - LOW; 1 - HIGH
+  if (key == "2318") {
+    int8_t pin = USE_AUX == 1 ? getAuxPin() : -1; 
+    String tmp(pin); tmp += ' '; tmp += getAuxActiveLevel();
+    if (value) {
+      value->set(tmp);
+      return String(tmp);
+    }
+    String str("2318:");
     str += tmp;
     return str;
   }

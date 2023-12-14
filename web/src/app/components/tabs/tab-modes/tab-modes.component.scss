@@ -37,6 +37,16 @@
     --field-select-width: 188px;
     --field-width: 148px;
     --label-width: 100px;
+    --field-select-aux-width: 156px;
+    --field-select-aux2-width: 36px;
+    --field-aux-width: 95px;
+    --label-aux-width: 60px;
+
+    .aux-title {
+      width: 100%;
+      text-align: right;
+      font-size: 10px;
+    }
 
     .field-container {
       margin: 8px 0 0 0;
@@ -48,6 +58,52 @@
         width: var(--buttons-width);
         display: flex;
         justify-content: flex-end;
+      }
+
+      &.aux {
+
+        .aux-ctrls {
+          width: 86px;
+          height: 28px;
+          padding: 4px 0 0 8px;
+          display: flex;
+          flex-direction: row;
+
+          .aux-switch {
+            scale: 0.8;
+          }
+
+          ::ng-deep .mat-mdc-checkbox {
+            .mdc-form-field {
+              height: 18px;
+              width: 18px;
+
+              .mdc-checkbox__background {
+                border-width: 1px;
+              }
+            }
+          }
+        }
+
+        ::ng-deep mat-form-field {
+          width: var(--field-aux-width);
+
+          .mdc-floating-label {
+            width: var(--label-aux-width);
+          }
+
+          .mat-mdc-input-element {
+            padding-left: calc(var(--label-aux-width) + 4px);
+          }
+
+          &.select {
+            width: var(--field-select-aux-width);
+          }
+
+          &.select-aux {
+            width: var(--field-select-aux2-width);
+          }
+        }
       }
 
       ::ng-deep mat-form-field {

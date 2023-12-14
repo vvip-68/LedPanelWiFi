@@ -65,6 +65,10 @@
       line-height: 1em;
       color: var(--card-text-color);
 
+      &.active:not(.disabled, .streaming) {
+        color: var(--card-active-color);
+      }
+
       &.disabled {
         color: var(--button-disabled-color);
       }

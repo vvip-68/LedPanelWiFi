@@ -1152,14 +1152,24 @@ void InitializeQueues() {
   changed_keys = "";
   changed_keys.reserve(60);
 
+  #if defined(ESP8266)
+    #define IN_CMD_SIZE 66
+    #define OUT_CMD_SIZE 80
+    #define OUT_TPC_SIZE 5
+  #else
+    #define IN_CMD_SIZE 90
+    #define OUT_CMD_SIZE 120
+    #define OUT_TPC_SIZE 5
+  #endif
+
   for (uint8_t i = 0; i < QSIZE_IN; i++) {
-    cmdQueue[i] = ""; cmdQueue[i].reserve(66);
+    cmdQueue[i] = ""; cmdQueue[i].reserve(IN_CMD_SIZE);
   }
   for (uint8_t i = 0; i < QSIZE_OUT; i++) {
-    outWQueue[i] = ""; outWQueue[i].reserve(80);
+    outWQueue[i] = ""; outWQueue[i].reserve(OUT_CMD_SIZE);
   }
   for (uint8_t i = 0; i < QSIZE_OUT; i++) {
-    tpcWQueue[i] = ""; tpcWQueue[i].reserve(5);
+    tpcWQueue[i] = ""; tpcWQueue[i].reserve(OUT_TPC_SIZE);
   }
   
   mem_now = ESP.getFreeHeap();

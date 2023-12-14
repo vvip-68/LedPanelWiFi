@@ -1264,7 +1264,16 @@ void checkAlarmTime() {
     setManualModeTo(false);
 
     if (saveSpecialMode){
-       setSpecialMode(saveSpecialModeId);
+
+      setSpecialMode(saveSpecialModeId);
+      
+      // Если во время срабатывания будильника шла трансляция с мастера, после остановки будильника, если устройство выключено -
+      // специальный режим выключит его и сбросит яркость в 0, так что возобновленная трансляция будет не видна.
+      // Восстановить уровень яркости, чтобы трансляция нормально отображалась
+      if (isTurnedOff && streaming) {
+       FastLED.setBrightness(getMaxBrightness());
+      }
+
     } else {
        setEffect(saveMode);
     }
@@ -1340,7 +1349,13 @@ void stopAlarm() {
     calculateDawnTime();
     
     if (saveSpecialMode){
-       setSpecialMode(saveSpecialModeId);
+      setSpecialMode(saveSpecialModeId);
+      // Если во время срабатывания будильника шла трансляция с мастера, после остановки будильника, если устройство выключено -
+      // специальный режим выключит его и сбросит яркость в 0, так что возобновленная трансляция будет не видна.
+      // Восстановить уровень яркости, чтобы трансляция нормально отображалась
+      if (isTurnedOff && streaming) {
+       FastLED.setBrightness(getMaxBrightness());
+      }
     } else {
        setEffect(saveMode);
     }
@@ -1362,11 +1377,24 @@ void stopAlarm() {
 // Проверка необходимости включения режима 1 по установленному времени
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode1Time() {
-  if (AM1_effect_id <= -3 || AM1_effect_id >= MAX_EFFECT || !init_time) return;
-  
+
   hrs = hour();
   mins = minute();
+  sec = second();
 
+  // Пришло время и режим "Использовать" включен?
+  if (AM1_hour == hrs && AM1_minute == mins && sec < 2) {
+    if (auxLineModes & 1 != 0) {
+      bool newAuxActive = (auxLineModes & 2) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+
+  if (AM1_effect_id <= -3 || AM1_effect_id >= MAX_EFFECT || !init_time) return;
+  
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!AM1_running && AM1_hour == hrs && AM1_minute == mins) {
     AM1_running = true;
@@ -1383,14 +1411,26 @@ void checkAutoMode1Time() {
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode2Time() {
 
+  hrs = hour();
+  mins = minute();
+  sec = second();
+
+  // Пришло время и режим "Использовать" включен?
+  if (AM2_hour == hrs && AM2_minute == mins && sec < 2) {
+    if (auxLineModes & 4 != 0) {
+      bool newAuxActive = (auxLineModes & 8) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+  
   // Действие отличается от "Нет действия" и время установлено?
   if (AM2_effect_id <= -3 || AM2_effect_id >= MAX_EFFECT || !init_time) return;
 
   // Если сработал будильник - рассвет - режим не переключать - остаемся в режиме обработки будильника
   if ((isAlarming || isPlayAlarmSound) && !isAlarmStopped) return;
-
-  hrs = hour();
-  mins = minute();
 
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!AM2_running && AM2_hour == hrs && AM2_minute == mins) {
@@ -1407,11 +1447,24 @@ void checkAutoMode2Time() {
 // Проверка необходимости включения режима 1 по установленному времени
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode3Time() {
-  if (AM3_effect_id <= -3 || AM3_effect_id >= MAX_EFFECT || !init_time) return;
-  
+
   hrs = hour();
   mins = minute();
+  sec = second();
 
+  // Пришло время и режим "Использовать" включен?
+  if (AM3_hour == hrs && AM3_minute == mins && sec < 2) {
+    if (auxLineModes & 16 != 0) {
+      bool newAuxActive = (auxLineModes & 32) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+  
+  if (AM3_effect_id <= -3 || AM3_effect_id >= MAX_EFFECT || !init_time) return;
+  
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!AM3_running && AM3_hour == hrs && AM3_minute == mins) {
     AM3_running = true;
@@ -1427,11 +1480,23 @@ void checkAutoMode3Time() {
 // Проверка необходимости включения режима 1 по установленному времени
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode4Time() {
-  if (AM4_effect_id <= -3 || AM4_effect_id >= MAX_EFFECT || !init_time) return;
-  
   hrs = hour();
   mins = minute();
+  sec = second();
 
+  // Пришло время и режим "Использовать" включен?
+  if (AM4_hour == hrs && AM4_minute == mins && sec < 2) {
+    if (auxLineModes & 64 != 0) {
+      bool newAuxActive = (auxLineModes & 128) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+
+  if (AM4_effect_id <= -3 || AM4_effect_id >= MAX_EFFECT || !init_time) return;
+  
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!AM4_running && AM4_hour == hrs && AM4_minute == mins) {
     AM4_running = true;
@@ -1448,11 +1513,24 @@ void checkAutoMode4Time() {
 // Проверка необходимости включения режима "Рассвет" по установленному времени
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode5Time() {
-  if (dawn_effect_id <= -3 || dawn_effect_id >= MAX_EFFECT || !init_weather || useWeather == 0) return;
-  
+
   hrs = hour();
   mins = minute();
+  sec = second();
 
+  // Пришло время и режим "Использовать" включен?
+  if (dawn_hour == hrs && dawn_minute == mins && sec < 2) {
+    if (auxLineModes & 256 != 0) {
+      bool newAuxActive = (auxLineModes & 512) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+  
+  if (dawn_effect_id <= -3 || dawn_effect_id >= MAX_EFFECT || !init_weather || useWeather == 0) return;
+  
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!dawn_running && dawn_hour == hrs && dawn_minute == mins) {
     dawn_running = true;
@@ -1468,11 +1546,24 @@ void checkAutoMode5Time() {
 // Проверка необходимости включения режима "Закат" по установленному времени
 // -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
 void checkAutoMode6Time() {
-  if (dusk_effect_id <= -3 || dusk_effect_id >= MAX_EFFECT || !init_weather || useWeather == 0) return;
   
   hrs = hour();
   mins = minute();
+  sec = second();
 
+  // Пришло время и режим "Использовать" включен?
+  if (dusk_hour == hrs && dusk_minute == mins && sec < 2) {
+    if (auxLineModes & 1024 != 0) {
+      bool newAuxActive = (auxLineModes & 2048) != 0;
+      if (newAuxActive != isAuxActive) {
+        set_isAuxActive(newAuxActive);
+        saveSettings();
+      }
+    }
+  }
+
+  if (dusk_effect_id <= -3 || dusk_effect_id >= MAX_EFFECT || !init_weather || useWeather == 0) return;
+  
   // Режим по времени включен (enable) и настало время активации режима - активировать
   if (!dusk_running && dusk_hour == hrs && dusk_minute == mins) {
     dusk_running = true;

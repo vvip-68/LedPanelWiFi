@@ -420,6 +420,17 @@ mat-error {
   .material-select-menu,
   .app-select-panel {
 
+    .mat-mdc-option {
+      &.aux {
+        padding-left: 8px;
+        padding-right: 6px;
+
+        .mat-pseudo-checkbox {
+          display: none;
+        }
+      }
+    }
+
     &.shift-120px {
       margin: 0 0 0 120px;
     }
@@ -434,7 +445,7 @@ mat-error {
 
     .mat-mdc-option {
       font-size: 12px;
-      min-height: 32px;
+      min-height: 28px;
       white-space: nowrap;
       text-overflow: ellipsis;
 

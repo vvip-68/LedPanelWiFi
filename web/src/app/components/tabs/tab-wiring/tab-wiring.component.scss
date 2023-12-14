@@ -335,6 +335,10 @@
         margin: 2px 6px 0 0;
         white-space: nowrap;
 
+        &.pin-name {
+          width: 48px;
+        }
+
         &.error {
           color: red;
         }

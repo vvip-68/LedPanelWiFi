@@ -66,6 +66,9 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   autoModeTimeFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 255)]);
   matcher = new AppErrorStateMatcher();
 
+  isAuxActive: boolean = false;
+  isAuxSupported: boolean = false;
+
   private e131_mode: number = -1;
   private e131_type: number = -1;
   private e131_group: number = -1;
@@ -133,7 +136,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в главном экране
-          const request = 'E1|E2|E3|E4|PS|BR|DM|RM|FV|PD|IT|EF|EN';
+          const request = 'E1|E2|E3|E4|PS|BR|DM|RM|FV|PD|IT|EF|EN|FK|PZ2';
           this.managementService.getKeys(request);
         }
       });
@@ -155,6 +158,12 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
             case 'E4':
                 this.e131_streaming = this.managementService.state.e131_streaming === true;
                 break;
+            case 'FK':
+              this.isAuxActive = this.managementService.state.isAuxActive;
+              break;
+            case 'PZ2':
+              this.isAuxSupported = this.managementService.state.supportAuxPower;
+              break;
             case 'EF':
               this.managementService.effects.forEach((effect) => {
                 effect.active = effect.id == this.managementService.state.effect;
@@ -176,7 +185,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
 
   isDisabled(): boolean {
     // Выключено иди нет подключения
-    return !this.managementService.state.power || !this.socketService.isConnected;
+    return !this.socketService.isConnected;
   }
 
   isDisabledByIncomeStream(): boolean {
@@ -236,6 +245,10 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
         : this.L.$('Включить ночные часы'));
   }
 
+  getAuxTooltip() {
+    return this.isAuxActive ? this.L.$('ВЫКЛ. дополнительную линию питания') : this.L.$('ВКЛ. дополнительную линию питания');
+  }
+
   getDisabledTooltip() {
     return this.e131_mode === 2 && this.e131_streaming === true
       ? this.L.$('В режиме приема вещания в группе недоступно')
@@ -243,12 +256,21 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   }
 
   toggleNightClock() {
-    if (this.managementService.state.isNightClockRunnung())    // MC_NIGHT_CLOC
+    if (this.managementService.state.isNightClockRunnung())    // MC_NIGHT_CLOCK
       // $3 0; - включить на устройстве демо-режим
       this.socketService.sendText('$3 0;');
     else
       // $14 8; - Включить ночные часы;
       this.socketService.sendText('$14 8;');
+  }
+
+  toggleAuxLine() {
+    if (this.isAuxActive)
+      // $23 19 0; - выключить питание доп. линии управления
+      this.socketService.sendText('$23 19 0;');
+    else
+      // $23 19 1; - включить питание доп. линии управления
+      this.socketService.sendText('$23 19 1;');
   }
 
   drop(event: CdkDragDrop<number[]>) {

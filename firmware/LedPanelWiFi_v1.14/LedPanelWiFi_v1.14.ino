@@ -43,6 +43,10 @@
 // 
 // -------------------------------------------------------------------------------------------------------
 //
+// Настройки ArduinoIDE для Wemos, NodeMCU и ESP32 смотри на скриншотов в корневой папке проекта - settings-wemos.png, settings-nodemcu.png и settings-esp32.png 
+//
+// -------------------------------------------------------------------------------------------------------
+//
 // *** MP3 DFPlayer
 //
 // Используйте версию библиотеки DFPlayer_Mini_Mp3_by_Makuna из папки libraries проекта - это версия 1.1.1
@@ -396,9 +400,27 @@ void setup() {
   DEBUGLN(F("+ Синхронизация времени с сервером NTP"));
 
   DEBUG((USE_POWER == 1 ? '+' : '-'));
-  DEBUG(F(" Управление питанием"));
+  DEBUG(F(" Управление питанием матрицы"));
   #if (USE_POWER == 1)
-    DEBUG(F(" PIN=")); DEBUGLN(pinName(getPowerPin()));
+    DEBUG(F(" PIN=")); DEBUG(pinName(getPowerPin()));
+    if (isTurnedOff) { DEBUGLN(F("; ВЫКЛ")); } else { DEBUGLN(F("; ВКЛ")); }
+  #else
+    DEBUGLN();
+  #endif
+
+  DEBUG((USE_ALARM == 1 ? '+' : '-'));
+  DEBUG(F(" Управление питанием (линия будильника)"));
+  #if (USE_ALARM == 1)
+    DEBUG(F(" PIN=")); DEBUGLN(pinName(getAlarmPin()));
+  #else
+    DEBUGLN();
+  #endif
+
+  DEBUG((USE_AUX == 1 ? '+' : '-'));
+  DEBUG(F(" Управление питанием (дополнительная линия)"));
+  #if (USE_AUX == 1)
+    DEBUG(F(" PIN=")); DEBUG(pinName(getAuxPin()));
+    if (isAuxActive) { DEBUGLN(F("; ВКЛ")); } else { DEBUGLN(F("; ВЫКЛ")); }
   #else
     DEBUGLN();
   #endif
@@ -530,6 +552,18 @@ void setup() {
   #if (USE_POWER == 1)
     if (vPOWER_PIN >= 0) {
       pinMode(vPOWER_PIN, OUTPUT);
+    }
+  #endif
+
+  #if (USE_ALARM == 1)
+    if (vALARM_PIN >= 0) {
+      pinMode(vALARM_PIN, OUTPUT);
+    }
+  #endif
+
+  #if (USE_AUX == 1)
+    if (vAUX_PIN >= 0) {
+      pinMode(vAUX_PIN, OUTPUT);
     }
   #endif
 
@@ -691,8 +725,9 @@ void setup() {
       setEffect(thisMode);        
     }
   }
+  
   autoplayTimer = millis();
-
+  
   setIdleTimer();
 }
 

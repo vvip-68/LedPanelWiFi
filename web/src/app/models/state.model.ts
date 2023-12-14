@@ -1,4 +1,3 @@
-import {RGBA} from 'ngx-color';
 import {ComboBoxItem} from "./combo-box.model";
 
 export interface IStateModel {
@@ -14,13 +13,16 @@ export interface IStateModel {
   supportE131: boolean;            // E0 - устройство поддерживает групповую синхронизацию по протоколу E1.31 - USE_E131
   supportSD: boolean;              // SZ - устройство поддерживает SD-карту - USE_SD
   supportButton: boolean;          // UB - устройство поддерживает кнопку USE_BUTTON
-  supportPower: boolean;           // PZ - устройство поддерживает кнопку USE_POWER
+  supportPower: boolean;           // PZ0 - устройство поддерживает управление питанием мaтрицы USE_POWER
+  supportAlarmPower: boolean;      // PZ1 - устройство поддерживает линию управления питанием по включению будильника USE_ALARM
+  supportAuxPower: boolean;        // PZ2 - устройство поддерживает дополнительную линию управления питанием USE_AUX
   brightness: number;              // BR - Текущая яркость
   game_speed: number;              // SE - Текущая скорость эффекта (игры)
   game_button_speed: number;       // BS - Текущая скорость повтора нажатия кнопки (игры)
   power: boolean;                  // PS - состояние питания: вкл/выкл
   isAutomatic: boolean;            // DM - состояние "автоматическая смена эффектов"
   isRandom: boolean;               // RM - состояние "выбор случайного эффекта"
+  isAuxActive: boolean;            // FK - состояние канала управления по AUX
   effect: number;                  // EF - ID текущего режима (эффекта)
   special_effect: number;          // SM - ID текущего специального режима (эффекта) или -1 если такого нет
   effectName: string;              // EN - имя эффекта
@@ -141,6 +143,10 @@ export interface IStateModel {
   player_rx_pin: number;           // 2315:X Y         X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
   tm1637_dio_pin: number;          // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
   tm1637_clk_pin: number;          // 2316:X Y         X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
+  power_alarm_pin: number;         // 2317:X Y         X - GPIO пин управления питанием по будильнику; Y - уровень управления питанием по будильнику - 0 - LOW; 1 - HIGH
+  power_alarm_level: number;       // 2317:X Y         X - GPIO пин управления питанием по будильнику; Y - уровень управления питанием по будильнику - 0 - LOW; 1 - HIGH
+  power_aux_pin: number;           // 2318:X Y         X - GPIO пин управления питанием по доп.каналу; Y - уровень управления питанием по доп.каналу - 0 - LOW; 1 - HIGH
+  power_aux_level: number;         // 2318:X Y         X - GPIO пин управления питанием по доп.каналу; Y - уровень управления питанием по доп.каналу - 0 - LOW; 1 - HIGH
 }
 
 export class StateModel implements IStateModel {
@@ -158,12 +164,16 @@ export class StateModel implements IStateModel {
   public supportSD = false;
   public supportButton = false;
   public supportPower = false;
+  public supportAlarmPower = false;
+  public supportAuxPower = false;
   public brightness = 25;
   public game_speed = 127;
   public game_button_speed = 50;
   public power = false;
   public isAutomatic = false;
   public isRandom = false;
+  public isAuxActive = false;
+  public auxPowerModes = 0;
   public effect = -1;
   public special_effect = -1;
   public effectName = '';
@@ -268,8 +278,12 @@ export class StateModel implements IStateModel {
   public device_type = 1;
   public button_type = 1;
   public button_pin = -1;
-  public power_level = -1;
+  public power_level = 1;
+  public power_alarm_level = 1;
+  public power_aux_level = 1;
   public power_pin = -1;
+  public power_alarm_pin = -1;
+  public power_aux_pin = -1;
   public wait_play_finished = true;
   public repeat_play = true;
   public debug_serial = true;
@@ -305,7 +319,9 @@ export class StateModel implements IStateModel {
       case 'MZ':   return this.supportPlayer;
       case 'SZ':   return this.supportSD;
       case 'UB':   return this.supportButton;
-      case 'PZ':   return this.supportPower;
+      case 'PZ0':  return this.supportPower;
+      case 'PZ1':  return this.supportAlarmPower;
+      case 'PZ2':  return this.supportAuxPower;
       case 'BR':   return this.brightness;
       case 'BS':   return this.game_button_speed;
       case 'SE':   return this.game_speed;
@@ -315,6 +331,8 @@ export class StateModel implements IStateModel {
       case 'EN':   return this.effectName;
       case 'DM':   return this.isAutomatic;
       case 'RM':   return this.isRandom;
+      case 'FK':   return this.isAuxActive;
+      case 'FG':   return this.auxPowerModes;
       case 'UP':   return this.uptime;
       case 'FM':   return this.freeMemory;
       case 'CL':   return this.color;
@@ -410,7 +428,7 @@ export class StateModel implements IStateModel {
       case 'ELW':  return this.sync_local_w;
       case 'ELH':  return this.sync_local_h;
 
-      case 'MC':   return this.controller
+      case 'MC':   return this.controller;
       case '2306': return this.led_line_1;
       case '2307': return this.led_line_2;
       case '2308': return this.led_line_3;
@@ -422,6 +440,8 @@ export class StateModel implements IStateModel {
       case '2314': return this.debug_serial;
       case '2315': return `${this.player_tx_pin} ${this.player_rx_pin}`;        // 2315:X Y  -> X - GPIO пин TX на DFPlayer; Y - GPIO пин RX на DFPlayer
       case '2316': return `${this.tm1637_dio_pin} ${this.tm1637_clk_pin}`;      // 2316:X Y  -> X - GPIO пин DIO на TM1637; Y - GPIO пин CLK на TM1637
+      case '2317': return `${this.power_alarm_pin} ${this.power_alarm_level}`;  // 2317:X Y  -> X - GPIO пин управления питанием по будильнику; Y - уровень управления питанием по будильнику - 0 - LOW; 1 - HIGH
+      case '2318': return `${this.power_aux_pin} ${this.power_aux_level}`;      // 2318:X Y  -> X - GPIO пин управления питанием по доп.каналу; Y - уровень управления питанием по доп.каналу - 0 - LOW; 1 - HIGH
     }
     // @formatter:on
     return null;
@@ -446,7 +466,9 @@ export class StateModel implements IStateModel {
       case 'MZ':   this.supportPlayer = ('' + value).toLowerCase() === 'true';    break;
       case 'SZ':   this.supportSD = ('' + value).toLowerCase() === 'true';        break;
       case 'UB':   this.supportButton = ('' + value).toLowerCase() === 'true';    break;
-      case 'PZ':   this.supportPower = ('' + value).toLowerCase() === 'true';     break;
+      case 'PZ0':  this.supportPower = ('' + value).toLowerCase() === 'true';     break;
+      case 'PZ1':  this.supportAlarmPower = ('' + value).toLowerCase() === 'true';break;
+      case 'PZ2':  this.supportAuxPower = ('' + value).toLowerCase() === 'true';  break;
       case 'BR':   this.brightness = Number(value);                               break;
       case 'BS':   this.game_button_speed = Number(value);                        break;
       case 'SE':   this.game_speed = Number(value);                               break;
@@ -456,9 +478,11 @@ export class StateModel implements IStateModel {
       case 'EN':   this.effectName = '' + value;                                  break;
       case 'DM':   this.isAutomatic = ('' + value).toLowerCase() === 'true';      break;
       case 'RM':   this.isRandom = ('' + value).toLowerCase() === 'true';         break;
+      case 'FK':   this.isAuxActive = ('' + value).toLowerCase() === 'true';      break;
+      case 'FG':   this.auxPowerModes = Number(value);                            break;
       case 'UP':   this.uptime = Number(value);                                   break;
       case 'FM':   this.freeMemory = Number(value);                               break;
-      case 'CL':   this.color = '#' + value;                                       break;
+      case 'CL':   this.color = '#' + value;                                      break;
       case 'NW':   this.ssid = '' + value;                                        break;
       case 'NA':   this.password = '' + value;                                    break;
       case 'NX':   this.password = '' + value;                                    break;
@@ -602,6 +626,20 @@ export class StateModel implements IStateModel {
           this.tm1637_clk_pin = Number(parts[1]);
         }
         break;
+      case '2317': {
+        // 2317:X Y         X - GPIO пин управления питанием по будильнику; Y - уровень управления питанием по будильнику - 0 - LOW; 1 - HIGH
+        const parts = ('' + value).split(' ');
+        this.power_alarm_pin = Number(parts[0]);
+        this.power_alarm_level = Number(parts[1]);
+      }
+      break;
+      case '2318': {
+        // 2318:X Y         X - GPIO пин управления питанием по доп.каналу; Y - уровень управления питанием по доп.каналу - 0 - LOW; 1 - HIGH
+        const parts = ('' + value).split(' ');
+        this.power_aux_pin = Number(parts[0]);
+        this.power_aux_level = Number(parts[1]);
+      }
+      break;
     }
     // @formatter:on
   }
