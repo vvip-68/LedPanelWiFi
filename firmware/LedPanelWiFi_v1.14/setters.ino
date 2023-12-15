@@ -121,6 +121,9 @@ void set_idleTime(uint32_t value) {
 void set_isAlarming(bool value) {
   if (isAlarming == value) return;
   isAlarming = value;
+  #if (USE_E131 == 1)
+    commandAlarming(isAlarming || isPlayAlarmSound);
+  #endif
   addKeyToChanged("AL");  
 }
 
@@ -128,6 +131,9 @@ void set_isAlarming(bool value) {
 void set_isPlayAlarmSound(bool value) {
   if (isPlayAlarmSound == value) return;
   isPlayAlarmSound = value;
+  #if (USE_E131 == 1)
+    commandAlarming(isAlarming || isPlayAlarmSound);
+  #endif
   addKeyToChanged("AL");
 }
 

@@ -62,7 +62,7 @@ export class WebsocketService implements IWebsocketService, OnDestroy {
   // вспомогательный Observable для работы с подписками на сообщения
   private wsMessages$: Subject<IWsMessage<any>>;
 
-  private url = environment.production ? `ws://${window.location.hostname}/ws` : 'ws://192.168.0.100/ws'; // 'ws://192.168.4.1/ws';
+  private url = environment.production ? `ws://${window.location.hostname}/ws` : 'ws://192.168.0.101/ws'; // 'ws://192.168.4.1/ws';
 
   private pingInterval = 5000;
   private reconnectInterval = 5000;

@@ -448,6 +448,8 @@ mat-error {
       min-height: 28px;
       white-space: nowrap;
       text-overflow: ellipsis;
+      padding-left: 8px;
+      padding-right: 6px;
 
       &.font-14px {
         font-size: 14px;

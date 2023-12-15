@@ -486,6 +486,7 @@ bool     useTemperatureColorNight = false;  // Для ночных часов:  
 bool     isAlarming = false;                // Сработал будильник "рассвет"
 bool     isPlayAlarmSound = false;          // Сработал настоящий будильник - играется звук будильника
 bool     isAlarmStopped = false;            // Сработавший будильник "рассвет" остановлен пользователем
+bool     isRemoteAlarm = false;             // Флаг - в режиме синхронизации на мастере сработал будильник
 
 uint8_t  alarmWeekDay = 0;                  // Битовая маска дней недели будильника
 uint8_t  alarmDuration = 1;                 // Проигрывать звук будильнике N минут после срабатывания (по окончанию рассвета)
@@ -955,3 +956,25 @@ static const char sWEATHER[] PROGMEM = "WEATHER";
 
 static const char sFL[] PROGMEM = "L>";
 static const char sFC[] PROGMEM = "C>";
+
+// ------------------- КОМАНДЫ СИНХРОНИЗАЦИИ ---------------------
+
+#define CMD_TURNONOFF       0
+#define CMD_BRIGHTNESS      1
+#define CMD_SPCBRIGHTNESS   2
+#define CMD_EFFECT          3
+#define CMD_SPCEFFECT       4
+#define CMD_RUNTEXT         5
+#define CMD_STOPTEXT        6
+#define CMD_TIME            7
+#define CMD_SPEED           8
+#define CMD_CONTRAST        9
+#define CMD_PARAM1         10
+#define CMD_PARAM2         11
+#define CMD_COLOR          12
+#define CMD_DIMENSION      13
+#define CMD_TEXTSPEED      14
+#define CMD_CLOCKSPEED     15
+#define CMD_CURBRIGHTNESS  16
+#define CMD_AUXACTIVE      17
+#define CMD_ALARMING       18

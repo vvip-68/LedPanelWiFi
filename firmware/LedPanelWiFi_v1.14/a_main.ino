@@ -12,6 +12,8 @@ int32_t mem_prv, mem_now, mem_dff;
 #if (USE_E131 == 1)
 bool flag_1 = false;
 bool flag_2 = false;
+uint32_t last_sent_alarm_sync; 
+uint32_t last_sent_aux_sync;
 #endif
 
 // Forward declaration
@@ -84,13 +86,18 @@ void process() {
       } else {
         masterWidth = 0;
         masterHeight = 0;
+        isRemoteAlarm = false;
         if (isTurnedOff) {
           FastLED.setBrightness(getMaxBrightness());
         }
-        if (syncMode == COMMAND)
+        
+        if (syncMode == COMMAND) {
           DEBUGLN(F("Ожидание поступления потока команд E1.31...\n"));        
-        else
-          DEBUGLN(F("Ожидание поступления потока данных E1.31...\n"));        
+          e131_wait_command = true;
+        } else {
+          DEBUGLN(F("Ожидание поступления потока данных E1.31...\n"));
+          e131_wait_command = false;
+        }
       }
 
       prevWorkMode = workMode;
@@ -114,10 +121,15 @@ void process() {
     
     if (e131_streaming && !streaming) {
 
-      if (prevWorkMode == MASTER)
+      isRemoteAlarm = false;
+      e131_wait_command = false;
+      
+      if (prevWorkMode == MASTER) {
         DEBUGLN(F("Останов вещания E1.31 потока"));
-      else
-        DEBUGLN(F("Останов слушателя E1.31 потока"));            
+      } else {
+        DEBUGLN(F("Останов слушателя E1.31 потока"));
+        FastLED.setBrightness(getMaxBrightness());
+      }
 
       addKeyToChanged("E4");
       
@@ -311,11 +323,10 @@ void process() {
     #if (USE_E131 == 1)
 
     // В режиме MASTER или STANDALONE эффект отрабатывать, если устройство не выключено или если сработал будильник
-    needProcessEffect = (workMode != SLAVE && !isTurnedOff) || isAlarming || isPlayAlarmSound;
+    needProcessEffect = (workMode != SLAVE && !isTurnedOff) || isAlarming || isPlayAlarmSound || e131_wait_command || (workMode == SLAVE && !streaming);
     
     // Если сработал будильник - отрабатывать его эффект, даже если идет стриминг с мастера
     if (workMode == SLAVE && (e131_streaming || e131_wait_command) && (!(isAlarming || isPlayAlarmSound))) {      
-      needProcessEffect = e131_wait_command;
       // Если идет прием потока данных с MASTER-устройства - проверить наличие пакета от мастера
       if (e131 && !e131->isEmpty()) {
         // Получен пакет данных. 
@@ -343,7 +354,6 @@ void process() {
           flag_2 |= CURRENT_UNIVERSE == 2;
         }
         */
-
         /*
         Serial.print(CURRENT_UNIVERSE);
         Serial.print(",");
@@ -353,10 +363,9 @@ void process() {
           ccnt=0;
         }
         */
-
+        
         bool isCommand = isCommandPacket(&e131_packet);
-        if (isCommand && syncMode == COMMAND) e131_wait_command = true;
-
+                
         // Если задан расчет FPS выводимых данных потока E1.31 - рассчитать и вывести в консоль
         if (syncMode != COMMAND && E131_FPS_INTERVAL > 0) {
           if (CURRENT_UNIVERSE == START_UNIVERSE && !isCommand) frameCnt++;
@@ -373,6 +382,7 @@ void process() {
           processCommandPacket(&e131_packet);          
           needProcessEffect = syncMode == COMMAND;
         } else
+        
         // Если режим стрима - PHYSIC или LOGIC - вывести принятые данные на матрицу
         // Физический вывод на матрицу выполнять при получении ПЕРВОГО (НАЧАЛЬНОГО) пакета группы,
         // подразумевая что на предыдущем шаге все принятые пакеты уже разобраны и цвета помещены в массив leds[] - то есть полный кадр сформирован        
@@ -414,8 +424,12 @@ void process() {
           customRoutine(thisMode);
         }
       }
+    } else 
+    if (isTurnedOff && workMode != SLAVE) {
+      FastLED.clear();
+      FastLEDshow();
     }
-  
+    
     clockTicker();
     
     checkAlarmTime();
@@ -427,6 +441,61 @@ void process() {
     checkAutoMode5Time();
     checkAutoMode6Time();
     #endif  
+
+    // --------------------- Управление линиями питания -------------------------
+
+    // Прочие клики работают только если не выключено
+    #if (USE_POWER == 1)
+      if (isTurnedOff) {
+        // Выключить питание матрицы
+        if (vPOWER_PIN >= 0) {
+          if (!isAlarming) {
+            digitalWrite(vPOWER_PIN, vPOWER_OFF);
+          } else {
+            digitalWrite(vPOWER_PIN, vPOWER_ON);
+          }
+        }  
+      } else {      
+        // Включить питание матрицы
+        if (vPOWER_PIN >= 0) {
+          digitalWrite(vPOWER_PIN, vPOWER_ON);
+        }
+      }
+    #endif
+
+    #if (USE_ALARM == 1)
+      if (vALARM_PIN >= 0) {
+        if (!isAlarmStopped && (isPlayAlarmSound || isAlarming || isRemoteAlarm)) {
+          digitalWrite(vALARM_PIN, vALARM_ON);
+        } else {
+          digitalWrite(vALARM_PIN, vALARM_OFF);
+        }
+        // Иногда клиент пропускает сигнал срабатывания будильника или клиент перезагрузился. 
+        // Тогда на мастере лампа активного будильника горит, а на клиентах нет. 
+        // Во избежание такого сценария послыать активность будильника каждые 1000 мс 
+        if (abs((long long)(millis() - last_sent_alarm_sync)) > 1000) {
+          commandAlarming(isAlarming || isPlayAlarmSound);
+          last_sent_alarm_sync = millis();
+        }          
+      }  
+    #endif      
+
+    #if (USE_AUX == 1)
+      if (vAUX_PIN >= 0) {
+        if (isAuxActive) {
+          digitalWrite(vAUX_PIN, vAUX_ON);
+        } else {
+          digitalWrite(vAUX_PIN, vAUX_OFF);
+        }        
+        // Иногда клиент пропускает сигнал включения доп.линии или клиент перезагрузился. 
+        // Тогда на мастере лампа активного AUX горит, а на клиентах нет. 
+        // Во избежание такого сценария послыать активность AUX каждые 1000 мс 
+        if (abs((long long)(millis() - last_sent_aux_sync)) > 1000) {
+          commandAuxActive(isAuxActive);
+          last_sent_aux_sync = millis();
+        }        
+      }  
+    #endif      
 
     // --------------------- Опрос нажатий кнопки -------------------------
 
@@ -509,39 +578,11 @@ void process() {
            one_click_time = 0;
          }          
        }
-    
-       #if (USE_ALARM == 1)
-         if (vALARM_PIN >= 0) {
-           if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
-             digitalWrite(vALARM_PIN, vALARM_ON);
-           } else {
-             digitalWrite(vALARM_PIN, vALARM_OFF);
-           }
-         }  
-       #endif      
-
-       #if (USE_AUX == 1)
-         if (vAUX_PIN >= 0) {
-           if (isAuxActive) {
-             digitalWrite(vAUX_PIN, vAUX_ON);
-           } else {
-             digitalWrite(vAUX_PIN, vAUX_OFF);
-           }
-         }  
-       #endif      
 
        // Прочие клики работают только если не выключено
        if (isTurnedOff) {
+        
           // Выключить питание матрицы
-          #if (USE_POWER == 1)
-            if (vPOWER_PIN >= 0) {
-              if (!isAlarming) {
-                digitalWrite(vPOWER_PIN, vPOWER_OFF);
-              } else {
-                digitalWrite(vPOWER_PIN, vPOWER_ON);
-              }
-            }  
-          #endif      
           //  - одинарный клик из выключенного состояния включает устройство - обработка в блоке выше
           //  - двойной клик из выключенного состояния включает яркий белый свет
           if (clicks == 2) {
@@ -553,16 +594,11 @@ void process() {
             setSpecialMode(1);
             clicks = 0;
             one_click_time = 0;
-          }          
+          }     
+               
        } else {
           
           // Включить питание матрицы
-          #if (USE_POWER == 1)
-            if (vPOWER_PIN >= 0) {
-              digitalWrite(vPOWER_PIN, vPOWER_ON);
-            }
-          #endif
-
           if (clicks == 0 && isHolded) {
             // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
             isButtonHold = true;
@@ -2519,7 +2555,8 @@ void parsing() {
               localH  = intData[7];
 
               // Сохранить настройки Viewport
-              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);                    
+              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);  
+              saveSettings();                  
             }
             #endif
             break;
@@ -5171,11 +5208,6 @@ void setSpecialMode(int8_t spc_mode) {
 
   setManualModeTo(true);
   set_CurrentSpecialMode(spc_mode);
-
-  // Если команда выключения лампы - сразу сохранить состояние без ожидания 15 секундной задержки
-  if (specialMode && spc_mode == 0) {
-    saveSettings();
-  }
 }
 
 void resetModes() {
@@ -5224,9 +5256,7 @@ void setEffect(uint8_t eff) {
 
   set_CurrentSpecialMode(-1);
 
-  if (manualMode){
-    putCurrentManualMode(thisMode);
-  } else {
+  if (!manualMode){
     autoplayTimer = millis();
   }
 
@@ -5341,10 +5371,6 @@ void setManualModeTo(bool isManual) {
   set_manualMode(isManual);
   setIdleTimer();             
   autoplayTimer = millis();
-  if (isManual) {
-    putCurrentManualMode(thisMode);
-  //saveSettings();
-  }
 }
 
 void sendImageLine(eSources src, uint8_t typ, uint8_t idx) {
@@ -5421,6 +5447,7 @@ void turnOff() {
         FastLED.setBrightness(bright);
       }
     #endif
+    saveSettings();
   }
 }
 
@@ -5428,9 +5455,9 @@ void turnOn() {
   if (isTurnedOff) {
     DEBUGLN(F("Режим: Включено"));
     // Если выключен - включить панель, восстановив эффект на котором панель была выключена
-    if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId < SPECIAL_EFFECTS_START) 
+    if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId < SPECIAL_EFFECTS_START) {
       setSpecialMode(saveSpecialModeId);
-    else {
+    } else {
       saveMode = getCurrentManualMode();
       if (saveMode >= MAX_EFFECT) {
         setRandomMode(); 
@@ -5439,6 +5466,7 @@ void turnOn() {
         setManualModeTo(getAutoplay());
         setEffect(saveMode);
       }
+      FastLEDsetBrightness(getMaxBrightness());
     }
   }
 }

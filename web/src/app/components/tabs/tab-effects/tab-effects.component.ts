@@ -185,6 +185,11 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
 
   isDisabled(): boolean {
     // Выключено иди нет подключения
+    return !this.managementService.state.power || !this.socketService.isConnected;
+  }
+
+  isAuxDisabled(): boolean {
+    // Выключено иди нет подключения
     return !this.socketService.isConnected;
   }
 

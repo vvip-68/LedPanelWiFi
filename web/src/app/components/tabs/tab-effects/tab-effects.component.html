@@ -131,8 +131,8 @@
 
             <div class="block-params mode-params aux-button" [matTooltip]="getAuxTooltip()">
               <button mat-raised-button color="primary" class="aux"
-                      [ngClass]="{'active': isAuxActive, 'disabled': isDisabled()}"
-                      [disabled]="isDisabled()" (click)="toggleAuxLine()">
+                      [ngClass]="{'active': isAuxActive, 'disabled': isAuxDisabled()}"
+                      [disabled]="isAuxDisabled()" (click)="toggleAuxLine()">
                 <mat-icon>power_settings_new</mat-icon>
                 <span>{{ L.$('AUX') }}</span>
               </button>

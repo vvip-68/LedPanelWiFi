@@ -1,25 +1,6 @@
 // Спецификация протокола E1.31 - https://tsp.esta.org/tsp/documents/docs/ANSI_E1-31-2018.pdf
 #if (USE_E131 == 1)
 
-#define CMD_TURNONOFF      0
-#define CMD_BRIGHTNESS     1
-#define CMD_SPCBRIGHTNESS  2
-#define CMD_EFFECT         3
-#define CMD_SPCEFFECT      4
-#define CMD_RUNTEXT        5
-#define CMD_STOPTEXT       6
-#define CMD_TIME           7
-#define CMD_SPEED          8
-#define CMD_CONTRAST       9
-#define CMD_PARAM1        10
-#define CMD_PARAM2        11
-#define CMD_COLOR         12
-#define CMD_DIMENSION     13
-#define CMD_TEXTSPEED     14
-#define CMD_CLOCKSPEED    15
-#define CMD_CURBRIGHTNESS 16
-#define CMD_AUXACTIVE     17
-
 // ---------------------------------------------------
 // Инициализация протокола E1.31 для устройства в роли приемника или передатчика
 // ---------------------------------------------------
@@ -266,7 +247,7 @@ void sendE131Screen() {
     if (packet) {
       packet->property_values[4] = pWIDTH;
       packet->property_values[5] = pHEIGHT;
-      e131->sendPacket(packet, 1, 170);
+      e131->sendPacket(packet, START_UNIVERSE, 170);
       // Отправить экран MASTER-матрицы клиентам SLAVE
       uint16_t idx = 0, cnt = 0, universe = START_UNIVERSE;
       for (int8_t y = pHEIGHT-1; y >= 0; y--) {
@@ -293,12 +274,12 @@ void sendE131Screen() {
 // Проверка, что пакет E1.31 содержит команду к исполнению
 // ---------------------------------------------------
 bool isCommandPacket(e131_packet_t *packet) {
-  // Команда всегда приходит в universe == 1
+  // Команда всегда приходит в universe == START_UNIVERSE
   // 1 - 0xAA  - сигнатура 1
   // 2 - 0x55  - сигнатура 2
   // 3 -       - ID команды
   // 4 и далее - параметры команды (зависит от команды)
-  return packet != NULL && htons(packet->universe) == 1 && packet->property_values[1] == 0xAA && packet->property_values[2] == 0x55;
+  return packet != NULL && htons(packet->universe) == START_UNIVERSE && packet->property_values[1] == 0xAA && packet->property_values[2] == 0x55;
 }
 
 // ---------------------------------------------------
@@ -371,35 +352,37 @@ void processCommandPacket(e131_packet_t *packet) {
      Канал 5 = H  - высота
   */  
 
-  switch (packet->property_values[3]) {
+  uint8_t cmd = packet->property_values[3];
+  debugSyncCommand(cmd);
+
+  switch (cmd) {
 
     // вкл/выкл устройство
     case CMD_TURNONOFF:
       set_isTurnedOff(packet->property_values[4] == 0);
-      //DEBUGLN("GOT CMD_TURNONOFF");
       break;
 
     case CMD_AUXACTIVE:
-      set_isAuxActive(packet->property_values[4] == 0);
-      //DEBUGLN("GOT CMD_AUXACTIVE");
+      set_isAuxActive(packet->property_values[4] != 0);
+      break;
+
+    case CMD_ALARMING:
+      isRemoteAlarm = packet->property_values[4] != 0;
       break;
 
     // Установить яркость
     case CMD_BRIGHTNESS:
       set_globalBrightness(packet->property_values[4]);
-      //DEBUGLN("GOT CMD_BRIGHTNESS");
       break;
 
     // Установить яркость
     case CMD_SPCBRIGHTNESS:
       set_specialBrightness(packet->property_values[4]);
-      //DEBUGLN("GOT CMD_SPCBRIGHTNESS");
       break;
 
     // Установить яркость
     case CMD_CURBRIGHTNESS:
       FastLED.setBrightness(packet->property_values[4]);
-      //DEBUGLN("GOT CMD_CURBRIGHTNESS");
       break;
 
     // Включить эффект  
@@ -412,13 +395,11 @@ void processCommandPacket(e131_packet_t *packet) {
       masterHeight       = packet->property_values[13];
       globalColor        = ((packet->property_values[9] & 0xFF) << 16) | ((packet->property_values[10] && 0xFF) << 8) | (packet->property_values[11] && 0xFF);
       setEffect(packet->property_values[4]);        
-      //DEBUGLN("GOT CMD_EFFECT");
       break;
 
     // Включить специальный эффект  
     case CMD_SPCEFFECT:
       setSpecialMode(packet->property_values[4]);
-      //DEBUGLN("GOT CMD_SPCEFFECT");
       break;
 
     // Включить отображение текста, переданного в параметре 4 и далее
@@ -427,7 +408,6 @@ void processCommandPacket(e131_packet_t *packet) {
       char* buf = (char*)(&packet->property_values[4]);
       String text(buf);
       setImmediateText(text);
-      //DEBUGLN("GOT CMD_RUNTEXT");
       break;
      }
 
@@ -437,7 +417,6 @@ void processCommandPacket(e131_packet_t *packet) {
       // текст принудительно останавливать не нужно - на мастере он уже может пробежать,
       // а на более широкой матрице - все еще отображаться      
       mandatoryStopText = masterWidth > 0 && pWIDTH <= masterWidth;
-      //DEBUGLN("GOT CMD_STOPTEXT");
       break;
 
     case CMD_TIME:
@@ -450,38 +429,32 @@ void processCommandPacket(e131_packet_t *packet) {
       //   Канал 9 = x - секунды
       setCurrentTime(packet->property_values[7],packet->property_values[8],packet->property_values[9],
                      packet->property_values[6],packet->property_values[5],2000+packet->property_values[4]);
-      //DEBUGLN("GOT CMD_TIME");
       break;      
 
     case CMD_SPEED:
       // Скорость текущего эффекта
       syncEffectSpeed    = packet->property_values[4];              // Скорость эффекта
       setTimersForMode(thisMode);
-      //DEBUGLN("GOT CMD_SPEED");
       break;      
 
     case CMD_CONTRAST:
       // Контрастность текущего эффекта
       syncEffectContrast = packet->property_values[4];              // Контраст эффекта 
-      //DEBUGLN("GOT CMD_CONTRAST");
       break;      
 
     case CMD_PARAM1:
       // Параметр-1 текущего эффекта
       syncEffectParam1   = packet->property_values[4];              // Параметр эффекта 1
-      //DEBUGLN("GOT CMD_PARAM1");
       break;      
 
     case CMD_PARAM2:
       // Параметр-2 текущего эффекта
       syncEffectParam2   = packet->property_values[4];              // Параметр эффекта 2
-      //DEBUGLN("GOT CMD_PARAM2");
       break;      
 
     case CMD_COLOR:
       // globalColor
       globalColor = ((packet->property_values[4] & 0xFF) << 16) | ((packet->property_values[5] && 0xFF) << 8) | (packet->property_values[6] && 0xFF);
-      //DEBUGLN("GOT CMD_COLOR");
       break;      
 
     case CMD_DIMENSION:
@@ -494,7 +467,6 @@ void processCommandPacket(e131_packet_t *packet) {
         masterHeight = hh;
         FastLED.clear();
       }
-      //DEBUGLN("GOT CMD_DIMENSION");
       break;      
     }
     
@@ -502,7 +474,6 @@ void processCommandPacket(e131_packet_t *packet) {
       // Скорость прокрутки текста
       textScrollSpeed = packet->property_values[4];
       textTimer.setInterval(textScrollSpeed);
-      //DEBUGLN("GOT CMD_TEXTSPEED");
       break;      
 
     case CMD_CLOCKSPEED:
@@ -514,7 +485,6 @@ void processCommandPacket(e131_packet_t *packet) {
       } else {
         clockTimer.setInterval(clockScrollSpeed);
       }
-      //DEBUGLN("GOT CMD_CLOCKSPEED");
       break;      
   }
 }
@@ -538,10 +508,10 @@ void commandTurnOnOff(bool value) {
   e131_packet_t *packet = makeCommandPacket(CMD_TURNONOFF);
   if (!packet) return;
   packet->property_values[4] = value ? 1 :0;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);  
-  //DEBUGLN("SEND CMD_TURNONOFF");
+  // DEBUGLN("SEND CMD_TURNONOFF");
 }
 
 void commandAuxActive(bool value) {
@@ -549,10 +519,21 @@ void commandAuxActive(bool value) {
   e131_packet_t *packet = makeCommandPacket(CMD_AUXACTIVE);
   if (!packet) return;
   packet->property_values[4] = value ? 1 :0;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);  
-  //DEBUGLN("SEND CMD_AUXACTIVE");
+  // DEBUGLN("SEND CMD_AUXACTIVE");
+}
+
+void commandAlarming(bool value) {
+  if (workMode != MASTER) return;
+  e131_packet_t *packet = makeCommandPacket(CMD_ALARMING);
+  if (!packet) return;
+  packet->property_values[4] = value ? 1 :0;
+  e131->sendPacket(packet, START_UNIVERSE, 170);
+  delay(5);
+  free(packet);  
+  // DEBUGLN("SEND CMD_ALARMING");
 }
 
 void commandSetBrightness(uint8_t value) {
@@ -560,10 +541,10 @@ void commandSetBrightness(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_BRIGHTNESS);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_BRIGHTNESS");
+  // DEBUGLN("SEND CMD_BRIGHTNESS");
 }
 
 void commandSetSpecialBrightness(uint8_t value) {
@@ -571,10 +552,10 @@ void commandSetSpecialBrightness(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_SPCBRIGHTNESS);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_SPCBRIGHTNESS");
+  // DEBUGLN("SEND CMD_SPCBRIGHTNESS");
 }
 
 void commandSetCurrentBrightness(uint8_t value) {
@@ -582,10 +563,10 @@ void commandSetCurrentBrightness(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_CURBRIGHTNESS);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_CURBRIGHTNESS");
+  // DEBUGLN("SEND CMD_CURBRIGHTNESS");
 }
 
 void commandSetImmediateText(const String& str) {
@@ -593,20 +574,20 @@ void commandSetImmediateText(const String& str) {
   e131_packet_t *packet = makeCommandPacket(CMD_RUNTEXT);
   if (!packet) return;
   str.getBytes(&packet->property_values[4], str.length() + 1);  
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_RUNTEXT");
+  // DEBUGLN("SEND CMD_RUNTEXT");
 }
 
 void commandStopText() {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
   e131_packet_t *packet = makeCommandPacket(CMD_STOPTEXT);
   if (!packet) return;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);      
-  //DEBUGLN("SEND CMD_STOPTEXT");
+  // DEBUGLN("SEND CMD_STOPTEXT");
 }
 
 void commandSetCurrentTime(uint8_t hh, uint8_t mm, uint8_t ss, uint8_t dd, uint8_t nn, uint16_t yy) {
@@ -619,10 +600,10 @@ void commandSetCurrentTime(uint8_t hh, uint8_t mm, uint8_t ss, uint8_t dd, uint8
   packet->property_values[7] = dd;
   packet->property_values[8] = nn;
   packet->property_values[9] = yy % 100;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_SPCBRIGHTNESS");
+  // DEBUGLN("SEND CMD_SPCBRIGHTNESS");
 }
 
 void commandSetMode(int8_t value) {
@@ -643,10 +624,10 @@ void commandSetMode(int8_t value) {
   packet->property_values[12] = pWIDTH;
   packet->property_values[13] = pHEIGHT;
   
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_EFFECT");
+  // DEBUGLN("SEND CMD_EFFECT");
 }
 
 void commandSetSpecialMode(int8_t value) {
@@ -654,10 +635,10 @@ void commandSetSpecialMode(int8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_SPCEFFECT);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_SPCEFFECT");
+  // DEBUGLN("SEND CMD_SPCEFFECT");
 }
 
 void commandSetEffectSpeed(uint8_t value) {
@@ -665,10 +646,10 @@ void commandSetEffectSpeed(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_SPEED);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_SPEED");
+  // DEBUGLN("SEND CMD_SPEED");
 }
 
 void commandSetEffectContrast(uint8_t value) {
@@ -676,10 +657,10 @@ void commandSetEffectContrast(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_CONTRAST);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_CONTRAST");
+  // DEBUGLN("SEND CMD_CONTRAST");
 }
 
 void commandSetEffectParam(uint8_t value) {
@@ -687,10 +668,10 @@ void commandSetEffectParam(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_PARAM1);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_PARAM1");
+  // DEBUGLN("SEND CMD_PARAM1");
 }
 
 void commandSetEffectParam2(uint8_t value) {
@@ -698,10 +679,10 @@ void commandSetEffectParam2(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_PARAM2);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_PARAM2");
+  // DEBUGLN("SEND CMD_PARAM2");
 }
 
 void commandSetGlobalColor(uint32_t col) {
@@ -712,10 +693,10 @@ void commandSetGlobalColor(uint32_t col) {
   packet->property_values[4] = color.r;
   packet->property_values[5] = color.g;
   packet->property_values[6] = color.b;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_COLOR");
+  // DEBUGLN("SEND CMD_COLOR");
 }
 
 void commandSetDimension(uint8_t w, uint8_t h) {
@@ -724,10 +705,10 @@ void commandSetDimension(uint8_t w, uint8_t h) {
   if (!packet) return;
   packet->property_values[4] = w;
   packet->property_values[5] = h;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);    
-  //DEBUGLN("SEND CMD_DIMENSION");  
+  // DEBUGLN("SEND CMD_DIMENSION");  
 }
 
 void commandSetTextSpeed(uint8_t value) {
@@ -735,10 +716,10 @@ void commandSetTextSpeed(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_TEXTSPEED);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);      
-  //DEBUGLN("SEND CMD_TEXTSPEED");  
+  // DEBUGLN("SEND CMD_TEXTSPEED");  
 }
 
 void commandSetClockSpeed(uint8_t value) {
@@ -746,10 +727,34 @@ void commandSetClockSpeed(uint8_t value) {
   e131_packet_t *packet = makeCommandPacket(CMD_CLOCKSPEED);
   if (!packet) return;
   packet->property_values[4] = value;
-  e131->sendPacket(packet, 1, 170);
+  e131->sendPacket(packet, START_UNIVERSE, 170);
   delay(5);
   free(packet);      
-  //DEBUGLN("SEND CMD_CLOCKSPEED");
+  // DEBUGLN("SEND CMD_CLOCKSPEED");
 }
 
+void debugSyncCommand(uint8_t cmd) {
+  switch(cmd) {
+    //case CMD_TURNONOFF:       DEBUGLN(F("GOT CMD_TURNONOFF"));      break;
+    //case CMD_BRIGHTNESS:      DEBUGLN(F("GOT CMD_BRIGHTNESS"));     break;
+    //case CMD_SPCBRIGHTNESS:   DEBUGLN(F("GOT CMD_SPCBRIGHTNESS"));  break;
+    //case CMD_EFFECT:          DEBUGLN(F("GOT CMD_EFFECT"));         break;
+    //case CMD_SPCEFFECT:       DEBUGLN(F("GOT CMD_SPCEFFECT"));      break;
+    //case CMD_RUNTEXT:         DEBUGLN(F("GOT CMD_RUNTEXT"));        break;
+    //case CMD_STOPTEXT:        DEBUGLN(F("GOT CMD_STOPTEXT"));       break;
+    //case CMD_TIME:            DEBUGLN(F("GOT CMD_TIME"));           break;
+    //case CMD_SPEED:           DEBUGLN(F("GOT CMD_SPEED"));          break;
+    //case CMD_CONTRAST:        DEBUGLN(F("GOT CMD_CONTRAST"));       break;
+    //case CMD_PARAM1:          DEBUGLN(F("GOT CMD_PARAM1"));         break;
+    //case CMD_PARAM2:          DEBUGLN(F("GOT CMD_PARAM2"));         break;
+    //case CMD_COLOR:           DEBUGLN(F("GOT CMD_COLOR"));          break;
+    //case CMD_DIMENSION:       DEBUGLN(F("GOT CMD_DIMENSION"));      break;
+    //case CMD_TEXTSPEED:       DEBUGLN(F("GOT CMD_TEXTSPEED"));      break;
+    //case CMD_CLOCKSPEED:      DEBUGLN(F("GOT CMD_CLOCKSPEED"));     break;
+    //case CMD_CURBRIGHTNESS:   DEBUGLN(F("GOT CMD_CURBRIGHTNESS"));  break;
+    //case CMD_AUXACTIVE:       DEBUGLN(F("GOT CMD_AUXACTIVE"));      break;
+    //case CMD_ALARMING:        DEBUGLN(F("GOT CMD_ALARMING"));       break;
+    //default:                  DEBUGLN(F("UNCNOWN SYNC COMMAND"));   break;
+  }
+}
 #endif

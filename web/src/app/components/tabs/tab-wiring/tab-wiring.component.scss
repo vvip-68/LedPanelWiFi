@@ -123,114 +123,114 @@
 
     .nodemcu {
       .mark {
-        &.d0  { top:  60px; left: 278px; }
-        &.d5  { top: 190px; left: 278px; }
-        &.d6  { top: 209px; left: 278px; }
-        &.d7  { top: 228px; left: 278px; }
-        &.d8  { top: 247px; left: 278px; }
-        &.tx  { top: 284px; left: 278px; }
-        &.rx  { top: 265px; left: 278px; }
-        &.d1  { top:  79px; left: 278px; }
-        &.d2  { top:  97px; left: 278px; }
-        &.d3  { top: 116px; left: 278px; }
-        &.d4  { top: 134px; left: 278px; }
+        &.d0  { top:  75px; left: 278px; }
+        &.d5  { top: 195px; left: 278px; }
+        &.d6  { top: 212px; left: 278px; }
+        &.d7  { top: 229px; left: 278px; }
+        &.d8  { top: 246px; left: 278px; }
+        &.tx  { top: 280px; left: 278px; }
+        &.rx  { top: 263px; left: 278px; }
+        &.d1  { top:  92px; left: 278px; }
+        &.d2  { top: 109px; left: 278px; }
+        &.d3  { top: 126px; left: 278px; }
+        &.d4  { top: 143px; left: 278px; }
       }
       .markp {
-        &.d0 { top:  60px; left: 298px; }
-        &.d5 { top: 190px; left: 298px; }
-        &.d6 { top: 209px; left: 298px; }
-        &.d7 { top: 228px; left: 298px; }
-        &.d8 { top: 247px; left: 298px; }
-        &.tx { top: 284px; left: 298px; width: 36px; }
-        &.rx { top: 265px; left: 298px; width: 36px; }
-        &.d1 { top:  79px; left: 298px; }
-        &.d2 { top:  97px; left: 298px; }
-        &.d3 { top: 116px; left: 298px; }
-        &.d4 { top: 134px; left: 298px; }
+        &.d0 { top:  75px; left: 298px; }
+        &.d5 { top: 195px; left: 298px; }
+        &.d6 { top: 212px; left: 298px; }
+        &.d7 { top: 229px; left: 298px; }
+        &.d8 { top: 246px; left: 298px; }
+        &.tx { top: 280px; left: 298px; width: 36px; }
+        &.rx { top: 263px; left: 298px; width: 36px; }
+        &.d1 { top:  92px; left: 298px; }
+        &.d2 { top: 109px; left: 298px; }
+        &.d3 { top: 126px; left: 298px; }
+        &.d4 { top: 143px; left: 298px; }
       }
       .markc {
-        &.d0 { top:  60px; left: 324px; }
-        &.d5 { top: 190px; left: 324px; }
-        &.d6 { top: 209px; left: 324px; }
-        &.d7 { top: 228px; left: 324px; }
-        &.d8 { top: 247px; left: 324px; }
-        &.tx { top: 284px; left: 338px; }
-        &.rx { top: 265px; left: 338px; }
-        &.d1 { top:  79px; left: 324px; }
-        &.d2 { top:  97px; left: 324px; }
-        &.d3 { top: 116px; left: 324px; }
-        &.d4 { top: 134px; left: 324px; }
+        &.d0 { top:  75px; left: 324px; }
+        &.d5 { top: 195px; left: 324px; }
+        &.d6 { top: 212px; left: 324px; }
+        &.d7 { top: 229px; left: 324px; }
+        &.d8 { top: 246px; left: 324px; }
+        &.tx { top: 280px; left: 338px; }
+        &.rx { top: 263px; left: 338px; }
+        &.d1 { top:  92px; left: 324px; }
+        &.d2 { top: 109px; left: 324px; }
+        &.d3 { top: 126px; left: 324px; }
+        &.d4 { top: 143px; left: 324px; }
       }
     }
 
     .esp32 {
       .mark {
-        &.tx  { top: 105px; left: 278px; }
-        &.rx  { top: 123px; left: 278px; }
-        &.d2  { top: 273px; left: 278px; }
-        &.d4  { top: 254px; left: 278px; }
+        &.tx  { top: 108px; left: 278px; }
+        &.rx  { top: 126px; left: 278px; }
+        &.d2  { top: 268px; left: 278px; }
+        &.d4  { top: 250px; left: 278px; }
         &.d5  { top: 198px; left: 278px; }
-        &.d12  { top: 273px; left: 82px; }
-        &.d13  { top: 292px; left: 82px; }
-        &.d14  { top: 254px; left: 82px; }
-        &.d15  { top: 292px; left: 278px; }
-        &.d16  { top: 235px; left: 278px; }
+        &.d12  { top: 268px; left: 82px; }
+        &.d13  { top: 286px; left: 82px; }
+        &.d14  { top: 250px; left: 82px; }
+        &.d15  { top: 286px; left: 278px; }
+        &.d16  { top: 233px; left: 278px; }
         &.d17  { top: 216px; left: 278px; }
         &.d18  { top: 180px; left: 278px; }
-        &.d19  { top: 161px; left: 278px; }
-        &.d21  { top: 142px; left: 278px; }
-        &.d22  { top:  86px; left: 278px; }
-        &.d23  { top:  68px; left: 278px; }
-        &.d25  { top: 198px; left: 82px; }
-        &.d26  { top: 217px; left: 82px; }
-        &.d27  { top: 235px; left: 82px; }
-        &.d32  { top: 161px; left: 82px; }
+        &.d19  { top: 162px; left: 278px; }
+        &.d21  { top: 144px; left: 278px; }
+        &.d22  { top:  90px; left: 278px; }
+        &.d23  { top:  72px; left: 278px; }
+        &.d25  { top: 196px; left: 82px; }
+        &.d26  { top: 214px; left: 82px; }
+        &.d27  { top: 232px; left: 82px; }
+        &.d32  { top: 162px; left: 82px; }
         &.d33  { top: 179px; left: 82px; }
       }
       .markp {
-        &.tx { top: 105px; left: 298px; width: 36px; }
-        &.rx { top: 123px; left: 298px; width: 36px; }
-        &.d2 { top: 273px; left: 298px; }
-        &.d4 { top: 254px; left: 298px; }
+        &.tx { top: 108px; left: 298px; width: 36px; }
+        &.rx { top: 126px; left: 298px; width: 36px; }
+        &.d2 { top: 268px; left: 298px; }
+        &.d4 { top: 250px; left: 298px; }
         &.d5 { top: 198px; left: 298px; }
-        &.d12 { top: 273px; left: 54px; }
-        &.d13 { top: 292px; left: 54px; }
-        &.d14 { top: 254px; left: 54px; }
-        &.d15 { top: 292px; left: 298px; }
-        &.d16 { top: 235px; left: 298px; }
+        &.d12 { top: 268px; left: 54px; }
+        &.d13 { top: 286px; left: 54px; }
+        &.d14 { top: 250px; left: 54px; }
+        &.d15 { top: 286px; left: 298px; }
+        &.d16 { top: 233px; left: 298px; }
         &.d17 { top: 216px; left: 298px; }
         &.d18 { top: 180px; left: 298px; }
-        &.d19 { top: 161px; left: 298px; }
-        &.d21 { top: 142px; left: 298px; }
-        &.d22 { top:  86px; left: 298px; }
-        &.d23 { top:  68px; left: 298px; }
-        &.d25 { top: 198px; left: 54px; }
-        &.d26 { top: 217px; left: 54px; }
-        &.d27 { top: 235px; left: 54px; }
-        &.d32 { top: 161px; left: 54px; }
+        &.d19 { top: 162px; left: 298px; }
+        &.d21 { top: 144px; left: 298px; }
+        &.d22 { top:  90px; left: 298px; }
+        &.d23 { top:  72px; left: 298px; }
+        &.d25 { top: 196px; left: 54px; }
+        &.d26 { top: 214px; left: 54px; }
+        &.d27 { top: 232px; left: 54px; }
+        &.d32 { top: 162px; left: 54px; }
         &.d33 { top: 179px; left: 54px; }
       }
       .markc {
-        &.tx { top: 105px; left: 338px; }
-        &.rx { top: 123px; left: 338px; }
-        &.d2 { top: 273px; left: 324px; }
-        &.d4 { top: 254px; left: 324px; }
+        &.tx { top: 108px; left: 338px; }
+        &.rx { top: 126px; left: 338px; }
+        &.d2 { top: 268px; left: 324px; }
+        &.d4 { top: 250px; left: 324px; }
         &.d5 { top: 198px; left: 324px; }
-        &.d12 { top: 273px; right: 322px; }
-        &.d13 { top: 292px; right: 322px; }
-        &.d14 { top: 254px; right: 322px; }
-        &.d15 { top: 292px; left: 324px; }
-        &.d16 { top: 235px; left: 324px; }
+        &.d12 { top: 268px; right: 322px; }
+        &.d13 { top: 286px; right: 322px; }
+        &.d14 { top: 250px; right: 322px; }
+        &.d15 { top: 286px; left: 324px; }
+        &.d16 { top: 233px; left: 324px; }
         &.d17 { top: 216px; left: 324px; }
         &.d18 { top: 180px; left: 324px; }
-        &.d19 { top: 161px; left: 324px; }
-        &.d21 { top: 142px; left: 324px; }
-        &.d22 { top:  86px; left: 324px; }
-        &.d23 { top:  68px; left: 324px; }
-        &.d25 { top: 198px; right: 322px; }
-        &.d26 { top: 217px; right: 322px; }
-        &.d27 { top: 235px; right: 322px; }
-        &.d32 { top: 161px; right: 322px; }
+        &.d19 { top: 162px; left: 324px; }
+        &.d21 { top: 144px; left: 324px; }
+        &.d22 { top:  90px; left: 324px; }
+        &.d23 { top:  72px; left: 324px; }
+        &.d25 { top: 196px; right: 322px; }
+        &.d26 { top: 214px; right: 322px; }
+        &.d27 { top: 232px; right: 322px; }
+        &.d32 { top: 162px; right: 322px; }
         &.d33 { top: 179px; right: 322px; }
       }
     }

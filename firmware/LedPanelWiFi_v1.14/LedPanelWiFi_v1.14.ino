@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1211")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1215")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -44,6 +44,10 @@
 // -------------------------------------------------------------------------------------------------------
 //
 // Настройки ArduinoIDE для Wemos, NodeMCU и ESP32 смотри на скриншотов в корневой папке проекта - settings-wemos.png, settings-nodemcu.png и settings-esp32.png 
+//
+// Внимание!!! Большинство плат Wemos прошиваются и нормально запускаются при настройке в меню "Инструменты" - "Flash Mode" значения 'QIO (fast)' и работают достаточно шустро
+//             Однако мне встречались экземпляры, которые при данной настройке даже не запускались - в мониторе порта при старте контроллера только немного мусора.
+//             Для таких плат выберите значение "Flash Mode: DIO". Если не запустится и с ним - выбирайте значение "Flash Mode: DOГЕ (compatible)"
 //
 // -------------------------------------------------------------------------------------------------------
 //
@@ -716,7 +720,7 @@ void setup() {
   if (spc_mode >= 0 && spc_mode < MAX_SPEC_EFFECT) {
     setSpecialMode(spc_mode);
     set_isTurnedOff(spc_mode == 0);
-    set_isNightClock(spc_mode == 8);        
+    set_isNightClock(spc_mode == 8);
   } else {
     set_thisMode(getCurrentManualMode());
     if (thisMode < 0 || thisMode == MC_TEXT || thisMode >= SPECIAL_EFFECTS_START) {
