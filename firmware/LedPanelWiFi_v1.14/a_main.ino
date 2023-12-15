@@ -17,7 +17,7 @@ uint32_t last_sent_aux_sync;
 #endif
 
 // Forward declaration
-String getStateValue(const String& key, int8_t effect, JsonVariant* value = nullptr);
+String getStateValue(const String& key, int8_t effect, JsonVariant* value = nullptr, bool small = false);
 
 void process() {  
 
@@ -68,6 +68,7 @@ void process() {
       addKeyToChanged("E4");
       
       if (workMode == MASTER) {
+        
         DEBUGLN(F("Запуск вещания E1.31 потока"));
         commandSetDimension(pWIDTH, pHEIGHT);
         commandTurnOnOff(isTurnedOff);
@@ -83,10 +84,14 @@ void process() {
           else
             commandSetMode(thisMode);
         }
+        
       } else {
+        
         masterWidth = 0;
         masterHeight = 0;
         isRemoteAlarm = false;
+        isRemoteAuxActive = false;
+        
         if (isTurnedOff) {
           FastLED.setBrightness(getMaxBrightness());
         }
@@ -482,7 +487,7 @@ void process() {
 
     #if (USE_AUX == 1)
       if (vAUX_PIN >= 0) {
-        if (isAuxActive) {
+        if (isAuxActive || isRemoteAuxActive) {
           digitalWrite(vAUX_PIN, vAUX_ON);
         } else {
           digitalWrite(vAUX_PIN, vAUX_OFF);
@@ -1764,20 +1769,14 @@ void parsing() {
           doc.clear();
           doc["act"]        = F("EDIT");
           doc["id"]         = String(tmp_eff);
-          doc["name"]       = getEffectName(tmp_eff);
-          // -----------------
-          // На первый взгляд кажется что &value не используется. Однако формат строки, возвращаемой функцией getStateValue()
-          // разный в зависимости от того передан этот параметр или нет. В данном случае нам нужен формат именно тот, который функция возвращает
-          // в случае, когда передан параметр &value;
-          // -----------------
-          JsonVariant value;
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["usage"]      = getStateValue("UE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowClock"] = getStateValue("UC", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["allowText"]  = getStateValue("UT", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["speed"]      = getStateValue("SE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["contrast"]   = getStateValue("BE", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param1"]     = getStateValue("SS", tmp_eff, &value);
-          value_doc.clear(); value = value_doc.to<JsonVariant>(); doc["param2"]     = getStateValue("SQ", tmp_eff, &value);          
+          doc["name"]       = getEffectName(tmp_eff);          
+          doc["usage"]      = getStateValue("UE", tmp_eff, nullptr, true);
+          doc["allowClock"] = getStateValue("UC", tmp_eff, nullptr, true);
+          doc["allowText"]  = getStateValue("UT", tmp_eff, nullptr, true);
+          doc["speed"]      = getStateValue("SE", tmp_eff, nullptr, true);
+          doc["contrast"]   = getStateValue("BE", tmp_eff, nullptr, true);
+          doc["param1"]     = getStateValue("SS", tmp_eff, nullptr, true);
+          doc["param2"]     = getStateValue("SQ", tmp_eff, nullptr, true);          
           // -----------------          
           doc["paramName1"] = getParamNameForMode(tmp_eff);
           doc["paramName2"] = getParam2NameForMode(tmp_eff);
@@ -2865,7 +2864,7 @@ void sendStringData(const String& str) {
   DEBUGLN();
 }
 
-String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
+String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool shrt) {
 
   // W:число     ширина матрицы
   // H:число     высота матрицы
@@ -3029,8 +3028,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Версия прошивки
   if (key == "VR") {
-    if (value) {
-      value->set(FIRMWARE_VER);
+    if (value || shrt) {
+      if (value) value->set(FIRMWARE_VER);
       return FIRMWARE_VER;
     }
     String str("VR:[");
@@ -3040,8 +3039,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Имя устройства
   if (key == "HN") {
-    if (value) {
-      value->set(system_name);
+    if (value || shrt) {
+      if (value) value->set(system_name);
       return system_name;
     }
     String str("HN:[");
@@ -3051,8 +3050,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Идентификатор языка интерфейса
   if (key == "LG") {
-    if (value) {
-      value->set(UI);
+    if (value || shrt) {
+      if (value) value->set(UI);
       return UI;
     }
     String str("LG:[");
@@ -3062,8 +3061,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Ширина матрицы
   if (key == "W")  {
-    if (value) {
-      value->set(pWIDTH);
+    if (value || shrt) {
+      if (value) value->set(pWIDTH);
       return String(pWIDTH);
     }
     String str("W:");
@@ -3073,8 +3072,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Высота матрицы
   if (key == "H")  {
-    if (value) {
-      value->set(pHEIGHT);
+    if (value || shrt) {
+      if (value) value->set(pHEIGHT);
       return String(pHEIGHT);
     }
     String str("H:");
@@ -3084,8 +3083,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Программное вкл/выкл устройства
   if (key == "PS") {
-    if (value) {
-      value->set(!isTurnedOff);
+    if (value || shrt) {
+      if (value) value->set(!isTurnedOff);
       return String(!isTurnedOff);
     }
     String str("PS:");
@@ -3095,8 +3094,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущее состояние дополнительной линии управления питанием
   if (key == "FK") {
-    if (value) {
-      value->set(isAuxActive);
+    if (value || shrt) {
+      if (value) value->set(isAuxActive);
       return String(isAuxActive);
     }
     String str("FK:");
@@ -3106,8 +3105,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Битовая маска режимов использования дополнительной линии управления питанием
   if (key == "FG") {
-    if (value) {
-      value->set(auxLineModes);
+    if (value || shrt) {
+      if (value) value->set(auxLineModes);
       return String(auxLineModes);
     }
     String str("FG:");
@@ -3117,8 +3116,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущая яркость
   if (key == "BR") {
-    if (value) {
-      value->set((isNightClock ? nightClockBrightness : globalBrightness));
+    if (value || shrt) {
+      if (value) value->set((isNightClock ? nightClockBrightness : globalBrightness));
       return isNightClock ? String(nightClockBrightness) : String(globalBrightness);
     }
     String str("BR:");
@@ -3128,8 +3127,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   if (key == "BS") {
     uint8_t val = getGameButtonSpeed();
-    if (value) {
-      value->set(val);
+    if (value || shrt) {
+      if (value) value->set(val);
       return String(val);
     }
     String str("BS:");
@@ -3139,8 +3138,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Ручной / Авто режим
   if (key == "DM") {
-    if (value) {
-      value->set(!manualMode);
+    if (value || shrt) {
+      if (value) value->set(!manualMode);
       return String(!manualMode);
     }
     String str("DM:");
@@ -3150,8 +3149,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Продолжительность режима в секундах
   if (key == "PD") {
-    if (value) {
-      value->set(autoplayTime / 1000);
+    if (value || shrt) {
+      if (value) value->set(autoplayTime / 1000);
       return String(autoplayTime / 1000);
     }
     String str("PD:");
@@ -3161,8 +3160,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Время бездействия в минутах
   if (key == "IT") {
-    if (value) {
-      value->set(idleTime / 60 / 1000);
+    if (value || shrt) {
+      if (value) value->set(idleTime / 60 / 1000);
       return String(idleTime / 60 / 1000);
     }
     String str("IT:");
@@ -3172,8 +3171,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Сработал будильник 0-нет, 1-да
   if (key == "AL") {
-    if (value) {
-      value->set((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
+    if (value || shrt) {
+      if (value) value->set((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
       return String((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
     }
     String str("AL:");
@@ -3183,8 +3182,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
   if (key == "RM") {
-    if (value) {
-      value->set(useRandomSequence);
+    if (value || shrt) {
+      if (value) value->set(useRandomSequence);
       return String(useRandomSequence);
     }
     String str("RM:");
@@ -3194,8 +3193,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Ограничение по току в миллиамперах
   if (key == "PW") {
-    if (value) {
-      value->set(CURRENT_LIMIT);
+    if (value || shrt) {
+      if (value) value->set(CURRENT_LIMIT);
       return String(CURRENT_LIMIT);
     }
     String str("PW:");
@@ -3205,8 +3204,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Прошивка поддерживает погоду 
   if (key == "WZ") {
-    if (value) {
-      value->set(USE_WEATHER == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_WEATHER == 1);
       return String(USE_WEATHER == 1);
     }
     String str("WZ:");
@@ -3217,8 +3216,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 #if (USE_WEATHER == 1)                  
   // Использовать получение погоды с сервера: 0 - выключено; 1 - Yandex; 2 - OpenWeatherMap
   if (key == "WU") {
-    if (value) {
-      value->set(useWeather);
+    if (value || shrt) {
+      if (value) value->set(useWeather);
       return String(useWeather);
     }
     String str("WU:");
@@ -3228,8 +3227,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Период запроса сведений о погоде в минутах
   if (key == "WT") {
-    if (value) {
-      value->set(SYNC_WEATHER_PERIOD);
+    if (value || shrt) {
+      if (value) value->set(SYNC_WEATHER_PERIOD);
       return String(SYNC_WEATHER_PERIOD);
     }
     String str("WT:");
@@ -3239,8 +3238,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Регион погоды Yandex
   if (key == "WR") {
-    if (value) {
-      value->set(regionID);
+    if (value || shrt) {
+      if (value) value->set(regionID);
       return String(regionID);
     }
     String str("WR:");
@@ -3250,8 +3249,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Регион погоды OpenWeatherMap
   if (key == "WS") {
-    if (value) {
-      value->set(regionID2);
+    if (value || shrt) {
+      if (value) value->set(regionID2);
       return String(regionID2);
     }
     String str("WS:");
@@ -3261,8 +3260,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Использовать цвет для отображения температуры в дневных часах: 0 - выключено; 1 - включено
   if (key == "WC") {
-    if (value) {
-      value->set(useTemperatureColor);
+    if (value || shrt) {
+      if (value) value->set(useTemperatureColor);
       return String(useTemperatureColor);
     }
     String str("WC:");
@@ -3272,8 +3271,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Использовать цвет для отображения температуры в ночных часах: 0 - выключено; 1 - включено
   if (key == "WN") {
-    if (value) {
-      value->set(useTemperatureColorNight);
+    if (value || shrt) {
+      if (value) value->set(useTemperatureColorNight);
       return String(useTemperatureColorNight);
     }
     String str("WN:");
@@ -3283,8 +3282,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущая погода
   if (key == "W1") {
-    if (value) {
-      value->set(weather);
+    if (value || shrt) {
+      if (value) value->set(weather);
       return weather;
     }
     String str("W1:[");
@@ -3294,8 +3293,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущая температура
   if (key == "W2") {
-    if (value) {
-      value->set(temperature);
+    if (value || shrt) {
+      if (value) value->set(temperature);
       return String(temperature);
     }
     String str("W2:");
@@ -3306,8 +3305,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время рассвета, полученное с погодного сервера
   if (key == "T1") {
     String t1(padNum(dawn_hour,2)); t1 += ':'; t1 += padNum(dawn_minute,2);
-    if (value) {
-      value->set(t1);
+    if (value || shrt) {
+      if (value) value->set(t1);
       return t1;
     }
     String str("T1:[");
@@ -3318,8 +3317,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время заката, полученное с погодного сервера
   if (key == "T2") {
     String t2(padNum(dusk_hour,2)); t2 += ':'; t2 += padNum(dusk_minute,2);
-    if (value) {
-      value->set(t2);
+    if (value || shrt) {
+      if (value) value->set(t2);
       return t2;
     }
     String str("T2:[");
@@ -3330,8 +3329,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущий эффект - id
   if (key == "EF") {
-    if (value) {
-      value->set(effect);
+    if (value || shrt) {
+      if (value) value->set(effect);
       return String(effect);
     }
     String str("EF:");
@@ -3344,8 +3343,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     if (effect_name.length() == 0) {
       effect_name = getEffectName(effect);
     }
-    if (value) {
-      value->set(effect_name);
+    if (value || shrt) {
+      if (value) value->set(effect_name);
       return effect_name;
     }
     String str("EN:[");
@@ -3358,8 +3357,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Эффекты, которые отсутствуют в строке effect_order - не используются совсем. Пример строки - "FR1H5aShik";
   // Например буква F соответствует эффекту с ID=15 - MC_NOISE_RAINBOW, воспроизводится первым в опорядке, далее - эффект 'R' и т.д до конца строки
   if (key == "FV") {
-    if (value) {
-      value->set(effect_order);
+    if (value || shrt) {
+      if (value) value->set(effect_order);
       return effect_order;
     }
     String str("FV:[");
@@ -3370,12 +3369,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Оверлей бегущей строки
   if (key == "UT") {
     String tmp(getEffectTextOverlayUsage(effect));
-    if (value) {
+    if (value || shrt) {
       if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
-        value->set("X");
+        if (value) value->set("X");
         return String("X");
       }
-      value->set(getEffectTextOverlayUsage(effect));
+      if (value) value->set(getEffectTextOverlayUsage(effect));
       return tmp;
     }
     String str("UT:");
@@ -3387,12 +3386,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Оверлей часов   
   if (key == "UC") {
-    if (value) {
+    if (value || shrt) {
        if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK) {
-         value->set("X");
+         if (value) value->set("X");
          return "X"; 
        }
-       value->set(getEffectClockOverlayUsage(effect));
+       if (value) value->set(getEffectClockOverlayUsage(effect));
        return String(getEffectClockOverlayUsage(effect));
     }
     String str("UC:");
@@ -3404,12 +3403,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Настройка скорости
   if (key == "SE") {
-    if (value) {
+    if (value || shrt) {
       if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE) {
-        value->set("X");
+        if (value) value->set("X");
         return String("X");
       }
-      value->set(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
+      if (value) value->set(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
       return String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
     }
     String str("SE:");
@@ -3422,12 +3421,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Контраст
   if (key == "BE") {
     String tmp(getEffectContrast(effect));
-    if (value) {
+    if (value || shrt) {
       if (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD) {
-        value->set("X");
+        if (value) value->set("X");
         return String("X");
       }  
-      value->set(getEffectContrast(effect));
+      if (value) value->set(getEffectContrast(effect));
       return tmp;
     }
     String str("BE:");
@@ -3439,8 +3438,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Эффекты не имеющие настройки вариации (параметр #1) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SS") {
-    if (value) {
-      value->set(getParamForMode(effect));
+    if (value || shrt) {
+      if (value) value->set(getParamForMode(effect));
       return String(getParamForMode(effect));
     }
     String str("SS:");
@@ -3450,8 +3449,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Эффекты не имеющие настройки вариации (параметр #2) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SQ") {
-    if (value) {
-      value->set(getParam2ForMode(effect));
+    if (value || shrt) {
+      if (value) value->set(getParam2ForMode(effect));
       return String(getParam2ForMode(effect));
     }
     String str("SQ:");
@@ -3461,8 +3460,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Разрешен оверлей бегущей строки
   if (key == "TE") {
-    if (value) {
-      value->set(textOverlayEnabled);
+    if (value || shrt) {
+      if (value) value->set(textOverlayEnabled);
       return String(textOverlayEnabled);
     }
     String str("TE:");
@@ -3472,8 +3471,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Интервал показа бегущей строки
   if (key == "TI") {
-    if (value) {
-      value->set(TEXT_INTERVAL);
+    if (value || shrt) {
+      if (value) value->set(TEXT_INTERVAL);
       return String(TEXT_INTERVAL);
     }
     String str("TI:");
@@ -3483,8 +3482,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Режим цвета отображения бегущей строки
   if (key == "CT") {
-    if (value) {
-      value->set(COLOR_TEXT_MODE);
+    if (value || shrt) {
+      if (value) value->set(COLOR_TEXT_MODE);
       return String(COLOR_TEXT_MODE);
     }
     String str("CT:");
@@ -3494,8 +3493,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Скорость прокрутки текста
   if (key == "ST") {
-    if (value) {
-      value->set(255 - textScrollSpeed);
+    if (value || shrt) {
+      if (value) value->set(255 - textScrollSpeed);
       return String(255 - textScrollSpeed);
     }
     String str("ST:");
@@ -3507,8 +3506,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "C1") {
     c = CRGB(globalClockColor);
     String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("C1:");
@@ -3520,8 +3519,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "C2") {
     c = CRGB(globalTextColor);
     String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("C2:");
@@ -3531,8 +3530,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Строка состояния заполненности строк текста
   if (key == "TS") {
-    if (value) {
-      value->set(textStates);
+    if (value || shrt) {
+      if (value) value->set(textStates);
       return textStates;
     }
     String str("TS:");
@@ -3548,8 +3547,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     } else {
       tmp += "-1: >";      
     }
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("TY:[");
@@ -3559,12 +3558,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Оверлей часов вкл/выкл
   if (key == "CE") {
-    if (value) {
+    if (value || shrt) {
       if (allowVertical || allowHorizontal) {
-        value->set(getClockOverlayEnabled());
+        if (value) value->set(getClockOverlayEnabled());
         return String(getClockOverlayEnabled());
       } 
-      value->set("X");
+      if (value) value->set("X");
       return String("X");
     }
     String str("CE:");
@@ -3574,8 +3573,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Режим цвета часов оверлея
   if (key == "CC") {
-    if (value) {
-      value->set(COLOR_MODE);
+    if (value || shrt) {
+      if (value) value->set(COLOR_MODE);
       return String(COLOR_MODE);
     }
     String str("CC:");
@@ -3585,8 +3584,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступны горизонтальные часы
   if (key == "CH") {
-    if (value) {
-      value->set(allowHorizontal);
+    if (value || shrt) {
+      if (value) value->set(allowHorizontal);
       return String(allowHorizontal);
     }
     String str("CH:");
@@ -3596,8 +3595,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступны вертикальные часы
   if (key == "CV") {
-    if (value) {
-      value->set(allowVertical);
+    if (value || shrt) {
+      if (value) value->set(allowVertical);
       return String(allowVertical);
     }
     String str("CV:");
@@ -3607,9 +3606,9 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Цвет рисования
   if (key == "CL") {
-    if (value) {
+    if (value || shrt) {
       String tmp(IntToHex(drawColor));
-      value->set(tmp);
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("CL:");
@@ -3619,12 +3618,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Ориентация часов
   if (key == "CO") {
-    if (value) {
+    if (value || shrt) {
       if (allowVertical || allowHorizontal) {
-        value->set(CLOCK_ORIENT);
+        if (value) value->set(CLOCK_ORIENT);
         return String(CLOCK_ORIENT);
       }
-      value->set("X");
+      if (value) value->set("X");
       return String("X");
     }
     String str("CO:");
@@ -3634,8 +3633,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Размер (режим) горизонтальных часов
   if (key == "CK") {
-    if (value) {
-      value->set(CLOCK_SIZE);
+    if (value || shrt) {
+      if (value) value->set(CLOCK_SIZE);
       return String(CLOCK_SIZE);
     }
     String str("CK:");
@@ -3645,8 +3644,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Яркость цвета ночных часов
   if (key == "NB") {
-    if (value) {
-      value->set(nightClockBrightness);
+    if (value || shrt) {
+      if (value) value->set(nightClockBrightness);
       return String(nightClockBrightness);
     }
     String str("NB:");
@@ -3656,8 +3655,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Код цвета ночных часов
   if (key == "NC") {
-    if (value) {
-      value->set(nightClockColor);
+    if (value || shrt) {
+      if (value) value->set(nightClockColor);
       return String(nightClockColor);
     }
     String str("NC:");
@@ -3667,8 +3666,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Скорость смещения (прокрутки) часов оверлея
   if (key == "SC") {
-    if (value) {
-      value->set(255 - clockScrollSpeed);
+    if (value || shrt) {
+      if (value) value->set(255 - clockScrollSpeed);
       return String(255 - clockScrollSpeed);
     }
     String str("SC:");
@@ -3678,8 +3677,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Показывать дату вместе с часами
   if (key == "DC") {
-    if (value) {
-      value->set(showDateInClock);
+    if (value || shrt) {
+      if (value) value->set(showDateInClock);
       return String(showDateInClock);
     }
     String str("DC:");
@@ -3689,8 +3688,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Продолжительность отображения даты в режиме часов (сек)
   if (key == "DD") {
-    if (value) {
-      value->set(showDateDuration);
+    if (value || shrt) {
+      if (value) value->set(showDateDuration);
       return String(showDateDuration);
     }
     String str("DD:");
@@ -3700,8 +3699,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Интервал отображения даты часов
   if (key == "DI") {
-    if (value) {
-      value->set(showDateInterval);
+    if (value || shrt) {
+      if (value) value->set(showDateInterval);
       return String(showDateInterval);
     }
     String str("DI:");
@@ -3711,8 +3710,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Использовать получение времени с интернета
   if (key == "NP") {
-    if (value) {
-      value->set(useNtp);
+    if (value || shrt) {
+      if (value) value->set(useNtp);
       return String(useNtp);
     }
     String str("NP:");
@@ -3722,8 +3721,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Период синхронизации NTP в минутах
   if (key == "NT") {
-    if (value) {
-      value->set(SYNC_TIME_PERIOD);
+    if (value || shrt) {
+      if (value) value->set(SYNC_TIME_PERIOD);
       return String(SYNC_TIME_PERIOD); 
     }
     String str("NT:");
@@ -3733,8 +3732,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Часовой пояс - часы
   if (key == "NZ") {
-    if (value) {
-      value->set(timeZoneOffset);
+    if (value || shrt) {
+      if (value) value->set(timeZoneOffset);
       return String(timeZoneOffset);
     }
     String str("NZ:");
@@ -3744,8 +3743,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Часовой пояс - минты
   if (key == "NM") {
-    if (value) {
-      value->set(timeZoneOffsetMinutes);
+    if (value || shrt) {
+      if (value) value->set(timeZoneOffsetMinutes);
       return String(timeZoneOffsetMinutes);
     }
     String str("NM:");
@@ -3756,8 +3755,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Имя сервера NTP (url)
   if (key == "NS") {
     String tmp(ntpServerName);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("NS:[");
@@ -3767,8 +3766,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Показывать температуру вместе с малыми часами 0-нет, 1-да
   if (key == "DW") {
-    if (value) {
-      value->set(showWeatherInClock);
+    if (value || shrt) {
+      if (value) value->set(showWeatherInClock);
       return String(showWeatherInClock);
     }
     String str("DW:");
@@ -3778,8 +3777,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Выключать часы TM1637 вместе с лампой 0-нет, 1-да
   if (key == "OF") {
-    if (value) {
-      value->set(needTurnOffClock);
+    if (value || shrt) {
+      if (value) value->set(needTurnOffClock);
       return String(needTurnOffClock);
     }
     String str("OF:");
@@ -3789,8 +3788,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Продолжительность рассвета, мин
   if (key == "AD") {
-    if (value) {
-      value->set(dawnDuration);
+    if (value || shrt) {
+      if (value) value->set(dawnDuration);
       return String(dawnDuration);
     }
     String str("AD:");
@@ -3800,8 +3799,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Битовая маска дней недели будильника
   if (key == "AW") {
-    if (value) {
-      value->set(alarmWeekDay);
+    if (value || shrt) {
+      if (value) value->set(alarmWeekDay);
       return String(alarmWeekDay);
     }
     String str("AW:");
@@ -3817,7 +3816,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "AT") {
     String str;
     str.reserve(80);
-    if (value) {
+    if (value || shrt) {
       for (uint8_t i=0; i<7; i++) {      
         str += "|";
         str += i + 1; 
@@ -3826,7 +3825,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
         str += ' ';
         str += alarmMinute[i];
       }
-      value->set(str.substring(1));
+      if (value) value->set(str.substring(1));
       return str.substring(1);
     }
     for (uint8_t i=0; i<7; i++) {      
@@ -3843,8 +3842,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Эффект применяемый в рассвете: Индекс в списке в приложении смартфона начинается с 1
   if (key == "AE") {
-    if (value) {
-      value->set(alarmEffect);
+    if (value || shrt) {
+      if (value) value->set(alarmEffect);
       return String(alarmEffect);
     }
     String str("AE:");
@@ -3854,8 +3853,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Сколько минут звучит будильник, если его не отключили
   if (key == "MD") {
-    if (value) {
-      value->set(alarmDuration);
+    if (value || shrt) {
+      if (value) value->set(alarmDuration);
       return String(alarmDuration);
     }
     String str("MD:");
@@ -3865,8 +3864,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Текущий "специальный режим" или -1 если нет активного
   if (key == "SM") {
-    if (value) {
-      value->set(specialModeId);
+    if (value || shrt) {
+      if (value) value->set(specialModeId);
       return String(specialModeId);
     }
     String str("SM:");
@@ -3876,8 +3875,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3? неважно подключен или нет
   if (key == "MZ") {
-    if (value) {
-      value->set(USE_MP3 == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_MP3 == 1);
       return String(USE_MP3 == 1);
     }
     String str("MZ:");
@@ -3887,8 +3886,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3 и обнаружено подключение    
   if (key == "MX") {
-    if (value) {
-      value->set(isDfPlayerOk);
+    if (value || shrt) {
+      if (value) value->set(isDfPlayerOk);
       return String(isDfPlayerOk);
     }
     String str("MX:");
@@ -3898,8 +3897,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Наличие индикатора TM1637    
   if (key == "TM") {
-    if (value) {
-      value->set(USE_TM1637 == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_TM1637 == 1);
       return String(USE_TM1637 == 1);
     }
     String str("TM:");
@@ -3910,8 +3909,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 #if (USE_MP3 == 1)
   // Использовать звук будильника
   if (key == "MU") {
-    if (value) {
-      value->set(useAlarmSound);
+    if (value || shrt) {
+      if (value) value->set(useAlarmSound);
       return String(useAlarmSound); 
     }
     String str("MU:");
@@ -3921,8 +3920,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Максимальная громкость будильника
   if (key == "MV") {
-    if (value) {
-      value->set(maxAlarmVolume);
+    if (value || shrt) {
+      if (value) value->set(maxAlarmVolume);
       return String(maxAlarmVolume);
     }
     String str("MV:");
@@ -3932,8 +3931,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Номер файла звука будильника из SD:/01
   if (key == "MA") {
-    if (value) {
-      value->set(alarmSound);
+    if (value || shrt) {
+      if (value) value->set(alarmSound);
       return String(alarmSound);
     }
     String str("MA:");
@@ -3943,8 +3942,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Номер файла звука рассвета из SD:/02
   if (key == "MB") {
-    if (value) {
-      value->set(dawnSound);
+    if (value || shrt) {
+      if (value) value->set(dawnSound);
       return String(dawnSound);
     }
     String str("MB:");
@@ -3955,8 +3954,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Номер папки и файла звука который проигрывается
   if (key == "MP") {
     String tmp(soundFolder); tmp += '~'; tmp += (soundFile + 2);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("MP:");
@@ -3967,8 +3966,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Запрос звуков будильника
   if (key == "S1") {
     String tmp(ALARM_SOUND_LIST);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("S1:[");
@@ -3980,8 +3979,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Запрос звуков рассвета
   if (key == "S2") {
     String tmp(DAWN_SOUND_LIST);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("S2:[");
@@ -3993,8 +3992,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Запрос звуков бегкщей строки
   if (key == "S3") {
     String tmp(NOTIFY_SOUND_LIST);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("S3:[");
@@ -4010,8 +4009,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     if (upt > 0) {
       upt = ((uint32_t)now()) - upt;
     }
-    if (value) {
-      value->set(upt);
+    if (value || shrt) {
+      if (value) value->set(upt);
       return String(upt);  
     }
     String str("UP:");
@@ -4022,8 +4021,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // freemem - количество свободной памяти
   if (key == "FM") {
     int32_t freemem = ESP.getFreeHeap();
-    if (value) {
-      value->set(freemem);
+    if (value || shrt) {
+      if (value) value->set(freemem);
       return String(freemem);  
     }
     String str("FM:");
@@ -4033,8 +4032,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // создавать точку доступа
   if (key == "AU") {
-    if (value) {
-      value->set(useSoftAP);
+    if (value || shrt) {
+      if (value) value->set(useSoftAP);
       return String(useSoftAP);  
     }
     String str("AU:");
@@ -4045,8 +4044,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Имя точки доступа
   if (key == "AN") {
     String tmp(apName);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AN:[");
@@ -4057,8 +4056,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Пароль точки доступа - Web-канал
   if (key == "AB") {
     String tmp(apPass);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AB:[");
@@ -4068,8 +4067,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Имя локальной сети (SSID)
   if (key == "NW") {
-    if (value){
-      value->set(ssid);
+    if (value || shrt) {
+      if (value) value->set(ssid);
       return ssid;
     }
     String str("NW:[");
@@ -4079,8 +4078,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Пароль к сети - Web канал
   if (key == "NX") {
-    if (value) {
-      value->set(pass); 
+    if (value || shrt) {
+      if (value) value->set(pass); 
       return pass;
     }
     String str("NX:[");
@@ -4091,8 +4090,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // IP адрес
   if (key == "IP") {
     String tmp(wifi_connected ? WiFi.localIP().toString() : "");
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("IP:");
@@ -4103,8 +4102,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время Режима №1
   if (key == "AM1T") {
     String tmp(padNum(AM1_hour,2)); tmp += ' '; tmp += padNum(AM1_minute, 2);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AM1T:");
@@ -4114,8 +4113,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима №1
   if (key == "AM1A") {
-    if (value) {
-      value->set(AM1_effect_id);
+    if (value || shrt) {
+      if (value) value->set(AM1_effect_id);
       return String(AM1_effect_id);
     }
     String str("AM1A:");
@@ -4126,8 +4125,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время Режима №2
   if (key == "AM2T") {
     String tmp(padNum(AM2_hour,2)); tmp += ' '; tmp += padNum(AM2_minute, 2);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AM2T:");
@@ -4137,8 +4136,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима №2
   if (key == "AM2A") {
-    if (value) {
-      value->set(AM2_effect_id);
+    if (value || shrt) {
+      if (value) value->set(AM2_effect_id);
       return String(AM2_effect_id);
     }
     String str("AM2A:");
@@ -4149,8 +4148,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время Режима №3
   if (key == "AM3T") {
     String tmp(padNum(AM3_hour,2)); tmp += ' '; tmp += padNum(AM3_minute,2);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AM3T:");
@@ -4160,8 +4159,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима №3
   if (key == "AM3A") {
-    if (value) {
-      value->set(AM3_effect_id);
+    if (value || shrt) {
+      if (value) value->set(AM3_effect_id);
       return String(AM3_effect_id);
     }
     String str("AM3A:");
@@ -4172,8 +4171,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Время Режима №4
   if (key == "AM4T") {
     String tmp(padNum(AM4_hour,2)); tmp += ' '; tmp += padNum(AM4_minute,2);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("AM4T:");
@@ -4183,8 +4182,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима №4
   if (key == "AM4A") {
-    if (value) {
-      value->set(AM4_effect_id);
+    if (value || shrt) {
+      if (value) value->set(AM4_effect_id);
       return String(AM4_effect_id);
     }
     String str("AM4A:");
@@ -4194,8 +4193,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима "Рассвет"
   if (key == "AM5A") {
-    if (value) {
-      value->set(dawn_effect_id);
+    if (value || shrt) {
+      if (value) value->set(dawn_effect_id);
       return String(dawn_effect_id);
     }
     String str("AM5A:");
@@ -4205,8 +4204,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Действие Режима "Закат"
   if (key == "AM6A") {
-    if (value) {
-      value->set(dusk_effect_id);
+    if (value || shrt) {
+      if (value) value->set(dusk_effect_id);
       return String(dusk_effect_id);
     }
     String str("AM6A:");
@@ -4216,8 +4215,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Наличие резервной копии EEPROM
   if (key == "EE") {
-    if (value) {
-      value->set(eeprom_backup);
+    if (value || shrt) {
+      if (value) value->set(eeprom_backup);
       return String(eeprom_backup);
     }
     String str("EE:");
@@ -4227,8 +4226,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступность внутренней файловой системы
   if (key == "FS") {
-    if (value) {
-      value->set(spiffs_ok);
+    if (value || shrt) {
+      if (value) value->set(spiffs_ok);
       return String(spiffs_ok);
     }
     String str("FS:");
@@ -4239,8 +4238,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Список картинок с внутренней файловой системы
   if (key == "FL0") {
     String tmp(getStoredImages("FS"));
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("FL:[");
@@ -4252,8 +4251,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Список картинок с карты SD
   if (key == "FL1") {
     String tmp(getStoredImages("SD"));
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("FL:[");
@@ -4265,8 +4264,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Список эффектов прошивки
   if (key == "LE") {
     String tmp(EFFECT_LIST);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("LE:[");
@@ -4277,8 +4276,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Поддержка функционала SD-карты
   if (key == "SZ") {
-    if (value) {
-      value->set(USE_SD == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_SD == 1);
       return String(USE_SD == 1);
     }
     String str("SZ:");
@@ -4289,8 +4288,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 #if (USE_SD == 1)
   // Наличие в системе SD карты (в т.ч и эмуляция в FS)
   if (key == "SX") {
-    if (value) {
-      value->set(isSdCardExist);
+    if (value || shrt) {
+      if (value) value->set(isSdCardExist);
       return String(isSdCardExist);
     }
     String str("SX:");
@@ -4300,8 +4299,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Доступность на SD карте файлов эффектов (в т.ч и эмуляция в FS)
   if (key == "SD") {
-    if (value) {
-      value->set(isSdCardReady);
+    if (value || shrt) {
+      if (value) value->set(isSdCardReady);
       return String(isSdCardReady);
     }
     String str("SD:");
@@ -4316,8 +4315,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       tmp += "," + nameFiles[i];
     }
     if (tmp.length() > 0) tmp = tmp.substring(1);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("LF:[");
@@ -4330,8 +4329,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // ширина одного сегмента матрицы
   if (key == "M0") {
     String tmp(sWIDTH);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M0:");
@@ -4342,8 +4341,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // высота одного сегмента матрицы
   if (key == "M1") {
     String tmp(sHEIGHT);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M1:");
@@ -4354,8 +4353,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // тип соединения диодов в сегменте матрицы
   if (key == "M2") {
     String tmp(sMATRIX_TYPE);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M2:");
@@ -4366,8 +4365,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // угол подключения диодов в сегменте
   if (key == "M3") {
     String tmp(sCONNECTION_ANGLE);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M3:");
@@ -4378,8 +4377,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // направление ленты из угла сегмента
   if (key == "M4") {
     String tmp(sSTRIP_DIRECTION);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M4:");
@@ -4390,8 +4389,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // количество сегментов в ширину составной матрицы
   if (key == "M5") {
     String tmp(mWIDTH);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M5:");
@@ -4402,8 +4401,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // количество сегментов в высоту составной матрицы
   if (key == "M6") {
     String tmp(mHEIGHT);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M6:");
@@ -4414,8 +4413,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // соединение сегментов составной матрицы
   if (key == "M7") {
     String tmp(mTYPE);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M7:");
@@ -4426,8 +4425,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // угол 1-го сегмента составной матрицы
   if (key == "M8") {
     String tmp(mANGLE);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M8:");
@@ -4438,8 +4437,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // направление следующих сегментов составной матрицы из угла
   if (key == "M9") {
     String tmp(mDIRECTION);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M9:");
@@ -4454,8 +4453,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       tmp += "," + mapFiles[i];
     }
     if (tmp.length() > 0) tmp = tmp.substring(1);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M10:[");
@@ -4475,8 +4474,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       }
     }
     String tmp(idx);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("M11:");
@@ -4486,8 +4485,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Поддержка протокола E1.31
   if (key == "E0") {
-    if (value) {
-      value->set(USE_E131 == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_E131 == 1);
       return String(USE_E131 == 1);
     }
     String str("E0:");
@@ -4500,8 +4499,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // режим работы 0 - STANDALONE, 1 - MASTER, 2 - SLAVE
   if (key == "E1") {
     String tmp(workMode);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("E1:");
@@ -4512,8 +4511,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // тип данных работы 0 - PHYSIC, 1 - LOGIC, 2 - COMMAND
   if (key == "E2") {
     String tmp(syncMode);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("E2:");
@@ -4524,8 +4523,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Группа синхронизации 0..9
   if (key == "E3") {
     String tmp(syncGroup);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("E3:");
@@ -4535,8 +4534,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Идет вещание в режиме мастера или пакуты от мастера поступают - 1; Режим STANDALONE или вещение прервалось - 0
   if (key == "E4") {
-    if (value) {
-      value->set(streaming);
+    if (value || shrt) {
+      if (value) value->set(streaming);
       return String(streaming);
     }
     String str("E4:");
@@ -4547,8 +4546,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Позиция X окна трансляции мастера
   if (key == "EMX") {
     String tmp(masterX);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("EMX:");
@@ -4559,8 +4558,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Позиция Y окна трансляции мастера
   if (key == "EMY") {
     String tmp(masterY);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("EMY:");
@@ -4571,8 +4570,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Позиция X локального окна окна приема трансляции с мастера
   if (key == "ELX") {
     String tmp(localX);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("ELX:");
@@ -4583,8 +4582,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Позиция Y локального окна окна приема трансляции с мастера
   if (key == "ELY") {
     String tmp(localY);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("ELY:");
@@ -4595,8 +4594,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Ширина локального окна окна приема трансляции с мастера
   if (key == "ELW") {
     String tmp(localW);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("ELW:");
@@ -4607,8 +4606,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Высота локального окна окна приема трансляции с мастера
   if (key == "ELH") {
     String tmp(localH);
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("ELH:");
@@ -4620,8 +4619,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Поддержка управления питанием матрицы
   if (key == "PZ0") {
-    if (value) {
-      value->set(USE_POWER == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_POWER == 1);
       return String(USE_POWER == 1);
     }
     String str("PZ0:");
@@ -4631,8 +4630,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Поддержка управления питанием линии будильника
   if (key == "PZ1") {
-    if (value) {
-      value->set(USE_ALARM == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_ALARM == 1);
       return String(USE_ALARM == 1);
     }
     String str("PZ1:");
@@ -4642,8 +4641,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
     // Поддержка управления питанием дополнительной линии управления
   if (key == "PZ2") {
-    if (value) {
-      value->set(USE_AUX == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_AUX == 1);
       return String(USE_AUX == 1);
     }
     String str("PZ2:");
@@ -4654,8 +4653,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // Тип микроконтроллера
   if (key == "MC") {
     String mcType(MCUType());
-    if (value) {
-      value->set(mcType);
+    if (value || shrt) {
+      if (value) value->set(mcType);
       return mcType;
     }
     String str("MC:");
@@ -4665,8 +4664,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // Наличие кнопки
   if (key == "UB") {
-    if (value) {
-      value->set(USE_BUTTON == 1);
+    if (value || shrt) {
+      if (value) value->set(USE_BUTTON == 1);
       return String(USE_BUTTON == 1);
     }
     String str("UB:");
@@ -4682,8 +4681,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(1) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(1); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("2306:");
@@ -4699,8 +4698,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(2) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(2); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("2307:");
@@ -4716,8 +4715,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(3) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(3); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("2308:");
@@ -4733,8 +4732,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(4) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(4); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return tmp;
     }
     String str("2309:");
@@ -4744,8 +4743,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
   if (key == "2310") {
-    if (value) {
-      value->set(vDEVICE_TYPE);
+    if (value || shrt) {
+      if (value) value->set(vDEVICE_TYPE);
       return String(vDEVICE_TYPE);
     }
     String str("2310:");
@@ -4757,8 +4756,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "2311") {
     int8_t pin = USE_BUTTON == 1 ? getButtonPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += vBUTTON_TYPE;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2311:");
@@ -4770,8 +4769,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "2312") {
     int8_t pin = USE_POWER == 1 ? getPowerPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getPowerActiveLevel();
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2312:");
@@ -4782,8 +4781,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
   if (key == "2313") {
     String tmp(getWaitPlayFinished()); tmp += ' '; tmp += getRepeatPlay();
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2313:");
@@ -4793,8 +4792,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
 
   // 2314:X      vDEBUG_SERIAL
   if (key == "2314") {
-    if (value) {
-      value->set(vDEBUG_SERIAL);
+    if (value || shrt) {
+      if (value) value->set(vDEBUG_SERIAL);
       return String(vDEBUG_SERIAL);
     }
     String str("2314:");
@@ -4807,8 +4806,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     int8_t pin1 = USE_MP3 == 1 ? getDFPlayerSTXPin() : -1; 
     int8_t pin2 = USE_MP3 == 1 ? getDFPlayerSRXPin() : -1; 
     String tmp(pin1); tmp += ' '; tmp += pin2;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2315:");
@@ -4821,8 +4820,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
     int8_t pin1 = USE_TM1637 == 1 ? getTM1637DIOPin() : -1; 
     int8_t pin2 = USE_TM1637 == 1 ? getTM1637CLKPin() : -1; 
     String tmp(pin1); tmp += ' '; tmp += pin2;
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2316:");
@@ -4834,8 +4833,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "2317") {
     int8_t pin = USE_ALARM == 1 ? getAlarmPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getAlarmActiveLevel();
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2317:");
@@ -4847,8 +4846,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value) {
   if (key == "2318") {
     int8_t pin = USE_AUX == 1 ? getAuxPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getAuxActiveLevel();
-    if (value) {
-      value->set(tmp);
+    if (value || shrt) {
+      if (value) value->set(tmp);
       return String(tmp);
     }
     String str("2318:");

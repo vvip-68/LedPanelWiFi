@@ -363,7 +363,7 @@ void processCommandPacket(e131_packet_t *packet) {
       break;
 
     case CMD_AUXACTIVE:
-      set_isAuxActive(packet->property_values[4] != 0);
+      isRemoteAuxActive = packet->property_values[4] != 0;
       break;
 
     case CMD_ALARMING:

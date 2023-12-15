@@ -367,42 +367,17 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
  * @param data - json object to send
  */
 void wsSrvSendAll(AsyncWebSocket *ws, const JsonVariantConst& data){
-    if (!ws->count()) return;   // no client connected, nowhere to send
 
-    size_t length = measureJson(data);
-    auto buffer = ws->makeBuffer(length);
+  if (!ws->count()) return;   // no client connected, nowhere to send
 
-    if (!buffer) {
-      
-      if (ESP.getFreeHeap() < 2 * length) {
-        freeOverlay();
-      }
-      
-      if (ESP.getFreeHeap() < 2 * length) {
-        freeLeds();
-      }
-    
-      if (ESP.getFreeHeap() < 2 * length) {
-        int32_t freeMemory1 = ESP.getFreeHeap();
-        DEBUGLN(F("Смена режима для освобождения памяти - Часы: "));
-        releaseEffectResources(resourcesMode);
-        setEffect(MC_CLOCK);
-        int32_t freeMemory2 = ESP.getFreeHeap();
-        DEBUG(freeMemory1);    
-        DEBUG(F(" -> "));    
-        DEBUG(freeMemory2);    
-        DEBUG(F(" -- "));    
-        DEBUGLN(freeMemory2 - freeMemory1);    
-      }
-      
-      buffer = ws->makeBuffer(length);      
-    }
-    
-    if (!buffer) {
-      DEBUGLN(F("Недостаточно памяти для буфера отправки в WebSocket"));
-      return;    // not enough mem to send data
-    }
-    
-    serializeJson(data, reinterpret_cast<char*>(buffer->get()), length);
-    ws->textAll(buffer);
+  size_t length = measureJson(data);
+  auto buffer = ws->makeBuffer(length);
+
+  if (!buffer) {
+    DEBUGLN(F("Недостаточно памяти для буфера отправки в WebSocket"));
+    return;    // not enough mem to send data
+  }
+  
+  serializeJson(data, reinterpret_cast<char*>(buffer->get()), length);
+  ws->textAll(buffer);
 }
