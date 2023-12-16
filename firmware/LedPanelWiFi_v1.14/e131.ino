@@ -234,6 +234,13 @@ void printWorkMode() {
 void sendE131Screen() {  
   if (!e131) return;
   if (!(syncMode == PHYSIC || syncMode == LOGIC)) return;
+
+  // Ограничение количества отправок экрана в секунду слушателям
+  // На некоторых режимах (вероятно) экран отправлся настолько часто, что "забивал" сеть, роутер не справлялся и
+  // сеть отваливалась - компы в сети писали "нет доступа к интернету".
+  // Причина - вероятная. Наблюдаем.
+  if (abs((long long)(millis() - last_sent_screen_sync)) < 3) return;
+  last_sent_screen_sync = millis();
   
   if (syncMode == PHYSIC) {
     uint16_t cnt = 0, universe = START_UNIVERSE;

@@ -15,6 +15,7 @@ bool flag_2 = false;
 uint32_t last_sent_alarm_sync; 
 uint32_t last_sent_aux_sync;
 uint32_t last_sent_brightness_sync;
+uint32_t last_sent_screen_sync;
 #endif
 
 // Forward declaration

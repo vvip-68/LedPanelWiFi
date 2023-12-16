@@ -198,8 +198,13 @@
           button {
             width: 74px;
             height: 100%;
+            color: var(--card-text-color);
             background-color: var(--card-background-color);
             transition: color, background-color 0.2s ease-in-out;
+
+            &.disabled {
+              color: var(--button-disabled-color);
+            }
 
             .prev {
               border-radius: 8px 0 0 8px;

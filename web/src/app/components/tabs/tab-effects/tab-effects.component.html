@@ -101,10 +101,14 @@
               </div>
             </div>
             <div class="buttons" [matTooltip]="getDisabledTooltip()" [ngClass]="{'disabled': isDisabledByIncomeStream()}">
-              <button mat-raised-button color="primary" class="prev" [disabled]="isDisabledByIncomeStream()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
+              <button mat-raised-button color="primary" class="prev"
+                      [ngClass]="{'disabled': isDisabledByIncomeStream()}"
+                      [disabled]="isDisabledByIncomeStream()" (click)="prev($event)" [matTooltip]="L.$('Предыдущий эффект')">
                 {{ L.$('Назад') }}
               </button>
-              <button mat-raised-button color="primary" class="next" [disabled]="isDisabledByIncomeStream()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
+              <button mat-raised-button color="primary" class="next"
+                      [ngClass]="{'disabled': isDisabledByIncomeStream()}"
+                      [disabled]="isDisabledByIncomeStream()" (click)="next($event)" [matTooltip]="L.$('Следующий эффект')">
                 {{ L.$('Вперед') }}
               </button>
             </div>

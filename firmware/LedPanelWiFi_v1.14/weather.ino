@@ -186,7 +186,7 @@ bool getWeather() {
     time_t dawn_time = (time_t)(sunrise.toInt() + tz);
     time_t dusk_time = (time_t)(sunset.toInt() + tz);
 
-    int8_t sign = timeZoneOffset < 0 ? -1 : 1;
+    int8_t sign = (timeZoneOffset < 0 ? -1 : 1);
     
     dawn_hour   = hour(dawn_time);
     dawn_minute = minute(dawn_time); 
@@ -233,10 +233,11 @@ bool getWeather() {
   weather_cnt = 0;
   
   DEBUG(F("Погода получена: "));
-  if (useWeather == 1)
+  if (useWeather == 1) {
     DEBUGLN(F("Yandex"));
-  else  
+  } else {
     DEBUGLN(F("OpenWeatherMap"));
+  }
   DEBUG(F("Город: "));
   DEBUGLN(town);
   DEBUG(F("Сейчас: "));
