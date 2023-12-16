@@ -1,4 +1,4 @@
-<svg width="96" xml:space="preserve" height="187.937" viewBox="0 0 72 140.952" xmlns="http://www.w3.org/2000/svg">
+<svg width="96" xml:space="preserve" height="188.245" viewBox="0 0 72 141.184" xmlns="http://www.w3.org/2000/svg">
     <defs>
         <linearGradient id="a">
             <stop style="stop-color:#b4b4b4;stop-opacity:1" offset="0"/>
@@ -9,87 +9,30 @@
             <stop style="stop-color:#fff;stop-opacity:0" offset="1"/>
         </linearGradient>
     </defs>
-    <rect fill="#4d4d4d" width="72" height="136.762" rx="2.857" ry="2.857" style="stroke-width:.190477"/>
-    <g fill="#ccc">
-        <path d="M50.476 67.274h2.857v5.714h-2.857zM47.048 67.274h2.857v5.714h-2.857zM43.429 67.274h2.857v5.714h-2.857zM39.81 67.274h2.857v5.714H39.81zM36.19 67.274h2.858v5.714H36.19zM32.571 67.274h2.858v5.714H32.57zM28.952 67.274h2.858v5.714h-2.858zM25.333 67.274h2.858v5.714h-2.858zM21.714 67.274h2.857v5.714h-2.857zM18.095 67.274h2.857v5.714h-2.857z"/>
-    </g>
-    <g fill="#ccc">
-        <path d="M14.826 66.9v2.88h-5.63V66.9zM14.826 63.301v2.88h-5.63V63.3zM14.826 59.702v2.879h-5.63v-2.88zM14.826 56.102v2.88h-5.63v-2.88zM14.826 52.502v2.88h-5.63v-2.88zM14.826 48.903v2.88h-5.63v-2.88zM14.826 45.303v2.88h-5.63v-2.88zM14.826 41.703v2.88h-5.63v-2.88zM14.826 38.104v2.879h-5.63v-2.88zM14.826 34.504v2.88h-5.63v-2.88zM14.826 30.904v2.88h-5.63v-2.88zM14.826 27.305v2.88h-5.63v-2.88zM14.826 23.705v2.88h-5.63v-2.88zM14.826 20.105v2.88h-5.63v-2.88z"/>
-    </g>
-    <g fill="#ccc">
-        <path d="M62.845 66.9v2.88h-5.63V66.9zM62.845 63.301v2.88h-5.63V63.3zM62.845 59.702v2.879h-5.63v-2.88zM62.845 56.102v2.88h-5.63v-2.88zM62.845 52.502v2.88h-5.63v-2.88zM62.845 48.903v2.88h-5.63v-2.88zM62.845 45.303v2.88h-5.63v-2.88zM62.845 41.703v2.88h-5.63v-2.88zM62.845 38.104v2.879h-5.63v-2.88zM62.845 34.504v2.88h-5.63v-2.88zM62.845 30.904v2.88h-5.63v-2.88zM62.845 27.305v2.88h-5.63v-2.88zM62.845 23.705v2.88h-5.63v-2.88zM62.845 20.105v2.88h-5.63v-2.88z"/>
-    </g>
-    <g transform="matrix(.19048 0 0 .19048 0 0)">
-        <path fill="#1a1a1a" d="M55 0h268v378H55z"/>
-        <path fill="none" stroke="#4d4d4d" stroke-width="11.16" d="M65 103h248"/>
-        <rect fill="#999" stroke="#fff" stroke-width="2.625" x="69" y="106" width="242" height="262" rx="4" ry="4"/>
-        <g fill="#fff39d">
-            <path d="M266 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM247 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM228 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM210 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM191 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM172 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM153 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM134 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM115 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7zM96 371h13v7h-3c0-2-1-4-3-4s-3 2-3 4h-3v-7z"/>
-        </g>
-        <g fill="#fff39d">
-            <path d="M62 352v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 333v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 314v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 295v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 276v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 257v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 239v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 220v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 201v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 182v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 163v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 144v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 125v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7zM62 106v13h-7v-3c2 0 4-1 4-3s-2-3-4-3v-3h7z"/>
-        </g>
-        <g fill="#fff39d">
-            <path d="M317 352v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 333v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 314v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 295v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 276v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 257v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 239v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 220v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 201v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 182v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 163v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 144v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 125v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7zM317 106v13h7v-3c-2 0-4-1-4-3s2-3 4-3v-3h-7z"/>
-        </g>
-        <g fill="#e6e6e6">
-            <path d="M247 236c3 0 5 2 5 5s-2 5-5 5-5-2-5-5 2-5 5-5z"/>
-            <path d="m242 234-4-4c-1-6-1-12 2-17 2-1 5-1 7-1 16 0 29 13 29 29 0 3 0 5-1 7-2 1-3 1-5 2l-4-2c1-2 1-5 1-7 0-12-9-21-21-21-2 0-3 0-5 1v3c2 0 3-1 5-1 10 0 18 8 18 18 0 4-1 7-3 10-2 0-4-1-5-1l-3-3c1-2 2-4 2-6 0-5-4-9-9-9-2 0-4 1-5 2z"/>
-            <path d="M247 208v-5c2-1 3-3 5-4 19 2 34 17 36 37-1 2-2 3-3 5h-5v-1c0-18-15-33-33-33h-1z"/>
-            <path d="m262 199 1-2h2c15 0 27 12 27 27v2l-2 1c-4-13-15-23-28-28zM244 203c-5 5-9 13-9 21 0 16 13 29 29 29 8 0 16-3 21-9l2 2c-6 6-14 10-23 10-18 0-32-14-32-32 0-9 4-17 9-23l2 2z"/>
-        </g>
-        <g fill="#e6e6e6" font-weight="bold" font-size="18.898" font-family="Arial">
-            <text x="500" y="1014" transform="matrix(.89642 0 0 1 -296.957 -831.678)">ESP</text>
-            <text x="540" y="1014" transform="matrix(.89642 0 0 1 -296.957 -831.678)">- </text>
-            <text x="552" y="1014" transform="matrix(.89642 0 0 1 -296.957 -831.678)">WROOM</text>
-            <text x="631" y="1014" transform="matrix(.89642 0 0 1 -296.957 -831.678)">-32</text>
-        </g>
-        <path fill="#e6e6e6" d="M92 165h4c4-5 10-9 17-9s13 3 17 9h4c5 0 9 4 9 9v5c0 5-4 9-9 9h-4c-4 5-10 9-17 9s-13-3-17-9h-4c-5 0-9-4-9-9v-5c0-5 4-9 9-9z"/>
-        <path fill="#999" d="M106 187h27c4 0 7-3 7-7v-5c0-4-3-7-7-7h-12c-4 0-7 3-7 7v5c0 4-3 7-7 7z"/>
-        <path fill="#e6e6e6" d="M122 176h7v3h-7v4h-4v-12h11v3h-7zM131 172v-2h4v4h-4v-1zM135 174v9h-4v-9z"/>
-        <path fill="#999" d="M108 174v9h-4v-9zM104 172v-2h4v4h-4v-1zM95 177l-1 6h-3l-3-12h3l1 6 2-7h3l2 7 1-6h3l-3 12h-3l-1-6z"/>
-        <text x="500" y="1014" fill="#e6e6e6" font-weight="bold" font-size="18.898" font-family="Arial" transform="matrix(.89642 0 0 1 -254.399 -726.436)">205 - 000519</text>
-        <g fill="#e6e6e6" font-weight="bold" font-size="18.898" font-family="Arial">
-            <text x="500" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)">FCC</text>
-            <text x="541" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)"> 9D:2</text>
-            <text x="587" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)">AC</text>
-            <text x="616" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)">72-</text>
-            <text x="643" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)">ESPWROOM</text>
-            <text x="763" y="1014" transform="matrix(.7515 0 0 1 -292.65 -694.067)">32</text>
-        </g>
-        <rect fill="none" stroke="#e6e6e6" stroke-width="2.232" x="152" y="267" width="32" height="22" rx="3" ry="3"/>
-        <text x="161" y="284" fill="#e6e6e6" font-weight="bold" font-size="16.799" font-family="Arial">R</text>
-        <circle cx="94" cy="343" r="8"/>
-        <path fill="none" stroke="#e6e6e6" stroke-width="5.952" d="M207 225h-19m21-21c-12 0-21 10-21 21m21 21c-12 0-21-10-21-21M170 204c-11 0-20 9-21 20 0 13 9 23 21 23"/>
-        <path fill="none" stroke="#e6e6e6" stroke-width="2.625" d="M100 279h22m-11 8v-8m-11-5h22m-32-7 23-5v7l17-5c-3-8-11-15-20-15-12 0-21 9-21 21s9 21 21 21c9 0 16-5 19-13"/>
-        <path fill="none" stroke="#4d4d4d" stroke-width="8.928" d="M278 96V10h-67v44h-36V10h-35v44h-37V10H72v71m173-71v86"/>
-        <circle fill="#fff39d" cx="245" cy="93" r="3"/>
-        <circle fill="#fff39d" cx="278" cy="93" r="3"/>
-        <text x="182" y="94" fill="#e6e6e6" font-weight="bold" font-size="15.748" font-family="Arial">C</text>
-    </g>
-    <g transform="matrix(.19048 0 0 .19048 0 0)">
+    <path style="fill:#3c3c3c;fill-opacity:1;stroke-width:.190477" d="M2.856 0A2.85 2.85 0 0 0 0 2.856v131.048a2.85 2.85 0 0 0 2.856 2.857h66.286A2.851 2.851 0 0 0 72 133.904V2.856A2.851 2.851 0 0 0 69.142 0zm2.688 1.553a3.992 3.992 0 0 1 3.992 3.991 3.992 3.992 0 0 1-3.992 3.992 3.992 3.992 0 0 1-3.991-3.992 3.992 3.992 0 0 1 3.991-3.991Zm60.91 0a3.992 3.992 0 0 1 3.992 3.991 3.992 3.992 0 0 1-3.992 3.992 3.992 3.992 0 0 1-3.991-3.992 3.992 3.992 0 0 1 3.991-3.991ZM3.661 14.144a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zM3.662 21.54a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05Zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.395a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05Zm64.76 0a2.05 2.05 0 0 1 2.051 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.394a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zM3.662 88.1a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.395a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.05 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.396a2.05 2.05 0 0 1 2.049 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-64.76 7.796a2.05 2.05 0 0 1 2.049 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm64.76 0a2.05 2.05 0 0 1 2.051 2.049 2.05 2.05 0 0 1-2.05 2.05 2.05 2.05 0 0 1-2.05-2.05 2.05 2.05 0 0 1 2.05-2.05zm-62.877 9.142a3.992 3.992 0 0 1 3.992 3.991 3.992 3.992 0 0 1-3.992 3.992 3.992 3.992 0 0 1-3.991-3.992 3.992 3.992 0 0 1 3.991-3.991zm60.91 0a3.992 3.992 0 0 1 3.992 3.991 3.992 3.992 0 0 1-3.992 3.992 3.992 3.992 0 0 1-3.991-3.992 3.992 3.992 0 0 1 3.991-3.991z"/>
+    <g transform="matrix(.19048 0 0 .19048 .277 .231)">
         <circle fill="none" stroke="#ccc" stroke-width="6.25" transform="rotate(90 -222.982 465.566)" r="11"/>
         <circle fill="none" stroke="#ccc" stroke-width="6.25" transform="rotate(90 -278.02 410.527)" r="11"/>
         <path fill="#666" d="M166.129 648.045v-6.552h5.242v6.552zM175.649 648.045v-6.552h5.242v6.552zM185.148 648.045v-6.552h5.242v6.552zM194.662 648.045v-6.552h5.242v6.552zM204.164 648.045v-6.552h5.242v6.552z"/>
-        <path fill="#b3b3b3" d="M236 647v87h-97v-87z"/>
+        <path fill="#b3b3b3" d="M139 734v-87h97v87z"/>
         <path fill="#999" d="M237.452 696.393v-15.725h5.242v15.725zM132.804 696.393v-15.725h5.242v15.725z"/>
         <path fill="#ccc" d="M139.179 647.251v-1.31h96.973v1.31z"/>
         <path fill="#333" d="M161.161 727.142v-79.937h53.728v79.937z"/>
-        <path fill="#b3b3b3" d="m133 740 5-8v3l-3 5z"/>
+        <path fill="#b3b3b3" d="m138 735-3 5h-2l5-8z"/>
         <path fill="#ccc" d="m138 738-3 2 3-5z"/>
-        <path fill="#b3b3b3" d="m237 732 6 8h-2l-4-5z"/>
+        <path fill="#b3b3b3" d="m241 740-4-5v-3l6 8z"/>
         <path fill="#ccc" d="M237 738v-3l4 5z"/>
         <path fill="#f2f2f2" d="M208.003 732.421v-3.931h2.62v3.931zM197.236 732.421v-3.931h2.62v3.931zM186.483 732.421v-3.931h2.62v3.931zM175.719 732.421v-3.931h2.62v3.931zM164.963 732.421v-3.931h2.62v3.931z"/>
         <path fill="#4d4d4d" d="M162 733h3v-2h2v2h8v-2h2v2h8v-2h2v2h8v-2h2v2h8v-2h2v2h3s1 0 1-1v-5s0-1-1-1h-52s-1 0-1 1v5s0 1 1 1z"/>
         <path fill="#ccc" d="m138 650 1-3h13l-12 1c0 1 1 1 1 1h-3zM237 650l-1-3h-13l12 1c0 1-1 1-1 1h3z"/>
         <path fill="#ccc" d="M220 647v8h-8v-8h-2v3h-43v-3h-3v8h-8v-8h-17v88h99v-88h-17zm-57 71v4h-8v-5c-2-1-4-4-4-7s1-6 4-7v-23h8v23c3 1 4 4 4 7s-2 6-4 7zm56 0v4h-8v-5c-2-1-4-4-4-7s1-6 4-7v-23h8v23c3 1 4 4 4 7s-2 6-4 7z"/>
-        <path fill="#e6e6e6" d="m146 650-6 84h-2v-84z"/>
-        <path fill="#999" d="M237 650v84l-3-56-2-28z"/>
+        <path fill="#e6e6e6" d="M138 734v-84h8l-6 84z"/>
+        <path fill="#999" d="m234 678-2-28h5v84z"/>
         <path fill="#ccc" d="M155.208 681.487v-1.31h7.863v1.31zM211.396 681.487v-1.31h7.863v1.31z"/>
         <path fill="#b3b3b3" d="M142.862 733.292v-3.931h89.11v3.931z"/>
         <path fill="#ccc" d="M142.862 734.339v-1.31h89.11v1.31z"/>
     </g>
-    <g transform="matrix(.19048 0 0 .19048 0 0)">
+    <g transform="matrix(.19048 0 0 .19048 .041 .231)">
         <g fill="#e6e6e6">
             <path d="M201 532h3v7h-3zM194 532h3v7h-3zM186 532h3v7h-3zM179 532h3v7h-3zM171 532h3v7h-3zM164 532h3v7h-3zM209 532h3v7h-3z"/>
         </g>
@@ -106,30 +49,27 @@
         <circle fill="#fff" cx="229" cy="534" r="4"/>
         <circle fill="#1a1a1a" cx="210" cy="554" r="4"/>
     </g>
-    <path fill="#303030" d="M58.027 114.224v-3.373h-7.138v3.373z"/>
-    <path fill="#3d3e3d" d="m58.095 110.857.19-.19h-7.809l.381.19z"/>
-    <path d="m58.286 114.476-.19-.19h-7.239l-.38.19h7.618z"/>
-    <path fill="#1e1f1f" d="m50.857 110.857-.38-.19v3.81l.38-.191zM58.095 110.857v3.429l.19.19v-3.81z"/>
-    <path fill="#bdbfc1" d="M57.471 110.614v-2.018h-.863v2.018z"/>
-    <path fill="#666766" d="M57.471 109.8v-.576h-.863v.576z"/>
-    <path fill="#bdbfc1" d="M54.846 114.479v2.018h-.863v-2.018z"/>
-    <path fill="#666766" d="M54.846 115.293v.576h-.863v-.576z"/>
-    <path fill="#bdbfc1" d="M52.092 110.614v-2.018h-.863v2.018z"/>
-    <path fill="#666766" d="M52.092 109.8v-.576h-.863v.576z"/>
-    <path fill="#303030" d="M58.027 103.662v-3.373h-7.138v3.373z"/>
-    <path fill="#3d3e3d" d="m58.095 100.381.19-.38h-7.809l.381.38z"/>
-    <path d="m58.286 104-.19-.38h-7.239l-.38.38h7.618z"/>
-    <path fill="#1e1f1f" d="m50.857 100.381-.38-.38v4l.38-.382zM58.095 100.381v3.238l.19.381v-4z"/>
-    <path fill="#bdbfc1" d="M57.471 100.053v-2.018h-.863v2.018z"/>
-    <path fill="#666766" d="M57.471 99.239v-.577h-.863v.577z"/>
-    <path fill="#bdbfc1" d="M54.846 103.917v2.018h-.863v-2.018z"/>
-    <path fill="#666766" d="M54.846 104.731v.577h-.863v-.577z"/>
-    <path fill="#bdbfc1" d="M52.092 100.053v-2.018h-.863v2.018z"/>
-    <path fill="#666766" d="M52.092 99.239v-.577h-.863v.577z"/>
-    <path fill="#f5b03b" d="M26.667 80.381h7.428v9.333h-7.428z"/>
-    <path fill="#eb8a53" d="M26.667 87.81h7.428v1.714h-7.428z"/>
-    <path fill="#ccc" d="M27.238 89.714h6.286v1.715h-6.286zM27.238 78.476h6.286v1.714h-6.286z"/>
-    <g transform="matrix(.19048 0 0 .19048 0 0)">
+    <path fill="#303030" d="M58.068 114.456v-3.374H50.93v3.374z"/>
+    <path fill="#3d3e3d" d="M58.327 110.898h-7.81l.381.19h7.238z"/>
+    <path d="M58.136 114.708h.19l-.19-.19h-7.238l-.38.19h.38z"/>
+    <path fill="#1e1f1f" d="M50.517 110.898v3.81l.381-.19v-3.43zM58.136 114.517l.19.19v-3.809l-.19.19z"/>
+    <path fill="#bdbfc1" d="M57.512 110.846v-2.018h-.863v2.018z"/>
+    <path fill="#666766" d="M57.512 110.032v-.577h-.863v.577z"/>
+    <path fill="#bdbfc1" d="M54.887 114.71v2.018h-.863v-2.018z"/>
+    <path fill="#666766" d="M54.887 115.524v.577h-.863v-.577z"/>
+    <path fill="#bdbfc1" d="M52.133 110.846v-2.018h-.863v2.018z"/>
+    <path fill="#666766" d="M52.133 110.032v-.577h-.863v.577z"/>
+    <path fill="#303030" d="M58.068 103.894v-3.373H50.93v3.373z"/>
+    <path fill="#3d3e3d" d="M58.327 100.231h-7.81l.381.381h7.238z"/>
+    <path d="M58.136 104.232h.19l-.19-.381h-7.238l-.38.38h.38z"/>
+    <path fill="#1e1f1f" d="M50.517 100.231v4l.381-.38v-3.239zM58.136 103.85l.19.382v-4l-.19.38z"/>
+    <path fill="#bdbfc1" d="M57.512 100.284v-2.018h-.863v2.018z"/>
+    <path fill="#666766" d="M57.512 99.47v-.577h-.863v.577z"/>
+    <path fill="#bdbfc1" d="M54.887 104.149v2.018h-.863v-2.018z"/>
+    <path fill="#666766" d="M54.887 104.963v.576h-.863v-.576z"/>
+    <path fill="#bdbfc1" d="M52.133 100.284v-2.018h-.863v2.018z"/>
+    <path fill="#666766" d="M52.133 99.47v-.577h-.863v.577z"/>
+    <g transform="matrix(.19048 0 0 .19048 .19 .231)">
         <path fill="#ccc" d="M60 645h43v57H60z"/>
         <path fill="#333" d="M60 645h3v8h-3zM100 645h3v8h-3zM60 694h3v8h-3zM100 694h3v8h-3zM71 645h5v3h-5zM87 645h5v3h-5z"/>
         <path fill="#e6e6e6" d="M72 635h20v10H72zM72 702h20v10H72z"/>
@@ -137,7 +77,7 @@
         <path fill="none" stroke="#fff" stroke-width="1.134" d="M69 679c-1-2-1-3-1-5 0-5 2-9 6-11"/>
         <path fill="#333" d="M71 700h5v3h-5zM87 700h5v3h-5z"/>
     </g>
-    <g transform="matrix(.19048 0 0 .19048 0 0)">
+    <g transform="matrix(.19048 0 0 .19048 .19 .231)">
         <path fill="#ccc" d="M273 645h43v57h-43z"/>
         <path fill="#333" d="M273 645h3v8h-3zM313 645h3v8h-3zM273 694h3v8h-3zM313 694h3v8h-3zM283 645h5v3h-5zM300 645h5v3h-5z"/>
         <path fill="#e6e6e6" d="M284 635h20v10h-20zM284 702h20v10h-20z"/>
@@ -145,149 +85,166 @@
         <path fill="none" stroke="#fff" stroke-width="1.134" d="M281 679c-1-2-1-3-1-5 0-5 2-9 6-11"/>
         <path fill="#333" d="M283 700h5v3h-5zM300 700h5v3h-5z"/>
     </g>
-    <path fill="#303030" d="M47.466 78.335h7.506V94.42h-7.506z"/>
-    <path fill="#3d3e3d" d="m46.93 77.8.536.535V94.42l-.536.715z"/>
-    <path d="m54.972 78.335.536-.536V95.135l-.536-.715z"/>
-    <path fill="#1e1f1f" d="m55.508 77.8-.536.535h-7.506l-.536-.536zM55.508 95.135H46.93l.536-.715h7.506z"/>
-    <path fill="#bdbfc1" d="M43.177 91.203h3.753v1.966h-3.753z"/>
-    <path fill="#666766" d="M44.25 91.203h1.071v1.966H44.25z"/>
-    <path fill="#bdbfc1" d="M55.508 82.089h4.647v8.042h-4.647z"/>
-    <path fill="#666766" d="M57.832 82.089h1.072v8.042h-1.072z"/>
-    <path fill="#bdbfc1" d="M43.177 85.305h3.753v1.966h-3.753z"/>
-    <path fill="#666766" d="M44.25 85.305h1.071v1.966H44.25z"/>
-    <path fill="#bdbfc1" d="M43.177 79.05h3.753v1.966h-3.753z"/>
-    <path fill="#666766" d="M44.25 79.05h1.071v1.966H44.25z"/>
-    <path fill="none" stroke="#b3b3b3" stroke-width=".21267679999999997" d="M58.01 90.13V82.09M45.143 93.169v-1.966M45.143 87.271v-1.966M45.143 81.195V79.05"/>
-    <path fill="none" stroke="#333" stroke-width=".21267679999999997" d="M58.547 90.13V82.09M44.607 93.169v-1.966M44.607 87.271v-1.966M44.607 81.195V79.05"/>
-    <path fill="none" d="M17.143 102.476v-4.38"/>
-    <path fill="#f2f2f2" d="M17.101 97.986v4.583h-2.35v-4.583z"/>
-    <path fill="#22b573" fill-opacity=".702" d="M17.143 99.62s-.381-.382-.19-.572v-.381h.19z"/>
-    <path fill="#fff" d="M16.199 100.033v.47h-.588v-.47z"/>
-    <path fill="#d1c690" d="M16.571 99.238h.19l.191-.571h-.571zM16.762 99.238c0 .19 0 .19-.19.381 0 .19-.572.381-.381.572 0-.19.38-.381.38-.572 0 0 0-.19.19-.38zM15.429 101.333h-.381v.572h.38z"/>
-    <path fill="#d1c690" d="M16 100.381c-.19 0-.762.762-.762 1.143 0-.381.381-1.143.762-1.143zM16 100s0 .19.19.19V100z"/>
-    <path fill="#d1c690" d="M15.81 100.381s.19-.19.19 0v.19z"/>
-    <path fill="#9d956c" d="M16.19 100c0-.19.381-.38.381-.571 0 0 0-.19.19-.381 0 .19 0 .19-.19.38 0 .191-.571.382-.38.572zM15.429 101.333v.572zM16 100.381c-.19 0-.762.571-.762 1.143 0-.572.572-1.143.762-1.143zM16.19 100.19V100zM16 100.381v-.19z"/>
-    <path fill="#fff" fill-opacity=".502" d="M14.857 99.048h-.19v2.476h.19z"/>
-    <path fill="#f2f2f2" fill-opacity=".502" d="M14.667 98.667v3.238h2.476v-3.238z"/>
-    <path fill="#fff" fill-opacity=".549" d="M15.048 101.905h-.381v-3.048c0-.19 0-.19 0 0v2.667c0 .19 0 .38.19.38h.19c.191 0 .191 0 0 0z"/>
-    <path fill-opacity=".031" d="M16.952 98.667v3.047c0 .19 0 .19 0 0v-3.047z"/>
-    <path fill="#d1c690" d="M17.143 102.476v-.38h-.381s-.19 0-.19-.191h-1.905v.571h2.285m0 0z"/>
-    <path fill="#fff" fill-opacity=".502" d="M14.857 101.905h-.19v.571h.19z"/>
-    <path fill="#d1c690" d="M17.143 97.905h-2.286v.571h2.095s0-.19.19-.19v-.572m0 0z"/>
-    <path fill="#fff" fill-opacity=".502" d="M14.857 97.905h-.19v.762h.19z"/>
-    <path fill="none" d="M24.19 102.476v-4.38"/>
-    <path fill="#f2f2f2" d="M24.219 97.986v4.583h-2.35v-4.583z"/>
-    <path fill="#22b573" fill-opacity=".702" d="M24.19 99.62s-.38-.382-.19-.572v-.381h.19z"/>
-    <path fill="#fff" d="M23.316 100.033v.47h-.588v-.47z"/>
-    <path fill="#d1c690" d="M23.62 99.238H24v-.571h-.38zM23.81 99.238c0 .19 0 .19-.19.381 0 .19-.572.381-.382.572 0-.19.381-.381.381-.572 0 0 0-.19.19-.38zM22.476 101.333h-.38v.572h.38z"/>
-    <path fill="#d1c690" d="M23.048 100.381c-.19 0-.762.762-.762 1.143 0-.381.38-1.143.762-1.143zM23.048 100s0 .19.19.19V100z"/>
-    <path fill="#d1c690" d="M22.857 100.381s.19-.19.19 0v.19z"/>
-    <path fill="#9d956c" d="M23.429 100c0-.19.38-.38.38-.571 0 0 0-.19.191-.381 0 .19 0 .19-.19.38 0 .191-.572.382-.381.572zM22.476 101.905v-.572l.19.572zM23.048 100.381c-.19 0-.762.571-.762 1.143 0-.572.571-1.143.762-1.143zM23.429 100.19V100zM23.238 100.381v-.19z"/>
-    <path fill="#fff" fill-opacity=".502" d="M21.905 99.048v2.476z"/>
-    <path fill="#f2f2f2" fill-opacity=".502" d="M21.905 98.667v3.238h2.286v-3.238z"/>
-    <path fill="#fff" fill-opacity=".549" d="M22.286 101.905h-.381v-3.048c0-.19 0-.19 0 0v2.667c0 .19 0 .38.19.38h.19c.191 0 .191 0 0 0z"/>
-    <path fill-opacity=".031" d="M24 98.667v3.047c0 .19 0 .19 0 0v-3.047z"/>
-    <path fill="#d1c690" d="M24.19 102.476v-.38h-.38s-.19 0-.19-.191h-1.906v.571H24m0 0z"/>
-    <path fill="#fff" fill-opacity=".502" d="M21.905 101.905v.571z"/>
-    <path fill="#d1c690" d="M24.19 97.905h-2.285v.571H24s0-.19.19-.19v-.572m0 0z"/>
-    <path fill="#fff" fill-opacity=".502" d="M21.905 97.905v.762z"/>
-    <path fill="#c6c6c5" d="M46.857 120.381h2.857v1.524h-2.857z"/>
-    <path fill="#020202" d="M47.429 120.381h1.714v1.524h-1.714z"/>
-    <path fill="#c6c6c5" d="M22.427 88.773v-2.841h1.442v2.841z"/>
-    <path fill="#b7a283" d="M22.427 88.208v-1.726h1.442v1.726z"/>
-    <path fill="#c6c6c5" d="M46.857 117.714h2.857v1.524h-2.857z"/>
-    <path fill="#020202" d="M47.429 117.714h1.714v1.524h-1.714z"/>
-    <path fill="#c6c6c5" d="M45.524 97.714h2.857v1.524h-2.857z"/>
-    <path fill="#020202" d="M46.095 97.714h1.715v1.524h-1.715z"/>
-    <path fill="#c6c6c5" d="M26.857 95.238h2.857v1.524h-2.857z"/>
-    <path fill="#020202" d="M27.429 95.238h1.714v1.524h-1.714z"/>
-    <path fill="#c6c6c5" d="M20.952 112.572h2.858v1.523h-2.858z"/>
-    <path fill="#020202" d="M21.524 112.572h1.714v1.523h-1.714z"/>
-    <path fill="#c6c6c5" d="M46.956 115.676v-2.841h1.442v2.841z"/>
-    <path fill="#020202" d="M46.956 115.112v-1.727h1.442v1.727z"/>
-    <path fill="#c6c6c5" d="M46.956 110.177v-2.842h1.442v2.842z"/>
-    <path fill="#020202" d="M46.956 109.612v-1.726h1.442v1.726z"/>
-    <path fill="#c6c6c5" d="M46.956 104.428v-2.842h1.442v2.842z"/>
-    <path fill="#020202" d="M46.956 103.863v-1.727h1.442v1.727z"/>
-    <path fill="#c6c6c5" d="M20.396 110.427v-2.842h1.442v2.842z"/>
-    <path fill="#b7a283" d="M20.396 109.862v-1.727h1.442v1.727z"/>
-    <path fill="#c6c6c5" d="M23.723 109.739v-2.284h1.16v2.284z"/>
-    <path fill="#b7a283" d="M23.723 109.285v-1.388h1.16v1.388z"/>
-    <path fill="#c6c6c5" d="M27.048 98.095h2.285v1.143h-2.285z"/>
-    <path fill="#b7a283" d="M27.429 98.095h1.333v1.143h-1.333z"/>
-    <path fill="#c6c6c5" d="M16.92 92.278v-5.535h3.498v5.535z"/>
-    <path fill="#b7a283" d="M16.92 91.178v-3.363h3.498v3.363z"/>
-    <path fill="#c6c6c5" d="M18.834 103.254v-2.282h1.158v2.282z"/>
-    <path fill="#020202" d="M18.834 102.8v-1.387h1.158v1.387z"/>
-    <path fill="#1a1a1a" d="M14.476 108.19h3.048v4.572h-3.048z"/>
-    <path fill="#ccc" d="M15.62 106.667h.951v1.524h-.952zM15.62 112.762h.951v1.524h-.952z"/>
-    <text x="12.762" y="120.381" fill="#fff" font-weight="bold" font-size="4" font-family="Arial" style="stroke-width:.190477">EN</text>
-    <text x="52.762" y="120.572" fill="#fff" font-weight="bold" font-size="4" font-family="Arial" style="stroke-width:.190477">IO</text>
-    <text x="57.143" y="120.572" fill="#fff" font-weight="bold" font-size="4" font-family="Arial" style="stroke-width:.190477">0</text>
-    <g transform="translate(136.601 24.771)" fill="none" stroke="#9a916c" stroke-width="1.5">
-        <circle class="pad-d2" cx="-132.982" cy="95.13" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="35.565" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="42.96" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="28.169" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="20.774" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="-8.809" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="5.982" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="13.378" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="-1.413" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="50.356" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="65.147" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="72.542" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="79.938" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="87.334" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
-        <circle class="pad-d2" cx="-132.982" cy="57.751" r="2.05" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <path fill="#303030" d="M47.507 78.567h7.506v16.085h-7.506z"/>
+    <path fill="#3d3e3d" d="M47.507 78.567v16.085l-.536.714V78.031z"/>
+    <path d="M55.013 94.652V78.567l.536-.536v17.335z"/>
+    <path fill="#1e1f1f" d="M55.013 78.567h-7.506l-.536-.536h8.578zM46.97 95.366l.537-.714h7.506l.536.714z"/>
+    <path fill="#bdbfc1" d="M43.218 91.435h3.753V93.4h-3.753z"/>
+    <path fill="#666766" d="M44.29 91.435h1.072V93.4H44.29z"/>
+    <path fill="#bdbfc1" d="M55.55 82.32h4.646v8.042h-4.647z"/>
+    <path fill="#666766" d="M57.873 82.32h1.072v8.042h-1.072z"/>
+    <path fill="#bdbfc1" d="M43.218 85.537h3.753v1.966h-3.753z"/>
+    <path fill="#666766" d="M44.29 85.537h1.072v1.966H44.29z"/>
+    <path fill="#bdbfc1" d="M43.218 79.282h3.753v1.966h-3.753z"/>
+    <path fill="#666766" d="M44.29 79.282h1.072v1.966H44.29z"/>
+    <path fill="none" stroke="#b3b3b3" stroke-width=".21267679999999997" d="M58.051 90.362V82.32M45.184 93.4v-1.965M45.184 87.503v-1.966M45.184 81.426v-2.144"/>
+    <path fill="none" stroke="#333" stroke-width=".21267679999999997" d="M58.588 90.362V82.32M44.648 93.4v-1.965M44.648 87.503v-1.966M44.648 81.426v-2.144"/>
+    <path fill="none" style="stroke-width:.190477" d="M24.232 102.708v-4.381"/>
+    <path fill="#9d956c" d="M23.47 100.422v-.19z" style="stroke-width:.190477"/>
+    <path fill="#fff" fill-opacity=".502" d="M21.946 101.755V99.28z"/>
+    <path fill="#c6c6c5" d="M46.898 120.612h2.857v1.524h-2.857z"/>
+    <path fill="#020202" d="M47.47 120.612h1.714v1.524H47.47z"/>
+    <path fill="#c6c6c5" d="M22.468 89.005v-2.842h1.442v2.842z"/>
+    <path fill="#b7a283" d="M22.468 88.44v-1.727h1.442v1.727z"/>
+    <path fill="#c6c6c5" d="M46.898 117.946h2.857v1.524h-2.857z"/>
+    <path fill="#020202" d="M47.47 117.946h1.714v1.524H47.47z"/>
+    <path fill="#c6c6c5" d="M45.565 97.946h2.857v1.524h-2.857z"/>
+    <path fill="#020202" d="M46.136 97.946h1.715v1.524h-1.715z"/>
+    <path fill="#c6c6c5" d="M26.898 95.47h2.857v1.523h-2.857z"/>
+    <path fill="#020202" d="M27.47 95.47h1.714v1.523H27.47z"/>
+    <path fill="#c6c6c5" d="M20.993 112.803h2.858v1.524h-2.858z"/>
+    <path fill="#020202" d="M21.565 112.803h1.714v1.524h-1.714z"/>
+    <path fill="#c6c6c5" d="M46.997 115.908v-2.842h1.442v2.842z"/>
+    <path fill="#020202" d="M46.997 115.343v-1.727h1.442v1.727z"/>
+    <path fill="#c6c6c5" d="M46.997 110.408v-2.841h1.442v2.841z"/>
+    <path fill="#020202" d="M46.997 109.844v-1.727h1.442v1.727z"/>
+    <path fill="#c6c6c5" d="M46.997 104.66v-2.842h1.442v2.841z"/>
+    <path fill="#020202" d="M46.997 104.094v-1.726h1.442v1.726z"/>
+    <path fill="#c6c6c5" d="M20.437 110.658v-2.841h1.442v2.841z"/>
+    <path fill="#b7a283" d="M20.437 110.093v-1.726h1.442v1.726z"/>
+    <path fill="#c6c6c5" d="M23.764 109.97v-2.284h1.16v2.284z"/>
+    <path fill="#b7a283" d="M23.764 109.516v-1.388h1.16v1.388z"/>
+    <path fill="#c6c6c5" d="M27.089 98.327h2.285v1.143H27.09z"/>
+    <path fill="#b7a283" d="M27.47 98.327h1.333v1.143H27.47z"/>
+    <path fill="#c6c6c5" d="M16.96 92.51v-5.535h3.5v5.535z"/>
+    <path fill="#b7a283" d="M16.96 91.41v-3.364h3.5v3.363z"/>
+    <path fill="#c6c6c5" d="M18.994 103.485v-2.282h1.159v2.282z"/>
+    <path fill="#020202" d="M18.994 103.032v-1.387h1.159v1.387z"/>
+    <text x="12.635" y="120.612" fill="#fff" font-weight="bold" font-size="4" font-family="Arial" style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff;stroke-width:.190477">RST</text>
+    <text x="51.873" y="120.614" fill="#fff" font-weight="bold" font-size="4" font-family="Arial" style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff;stroke-width:.190477">BOOT</text>
+    <circle class="pad-d2" cx="3.66" cy="120.133" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="60.568" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="67.963" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="53.172" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="45.776" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="16.194" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="30.985" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="38.381" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="23.59" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="75.359" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="90.15" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="97.545" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="104.941" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="112.336" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="3.66" cy="82.754" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="120.133" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="60.568" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="67.963" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="53.172" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="45.776" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="16.194" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="30.985" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="38.381" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="23.59" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="75.359" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="90.15" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="97.545" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="104.941" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="112.336" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <circle class="pad-d2" cx="68.422" cy="82.754" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-18.99" y="64.889" transform="rotate(-90)">D23</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-26.374" y="64.925" transform="rotate(-90)">D22</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-33.694" y="64.889" transform="rotate(-90)">TX0</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-41.335" y="64.889" transform="rotate(-90)">RX0</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-48.393" y="64.925" transform="rotate(-90)">D21</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-55.962" y="64.887" transform="rotate(-90)">D19</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-63.36" y="64.887" transform="rotate(-90)">D18</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-69.944" y="64.889" transform="rotate(-90)">D5</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-78.066" y="64.925" transform="rotate(-90)">TX2</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-85.707" y="64.925" transform="rotate(-90)">RX2</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-92.141" y="64.925" transform="rotate(-90)">D4</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-99.496" y="64.925" transform="rotate(-90)">D2</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-107.756" y="64.889" transform="rotate(-90)">D15</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-115.667" y="64.889" transform="rotate(-90)">GND</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-122.793" y="64.889" transform="rotate(-90)">3V3</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-122.337" y="9.266" transform="rotate(-90)">Vin</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-115.667" y="9.302" transform="rotate(-90)">GND</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-107.737" y="9.274" transform="rotate(-90)">D13</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-100.33" y="9.274" transform="rotate(-90)">D12</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-92.975" y="9.274" transform="rotate(-90)">D14</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-85.548" y="9.274" transform="rotate(-90)">D27</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-78.165" y="9.274" transform="rotate(-90)">D26</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-70.778" y="9.274" transform="rotate(-90)">D25</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-63.363" y="9.274" transform="rotate(-90)">D33</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-55.957" y="9.274" transform="rotate(-90)">D32</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-48.591" y="9.274" transform="rotate(-90)">D35</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-41.207" y="9.274" transform="rotate(-90)">D34</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-32.948" y="9.266" transform="rotate(-90)">VN</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-25.521" y="9.266" transform="rotate(-90)">VP</text>
+    <text style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:3.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#fff" font-size="2.5" x="-18.267" y="9.266" transform="rotate(-90)">EN</text>
+    <g fill="#ccc">
+        <path style="stroke-width:.190477" d="M-124.288 203.189h2.857v5.714h-2.857zM-127.915 203.189h2.857v5.714h-2.857zM-131.519 203.189h2.857v5.714h-2.857zM-134.978 203.189h2.857v5.714h-2.857zM-138.573 203.189h2.857v5.714h-2.857zM-142.192 203.189h2.857v5.714h-2.857zM-145.811 203.189h2.857v5.714h-2.857zM-149.431 203.189h2.857v5.714h-2.857zM-153.05 203.189h2.857v5.714h-2.857zM-156.669 203.189h2.857v5.714h-2.857z" transform="translate(168.624 -129.251) scale(.95278)"/>
+        <path d="M16.025 64v2.743h-5.364V64zM16.025 60.57v2.744h-5.364V60.57zM16.025 57.14v2.744h-5.364v-2.743zM16.025 53.71v2.744h-5.364v-2.743zM16.025 50.281v2.744h-5.364V50.28zM16.025 46.852v2.743h-5.364v-2.743zM16.025 43.422v2.743h-5.364v-2.743zM16.025 39.992v2.744h-5.364v-2.744zM16.025 36.562v2.744h-5.364v-2.744zM16.025 33.133v2.743h-5.364v-2.743zM16.025 29.703v2.744h-5.364v-2.744zM16.025 26.273v2.744h-5.364v-2.744zM16.025 22.844v2.743h-5.364v-2.743zM16.025 19.414v2.744h-5.364v-2.744zM61.421 64v2.743h-5.364V64zM61.421 60.57v2.744h-5.364V60.57zM61.421 57.14v2.744h-5.364v-2.743zM61.421 53.71v2.744h-5.364v-2.743zM61.421 50.281v2.744h-5.364V50.28zM61.421 46.852v2.743h-5.364v-2.743zM61.421 43.422v2.743h-5.364v-2.743zM61.421 39.992v2.744h-5.364v-2.744zM61.421 36.562v2.744h-5.364v-2.744zM61.421 33.133v2.743h-5.364v-2.743zM61.421 29.703v2.744h-5.364v-2.744zM61.421 26.273v2.744h-5.364v-2.744zM61.421 22.844v2.743h-5.364v-2.743zM61.421 19.414v2.744h-5.364v-2.744z"/>
     </g>
-    <circle class="pad-d2" cx="68.381" cy="119.901" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="60.336" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="67.732" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="52.94" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="45.545" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="15.963" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="67.205" cy="4.795" r="3.992" fill="none" stroke="#9a916c" stroke-width="1.965" style="stroke:#b4b4b4;stroke-width:.106996;stroke-dasharray:none;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="5.529" cy="5.845" r="3.992" fill="none" stroke="#9a916c" stroke-width="1.965" style="stroke:#b4b4b4;stroke-width:.106996;stroke-dasharray:none;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="66.366" cy="130.915" r="3.992" fill="none" stroke="#9a916c" stroke-width="1.965" style="stroke:#b4b4b4;stroke-width:.106996;stroke-dasharray:none;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="5.095" cy="130.742" r="3.992" fill="none" stroke="#9a916c" stroke-width="1.965" style="stroke:#b4b4b4;stroke-width:.106996;stroke-dasharray:none;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="30.754" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="38.149" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="23.358" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="75.127" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="89.918" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="97.314" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="104.709" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="112.105" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <circle class="pad-d2" cx="68.381" cy="82.523" r="2.05" fill="none" stroke="#9a916c" stroke-width="1.5" style="stroke:#b4b4b4;stroke-opacity:1"/>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-19.422" y="65.006" transform="rotate(-90)">D23</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-26.031" y="65.201" transform="rotate(-90)">D22</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-33.512" y="65.008" transform="rotate(-90)">TX0</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-41.265" y="65.008" transform="rotate(-90)">RX0</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-48.554" y="65.043" transform="rotate(-90)">D21</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-54.996" y="65.008" transform="rotate(-90)">D19</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-62.292" y="65.008" transform="rotate(-90)">D18</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-68.847" y="64.973" transform="rotate(-90)">D5</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-77.171" y="65.043" transform="rotate(-90)">TX2</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-84.925" y="65.041" transform="rotate(-90)">RX2</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-91.113" y="65.01" transform="rotate(-90)">D4</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-98.767" y="65.041" transform="rotate(-90)">D2</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-106.892" y="64.975" transform="rotate(-90)">D15</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-114.662" y="64.848" transform="rotate(-90)">GND</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-122.372" y="64.85" transform="rotate(-90)">3V3</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-121.259" y="8.746" transform="rotate(-90)">Vin</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-114.742" y="9.062" transform="rotate(-90)">GND</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-107.436" y="9.22" transform="rotate(-90)">D13</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-99.677" y="8.746" transform="rotate(-90)">D12</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-92.349" y="8.746" transform="rotate(-90)">D14</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-84.569" y="8.746" transform="rotate(-90)">D27</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-77.104" y="8.746" transform="rotate(-90)">D26</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-69.64" y="8.43" transform="rotate(-90)">D25</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-62.647" y="8.588" transform="rotate(-90)">D33</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-55.499" y="8.588" transform="rotate(-90)">D32</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-46.139" y="8.43" transform="rotate(-90)">D35</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-38.99" y="8.43" transform="rotate(-90)">D34</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-31.842" y="8.43" transform="rotate(-90)">VN</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-24.693" y="8.43" transform="rotate(-90)">VP</text>
-    <text style="font-size:2.5px;font-family:OCRA;fill:#fff" font-size="2.5" x="-16.461" y="8.43" transform="rotate(-90)">EN</text>
+    <path fill="#1a1a1a" style="stroke-width:.190477" d="M-72.939 3.002h51.048v72h-51.048z" transform="translate(81.217 -2.629) scale(.95278)"/>
+    <path fill="none" stroke="#4d4d4d" stroke-width="2.02561028" d="M13.537 18.924h45.008"/>
+    <g fill="#fff39d">
+        <path d="M-32.748 73.668h2.476v1.334h-.572c0-.381-.19-.762-.571-.762-.381 0-.571.38-.571.762h-.572v-1.334zM-36.367 73.668h2.476v1.334h-.572c0-.381-.19-.762-.571-.762-.381 0-.572.38-.572.762h-.57v-1.334zM-39.986 73.668h2.476v1.334h-.572c0-.381-.19-.762-.571-.762-.381 0-.572.38-.572.762h-.571v-1.334zM-43.415 73.668h2.476v1.334h-.571c0-.381-.19-.762-.572-.762-.38 0-.571.38-.571.762h-.572v-1.334zM-47.034 73.668h2.476v1.334h-.571c0-.381-.19-.762-.572-.762-.38 0-.571.38-.571.762h-.572v-1.334zM-50.653 73.668h2.476v1.334h-.571c0-.381-.19-.762-.572-.762-.38 0-.571.38-.571.762h-.572v-1.334zM-54.272 73.668h2.476v1.334h-.571c0-.381-.19-.762-.572-.762-.38 0-.571.38-.571.762h-.572v-1.334zM-57.891 73.668h2.476v1.334h-.572c0-.381-.19-.762-.57-.762-.382 0-.572.38-.572.762h-.572v-1.334zM-61.51 73.668h2.476v1.334h-.572c0-.381-.19-.762-.571-.762-.38 0-.571.38-.571.762h-.572v-1.334zM-65.13 73.668h2.477v1.334h-.572c0-.381-.19-.762-.571-.762-.381 0-.571.38-.571.762h-.572v-1.334z" style="stroke-width:.190477" transform="translate(81.49 -2.629) scale(.95278)"/>
+    </g>
+    <g fill="#fff39d">
+        <path d="M-71.606 70.05v2.475h-1.333v-.57c.381 0 .762-.191.762-.572 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 66.43v2.476h-1.333v-.571c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 62.811v2.476h-1.333v-.571c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 59.192v2.476h-1.333v-.571c.381 0 .762-.19.762-.572 0-.38-.381-.571-.762-.571v-.571h1.333zM-71.606 55.573v2.476h-1.333v-.571c.381 0 .762-.19.762-.572 0-.38-.381-.571-.762-.571v-.571h1.333zM-71.606 51.954v2.476h-1.333v-.571c.381 0 .762-.19.762-.572 0-.38-.381-.571-.762-.571v-.571h1.333zM-71.606 48.525v2.477h-1.333v-.572c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 44.906v2.477h-1.333v-.572c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 41.287v2.477h-1.333v-.572c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 37.668v2.476h-1.333v-.57c.381 0 .762-.191.762-.572 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 34.05v2.475h-1.333v-.571c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 30.43v2.476h-1.333v-.571c.381 0 .762-.19.762-.571 0-.381-.381-.572-.762-.572v-.571h1.333zM-71.606 26.811v2.476h-1.333v-.571c.381 0 .762-.19.762-.572 0-.38-.381-.571-.762-.571v-.571h1.333zM-71.606 23.192v2.476h-1.333v-.571c.381 0 .762-.19.762-.572 0-.38-.381-.571-.762-.571v-.571h1.333z" style="stroke-width:.190477" transform="translate(81.217 -2.629) scale(.95278)"/>
+    </g>
+    <g fill="#fff39d">
+        <path d="M-23.034 70.05v2.475h1.333v-.57c-.38 0-.762-.191-.762-.572 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 66.43v2.476h1.333v-.571c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 62.811v2.476h1.333v-.571c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 59.192v2.476h1.333v-.571c-.38 0-.762-.19-.762-.572 0-.38.381-.571.762-.571v-.571h-1.333zM-23.034 55.573v2.476h1.333v-.571c-.38 0-.762-.19-.762-.572 0-.38.381-.571.762-.571v-.571h-1.333zM-23.034 51.954v2.476h1.333v-.571c-.38 0-.762-.19-.762-.572 0-.38.381-.571.762-.571v-.571h-1.333zM-23.034 48.525v2.477h1.333v-.572c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 44.906v2.477h1.333v-.572c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 41.287v2.477h1.333v-.572c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 37.668v2.476h1.333v-.57c-.38 0-.762-.191-.762-.572 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 34.05v2.475h1.333v-.571c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 30.43v2.476h1.333v-.571c-.38 0-.762-.19-.762-.571 0-.381.381-.572.762-.572v-.571h-1.333zM-23.034 26.811v2.476h1.333v-.571c-.38 0-.762-.19-.762-.572 0-.38.381-.571.762-.571v-.571h-1.333zM-23.034 23.192v2.476h1.333v-.571c-.38 0-.762-.19-.762-.572 0-.38.381-.571.762-.571v-.571h-1.333z" style="stroke-width:.190477" transform="translate(81.036 -2.629) scale(.95278)"/>
+    </g>
+    <g transform="translate(81.036 -2.629) scale(.95278)">
+        <rect fill="#999" stroke="#fff" stroke-width=".5" x="-70.272" y="23.192" width="46.095" height="49.905" rx=".762" ry=".762"/>
+        <circle cx="-65.51" cy="68.335" r="1.524" style="stroke-width:.190477"/>
+    </g>
+    <g transform="translate(81.932 -2.629) scale(.95278)">
+        <path fill="none" stroke="#4d4d4d" stroke-width="1.701" d="M-30.463 21.287V4.907h-12.762v8.38h-6.857v-8.38h-6.666v8.38h-7.048v-8.38h-5.905V18.43m32.953-13.524v16.381"/>
+        <circle fill="#fff39d" cx="-36.748" cy="20.716" r=".571" style="stroke-width:.190477"/>
+        <circle fill="#fff39d" cx="-30.463" cy="20.716" r=".571" style="stroke-width:.190477"/>
+    </g>
+    <text x="-69.981" y="25.31" fill="#e6e6e6" font-weight="bold" font-size="3.408" font-family="Arial" transform="matrix(.90209 0 0 1.00632 78.943 1.161)" style="font-weight:700;font-size:3.40812px;font-family:Arial;fill:#e6e6e6;stroke-width:.180342"><tspan style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:5.00001px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">ESP32-WROOM-32</tspan></text>
+    <text x="-74.693" y="52.349" fill="#e6e6e6" font-weight="bold" font-size="3.12" font-family="Arial" transform="matrix(.82596 0 0 1.09908 78.943 1.161)" style="stroke-width:.165123">FCC 9D:2AC72-ESPWROOM32</text>
+    <text x="-46.736" y="48.335" fill="#e6e6e6" font-weight="bold" font-size="3.408" font-family="Arial" transform="matrix(.90209 0 0 1.00632 78.616 .277)" style="stroke-width:.180342">205 - 000519</text>
+    <g transform="translate(80.127 -5.605) scale(.95278)">
+        <rect fill="none" stroke="#e6e6e6" stroke-width=".425" x="-54.463" y="53.859" width="6.095" height="4.19" rx=".571" ry=".571"/>
+        <text x="-52.679" y="57.099" fill="#e6e6e6" font-weight="bold" font-size="3.2" font-family="Arial" style="stroke-width:.190477">R</text>
+    </g>
+    <path fill="none" stroke="#e6e6e6" stroke-width=".47639" d="M19.882 49.34h3.993m-1.996 1.452V49.34m-1.997-.907h3.993m-5.807-1.27 4.174-.908v1.27l3.085-.907c-.544-1.452-1.996-2.723-3.63-2.723-2.177 0-3.81 1.634-3.81 3.812 0 2.177 1.633 3.81 3.81 3.81 1.634 0 2.904-.907 3.448-2.359"/>
+    <g fill="none" stroke="#e6e6e6" stroke-width="1.134">
+        <path d="M45.638 34.839h-3.051m3.372-3.373c-1.927 0-3.372 1.606-3.372 3.373m3.372 3.372c-1.927 0-3.372-1.606-3.372-3.372M39.696 31.386c-1.766 0-3.211 1.445-3.372 3.212 0 2.087 1.446 3.693 3.372 3.693" stroke-width=".95597334"/>
+    </g>
+    <path d="M-28.312 31.221h.448c.756.034 1.513.27 2.132.709a3.712 3.712 0 0 1 1.341 1.721c.206.54.31 1.113.24 1.687-.034.034-.102.034-.137.068-.034 0-.069.033-.138.033a6.134 6.134 0 0 0-1.1-1.957c-.723-.877-1.686-1.518-2.752-1.923-.034-.034-.069-.067-.103-.067l-.034-.034c.069-.102.069-.17.103-.237m-1.542.427c.035 0 .035-.034.069-.034a5.877 5.877 0 0 1 2.648.979c.585.405 1.101.91 1.514 1.484.55.743.894 1.62.997 2.565 0 .033.035.1 0 .135a2.902 2.902 0 0 1-.344.54c-.069.067-.103.135-.172.202h-.653c0-.371-.035-.709-.103-1.08-.172-.709-.482-1.384-.963-1.923-.482-.574-1.101-1.046-1.789-1.316a4.577 4.577 0 0 0-1.926-.405v-.641s0-.034.035-.034c.205-.168.446-.337.687-.472m-1.412.186c.034 0 .034 0 0 0a.635.635 0 0 1 .275.236l-.104.101a4.221 4.221 0 0 0-1.031 1.924c-.035.27-.07.573-.104.843v.236c.035.776.31 1.552.791 2.227a4.263 4.263 0 0 0 1.651 1.35c.55.236 1.135.37 1.755.37.516 0 1.066-.1 1.547-.269a4.425 4.425 0 0 0 1.342-.81.474.474 0 0 1 .138-.101l.24.236c-.55.54-1.272.945-2.03 1.147-.515.135-1.031.169-1.547.135a4.046 4.046 0 0 1-1.754-.506 4.356 4.356 0 0 1-1.548-1.282 4.213 4.213 0 0 1-.894-2.26 3.95 3.95 0 0 1 .206-1.789 4.536 4.536 0 0 1 1.067-1.788m.58 1.446c.207-.033.414-.033.62 0 .825.068 1.616.405 2.27.911.585.473 1.066 1.114 1.307 1.822.24.608.31 1.282.24 1.957-.034.135-.034.304-.068.44 0 .033 0 .033-.035.067-.206.101-.447.168-.688.236-.034 0-.068.034-.103 0l-.516-.203c.104-.27.172-.54.172-.81a3.141 3.141 0 0 0-.172-1.248 2.57 2.57 0 0 0-.516-.877c-.24-.27-.55-.54-.86-.708a2.8 2.8 0 0 0-1.169-.372h-.24c-.104 0-.206.068-.206.169-.035.067 0 .135.034.202.034.068.103.102.206.102.379 0 .757.1 1.101.303.31.169.585.405.791.675.24.304.413.641.482 1.012.206.574.069 1.283-.275 1.822-.24 0-.482-.067-.757-.135-.034 0-.069-.034-.103-.067-.104-.102-.207-.169-.31-.27v-.034a1.37 1.37 0 0 0 .31-.877c0-.371-.172-.743-.482-.945a1.247 1.247 0 0 0-.825-.304c-.31 0-.62-.135-.86-.337-.31-.236-.482-.607-.516-1.012 0-.203.035-.372.069-.574.103-.304.31-.573.585-.742.136-.068.343-.169.515-.203m.089 3.491c.137-.033.309 0 .412.068a.736.736 0 0 1 .344.371c.035.101.035.202.035.338a.81.81 0 0 1-.241.405c-.138.1-.275.168-.413.168-.206 0-.378-.101-.516-.202-.103-.102-.171-.203-.171-.338a.556.556 0 0 1 .137-.506c.069-.169.24-.27.413-.304" fill="#b7b7b7" style="fill:#e6e6e6;stroke-width:.396582" transform="translate(79.163 1.161) scale(.95278)"/>
+    <g transform="rotate(-90 47.35 69.813) scale(.83943)">
+        <rect style="fill:#e6e6e6;fill-opacity:1;fill-rule:nonzero;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0" width="20.86" fill="#b3b3b3" x="45.712" height="9.364" y="-102.753" ry="3.255" transform="rotate(90)"/>
+        <path style="font-style:normal;font-weight:400;line-height:125%;font-family:'Droid Sans';text-align:center;letter-spacing:0;word-spacing:0;text-anchor:middle;fill:#999;fill-opacity:1;stroke-linecap:butt;stroke-linejoin:miter" d="M95.902 47.677c.102-.035 4.483-1.04 4.53-1.04.037 0 .05.151.05.627 0 .345-.014.627-.03.627-.05 0-2.376.355-2.48.379-.092.02-.093.024-.02.05.043.016.63.142 1.305.28l1.226.252-.01.567-.011.567-1.243.257c-.683.141-1.253.268-1.266.28-.031.032.003.038 1.342.235l1.147.168v.62c0 .341-.011.62-.025.62-.028 0-4.39-1.013-4.495-1.044-.061-.018-.068-.082-.068-.603s.007-.585.068-.604c.038-.01.632-.127 1.321-.258a30.27 30.27 0 0 0 1.27-.255c.031-.031-.053-.05-1.365-.305l-1.275-.248-.01-.578c-.009-.441 0-.581.038-.594zM97.52 52.833h1.667v1.098h-3.333v-1.098ZM99.62 53.159a.833.833 0 0 1 .167-.262c.245-.26.591-.218.799.096.09.135.11.209.11.405.002.904-1.043.964-1.102.062a1.03 1.03 0 0 1 .026-.301zM94.396 54.802c.481.46.95.75 1.516.936.266.088.333.091 2.06.114 1.917.025 1.888.022 2.333.245.26.13.663.447.93.73.296.314.498.632.625.986l.092.255V60.5c0 2.676.003 2.636-.25 3.177-.322.685-1.095 1.32-1.819 1.49-.365.086-3.4.085-3.737-.001-.696-.18-1.318-.676-1.75-1.4-.329-.55-.307-.202-.307-5v-4.257l.307.293zm3.124 8.62h1.706v-1.177h-3.412v1.177zm-.98-4.667h.686v2.47h1.098v-2.47h1.06v2.784h1.136v-4.13l-.653.026c-.36.014-1.41.026-2.333.026h-1.68v1.294zm3.042 4.403c.117.422.633.596.922.31.336-.332.326-.904-.02-1.195-.236-.198-.506-.188-.721.027-.203.202-.272.531-.181.858z" fill="#4d4d4d"/>
+    </g>
+    <path fill="#ccc" style="stroke-width:.190477" d="M27.238 89.317h6.286v1.714h-6.286zM27.238 78.907h6.286v1.714h-6.286z" transform="translate(.041 .231)"/>
+    <path fill="#f5b03b" style="stroke-width:.190477" d="M26.667 80.381h7.429v9.333h-7.429z" transform="translate(.041 .231)"/>
+    <path fill="#eb8a53" style="stroke-width:.190477" d="M26.667 87.81h7.429v1.714h-7.429z" transform="translate(.041 .231)"/>
+    <g transform="translate(-.233 .231)">
+        <path class="led-outer" fill="#cdcccc" d="M16.274 102.12c.34 0 .615.192.615.43h.47v-4.558h-.47c0 .238-.275.43-.615.43-.34 0-.616-.192-.616-.43h-.47v4.558h.47c0-.238.276-.43.616-.43z" style="stroke-width:.908295"/>
+        <path class="led-blue" fill="#3d55a5" style="fill:#ff2000;fill-opacity:1;stroke-width:.908295" transform="rotate(90)" d="M98.752-17.36h3.038v2.172h-3.038z"/>
+        <circle cx="16.274" cy="100.271" fill="#a00000" style="fill:#ba3636;fill-opacity:1;stroke-width:1.12743" r=".488"/>
+    </g>
+    <g transform="translate(.041 .164)">
+        <path class="led-outer" fill="#cdcccc" d="M23.065 102.187c.34 0 .616.193.616.43h.47V98.06h-.47c0 .237-.276.43-.616.43-.34 0-.616-.193-.616-.43h-.47v4.557h.47c0-.237.276-.43.616-.43z" style="stroke-width:.908295"/>
+        <path class="led-blue" fill="#3d55a5" style="fill:#00f;fill-opacity:1;stroke-width:.908295" transform="rotate(90)" d="M98.819-24.151h3.038v2.172h-3.038z"/>
+        <circle cx="23.065" cy="100.339" fill="#a00000" style="fill:#18157f;fill-opacity:1;stroke-width:1.12743" r=".488"/>
+    </g>
+    <path fill="#ccc" style="stroke-width:.190477" d="M15.524 106.714h.952v1.524h-.952zM15.524 112.727h.952v1.524h-.952z" transform="translate(.041 .231)"/>
+    <path fill="#1a1a1a" style="stroke-width:.190477" d="M14.476 108.191h3.048v4.571h-3.048z" transform="translate(.041 .231)"/>
 </svg>

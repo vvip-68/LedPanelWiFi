@@ -101,13 +101,13 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
     this.bright_5 = new ActionModel({
       mode: ActionType.BRIGHT,
       icon: 'bright_5',
-      active: (value: number) => checkRange(value, 0, 13),
-      set: '$4 0 13;',
+      active: (value: number) => checkRange(value, 0, 16),   // Минимальная яркость ночных часов при которой диоды еще горят - 16;
+      set: '$4 0 16;',                                       // Надо чтобы при этом в UI была активной девая кнопка яркости на панели управления
     });
     this.bright_25 = new ActionModel({
       mode: ActionType.BRIGHT,
       icon: 'bright_25',
-      active: (value: number) => checkRange(value, 14, 64),
+      active: (value: number) => checkRange(value, 17, 64),
       set: '$4 0 64;',
     });
     this.bright_50 = new ActionModel({

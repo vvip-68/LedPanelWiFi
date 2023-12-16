@@ -33,6 +33,11 @@ void InitializeE131() {
       DEBUGLN(F("Ошибка запуска вещателя E1.31 потока"));        
       DisposeE131();
     }
+    e131_packet = e131->createPacket(host_name.c_str(), e131_cid);
+    if (!e131_packet) {
+      DEBUGLN(F("Ошибка запуска вещателя E1.31 потока"));        
+      DisposeE131();
+    }
   } else
   if (workMode == SLAVE) {
     // Поддерживается до MAX_UNIVERCE_COUNT = 12 вселенных. Одна группа синхронизации - 12 вселенных, т.е Группа 0 - 1..12 вселенная, Группа 1 - 13..25 вселенные и т.д.
@@ -60,6 +65,11 @@ void InitializeE131() {
       DEBUGLN(F("Ошибка запуска слушателя потока E1.31"));        
       DisposeE131();
     }
+    e131_packet = e131->createPacket(host_name.c_str(), e131_cid);
+    if (!e131_packet) {
+      DEBUGLN(F("Ошибка запуска слушателя потока E1.31"));        
+      DisposeE131();
+    }
 
     flag_1 = false;
     flag_2 = false;
@@ -71,6 +81,10 @@ void InitializeE131() {
 // Отключение протокола E1.31 с освобождением ресурсов
 // ---------------------------------------------------
 void DisposeE131() {
+  if (e131_packet) {
+    delete e131_packet;
+    e131_packet = NULL;
+  }
   if (e131) {
     delete e131;
     e131 = NULL;
@@ -220,54 +234,45 @@ void printWorkMode() {
 void sendE131Screen() {  
   if (!e131) return;
   if (!(syncMode == PHYSIC || syncMode == LOGIC)) return;
-
-  e131_packet_t* packet = NULL;
   
   if (syncMode == PHYSIC) {
-    packet = e131->createPacket(host_name.c_str(), e131_cid);
-    if (packet) {
-      uint16_t cnt = 0, universe = START_UNIVERSE;
-      for (uint16_t idx = 0; idx < NUM_LEDS; idx++) {
-        CRGB color = leds[idx];
-        e131->setRGB(packet,cnt,color.r,color.g,color.b);      
-        cnt++;
-        if (cnt == 170 || idx == NUM_LEDS-1) {
-          // отправить пакет
-          e131->sendPacket(packet, universe, cnt);
-          cnt = 0;
-          universe++;
-        }
+    uint16_t cnt = 0, universe = START_UNIVERSE;
+    for (uint16_t idx = 0; idx < NUM_LEDS; idx++) {
+      CRGB color = leds[idx];
+      e131->setRGB(e131_packet,cnt,color.r,color.g,color.b);      
+      cnt++;
+      if (cnt == 170 || idx == NUM_LEDS-1) {
+        // отправить пакет
+        e131->sendPacket(e131_packet, universe, cnt);
+        cnt = 0;
+        universe++;
       }
     }
   } else
 
   if (syncMode == LOGIC) {
     // Отправить пакет с размерами MASTER-матрицы
-    packet = makeCommandPacket(CMD_DIMENSION);
-    if (packet) {
-      packet->property_values[4] = pWIDTH;
-      packet->property_values[5] = pHEIGHT;
-      e131->sendPacket(packet, START_UNIVERSE, 170);
-      // Отправить экран MASTER-матрицы клиентам SLAVE
-      uint16_t idx = 0, cnt = 0, universe = START_UNIVERSE;
-      for (int8_t y = pHEIGHT-1; y >= 0; y--) {
-        for (int8_t x = 0; x < pWIDTH; x++) {
-          CRGB color = getPixColorXY(x,y);  
-          e131->setRGB(packet,cnt,color.r,color.g,color.b);      
-          idx++; cnt++;
-          if (cnt == 170 || idx == NUM_LEDS) {
-            // отправить пакет
-            e131->sendPacket(packet, universe, cnt);
-            cnt = 0;
-            universe++;
-          }
+    makeCommandPacket(CMD_DIMENSION, e131_packet);
+    e131_packet->property_values[4] = pWIDTH;
+    e131_packet->property_values[5] = pHEIGHT;
+    e131->sendPacket(e131_packet, START_UNIVERSE, 170);
+    // Отправить экран MASTER-матрицы клиентам SLAVE
+    uint16_t idx = 0, cnt = 0, universe = START_UNIVERSE;
+    for (int8_t y = pHEIGHT-1; y >= 0; y--) {
+      for (int8_t x = 0; x < pWIDTH; x++) {
+        CRGB color = getPixColorXY(x,y);  
+        e131->setRGB(e131_packet,cnt,color.r,color.g,color.b);      
+        idx++; cnt++;
+        if (cnt == 170 || idx == NUM_LEDS) {
+          // отправить пакет
+          e131->sendPacket(e131_packet, universe, cnt);
+          cnt = 0;
+          universe++;
         }
       }
     }
   }
 
-  // Освободить память, выделенную под пакет
-  if (packet) free(packet);  
 }
 
 // ---------------------------------------------------
@@ -493,243 +498,201 @@ void processCommandPacket(e131_packet_t *packet) {
 // Отправка команд в пакете E1.31 клиентам
 // ---------------------------------------------------
 
-e131_packet_t* makeCommandPacket(uint8_t cmd) {
-  e131_packet_t *packet = e131->createPacket(host_name.c_str(), e131_cid);
-  if (packet) {
-    packet->property_values[1] = 0xAA;
-    packet->property_values[2] = 0x55;
-    packet->property_values[3] = cmd;
-  }
-  return packet;
+void makeCommandPacket(uint8_t cmd, e131_packet_t *packet) {
+  packet->property_values[1] = 0xAA;
+  packet->property_values[2] = 0x55;
+  packet->property_values[3] = cmd;
 }
 
 void commandTurnOnOff(bool value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_TURNONOFF);
-  if (!packet) return;
-  packet->property_values[4] = value ? 1 :0;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_TURNONOFF, e131_packet);
+  e131_packet->property_values[4] = value ? 1 :0;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);  
   // DEBUGLN("SEND CMD_TURNONOFF");
 }
 
 void commandAuxActive(bool value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_AUXACTIVE);
-  if (!packet) return;
-  packet->property_values[4] = value ? 1 :0;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_AUXACTIVE, e131_packet);
+  e131_packet->property_values[4] = value ? 1 :0;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);  
   // DEBUGLN("SEND CMD_AUXACTIVE");
 }
 
 void commandAlarming(bool value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_ALARMING);
-  if (!packet) return;
-  packet->property_values[4] = value ? 1 :0;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_ALARMING, e131_packet);
+  e131_packet->property_values[4] = value ? 1 :0;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);  
   // DEBUGLN("SEND CMD_ALARMING");
 }
 
 void commandSetBrightness(uint8_t value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_BRIGHTNESS);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_BRIGHTNESS, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_BRIGHTNESS");
 }
 
 void commandSetSpecialBrightness(uint8_t value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_SPCBRIGHTNESS);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_SPCBRIGHTNESS, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_SPCBRIGHTNESS");
 }
 
 void commandSetCurrentBrightness(uint8_t value) {
   if (workMode != MASTER) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_CURBRIGHTNESS);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_CURBRIGHTNESS, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_CURBRIGHTNESS");
 }
 
 void commandSetImmediateText(const String& str) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_RUNTEXT);
-  if (!packet) return;
-  str.getBytes(&packet->property_values[4], str.length() + 1);  
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_RUNTEXT, e131_packet);
+  str.getBytes(&e131_packet->property_values[4], str.length() + 1);  
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_RUNTEXT");
 }
 
 void commandStopText() {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_STOPTEXT);
-  if (!packet) return;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_STOPTEXT, e131_packet);
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);      
   // DEBUGLN("SEND CMD_STOPTEXT");
 }
 
 void commandSetCurrentTime(uint8_t hh, uint8_t mm, uint8_t ss, uint8_t dd, uint8_t nn, uint16_t yy) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_SPCBRIGHTNESS);
-  if (!packet) return;
-  packet->property_values[4] = hh;
-  packet->property_values[5] = mm;
-  packet->property_values[6] = ss;
-  packet->property_values[7] = dd;
-  packet->property_values[8] = nn;
-  packet->property_values[9] = yy % 100;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_SPCBRIGHTNESS, e131_packet);
+  e131_packet->property_values[4] = hh;
+  e131_packet->property_values[5] = mm;
+  e131_packet->property_values[6] = ss;
+  e131_packet->property_values[7] = dd;
+  e131_packet->property_values[8] = nn;
+  e131_packet->property_values[9] = yy % 100;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_SPCBRIGHTNESS");
 }
 
 void commandSetMode(int8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_EFFECT);
-  if (!packet) return;
-  packet->property_values[4]  = value;
-  packet->property_values[5]  = effectSpeed[value];
-  packet->property_values[6]  = effectContrast[value];
-  packet->property_values[7]  = effectScaleParam[value];
-  packet->property_values[8]  = effectScaleParam2[value];
+  makeCommandPacket(CMD_EFFECT, e131_packet);
+  e131_packet->property_values[4]  = value;
+  e131_packet->property_values[5]  = effectSpeed[value];
+  e131_packet->property_values[6]  = effectContrast[value];
+  e131_packet->property_values[7]  = effectScaleParam[value];
+  e131_packet->property_values[8]  = effectScaleParam2[value];
 
   CRGB color = CRGB(globalColor);
-  packet->property_values[9]  = color.r;
-  packet->property_values[10] = color.g;
-  packet->property_values[11] = color.b;
+  e131_packet->property_values[9]  = color.r;
+  e131_packet->property_values[10] = color.g;
+  e131_packet->property_values[11] = color.b;
 
-  packet->property_values[12] = pWIDTH;
-  packet->property_values[13] = pHEIGHT;
+  e131_packet->property_values[12] = pWIDTH;
+  e131_packet->property_values[13] = pHEIGHT;
   
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_EFFECT");
 }
 
 void commandSetSpecialMode(int8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_SPCEFFECT);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_SPCEFFECT, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_SPCEFFECT");
 }
 
 void commandSetEffectSpeed(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_SPEED);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_SPEED, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_SPEED");
 }
 
 void commandSetEffectContrast(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_CONTRAST);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_CONTRAST, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_CONTRAST");
 }
 
 void commandSetEffectParam(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_PARAM1);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_PARAM1, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_PARAM1");
 }
 
 void commandSetEffectParam2(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_PARAM2);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_PARAM2, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_PARAM2");
 }
 
 void commandSetGlobalColor(uint32_t col) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_COLOR);
-  if (!packet) return;
+  makeCommandPacket(CMD_COLOR, e131_packet);
   CRGB color = CRGB(col);
-  packet->property_values[4] = color.r;
-  packet->property_values[5] = color.g;
-  packet->property_values[6] = color.b;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  e131_packet->property_values[4] = color.r;
+  e131_packet->property_values[5] = color.g;
+  e131_packet->property_values[6] = color.b;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_COLOR");
 }
 
 void commandSetDimension(uint8_t w, uint8_t h) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_DIMENSION);
-  if (!packet) return;
-  packet->property_values[4] = w;
-  packet->property_values[5] = h;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_DIMENSION, e131_packet);
+  e131_packet->property_values[4] = w;
+  e131_packet->property_values[5] = h;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);    
   // DEBUGLN("SEND CMD_DIMENSION");  
 }
 
 void commandSetTextSpeed(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_TEXTSPEED);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_TEXTSPEED, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);      
   // DEBUGLN("SEND CMD_TEXTSPEED");  
 }
 
 void commandSetClockSpeed(uint8_t value) {
   if (!(workMode == MASTER && syncMode == COMMAND)) return;
-  e131_packet_t *packet = makeCommandPacket(CMD_CLOCKSPEED);
-  if (!packet) return;
-  packet->property_values[4] = value;
-  e131->sendPacket(packet, START_UNIVERSE, 170);
+  makeCommandPacket(CMD_CLOCKSPEED, e131_packet);
+  e131_packet->property_values[4] = value;
+  e131->sendPacket(e131_packet, START_UNIVERSE, 170);
   delay(5);
-  free(packet);      
   // DEBUGLN("SEND CMD_CLOCKSPEED");
 }
 

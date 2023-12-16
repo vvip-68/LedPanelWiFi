@@ -14,6 +14,7 @@ bool flag_1 = false;
 bool flag_2 = false;
 uint32_t last_sent_alarm_sync; 
 uint32_t last_sent_aux_sync;
+uint32_t last_sent_brightness_sync;
 #endif
 
 // Forward declaration
@@ -336,17 +337,17 @@ void process() {
       if (e131 && !e131->isEmpty()) {
         // Получен пакет данных. 
         e131_last_packet = millis();
-        e131->pull(&e131_packet);        
+        e131->pull(e131_packet);        
         
         idleTimer.reset();
         
-        uint16_t CURRENT_UNIVERSE = htons(e131_packet.universe);      
+        uint16_t CURRENT_UNIVERSE = htons(e131_packet->universe);      
 
         /*
         // Отладка: информация о полученном E1.31 пакете
         Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u\n",
                   CURRENT_UNIVERSE,                            // The Universe for this packet
-                  htons(e131_packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
+                  htons(e131_packet->property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
                   e131->stats.num_packets,                     // Packet counter
                   e131->stats.packet_errors);                  // Packet error counter
         */     
@@ -354,7 +355,7 @@ void process() {
         /*
         // Отладка: вывод данных структуры полученного пакета E1.31 для первых двух вселенных
         if (!flag_1 && CURRENT_UNIVERSE == 1 || !flag_2 && CURRENT_UNIVERSE == 2) {
-          printE131packet(&e131_packet);
+          printE131packet(e131_packet);
           flag_1 |= CURRENT_UNIVERSE == 1;
           flag_2 |= CURRENT_UNIVERSE == 2;
         }
@@ -369,7 +370,7 @@ void process() {
         }
         */
         
-        bool isCommand = isCommandPacket(&e131_packet);
+        bool isCommand = isCommandPacket(e131_packet);
                 
         // Если задан расчет FPS выводимых данных потока E1.31 - рассчитать и вывести в консоль
         if (syncMode != COMMAND && E131_FPS_INTERVAL > 0) {
@@ -384,7 +385,7 @@ void process() {
 
         // Если пакет содержит команду - обработать ее
         if (isCommand) {
-          processCommandPacket(&e131_packet);          
+          processCommandPacket(e131_packet);          
           needProcessEffect = syncMode == COMMAND;
         } else
         
@@ -402,7 +403,7 @@ void process() {
             FastLEDshow();
           }
           // Поместить полученный кадр в буфер светодиодов
-          drawE131frame(&e131_packet, syncMode);
+          drawE131frame(e131_packet, syncMode);
         }
       }
     }
@@ -478,10 +479,12 @@ void process() {
         // Иногда клиент пропускает сигнал срабатывания будильника или клиент перезагрузился. 
         // Тогда на мастере лампа активного будильника горит, а на клиентах нет. 
         // Во избежание такого сценария послыать активность будильника каждые 1000 мс 
-        if (abs((long long)(millis() - last_sent_alarm_sync)) > 1000) {
-          commandAlarming(isAlarming || isPlayAlarmSound);
-          last_sent_alarm_sync = millis();
-        }          
+        #if (USE_E131 == 1)
+          if (abs((long long)(millis() - last_sent_alarm_sync)) > 1000) {
+            commandAlarming(isAlarming || isPlayAlarmSound);
+            last_sent_alarm_sync = millis();
+          }          
+        #endif
       }  
     #endif      
 
@@ -495,13 +498,26 @@ void process() {
         // Иногда клиент пропускает сигнал включения доп.линии или клиент перезагрузился. 
         // Тогда на мастере лампа активного AUX горит, а на клиентах нет. 
         // Во избежание такого сценария послыать активность AUX каждые 1000 мс 
-        if (abs((long long)(millis() - last_sent_aux_sync)) > 1000) {
-          commandAuxActive(isAuxActive);
-          last_sent_aux_sync = millis();
-        }        
+        #if (USE_E131 == 1)
+          if (abs((long long)(millis() - last_sent_aux_sync)) > 1000) {
+            commandAuxActive(isAuxActive);
+            last_sent_aux_sync = millis();
+          }        
+        #endif
       }  
     #endif      
 
+    // Текущий уровень яркости. Если ведомое устройство перезагрузится когда оно было выключено, а
+    // мастер в это время транслирует спец-режим (например ноачные часы), то приемнику не придет яркость
+    // и он останется с черным экраном, хотя на самом деле мастер что-то передает
+    #if (USE_E131 == 1)
+      if (abs((long long)(millis() - last_sent_brightness_sync)) > 1000) {
+        uint8_t value = specialMode ? specialBrightness : globalBrightness;
+        commandSetBrightness(value);
+        last_sent_brightness_sync = millis();
+      }        
+    #endif      
+        
     // --------------------- Опрос нажатий кнопки -------------------------
 
     #if (USE_BUTTON == 1)
@@ -3116,12 +3132,13 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Текущая яркость
   if (key == "BR") {
+    uint8_t br = (isNightClock ? nightClockBrightness : (specialMode ? specialBrightness : globalBrightness));
     if (value || shrt) {
-      if (value) value->set((isNightClock ? nightClockBrightness : globalBrightness));
-      return isNightClock ? String(nightClockBrightness) : String(globalBrightness);
+      if (value) value->set(br);
+      return String(br);
     }
     String str("BR:");
-    str += (isNightClock ? nightClockBrightness : globalBrightness);
+    str += br;
     return str;
   }
 
