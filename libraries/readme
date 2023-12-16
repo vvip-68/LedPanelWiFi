@@ -5,8 +5,3 @@
 GyverLibs:    https://github.com/AlexGyver/GyverLibs
 Time:         https://github.com/PaulStoffregen/Time
 MP3 DFPlayer: https://github.com/DFRobot/DFRobotDFPlayerMini
-
-¬нимание!!! 
-Ѕиблиотека PubSubClient 2.8 немного изменена - увеличен таймаут ожидани€ ответа 
-на запрос ping через заданный keepAlive с повторной отправкой запроса, иначе
-происход€т слишком частые разрывы св€зи с сервером mqtt

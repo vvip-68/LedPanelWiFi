@@ -432,10 +432,17 @@ void process() {
         }
       }
     } else 
-    if (isTurnedOff && workMode != SLAVE) {
-      FastLED.clear();
-      FastLEDshow();
-    }
+    #if (USE_E131 == 1)
+      if (isTurnedOff && workMode != SLAVE) {
+        FastLED.clear();
+        FastLEDshow();
+      }
+    #else
+      if (isTurnedOff) {
+        FastLED.clear();
+        FastLEDshow();
+      }
+    #endif
     
     clockTicker();
     
