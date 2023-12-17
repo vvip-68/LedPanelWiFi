@@ -31,7 +31,6 @@ void InitializeSD2() {
   DEBUGLN(F("SD-карта подключена."));
 
   File file;
-  bool ok = true;
   
   #if defined(ESP32)
     String file_name(F("/t.t"));
@@ -41,7 +40,7 @@ void InitializeSD2() {
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
   file = SD.open(file_name, FILE_WRITE);
-  ok = file != 0;
+  bool ok = file != 0;
   if (ok) {    
     file.println(FIRMWARE_VER);
     file.close();
@@ -84,8 +83,6 @@ void loadDirectory() {
   DEBUGLN(F("Загрузка списка файлов с эффектами..."));  
 
   uint32_t file_size;
-  float    fsize;
-  uint8_t  sz = 0;
   
   #if (USE_SD == 1 && FS_AS_SD == 0)
     File folder = SD.open(directoryName);     

@@ -778,7 +778,7 @@ void setTimersForMode(uint8_t aMode) {
   // Спеднее время цикла loop 25мс. Иногда когда нет другой работы цикл может завершаться за 7-8мс.
   // Если время таймера сдвига бегущей строки меньше времени цикла - на таких "быстрых" итерациях происходит сдвиг строки быстрее чем в среднем - 
   // что визуально смотрится как подергивание. Поэтому время сдвига строки ставить не чаще среднего времени цикла   
-  textTimer.setInterval(constrain(textScrollSpeed,25,255));
+  textTimer.setInterval(textScrollSpeed < 25 ? 25 : textScrollSpeed);
 }
 
 void checkIdleState() {
@@ -788,7 +788,7 @@ void checkIdleState() {
   //if ((ms - autoplayTimer > autoplayTime) && !(manualMode || e131_wait_command)) {    // таймер смены режима
     if (((ms - autoplayTimer > autoplayTime) // таймер смены режима
            // при окончании игры не начинать ее снова
-           || gameOverFlag && !vREPEAT_PLAY
+           || (gameOverFlag && !vREPEAT_PLAY)
            #if (USE_SD == 1)
            // если файл с SD-карты проигрался до конца - сменить эффект
            || (thisMode == MC_SDCARD && play_file_finished)
@@ -806,7 +806,7 @@ void checkIdleState() {
          (showTextNow && (specialTextEffect >= 0))       // Воспроизводится бегущая строка на фоне указанного эффекта
          #if (USE_SD == 1)
          // Для файла с SD-карты - если указан режим ожидания проигрывания файла до конца, а файл еще не проигрался - не менять эффект
-         || (thisMode == MC_SDCARD && (vWAIT_PLAY_FINISHED && !play_file_finished || loadingFlag))
+         || (thisMode == MC_SDCARD && ((vWAIT_PLAY_FINISHED && !play_file_finished) || loadingFlag))
          #endif
       )
       {        

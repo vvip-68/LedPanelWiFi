@@ -90,20 +90,6 @@ void TM1637Display::display(uint8_t DispData[])
   setSegments(SegData);
 }
 
-/*
-void TM1637Display::displayClock(uint8_t hrs, uint8_t mins) {
-  if (hrs > 99 || mins > 99) return;
-  uint8_t disp_time[4];
-  if ((hrs / 10) == 0) disp_time[0] = TM1637Display::encodeDigit(10);
-  else disp_time[0] = TM1637Display::encodeDigit((hrs / 10));
-  disp_time[1] = TM1637Display::encodeDigit(hrs % 10);
-  disp_time[2] = TM1637Display::encodeDigit(mins / 10);
-  disp_time[3] = TM1637Display::encodeDigit(mins % 10);
-////*  TM1637Display::setSegments(disp_time);
-  TM1637Display::display(disp_time);
-}
-*/
-
 void TM1637Display::displayClock(uint8_t hrs, uint8_t mins) {
   if (hrs > 99 || mins > 99) return;
   uint8_t disp_time[4];
@@ -118,7 +104,6 @@ void TM1637Display::displayClock(uint8_t hrs, uint8_t mins) {
 void TM1637Display::displayInt(int value) {
   if (value > 9999 || value < -999) return;
   boolean negative = false;
-  boolean neg_flag = false;
   byte digits[4];
   if (value < 0) negative = true; 
   value = abs(value); 

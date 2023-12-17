@@ -24,7 +24,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value = null
 void process() {  
 
   // Время прохода одного цикла  
-  uint16_t duration = millis() - last_ms;  
+  //uint32_t duration = millis() - last_ms;  
   last_ms = millis();
   //DEBUG(F("duration="));
   //DEBUGLN(duration);
@@ -415,9 +415,15 @@ void process() {
       // Сформировать и вывести на матрицу текущий демо-режим
       // При яркости = 1 остаются гореть только красные светодиоды и все эффекты теряют вид.
       // поэтому отображать эффект "ночные часы"
+      // Обычное время формирования эффекта - 15-20мс. Если устройство выключена и формировать изображение не нужно - 
+      // экран просто очищается. Не нужно это делать слишком часто - в случае вещания в группу отправка пакетов экрана
+      // происодит столь часто, что это забивает сеть и роутер зависает. Компы в сети пишут нет подключения к интернету.
+      // Для предотвращения этого на пустых экранах делаем искусственную задержку в 15 мс.
+      // При таком подходе отправка экранов падает с 97 fps до 35 и сеть не виснет.
       if (isTurnedOff && !(isAlarming || isPlayAlarmSound)) {
         FastLED.clear();  
         FastLEDshow();
+        delay(15);
       } else {
         uint8_t br = specialMode ? specialBrightness : globalBrightness;
         if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
@@ -426,6 +432,7 @@ void process() {
           } else {
             FastLED.clear();  
             FastLEDshow();
+            delay(15);
           }
         } else {    
           customRoutine(thisMode);
@@ -436,11 +443,13 @@ void process() {
       if (isTurnedOff && workMode != SLAVE) {
         FastLED.clear();
         FastLEDshow();
+        delay(15);
       }
     #else
       if (isTurnedOff) {
         FastLED.clear();
         FastLEDshow();
+        delay(15);
       }
     #endif
     
@@ -758,7 +767,7 @@ void parsing() {
 
   char c;
   bool    err = false;
-  int32_t pntX, pntY, pntColor, pntIdx, idx;
+  int32_t pntX, pntY, pntColor, idx;
   uint8_t alarmHourVal, alarmMinuteVal, b_tmp;
   int8_t  tmp_eff, tmp_idx;
 
@@ -2970,7 +2979,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // M11:число   индекс текущей используемой карты индексов
   // MA:число    номер файла звука будильника из SD:/01
   // MB:число    номер файла звука рассвета из SD:/02
-  // MC:[текст]  тип микроконтроллера "ESP32", "NodeMCU", "Wemos d1 mini"
+  // MC:[текст]  тип микроконтроллера "ESP32", "ESP32S2", "NodeMCU", "Wemos d1 mini"
   // MD:число    сколько минут звучит будильник, если его не отключили
   // MP:папка~файл  номер папки и файла звука который проигрывается, номер папки и звука разделены '~'
   // MU:X        использовать звук в будильнике 0-нет, 1-да
@@ -4700,8 +4709,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2306") {
-    int16_t led_start = getLedLineStartIndex(1);
-    int16_t led_count = getLedLineLength(1);
+    uint16_t led_start = getLedLineStartIndex(1);
+    uint16_t led_count = getLedLineLength(1);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
@@ -4717,8 +4726,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2307") {
-    int16_t led_start = getLedLineStartIndex(2);
-    int16_t led_count = getLedLineLength(2);
+    uint16_t led_start = getLedLineStartIndex(2);
+    uint16_t led_count = getLedLineLength(2);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
@@ -4734,8 +4743,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2308") {
-    int16_t led_start = getLedLineStartIndex(3);
-    int16_t led_count = getLedLineLength(3);
+    uint16_t led_start = getLedLineStartIndex(3);
+    uint16_t led_count = getLedLineLength(3);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
@@ -4751,8 +4760,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
   if (key == "2309") {
-    int16_t led_start = getLedLineStartIndex(4);
-    int16_t led_count = getLedLineLength(4);
+    uint16_t led_start = getLedLineStartIndex(4);
+    uint16_t led_count = getLedLineLength(4);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
@@ -5328,7 +5337,7 @@ void showCurrentVersion() {
 
 void setRandomMode() {
   
-  int8_t newMode, cnt = 0;
+  int8_t newMode;
   String eff_list = String(IDX_LINE);
   
   #if (USE_SD == 1)  
@@ -5336,8 +5345,9 @@ void setRandomMode() {
   // Когда следующий эффект выбирается случайным образом, вероятность что выпадет SD-карта достаточно мала.
   // Искусственным образом увеличиваем вероятность эффекта с SD-карты
   char eff_sd = eff_list[MC_SDCARD];
-  effect_order_idx = effect_order.indexOf(eff_sd);  
-  if (effect_order_idx >= 0 && isSdCardReady && (random16(0, 200) % 10 == 0)) {
+  int8_t idx = effect_order.indexOf(eff_sd);  
+  if (idx >= 0 && isSdCardReady && (random16(0, 200) % 10 == 0)) {
+    effect_order_idx = idx;
     newMode = MC_SDCARD;
     // effectScaleParam2[MC_SDCARD]: 0 - случайный файл; 1 - последовательный перебор; 2 - привести к индексу в массиве файлов SD-карты
     updateSdCardFileIndex();
@@ -5379,7 +5389,6 @@ void setRandomMode() {
 
 #if (USE_SD == 1)  
 void updateSdCardFileIndex() {
-  int8_t file_idx;
   if (effectScaleParam2[MC_SDCARD] == 0) {
     sf_file_idx = random16(0,countFiles);
   } else if (effectScaleParam2[MC_SDCARD] == 1) {
@@ -5451,8 +5460,10 @@ void turnOff() {
     saveSpecialModeId = specialModeId;
     saveMode = thisMode;
     bool mm = manualMode;
+    #if (USE_E131 == 1)
     // Запомнить текущий используемый уровень яркости.
     uint8_t bright = specialModeId < 0 ? globalBrightness : specialBrightness;
+    #endif
     // Выключить панель - черный экран
     setSpecialMode(0);
     putCurrentManualMode(saveMode);

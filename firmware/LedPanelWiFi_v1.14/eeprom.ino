@@ -376,7 +376,8 @@ void saveDefaults() {
   putMaxBrightness(globalBrightness);
 
   putAutoplayTime(autoplayTime / 1000L);
-  putIdleTime(constrain(idleTime / 60L / 1000L, 0, 255));
+  uint32_t _idleTime = idleTime / 60L / 1000L;
+  putIdleTime(_idleTime > 255 ? 255 : _idleTime);
 
   putUseNtp(useNtp);
   putTimeZone(timeZoneOffset);
@@ -487,9 +488,6 @@ void saveDefaults() {
   putAM5effect(dawn_effect_id);         // Режим по времени "Рассвет" - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
   putAM6effect(dusk_effect_id);         // Режим по времени "Закат"   - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
 
-  putAuxLineState(false); 
-  putAuxLineModes(0);
-
 #if (USE_WEATHER == 1)       
   putUseWeather(useWeather);
   putWeatherRegion(regionID);
@@ -554,13 +552,6 @@ void initializeWiring() {
   putWaitPlayFinished(WAIT_PLAY_FINISHED == 1);
   putRepeatPlay(REPEAT_PLAY == 1);
 
-  putPowerActiveLevel(POWER_ON);                    // Активный уровень HIGH (1) / LOW (0) для POWER_ON; POWER_OFF - противоположное значение 
-  putAlarmActiveLevel(ALARM_ON);                    // Активный уровень HIGH (1) / LOW (0) для ALARM_ON; ALARM_OFF - противоположное значение 
-  putAlarmActiveLevel(AUX_ON);                      // Активный уровень HIGH (1) / LOW (0) для AUX_ON; AUX_OFF - противоположное значение 
-
-  putAuxLineState(false);                           // Начальное состояние дополнительной линии управления питанием - выключено  
-  putAuxLineModes(0);                               // Использование дополнительной линии управления питанием - выключено для всех режимов  
-  
   // Инициализировать пины подключения
   // По умолчанию - используется единственная линия, все светодиоды назначены на нее
   // Линии вывода сигнала на светодиод 2..4 - отключены.
@@ -609,6 +600,7 @@ void initializeWiring() {
 
   #if (USE_POWER == 1)
     putPowerPin(POWER_PIN);                         // Пин подключения управления питанием матрицы
+    putPowerActiveLevel(POWER_ON);                  // Активный уровень HIGH (1) / LOW (0) для POWER_ON; POWER_OFF - противоположное значение 
   #else
     putPowerPin(-1);                                // Пин подключения управления питанием матрицы
   #endif
@@ -616,12 +608,16 @@ void initializeWiring() {
   
   #if (USE_ALARM == 1)
     putAlarmPin(ALARM_PIN);                         // Пин подключения управления питанием - линия будильника
+    putAlarmActiveLevel(ALARM_ON);                  // Активный уровень HIGH (1) / LOW (0) для ALARM_ON; ALARM_OFF - противоположное значение 
   #else
     putAlarmPin(-1);                                // Пин подключения управления питанием - линия будильника
   #endif
 
   #if (USE_ALARM == 1)
     putAuxPin(AUX_PIN);                             // Пин подключения управления питанием - линия дополнительного управления
+    putAuxActiveLevel(AUX_ON);                      // Активный уровень HIGH (1) / LOW (0) для AUX_ON; AUX_OFF - противоположное значение 
+    putAuxLineState(false);                         // Начальное состояние дополнительной линии управления питанием - выключено  
+    putAuxLineModes(0);                             // Использование дополнительной линии управления питанием - выключено для всех режимов  
   #else
     putAuxPin(-1);                                  // Пин подключения управления питанием - линия дополнительного управления
   #endif  
@@ -869,7 +865,7 @@ uint8_t getEffectContrast(uint8_t effect) {
 void putEffectContrast(uint8_t effect, uint8_t contrast) {
   if (effect >= MAX_EFFECT) return;
   if (contrast != getEffectContrast(effect)) {
-    effectContrast[effect] = constrain(contrast,10,255);
+    effectContrast[effect] = contrast < 10 ? 10 : contrast;
     EEPROMwrite(EFFECT_EEPROM + effect*10 + 4, effectContrast[effect]);
   }  
 }
@@ -926,7 +922,8 @@ bool getAutoplay() {
 
 void putAutoplayTime(uint32_t value) {
   if (value != getAutoplayTime()) {
-    EEPROMwrite(3, constrain(value / 1000UL, 0, 255));
+    int32_t _value = value / 1000UL;    
+    EEPROMwrite(3, _value > 255 ? 255 : _value);
   }
 }
 
@@ -938,7 +935,8 @@ uint32_t getAutoplayTime() {
 
 void putIdleTime(uint32_t value) {
   if (value != getIdleTime()) {
-    EEPROMwrite(4, constrain(value / 60 / 1000UL, 0, 255));
+    int32_t _value = value / 60 / 1000UL;
+    EEPROMwrite(4, _value > 255 ? 255 : _value);
   }
 }
 
@@ -1139,10 +1137,10 @@ uint8_t getAlarmMinute(uint8_t day) {
 
 void putAlarmTime(uint8_t day, uint8_t hour, uint8_t minute) { 
   if (hour != getAlarmHour(day)) {
-    EEPROMwrite(40 + 2 * (day - 1), constrain(hour, 0, 23));
+    EEPROMwrite(40 + 2 * (day - 1), hour > 23 ? 23 : hour);
   }
   if (minute != getAlarmMinute(day)) {
-    EEPROMwrite(40 + 2 * (day - 1) + 1, constrain(minute, 0, 59));
+    EEPROMwrite(40 + 2 * (day - 1) + 1, minute > 59 ? 59 : minute);
   }
 }
 
@@ -1867,7 +1865,7 @@ void loadEffectOrder() {
   String codes(IDX_LINE);
   char buffer[MAX_EFFECT + 1];
   memset(buffer,'\0',MAX_EFFECT + 1);
-  FOR_i (0, MAX_EFFECT) {
+  for(int i = 0; i < MAX_EFFECT; i++) {
     uint8_t order = getEffectOrder(i);
     if (order < MAX_EFFECT) {
       buffer[order] = codes[i];
@@ -1890,7 +1888,7 @@ void printEffectUsage() {
 
   DEBUGLN(F("Выбранные эффекты и их порядок: "));
 
-  FOR_i (0, effect_order.length()) {
+  for (uint8_t i = 0; i < effect_order.length(); i++) {
     char eff = effect_order[i];
     int8_t eff_idx = codes.indexOf(eff);
     if (eff_idx >= 0) {
@@ -1902,7 +1900,7 @@ void printEffectUsage() {
 
   DEBUGLN(F("\nОтключенные эффекты: "));
 
-  FOR_i (0, MAX_EFFECT) {
+  for (int i = 0; i < MAX_EFFECT; i++) {
     char eff = codes[i];
     if (effect_order.indexOf(eff) < 0) {
       effect_name = GetToken(name_list, i+1, ',');      
@@ -1918,14 +1916,14 @@ void saveEffectOrder() {
   if (effect_order.length() == 0) effect_order = "0";  
   
   // Сначала сбросить индекс использования для всех эффектов
-  FOR_i (0, MAX_EFFECT) {
+  for (int i = 0; i < MAX_EFFECT; i++) {
     putEffectOrder(i, 255);
   }
   
   String codes(IDX_LINE);
   
   // Теперь проставить индекс использования в соответствии с текущим содержимым effect_order
-  FOR_i (0, effect_order.length()) {
+  for (uint8_t i = 0; i < effect_order.length(); i++) {
     char eff = effect_order[i];
     int16_t eff_idx = codes.indexOf(eff);
     if (eff_idx >= 0 && eff_idx < MAX_EFFECT) {
@@ -1934,7 +1932,13 @@ void saveEffectOrder() {
   }
 }
 
-void putSyncViewport(int8_t masterX, int8_t masterY, int8_t localX, int8_t localY, int8_t localW, int8_t localH) {
+void putSyncViewport(
+  [[maybe_unused]] int8_t masterX, 
+  [[maybe_unused]] int8_t masterY, 
+  [[maybe_unused]] int8_t localX, 
+  [[maybe_unused]] int8_t localY, 
+  [[maybe_unused]] int8_t localW, 
+  [[maybe_unused]] int8_t localH) {
 #if (USE_E131 == 1)
   if (masterX < 0) masterX = 0;
   if (masterY < 0) masterY = 0;
@@ -2051,7 +2055,7 @@ void putLedLinePin(uint8_t line, int8_t new_value) {
 }
 
 // Начальный индекс светодиода линии 1..4
-int16_t getLedLineStartIndex(uint8_t line) {
+uint16_t getLedLineStartIndex(uint8_t line) {
   uint16_t index = 0;
   switch (line) {
     case 1: index = 282; break;
@@ -2062,7 +2066,7 @@ int16_t getLedLineStartIndex(uint8_t line) {
   if (index == 0) return 0;
   int16_t value = (int16_t)EEPROM_int_read(index);
   if (value < 0) value = 0;
-  return value;
+  return (uint16_t)value;
 }
 
 // Начальный индекс светодиода линии 1..4
@@ -2083,7 +2087,7 @@ void putLedLineStartIndex(uint8_t line, int16_t new_value) {
 }
 
 // Количество светодиодов в линии 1..4
-int16_t getLedLineLength(uint8_t line) {
+uint16_t getLedLineLength(uint8_t line) {
   uint16_t index = 0;
   switch (line) {
     case 1: index = 284; break;
@@ -2094,7 +2098,7 @@ int16_t getLedLineLength(uint8_t line) {
   if (index == 0) return NUM_LEDS;
   int16_t value = (int16_t)EEPROM_int_read(index);
   if (value < 1 || value > NUM_LEDS) value = NUM_LEDS;
-  return value;
+  return (uint16_t)value;
 }
 
 // Количество светодиодов в линии 1..4
@@ -2450,7 +2454,7 @@ bool saveEepromToFile(const String& pStorage) {
 
   String storage(pStorage);
     
-  if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
+  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = "FS";
 
   DEBUG(F("Сохранение файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fileName);
 
@@ -2562,7 +2566,7 @@ bool loadEepromFromFile(const String& pStorage) {
   #endif
 
   String storage(pStorage);
-  if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
+  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = "FS";
   
   String message;
   

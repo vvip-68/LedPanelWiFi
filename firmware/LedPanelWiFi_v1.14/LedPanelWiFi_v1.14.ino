@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1216")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1217")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -30,13 +30,18 @@
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
 //
 // Для ядра ESP32 v2.0.14 / v1.0.6 
-//   тип микроконтроллера в меню "Инструменты -> Плата" для выбирать "ESP32 Dev Module"
-//     - для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
+//   тип микроконтроллера в меню "Инструменты -> Плата" 
+//     - для большинства контроллеров выбирать "ESP32 Dev Module" 
+//     - для разновидностей ESP32S2 выбирать "ESP32S2 Dev Module" или соответствующее плате значение  содержащее 'S2' 
+//     - для разновидностей ESP32S3 выбирать "ESP32S3 Dev Module" или соответствующее плате значение  содержащее 'S3' 
+//     - для разновидностей ESP32C3 выбирать "ESP32C3 Dev Module" или соответствующее плате значение  содержащее 'C3'
+//
+//   для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)";
 //       Если включена поддкржка всех возможностий и компилятор ругается на недостаток памяти - придется отказаться от
 //       возможности обновления "по воздуху" (OTA, Over The Air) и выбрать вариант распределения памяти устройства "Partition scheme: No OTA (2MB APP/2MB SPIFFS)";
 //
-//   Внимание!!! - если при нажатии кнопки смены эффекта в Web-приложении вы получаете краш программы с сообщением в журнале либо "Stack overflow", либо "Heap corrupted"
+//   Внимание!!! - если на версии ядра 1.0.6 при нажатии кнопки смены эффекта в Web-приложении вы получаете краш программы с сообщением в журнале либо "Stack overflow", либо "Heap corrupted"
 //   перейдите в папку C:\Users\<user>\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\ и далее найдите файлы
 //                     \cores\esp32\main.cpp, \tools\sdk\sdkconfig, \tools\sdk\include\config\sdkconfig.h
 //   В каждом из этих файлов найдите строчку - параметр CONFIG_ARDUINO_LOOP_STACK_SIZE и измените значение по умолчанию 8192 на 16138, пересоберите проект с новым значением параметра     
@@ -368,9 +373,9 @@ void setup() {
     for (uint8_t i = 1; i <= 4; i++) {
       bool isLineUsed = getLedLineUsage(i);
       if (isLineUsed) {
-        int8_t   led_pin = getLedLinePin(i);
-        int16_t  led_start = getLedLineStartIndex(i);
-        int16_t  led_count = getLedLineLength(i);
+        int8_t    led_pin = getLedLinePin(i);
+        uint16_t  led_start = getLedLineStartIndex(i);
+        uint16_t  led_count = getLedLineLength(i);
         if (led_start + led_count > NUM_LEDS) {
           led_count = NUM_LEDS - led_start;
         }      

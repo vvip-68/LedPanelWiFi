@@ -827,7 +827,7 @@ uint8_t    mDIRECTION = META_MATRIX_DIRECTION;   // направление сл�
 uint8_t    pWIDTH = sWIDTH * mWIDTH;
 uint8_t    pHEIGHT = sHEIGHT * mHEIGHT;
 
-uint32_t   NUM_LEDS = pWIDTH * pHEIGHT;
+uint16_t   NUM_LEDS = pWIDTH * pHEIGHT;
 uint8_t    maxDim   = max(pWIDTH, pHEIGHT);
 uint8_t    minDim   = min(pWIDTH, pHEIGHT);
 
@@ -931,17 +931,6 @@ int16_t    loopCounter2;
 uint32_t   lastMillis;
 uint32_t   lastMillisX;
 uint32_t   lastMillisY;
-
-// ------------------------ МАКРОСЫ ------------------------------
-
-#define FOR_i(from, to) for(int i = (from); i < (to); i++)
-#define FOR_j(from, to) for(int j = (from); j < (to); j++)
-#define FOR_k(from, to) for(int k = (from); k < (to); k++)
-#define FOR_n(from, to) for(int n = (from); n < (to); n++)
-#define FOR_x(from, to) for(int x = (from); x < (to); x++)
-#define FOR_y(from, to) for(int y = (from); y < (to); y++)
-
-// ---------------------------------------------------------------
 
 static const char sE131[]    PROGMEM = "E131";
 static const char sMASTER[]  PROGMEM = "MASTER"; 

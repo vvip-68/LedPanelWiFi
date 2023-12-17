@@ -25,9 +25,3 @@ https://github.com/lorol/arduino-esp32littlefs-plugin
 
 Установка плагина и загрузка файлов - аналогично описанной для ESP8266
 
----------------------------------------------
-
-Универсальный плагин для ESP32 с поддержкой SPIFFS, LittleFS и FatFS
-
-https://github.com/lorol/arduino-esp32fs-plugin
-

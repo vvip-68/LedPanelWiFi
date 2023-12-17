@@ -783,11 +783,11 @@ void trafficRoutine() {
       return;      
     }
 
-    FOR_x (0, pWIDTH) {
+    for (int x = 0; x < pWIDTH; x++) {
       traficTIndex[x] = -1;
       traficBIndex[x] = -1;
     }
-    FOR_y (0, pHEIGHT) {
+    for (int y = 0; y < pHEIGHT; y++) {
       traficLIndex[y] = -1;
       traficTIndex[y] = -1;
     }
@@ -805,7 +805,7 @@ void trafficRoutine() {
 
   // Сгенерировать начало новых дорожек для верха и низа
   density = map8(255 - getEffectScaleParamValue(thisMode), 1, pWIDTH * 2) * 5;  
-  FOR_x (0, pWIDTH) {
+  for (int x = 0; x < pWIDTH; x++) {
     // Все элементы массива изначально -1 - что означает "не активно"
     // В случайном порядке назначить дорожку активной, если она зще не активна
     if (random16(0, density) == 0 && traficTIndex[x] < 0) {
@@ -820,7 +820,7 @@ void trafficRoutine() {
 
   // Сгенерировать начало новых дорожек для левой и правой стороны
   density = map8(255 - getEffectScaleParamValue(thisMode), 1, pHEIGHT * 2) * 5;  
-  FOR_y (0, pHEIGHT) {
+  for (int y = 0; y < pHEIGHT; y++) {
     // Все элементы массива изначально -1 - что означает "не активно"
     // В случайном порядке назначить дорожку активной, если она зще не активна
     if (random16(0, density) == 0 && traficLIndex[y] < 0) {
@@ -843,7 +843,7 @@ void trafficRoutine() {
   uint8_t step_height = 255 / pHEIGHT;
 
   // Сверху вниз
-  FOR_x (0, pWIDTH) {
+  for (int x = 0; x < pWIDTH; x++) {
     // traficTIndex - содержит координату по Y (отсчитываемая от верха матрицы) - 0 - голова "дорожки"
     // Для верха голову рисовать от Y и вверх, убывая яркость на шаг step_height до нуля
     // Когда координата Y выйдет за высоту матрицы + длину дорожки - поставить -1 - дорожка "свободна"
@@ -868,7 +868,7 @@ void trafficRoutine() {
 
 
   // Слева направо
-  FOR_y (0, pHEIGHT) {
+  for (int y = 0; y < pHEIGHT; y++) {
     // traficLIndex - содержит координату по X (отсчитываемая от левой стороны матрицы) - 0 - голова "дорожки"
     // Для левой стороны голову рисовать от 0 и вправо, убывая яркость на шаг step_width до нуля
     // Когда координата X выйдет за ширину матрицы + длину дорожки - поставить -1 - дорожка "свободна"
@@ -893,7 +893,7 @@ void trafficRoutine() {
   
 
   // Снизу вверх
-  FOR_x (0, pWIDTH) {
+  for (int x = 0; x < pWIDTH; x++) {
     // traficBIndex - содержит координату по Y (отсчитываемая от низа матрицы) - 0 - голова "дорожки"
     // Для низа голову рисовать от Y и вниз, убывая яркость на шаг step_height до нуля
     // Когда координата Y выйдет за минус длину дорожки - поставить -1 - дорожка "свободна"
@@ -917,7 +917,7 @@ void trafficRoutine() {
   }
 
   // Справа налево
-  FOR_y (0, pHEIGHT) {
+  for (int y = 0; y < pHEIGHT; y++) {
     // traficRIndex - содержит координату по X (отсчитываемая от правой стороны матрицы) - 0 - голова "дорожки"
     // Для правой стороны голову рисовать от 0 и влево, убывая яркость на шаг step_width до нуля
     // Когда координата X выйдет за ширину матрицы + длину дорожки - поставить -1 - дорожка "свободна"
@@ -1122,7 +1122,7 @@ void lightersRoutine() {
       return;      
     }
 
-    FOR_i (0, LIGHTERS_AM) {
+    for (int i = 0; i < LIGHTERS_AM; i++) {
       lightersPos[i] = random16(0, pWIDTH);                 // [0][i]
       lightersPos[LIGHTERS_AM + i] = random16(0, pHEIGHT);  // [1][i]
       lightersSpeed[i] = random8(0, 4) - 2;                 // [0][i]
@@ -1136,7 +1136,7 @@ void lightersRoutine() {
 
   if (++loopCounter > 20) loopCounter = 0;
 
-   FOR_i (0, map8(getEffectScaleParamValue(MC_LIGHTERS),5,100)) {
+   for (int i =0; i < map8(getEffectScaleParamValue(MC_LIGHTERS),5,100); i++) {
     if (loopCounter == 0) {     // меняем скорость каждые 20 отрисовок
       while (lightersSpeed[i] == 0 && lightersSpeed[LIGHTERS_AM + i] == 0) {
         lightersSpeed[i] += random8(0, 4) - 2;                                               // [0][i]
@@ -1282,7 +1282,7 @@ void starsRoutine() {
     cnt++;
     uint8_t x = random8(1, pWIDTH - 1);
     uint8_t y = random8(1, pHEIGHT - 1);
-    bool enable = drawRays == 1 ||
+    bool enable = drawRays == 1 || (
                   getPixColorXY(x,   y  ) == 0 && 
                   getPixColorXY(x+1, y  ) == 0 &&
                   getPixColorXY(x-1, y  ) == 0 &&
@@ -1291,7 +1291,7 @@ void starsRoutine() {
                   getPixColorXY(x+1, y+1) == 0 &&
                   getPixColorXY(x+1, y-1) == 0 &&
                   getPixColorXY(x-1, y+1) == 0 &&
-                  getPixColorXY(x-1, y-1) == 0;
+                  getPixColorXY(x-1, y-1) == 0);
                   
     if (enable) {
       uint8_t sat = (random8(0, 100) % 10 == 0) ? 32 : 255;   // Одна из 10 звезд - белая
@@ -1303,7 +1303,7 @@ void starsRoutine() {
         // Стороны лучей
         star_color = CHSV(color, sat, fadeBrightness);
         bool useXRay = random8(0, 50) % 2 == 0;
-        if (drawRays == 3 || drawRays == 4 && useXRay) {
+        if (drawRays == 3 ||(drawRays == 4 && useXRay)) {
           // Тип - X
           idx = getPixelNumber(x+1, y+1); 
           if (idx >= 0) leds[idx] = star_color;
@@ -1313,7 +1313,7 @@ void starsRoutine() {
           if (idx >= 0) leds[idx] = star_color;
           idx = getPixelNumber(x-1, y-1); 
           if (idx >= 0) leds[idx] = star_color;              
-        } else if (drawRays == 2 || drawRays == 4 && !useXRay) {
+        } else if (drawRays == 2 || (drawRays == 4 && !useXRay)) {
           // Тип - крест +
           idx = getPixelNumber(x+1, y); 
           if (idx >= 0) leds[idx] = star_color;
@@ -1366,7 +1366,7 @@ void stars2Routine() {
  
   uint8_t backBrightness = BACK_BRIGHTNESS + delta2;
   uint8_t starBrightness = constrain(STAR_BRIGHTNESS + delta2, STAR_BRIGHTNESS, 255);
-  uint8_t maxEffectBrightness = constrain(contrast, 2 * starBrightness, 255);
+  uint8_t maxEffectBrightness =  contrast < (2 * starBrightness) ? (2 * starBrightness) : contrast;
   uint8_t maxFadeBrightness = maxEffectBrightness / 4 * 3;  
 
   if (loadingFlag) {
@@ -1390,7 +1390,7 @@ void stars2Routine() {
     }
 
     // Заполнить массив начальной яркости звезд 
-    FOR_i(0, numStars) {
+    for (int i = 0; i < numStars; i++) {
       starState[i] = 0;
       starBright[i] = starBrightness;
     }
@@ -1426,8 +1426,8 @@ void stars2Routine() {
   CHSV back_color = CHSV(color, 255, drawRays < 2 ? backBrightness : 0) ;     
   fillAll(back_color);
 
-  FOR_x(0, numStarsWidth) {
-    FOR_y(0, numStarsHeight) {
+  for (int x = 0; x < numStarsWidth; x++) {
+    for (int y = 0; y < numStarsHeight; y++) {
 
      // Корректировка яркости (угасание/зажигания) звезды
      idx = x + numStarsWidth * y;
@@ -3036,7 +3036,7 @@ void rubikRoutine() {
     }
     
     // Перемешать плашки и их порядок появления на матрице
-    FOR_i (0, cube_size) {
+    for (int i = 0; i < cube_size; i++) {
       uint16_t idx1 = random16(0, cube_size - 1);
       uint16_t idx2 = random16(0, cube_size - 1);
       hue = cube_h[idx1];

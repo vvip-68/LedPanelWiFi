@@ -352,7 +352,7 @@ export class TabWiringComponent implements OnInit, OnDestroy {
   private setControllerType() {
     // Тип контроллера - мнемоника и код
     this.controller = this.managementService.state.controller;
-    this.controller_type = this.controller === 'ESP32' ? 3 : (this.controller === 'NodeMCU' ? 1 : 2);
+    this.controller_type = this.controller.startsWith('ESP32') ? 3 : (this.controller === 'NodeMCU' ? 1 : 2);
     // Создать массив доступных пинов
     this.pins_free = [];
     if (this.controller_type === 1 || this.controller_type === 2) {
@@ -369,30 +369,78 @@ export class TabWiringComponent implements OnInit, OnDestroy {
       this.pins_free.push({idx: 10, use: false, name: 'D9/RX',  alias: 'rx', gpio:  3, assign: 0})
       this.pins_free.push({idx: 11, use: false, name: 'D10/TX', alias: 'tx', gpio:  1, assign: 0})
     }
-    if (this.controller_type === 3) {
+
+    // Разновидности контроллеров различаются по наличию пинов:
+    //  ESP32S2, ESP32S3, ESP32C3 - нет пинов 22,23,25,27,32
+    //  ESP32C3 - нет пинов 12,13,14,15,16,17,26,33
+    //  ESP32C3 - есть пины 6,7,8,9,10
+    if (this.controller == 'ESP32') {
       // Набор пинов для ESP32 : 0,1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33
+      this.pins_free.push({idx:  1, use: false, name: 'G1/TX0', alias: 'tx',  gpio:  1, assign: 0})
+      this.pins_free.push({idx:  2, use: false, name: 'G2',     alias: 'g2',  gpio:  2, assign: 0})
+      this.pins_free.push({idx:  3, use: false, name: 'G3/RX0', alias: 'rx',  gpio:  3, assign: 0})
+      this.pins_free.push({idx:  4, use: false, name: 'G4',     alias: 'g4',  gpio:  4, assign: 0})
+      this.pins_free.push({idx:  5, use: false, name: 'G5',     alias: 'g5',  gpio:  5, assign: 0})
+      this.pins_free.push({idx:  6, use: false, name: 'G12',    alias: 'g12', gpio: 12, assign: 0})
+      this.pins_free.push({idx:  7, use: false, name: 'G13',    alias: 'g13', gpio: 13, assign: 0})
+      this.pins_free.push({idx:  8, use: false, name: 'G14',    alias: 'g14', gpio: 14, assign: 0})
+      this.pins_free.push({idx:  9, use: false, name: 'G15',    alias: 'g15', gpio: 15, assign: 0})
+      this.pins_free.push({idx: 10, use: false, name: 'G16',    alias: 'g16', gpio: 16, assign: 0})
+      this.pins_free.push({idx: 11, use: false, name: 'G17',    alias: 'g17', gpio: 17, assign: 0})
+      this.pins_free.push({idx: 12, use: false, name: 'G18',    alias: 'g18', gpio: 18, assign: 0})
+      this.pins_free.push({idx: 13, use: false, name: 'G19',    alias: 'g19', gpio: 19, assign: 0})
+      this.pins_free.push({idx: 14, use: false, name: 'G21',    alias: 'g21', gpio: 21, assign: 0})
+      this.pins_free.push({idx: 15, use: false, name: 'G22',    alias: 'g22', gpio: 22, assign: 0})
+      this.pins_free.push({idx: 16, use: false, name: 'G23',    alias: 'g23', gpio: 23, assign: 0})
+      this.pins_free.push({idx: 17, use: false, name: 'G25',    alias: 'g25', gpio: 25, assign: 0})
+      this.pins_free.push({idx: 18, use: false, name: 'G26',    alias: 'g26', gpio: 26, assign: 0})
+      this.pins_free.push({idx: 19, use: false, name: 'G27',    alias: 'g27', gpio: 27, assign: 0})
+      this.pins_free.push({idx: 20, use: false, name: 'G32',    alias: 'g32', gpio: 32, assign: 0})
+      this.pins_free.push({idx: 21, use: false, name: 'G33',    alias: 'g33', gpio: 33, assign: 0})
+    }
+
+    //  ESP32S2, ESP32S3, ESP32C3 - нет пинов 22,23,25,27,32
+    //  ESP32C3 - нет пинов 12,13,14,15,16,17,26,33
+    //  ESP32C3 - есть пины 6,7,8,9,10
+    if (this.controller == 'ESP32 S2' || this.controller == 'ESP32 S3') {
+      // Набор пинов для ESP32S3 : 1,2,3,4,5,12,13,14,15,16,17,18,19,21,26,33
+      this.pins_free.push({idx:  1, use: false, name: 'G1/TX0', alias: 'tx',  gpio:  1, assign: 0})
+      this.pins_free.push({idx:  2, use: false, name: 'G2',     alias: 'g2',  gpio:  2, assign: 0})
+      this.pins_free.push({idx:  3, use: false, name: 'G3/RX0', alias: 'rx',  gpio:  3, assign: 0})
+      this.pins_free.push({idx:  4, use: false, name: 'G4',     alias: 'g4',  gpio:  4, assign: 0})
+      this.pins_free.push({idx:  5, use: false, name: 'G5',     alias: 'g5',  gpio:  5, assign: 0})
+      this.pins_free.push({idx:  6, use: false, name: 'G12',    alias: 'g12', gpio: 12, assign: 0})
+      this.pins_free.push({idx:  7, use: false, name: 'G13',    alias: 'g13', gpio: 13, assign: 0})
+      this.pins_free.push({idx:  8, use: false, name: 'G14',    alias: 'g14', gpio: 14, assign: 0})
+      this.pins_free.push({idx:  9, use: false, name: 'G15',    alias: 'g15', gpio: 15, assign: 0})
+      this.pins_free.push({idx: 10, use: false, name: 'G16',    alias: 'g16', gpio: 16, assign: 0})
+      this.pins_free.push({idx: 11, use: false, name: 'G17',    alias: 'g17', gpio: 17, assign: 0})
+      this.pins_free.push({idx: 12, use: false, name: 'G18',    alias: 'g18', gpio: 18, assign: 0})
+      this.pins_free.push({idx: 13, use: false, name: 'G19',    alias: 'g19', gpio: 19, assign: 0})
+      this.pins_free.push({idx: 14, use: false, name: 'G21',    alias: 'g21', gpio: 21, assign: 0})
+      this.pins_free.push({idx: 15, use: false, name: 'G26',    alias: 'g26', gpio: 26, assign: 0})
+      this.pins_free.push({idx: 26, use: false, name: 'G33',    alias: 'g33', gpio: 33, assign: 0})
+    }
+
+    if (this.controller == 'ESP32 C3') {
+      // Набор пинов для ESP32C3 : 0,1,2,3,4,5,6,7,8,9,10,18,19,20б21
       this.pins_free.push({idx:  1, use: false, name: 'G0',     alias: 'g0',  gpio:  0, assign: 0})
       this.pins_free.push({idx:  2, use: false, name: 'G1/TX0', alias: 'tx',  gpio:  1, assign: 0})
       this.pins_free.push({idx:  3, use: false, name: 'G2',     alias: 'g2',  gpio:  2, assign: 0})
       this.pins_free.push({idx:  4, use: false, name: 'G3/RX0', alias: 'rx',  gpio:  3, assign: 0})
       this.pins_free.push({idx:  5, use: false, name: 'G4',     alias: 'g4',  gpio:  4, assign: 0})
       this.pins_free.push({idx:  6, use: false, name: 'G5',     alias: 'g5',  gpio:  5, assign: 0})
-      this.pins_free.push({idx:  7, use: false, name: 'G12',    alias: 'g12', gpio: 12, assign: 0})
-      this.pins_free.push({idx:  8, use: false, name: 'G13',    alias: 'g13', gpio: 13, assign: 0})
-      this.pins_free.push({idx:  9, use: false, name: 'G14',    alias: 'g14', gpio: 14, assign: 0})
-      this.pins_free.push({idx: 10, use: false, name: 'G15',    alias: 'g15', gpio: 15, assign: 0})
-      this.pins_free.push({idx: 11, use: false, name: 'G16',    alias: 'g16', gpio: 16, assign: 0})
-      this.pins_free.push({idx: 12, use: false, name: 'G17',    alias: 'g17', gpio: 17, assign: 0})
-      this.pins_free.push({idx: 13, use: false, name: 'G18',    alias: 'g18', gpio: 18, assign: 0})
-      this.pins_free.push({idx: 14, use: false, name: 'G19',    alias: 'g19', gpio: 19, assign: 0})
-      this.pins_free.push({idx: 15, use: false, name: 'G21',    alias: 'g21', gpio: 21, assign: 0})
-      this.pins_free.push({idx: 16, use: false, name: 'G22',    alias: 'g22', gpio: 22, assign: 0})
-      this.pins_free.push({idx: 17, use: false, name: 'G23',    alias: 'g23', gpio: 23, assign: 0})
-      this.pins_free.push({idx: 18, use: false, name: 'G25',    alias: 'g25', gpio: 25, assign: 0})
-      this.pins_free.push({idx: 19, use: false, name: 'G26',    alias: 'g26', gpio: 26, assign: 0})
-      this.pins_free.push({idx: 20, use: false, name: 'G27',    alias: 'g27', gpio: 27, assign: 0})
-      this.pins_free.push({idx: 21, use: false, name: 'G32',    alias: 'g32', gpio: 32, assign: 0})
-      this.pins_free.push({idx: 22, use: false, name: 'G33',    alias: 'g33', gpio: 33, assign: 0})
+
+      this.pins_free.push({idx:  7, use: false, name: 'G6',     alias: 'g6',  gpio:  6, assign: 0})
+      this.pins_free.push({idx:  8, use: false, name: 'G7',     alias: 'g7',  gpio:  7, assign: 0})
+      this.pins_free.push({idx:  9, use: false, name: 'G8',     alias: 'g8',  gpio:  8, assign: 0})
+      this.pins_free.push({idx: 10, use: false, name: 'G9',     alias: 'g9',  gpio:  9, assign: 0})
+      this.pins_free.push({idx: 11, use: false, name: 'G10',    alias: 'g10', gpio: 10, assign: 0})
+
+      this.pins_free.push({idx: 12, use: false, name: 'G18',    alias: 'g18', gpio: 18, assign: 0})
+      this.pins_free.push({idx: 13, use: false, name: 'G19',    alias: 'g19', gpio: 19, assign: 0})
+      this.pins_free.push({idx: 13, use: false, name: 'G20',    alias: 'g20', gpio: 20, assign: 0})
+      this.pins_free.push({idx: 14, use: false, name: 'G21',    alias: 'g21', gpio: 21, assign: 0})
     }
 
     // Если есть какие-то назначенные пины - удалить их из массива свободных

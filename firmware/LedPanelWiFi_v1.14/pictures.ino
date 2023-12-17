@@ -102,14 +102,14 @@ void initialisePictures() {
     // Найти анимацию "Погода", посчитать сколько фреймов в анимации (макс MAX_FRAMES_COUNT)
     String animList(IMAGE_LIST);
     tokenCount = CountTokens(animList, ',');
-    FOR_i(0,tokenCount) {
+    for (int i = 0; i < tokenCount; i++) {
       String animName(GetToken(animList, i + 1, ','));
       if (animName == "Погода") {        
         weatherIndex = i;
         animation_t weather = animations[weatherIndex];
         pictureWidth  = weather.frame_width;
         pictureHeight = weather.frame_height;        
-        FOR_j(0, MAX_FRAMES_COUNT) {
+        for (int j = 0; j < MAX_FRAMES_COUNT; j++) {
           if (weather.frames[j] == NULL) break;
           pictureIndexMax = j + 1;
         }
@@ -125,7 +125,7 @@ void initialisePictures() {
     // Печатаем список найденных файлов картинок
     pictureIndexMax = CountTokens(pictureList, ',');
     DEBUG(F("Найдено ")); DEBUG(pictureIndexMax); DEBUG(F(" слайд(oв) размером ")); DEBUG(pictureWidth); DEBUG('x'); DEBUG(pictureHeight); DEBUGLN(':');
-    FOR_i(0,pictureIndexMax) {
+    for (int i = 0; i < pictureIndexMax; i++) {
       DEBUG("   "); DEBUG(GetToken(pictureList, i + 1, ',')); DEBUGLN(".p");  
     }
   }
@@ -145,8 +145,8 @@ bool getNextSlide() {
     animation_t weather = animations[weatherIndex];
     const uint16_t *frame = weather.frames[pictureIndex];
     // Читаем фрейм из анимации "Погода". Фрейм сохранен в виде 16-битных цветов RGB565 - нужно привести к 24-битному RGB888
-    FOR_y(0, weather.frame_height) {
-      FOR_x (0, weather.frame_width) {                    
+    for (int y = 0; y < weather.frame_height; y++) {
+      for (int x = 0; x < weather.frame_width; x++) {
         uint16_t clr = (pgm_read_word(&(frame[x + (weather.frame_height - y - 1) * weather.frame_width])));
         CRGB color = gammaCorrection(expandColor(clr));
         picture[x + y * weather.frame_width] = color;
@@ -175,8 +175,8 @@ void DrawSlide() {
 
   // Показ полной картинки
   if (phase == 0) {    
-    FOR_y(0, pictureHeight) {
-      FOR_x (0, pictureWidth) {      
+    for (int y = 0; y < pictureHeight; y++) {
+      for (int x = 0; x < pictureWidth; x++) {      
         idx = x + y * pictureWidth;
         color = picture[idx];
         color = color.nscale8_video(effectBrightness);    
@@ -198,8 +198,8 @@ void DrawSlide() {
     case 4:  // гориз от низа у верху:   Height шагов
     
       counter = (pic_fade == 1 || pic_fade == 2) ? pictureHeight / 2 : pictureHeight;
-      FOR_y(0, counter) {
-        FOR_x (0, pictureWidth) {      
+      for (int y = 0; y < counter; y++) {
+        for (int x = 0; x < pictureWidth; x++) {      
           int16_t idx1 = x + y * pictureWidth;
           int16_t idx2 = x + (pictureHeight - y - 1) * pictureWidth;
           if (pic_fade == 2 || pic_fade == 4) {
@@ -239,8 +239,8 @@ void DrawSlide() {
     case 8:  // верт справа налево -     Width шагов
     
       counter = (pic_fade == 5 || pic_fade == 6) ? pictureWidth / 2 : pictureWidth;
-      FOR_x(0, counter) {
-        FOR_y (0, pictureHeight) {      
+      for (int x = 0; x < counter; x++) {
+        for (int y = 0; y < pictureHeight; y++) {
           int16_t idx1 = x + y * pictureWidth;
           int16_t idx2 = pictureWidth - x - 1 + y * pictureWidth;
           if (pic_fade == 6 || pic_fade == 8) {
@@ -289,8 +289,6 @@ void slideRoutine() {
 
   //  pic_fade  1 - гориз. от центра к краям; 2 - от краев к центру; 3 - от верха к низу; 4 - от низа к верху
   //            5 - верт. от центра к краям;  6 - от краев к центру; 7 - слева направо; 8 - справа налево
-  
-  CRGB color;
   
   if (loadingFlag) {
     // modeCode = MC_SLIDE;

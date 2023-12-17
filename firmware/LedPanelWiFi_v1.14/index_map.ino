@@ -216,10 +216,11 @@ int8_t scanIndexMaps() {
     }
   }
 
-  if (mapListLen == 0) 
+  if (mapListLen == 0) { 
     DEBUGLN(F("Нет файлов карт индексов\n"));
-  else
+  } else {
     DEBUGLN();
+  }
 
   return mapListLen;  
 }

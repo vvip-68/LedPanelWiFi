@@ -123,7 +123,7 @@ void initAnimations() {
 
   // Другие анимации добавляются в список используемых, только если размер матрицы позволяет отображать
   // анимацию с заданными в ней размерами
-  FOR_i(1, image_num) {
+  for (int i = 1; i < image_num; i++) {
     int8_t anim_width  = animations[i].frame_width;
     int8_t anim_height = animations[i].frame_height;
     if (anim_width <= pWIDTH && anim_height <= pHEIGHT) {
@@ -274,7 +274,7 @@ void animationRoutine() {
     
     animation_t anim = animations[use_animations[currentImageIdx - 1]];
     frames_in_image = 0;
-    FOR_i(0, MAX_FRAMES_COUNT) {
+    for (int i = 0; i < MAX_FRAMES_COUNT; i++) {
       if (anim.frames[i] == NULL) break;
       frames_in_image++;
     }
@@ -703,7 +703,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   String message;
 
   // Если нет поддержки SD=карты - работать с внутренней файловой системой МК
-  if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = "FS";
+  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = "FS";
 
   CRGB* alds = (CRGB*)lds;
   
@@ -756,8 +756,8 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   // При загрузке новой картинки прямо на матрицу - предварительно очистить матрицу
   if (alds == nullptr) FastLED.clear();
 
-  FOR_x(0, w) {
-    FOR_y (0, h) {
+  for (int x = 0; x < w; x++) {
+    for (int y = 0; y < h; y++) {
       len = file.read(buf, 3);
       ok = len == 3;
       if (!ok) {
@@ -805,7 +805,7 @@ String saveImage(String storage, const String& fName) {
   String message = "";
 
   // Если нет поддержки SD=карты - работать с внутренней файловой системой МК
-  if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1) storage = String(F("FS"));
+  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = String(F("FS"));
 
   DEBUG(F("Сохранение файла: "));
   DEBUGLN(storage + String(F(":/")) + fileName);
@@ -835,7 +835,7 @@ String saveImage(String storage, const String& fName) {
   }
   #endif
 
-  if (storage == "FS" || storage == "SD" && FS_AS_SD == 1) {    
+  if (storage == "FS" || (storage == "SD" && FS_AS_SD == 1)) {    
     if (!LittleFS.exists(directoryName)) {
       ok = LittleFS.mkdir(directoryName);
       if (!ok) {
@@ -911,7 +911,7 @@ String deleteImage(String storage, String fName) {
   }
   #endif
 
-  if (storage == "FS" || storage == "SD" && FS_AS_SD == 1) {
+  if (storage == "FS" || (storage == "SD" && FS_AS_SD == 1)) {
     ok = LittleFS.remove(fileName);
   }
 
@@ -974,7 +974,7 @@ String getStoredImages(String storage) {
   }
   #endif
 
-  if (storage == "FS" || storage == "SD" && FS_AS_SD == 1) {
+  if (storage == "FS" || (storage == "SD" && FS_AS_SD == 1)) {
     if (LittleFS.exists(directoryName)) {
       
       uint32_t file_size;

@@ -166,7 +166,7 @@ void fillString(const String& text) {
   // Задан ли специальный цвет отображения строки?
   // Если режим цвета - монохром (0) или задан неверно (>2) - использовать глобальный или специальный цвет
   
-  uint16_t i = 0, j = 0, pos = 0, modif = 0, restSec = -1, restTextPos = 0, restTextOffset = 0, restTextWidth = 0;
+  uint16_t i = 0, j = 0, pos = 0, modif = 0, restSec = -1, restTextOffset = 0, restTextWidth = 0;
   bool showRestSeconds = false;
   String restSecStr;
 
@@ -175,7 +175,7 @@ void fillString(const String& text) {
     // текст содержит флаг отображения остатка секнд по центру матрицы и остаток времени до события - менее минуты
     // Теперь просто отображаем остчет оставшегося времени по центру матрицы
 
-    // Сколько секунд осталосб до события?
+    // Сколько секунд осталось до события?
     restSec = moments[momentIdx].moment - now();
     showRestSeconds = restSec > 0 && restSec < 60;
     
@@ -183,7 +183,6 @@ void fillString(const String& text) {
     restSecStr = padNum(restSec,2);
 
     // Получить ширину строки в точках, чтобы высчитать центр отображения на матрице
-    uint8_t letter_1_width = BIG_FONT == 0 ? LET_WIDTH - 1 : LET_WIDTH - 2;
     restTextWidth = 2 * LET_WIDTH + SPACE;    
 
     // Начальная позиция вывода остатка секунд по центру экрана
@@ -277,7 +276,7 @@ bool drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
     int32_t  thisByte; // байт колонки i отображаемого символа шрифта или -1 если такого символа нет в шрифте
     uint16_t diasByte; // байт колонки i отображаемого диакритического символа
     int8_t   diasOffs; // смещение по Y отображения диакритического символа: diasOffs > 0 - позиция над основной буквой; diasOffs < 0 - позиция ниже основной буквы
-    uint16_t pn;       // номер пикселя в массиве leds[]
+    int32_t pn;        // номер пикселя в массиве leds[]
     
     if (MIRR_V) {
       thisByte = getFont(letter, modif, LET_WIDTH - 1 - i);
@@ -2648,9 +2647,9 @@ tmElements_t ParseDateTime(const String& str) {
   uint8_t  aday = day();
   uint8_t  amnth = month();
   uint16_t ayear = year();
-  uint8_t  hrs = hour();
-  uint8_t  mins = minute();
-  uint8_t  secs = second();
+//uint8_t  hrs = hour();
+//uint8_t  mins = minute();
+//uint8_t  secs = second();
 
   uint16_t iYear = 0;  
   uint8_t iMonth = 0, iDay = 0, iHours = 0, iMinutes = 0, iSeconds = 0;
@@ -2661,7 +2660,7 @@ tmElements_t ParseDateTime(const String& str) {
   String s_date;
   String s_time;
 
-  // Корректная дата - 10 символов (ДД.ММ.ГГГГ), точки в позициях 2 и 5; UUUU может быть '****' - текущий год или '***+' - следующий год
+  // Корректная дата - 10 символов (ДД.ММ.ГГГГ), точки в позициях 2 и 5; ГГГГ может быть '****' - текущий год или '***+' - следующий год
   // Если есть время - оно отделено пробелом от даты, формат (ЧЧ:MM:СС), часы и минуты и секундв разделены двоеточием
   if (str.length() >= 10) {
     idx = str.indexOf(" ");

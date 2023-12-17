@@ -593,7 +593,7 @@ uint32_t getColorInt(CRGB color) {
 // Вычисление значения яркости эффектов по отношению к общей яркости
 // Общая яркость регулируется через FastLED.setBrightness(); 
 // Вычисленная яркость эффекта влияет на компонент яркости V в модели HCSV
-uint8_t getBrightnessCalculated(uint8_t brightness, uint8_t contrast) {
+uint8_t getBrightnessCalculated([[maybe_unused]] uint8_t brightness, uint8_t contrast) {
   // В данном варианте общая яркость не учитывается в расчете
   return map8(contrast, 16, 255);
 }
@@ -955,7 +955,7 @@ void allocateLeds() {
   //FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
 
   if (leds != NULL) {
-    FOR_i(1, 4) {
+    for (int i = 1; i < 4; i++) {
       // К сожалению функция FastLED.addLeds() в качестве чипсета, пина подключения и порядка цвета принимает только константы времени компиляции
       // Эти параметры не могут быть заданы переменными. ТО есть настройка LED_CHIP и COLOR_ORDER - в файле a_def_hard.h, LED_PIN - из переменной, но в switch - в каждую строку подставлена константа
       
@@ -993,31 +993,57 @@ void allocateLeds() {
         #if defined(ESP32) 
           // Для ESP32 безопасное подключение ленты к следующим пинам GPIO:
           // 0,1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33
+          // 0 - outputs PWM signal at boot
           // 1/TX, 3/RX - - если включен отладочный вывод в COM-порт - лента работать не будет 
           // 21/SDA, 22/SCL - шина I2С - предпостительна для использования TM1637
           switch (led_pin) {
+
+            // На обычном ESP32 Dev Module GPIO0 тоже есть, но в WebUI картинка 32-пиновая и на картинке его нет. Чтобы не вносить путаницу 
+            // оставляем его только на С3 - картинки будут с этим пином
+            #if (CONFIG_IDF_TARGET_ESP32C3)
             case  0: FastLED.addLeds<LED_CHIP,  0, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            #endif
+            
             case  1: FastLED.addLeds<LED_CHIP,  1, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case  2: FastLED.addLeds<LED_CHIP,  2, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case  3: FastLED.addLeds<LED_CHIP,  3, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case  4: FastLED.addLeds<LED_CHIP,  4, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case  5: FastLED.addLeds<LED_CHIP,  5, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+
+            // Для ESP32C3 в отличие от остальных определены пины 6,7,8,9,10,20
+            #if (CONFIG_IDF_TARGET_ESP32C3)
+            case  6: FastLED.addLeds<LED_CHIP,  6, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  7: FastLED.addLeds<LED_CHIP,  7, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  8: FastLED.addLeds<LED_CHIP,  8, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case  9: FastLED.addLeds<LED_CHIP,  9, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 10: FastLED.addLeds<LED_CHIP, 10, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 20: FastLED.addLeds<LED_CHIP, 20, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            #endif
+            
+            // Для ESP32C3 пины 12,13,14,15,16,17,26,33 не определены (они отсутствуют)
+            #if !(CONFIG_IDF_TARGET_ESP32C3)
             case 12: FastLED.addLeds<LED_CHIP, 12, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 13: FastLED.addLeds<LED_CHIP, 13, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 14: FastLED.addLeds<LED_CHIP, 14, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 15: FastLED.addLeds<LED_CHIP, 15, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 16: FastLED.addLeds<LED_CHIP, 16, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 17: FastLED.addLeds<LED_CHIP, 17, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
+            case 26: FastLED.addLeds<LED_CHIP, 26, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            case 33: FastLED.addLeds<LED_CHIP, 33, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            #endif
+            
             case 18: FastLED.addLeds<LED_CHIP, 18, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 19: FastLED.addLeds<LED_CHIP, 19, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break; 
             case 21: FastLED.addLeds<LED_CHIP, 21, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            
+            // Для ESP32S2, ESP32S3, ESP32C3 пины 22,23,25,27,32 не определены (они отсутствуют)
+            #if !(CONFIG_IDF_TARGET_ESP32S2 || CONFIG_IDF_TARGET_ESP32S3  || CONFIG_IDF_TARGET_ESP32C3)
             case 22: FastLED.addLeds<LED_CHIP, 22, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
             case 23: FastLED.addLeds<LED_CHIP, 23, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
             case 25: FastLED.addLeds<LED_CHIP, 25, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
-            case 26: FastLED.addLeds<LED_CHIP, 26, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
             case 27: FastLED.addLeds<LED_CHIP, 27, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
             case 32: FastLED.addLeds<LED_CHIP, 32, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
-            case 33: FastLED.addLeds<LED_CHIP, 33, COLOR_ORDER>(leds, led_start, led_count).setCorrection( TypicalLEDStrip ); break;
+            #endif
           }
         #endif
       }
@@ -1097,12 +1123,20 @@ String MCUType() {
     #endif
   #endif
   #if defined(ESP32)
-    mcType = F("ESP32");
+    #if defined(CONFIG_IDF_TARGET_ESP32S2)
+      mcType = F("ESP32 S2");
+    #elif defined(CONFIG_IDF_TARGET_ESP32S3)
+      mcType = F("ESP32 S3");
+    #elif defined(CONFIG_IDF_TARGET_ESP32C3)
+      mcType = F("ESP32 С3");
+    #else
+      mcType = F("ESP32");
+    #endif
   #endif  
   return mcType;
 }
 
-String pinName(uint8_t pin) {
+String pinName(int8_t pin) {
   #if defined(ESP8266) 
     switch (pin) {
       case 16: return String(F("D0")); /* D0     */
@@ -1121,6 +1155,7 @@ String pinName(uint8_t pin) {
       case  3: return String(F("D9")); /* D9/RX  */ 
       case  1: return String(F("D10"));/* D10/TX */ 
       #endif
+      default: return String("N/A");
      }
   #endif
   #if defined(ESP32) 
@@ -1128,10 +1163,12 @@ String pinName(uint8_t pin) {
     // 1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27
     // 1/TX, 3/RX - - если включен отладочный вывод в COM-порт - лента работать не будет 
     // 21/SDA, 22/SCL - шина I2С - предпочтительна для использования TM1637
-    String str("G"); str += pin;
+    String str("G"); 
+    if (pin >=0) str += pin;
+    else         str += "N/A";
     return str;
   #else  
-    return String(F("N/A"));
+    return String("N/A");
   #endif
 }
 
@@ -1145,7 +1182,7 @@ void InitializeQueues() {
   // Это позволит избежать излишней фрагментации
   if (isQueueInitialized) return;
   
-  int32_t mem_prv, mem_now, mem_dff;
+  int32_t mem_prv, mem_now;
   isQueueInitialized = true;
   mem_prv = ESP.getFreeHeap();
 

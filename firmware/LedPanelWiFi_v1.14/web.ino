@@ -33,6 +33,7 @@ void handleNotFound(AsyncWebServerRequest *request) {
 // --------------- WEB-SOCKET CALLBACK ----------------
 
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocketClient *client) { 
+  if (client == nullptr) return;
   // обрабатываем получаемые сообщения
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
@@ -99,6 +100,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
 }
 
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  if (server == nullptr || client == nullptr) return;
   switch (type) {
     case WS_EVT_CONNECT:
       web_client_count++;
@@ -228,7 +230,7 @@ void processOutQueueW() {
         DEBUGLN( ws.count());                                             // !!!
         DEBUGLN(F("Перезапуск сокета..."));                               // !!!
         int8_t cnt = 0;
-        while (ws.count() > 0 && cnt < 300) {
+        while (ws.count() > 0 && cnt < 100) {
           ws.cleanupClients(0);
           delay(10);
           cnt++;

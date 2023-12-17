@@ -560,7 +560,8 @@ uint16_t getClockWithTempWidth(uint8_t hrs, uint8_t mins) {
   return (uint16_t)((cw << 8) | tw);
 }
 
-void drawTemperature(int8_t X) {
+void drawTemperature([[maybe_unused]] int8_t X) {
+
 #if (USE_WEATHER == 1)      
 
   // позиция вывода температуры по X вычисляется при отрисовке часов и сохраняется в глобальную переменную CLOCK_WX
@@ -711,7 +712,7 @@ void drawCalendar(uint8_t aday, uint8_t amnth, int16_t ayear, bool dots, int8_t 
   uint8_t d3 = (ayear / 10) % 10;
   uint8_t d4 = ayear % 10;
 
-  uint8_t cx = 0, dy = 0;
+  uint8_t dy = 0;
   
   if (!allow_two_row) {
     Y = CLOCK_Y;
@@ -1390,7 +1391,7 @@ void checkAutoMode1Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (AM1_hour == hrs && AM1_minute == mins && sec < 2) {
-    if (auxLineModes & 1 != 0) {
+    if ((auxLineModes & 1) != 0) {
       bool newAuxActive = (auxLineModes & 2) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);
@@ -1423,7 +1424,7 @@ void checkAutoMode2Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (AM2_hour == hrs && AM2_minute == mins && sec < 2) {
-    if (auxLineModes & 4 != 0) {
+    if ((auxLineModes & 4) != 0) {
       bool newAuxActive = (auxLineModes & 8) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);
@@ -1460,7 +1461,7 @@ void checkAutoMode3Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (AM3_hour == hrs && AM3_minute == mins && sec < 2) {
-    if (auxLineModes & 16 != 0) {
+    if ((auxLineModes & 16) != 0) {
       bool newAuxActive = (auxLineModes & 32) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);
@@ -1492,7 +1493,7 @@ void checkAutoMode4Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (AM4_hour == hrs && AM4_minute == mins && sec < 2) {
-    if (auxLineModes & 64 != 0) {
+    if ((auxLineModes & 64) != 0) {
       bool newAuxActive = (auxLineModes & 128) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);
@@ -1526,7 +1527,7 @@ void checkAutoMode5Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (dawn_hour == hrs && dawn_minute == mins && sec < 2) {
-    if (auxLineModes & 256 != 0) {
+    if ((auxLineModes & 256) != 0) {
       bool newAuxActive = (auxLineModes & 512) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);
@@ -1559,7 +1560,7 @@ void checkAutoMode6Time() {
 
   // Пришло время и режим "Использовать" включен?
   if (dusk_hour == hrs && dusk_minute == mins && sec < 2) {
-    if (auxLineModes & 1024 != 0) {
+    if ((auxLineModes & 1024) != 0) {
       bool newAuxActive = (auxLineModes & 2048) != 0;
       if (newAuxActive != isAuxActive) {
         set_isAuxActive(newAuxActive);

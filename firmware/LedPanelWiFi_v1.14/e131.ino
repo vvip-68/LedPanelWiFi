@@ -88,10 +88,11 @@ void DisposeE131() {
   if (e131) {
     delete e131;
     e131 = NULL;
-    if (workMode == MASTER)
+    if (workMode == MASTER) {
       DEBUGLN(F("Вещатель потока E1.31 остановлен."));
-    else if (workMode == SLAVE)
+    } else if (workMode == SLAVE) {
       DEBUGLN(F("Слушатель потока E1.31 остановлен."));
+    }
   }
   e131_wait_command = false;
 }
@@ -127,7 +128,7 @@ void printE131packet(e131_packet_t *packet) {
   DEBUG(F("first_address="));         DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->first_address),4));
   DEBUG(F("address_increment="));     DEBUG("0x"); DEBUGLN(IntToHex(htons(packet->address_increment),4));
   DEBUG(F("property_value_count="));  DEBUGLN(htons(packet->property_value_count));
-  DEBUG(F("property_values="));       for(uint8_t i=0; i<32; i++) { DEBUG("0x"); DEBUG(IntToHex(packet->property_values[i],2)); DEBUG(", "); } DEBUGLN();
+  DEBUG(F("property_values="));       for(uint8_t i = 0; i < 32; i++) { DEBUG("0x"); DEBUG(IntToHex(packet->property_values[i],2)); DEBUG(", "); } DEBUGLN();
   DEBUGLN(DELIM_LINE);
 }
 
@@ -201,22 +202,24 @@ void printWorkMode() {
 
     if (workMode == MASTER) {
       DEBUG(F("\nРежим работы: ИСТОЧНИК; Тип потока - "));
-      if (syncMode == PHYSIC)
+      if (syncMode == PHYSIC) {
         DEBUGLN(F("светодиоды в порядке подключения"));
-      else if (syncMode == LOGIC)
+      } else if (syncMode == LOGIC) {
         DEBUGLN(F("светодиоды в логическом порядке"));
-      else
+      } else {
         DEBUGLN(F("команды"));
+      }
     } else
 
     if (workMode == SLAVE) {      
       DEBUG(F("\nРежим работы: ПРИЕМНИК; Тип потока - "));
-      if (syncMode == PHYSIC)
+      if (syncMode == PHYSIC) {
         DEBUGLN(F("светодиоды в порядке подключения"));
-      else if (syncMode == LOGIC)
+      } else if (syncMode == LOGIC) {
         DEBUGLN(F("светодиоды в логическом порядке"));
-      else
+      } else {
         DEBUGLN(F("команды"));
+      }
     }  
 
     DEBUG(F("Группа: "));
@@ -239,7 +242,7 @@ void sendE131Screen() {
   // На некоторых режимах (вероятно) экран отправлся настолько часто, что "забивал" сеть, роутер не справлялся и
   // сеть отваливалась - компы в сети писали "нет доступа к интернету".
   // Причина - вероятная. Наблюдаем.
-  if (abs((long long)(millis() - last_sent_screen_sync)) < 3) return;
+  if (abs((long long)(millis() - last_sent_screen_sync)) < 15) return;
   last_sent_screen_sync = millis();
   
   if (syncMode == PHYSIC) {

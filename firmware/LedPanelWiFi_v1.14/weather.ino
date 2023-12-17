@@ -185,8 +185,6 @@ bool getWeather() {
 
     time_t dawn_time = (time_t)(sunrise.toInt() + tz);
     time_t dusk_time = (time_t)(sunset.toInt() + tz);
-
-    int8_t sign = (timeZoneOffset < 0 ? -1 : 1);
     
     dawn_hour   = hour(dawn_time);
     dawn_minute = minute(dawn_time); 
@@ -759,7 +757,7 @@ void weatherRoutine() {
     // Нарисовать '+' или '-' если температура не 0
     // Горизонтальная черта - общая для '-' и '+'
     if (temperature != 0) {
-      bool dy = big_font ? 2 : 0;
+      uint8_t dy = big_font ? 2 : 0;
       temp_x -= 4;
       for(uint8_t i = 0; i < 3; i++) {
         drawPixelXY(getClockX(temp_x + i), temp_y + 2 + dy, color);      
