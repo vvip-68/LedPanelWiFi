@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1217")
+#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1218")
 
 // --------------------------   -----------------------------------------------------------------------------
 //
@@ -32,9 +32,9 @@
 // Для ядра ESP32 v2.0.14 / v1.0.6 
 //   тип микроконтроллера в меню "Инструменты -> Плата" 
 //     - для большинства контроллеров выбирать "ESP32 Dev Module" 
-//     - для разновидностей ESP32S2 выбирать "ESP32S2 Dev Module" или соответствующее плате значение  содержащее 'S2' 
-//     - для разновидностей ESP32S3 выбирать "ESP32S3 Dev Module" или соответствующее плате значение  содержащее 'S3' 
-//     - для разновидностей ESP32C3 выбирать "ESP32C3 Dev Module" или соответствующее плате значение  содержащее 'C3'
+//     - для разновидностей ESP32S2 выбирать "ESP32S2 Dev Module" или соответствующее плате значение, содержащее 'S2' 
+//     - для разновидностей ESP32S3 выбирать "ESP32S3 Dev Module" или соответствующее плате значение, содержащее 'S3' 
+//     - для разновидностей ESP32C3 выбирать "ESP32C3 Dev Module" или соответствующее плате значение, содержащее 'C3'
 //
 //   для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)";
@@ -697,8 +697,15 @@ void setup() {
     int8_t clk_pin = getTM1637CLKPin(); 
     int8_t dio_pin = getTM1637DIOPin();
     if (clk_pin >= 0 && dio_pin >= 0) {
-      display = new TM1637Display(clk_pin, dio_pin);
+      display = new TM1637Display(clk_pin, dio_pin, 75);  // 75 - 75 мкс - задержка импульсов при выводе. Default - 100; если на дисплее не отображается или неверные символы - увеличивайте до 100
+      lastDisplay[0] = _empty;
+      lastDisplay[1] = _empty;
+      lastDisplay[2] = _empty;
+      lastDisplay[3] = _empty;
+      lastDisplayBrightness = 7;
+      lastDotState = false;
       display->setBrightness(7);
+      display->point(false);
       display->displayByte(_empty, _empty, _empty, _empty);
     }
   #endif

@@ -25,9 +25,9 @@ void process() {
 
   // Время прохода одного цикла  
   //uint32_t duration = millis() - last_ms;  
-  last_ms = millis();
   //DEBUG(F("duration="));
   //DEBUGLN(duration);
+  last_ms = millis();
     
   #if (DEBUG_MEM_STP == 1)
     mem_now = ESP.getFreeHeap();
@@ -432,7 +432,8 @@ void process() {
           } else {
             FastLED.clear();  
             FastLEDshow();
-            delay(15);
+            // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
+            delay(100);
           }
         } else {    
           customRoutine(thisMode);
@@ -443,17 +444,39 @@ void process() {
       if (isTurnedOff && workMode != SLAVE) {
         FastLED.clear();
         FastLEDshow();
-        delay(15);
+        // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
+        delay(100);
       }
     #else
       if (isTurnedOff) {
         FastLED.clear();
         FastLEDshow();
-        delay(15);
+        // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
+        delay(100);
       }
     #endif
     
     clockTicker();
+
+    #if (USE_TM1637 == 1)
+      if (display != nullptr) {
+        if (lastDisplay[0] != currDisplay[0] || lastDisplay[1] != currDisplay[1] || lastDisplay[2] != currDisplay[2] || lastDisplay[3] != currDisplay[3]) {
+          display->displayByte(currDisplay[0], currDisplay[1], currDisplay[2], currDisplay[3]);
+          lastDisplay[0] = currDisplay[0];
+          lastDisplay[1] = currDisplay[1];
+          lastDisplay[2] = currDisplay[2];
+          lastDisplay[3] = currDisplay[3];
+        }
+        if (lastDotState != currDotState) {
+          display->point(currDotState);
+          lastDotState = currDotState;
+        }
+        if (lastDisplayBrightness != currDisplayBrightness) {
+          display->setBrightness(currDisplayBrightness);
+          lastDisplayBrightness = currDisplayBrightness;
+        }
+      }
+    #endif    
     
     checkAlarmTime();
     checkAutoMode1Time();

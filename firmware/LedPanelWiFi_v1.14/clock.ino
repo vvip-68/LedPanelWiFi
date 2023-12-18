@@ -892,8 +892,11 @@ void clockTicker() {
   if (isTurnedOff && needTurnOffClock && init_time) {
     #if (USE_TM1637 == 1)
     if (display != nullptr) {
-      display->displayByte(_empty, _empty, _empty, _empty);
-      display->point(false);
+      currDisplay[0] = _empty; // display->displayByte(_empty, _empty, _empty, _empty);
+      currDisplay[1] = _empty;
+      currDisplay[2] = _empty;
+      currDisplay[3] = _empty;
+      currDotState = false;    // display->point(false);
     }
     #endif
     return;
@@ -917,16 +920,20 @@ void clockTicker() {
       uint8_t prcBrightness = map8(globalBrightness,0,99);
       uint8_t m10 = getByteForDigit(prcBrightness / 10);
       uint8_t m01 = getByteForDigit(prcBrightness % 10);
-      display->displayByte(_b_, _r_, m10, m01);
-      display->point(false);
+      currDisplay[0] = _b_;  // display->displayByte(_b_, _r_, m10, m01);
+      currDisplay[1] = _r_;
+      currDisplay[2] = m10;
+      currDisplay[3] = m01;
+      currDotState = false;  // display->point(false);
+      
     } else if (wifi_print_ip) {
       // Четырехкратное нажатие кнопки запускает отображение по частям текущего IP лампы  
       if (dotFlag && halfSec) {
-        if (wifi_print_idx<=3) {
+        if (wifi_print_idx <= 3) {
           String ip(WiFi.localIP().toString());
           int16_t value = atoi(GetToken(ip, wifi_print_idx + 1, '.').c_str()); 
-          display->displayInt(value);
-          display->point(false);
+          display->encodeInt(value, currDisplay);   // display->displayInt(value);
+          currDotState = false;                     // display->point(false);
           wifi_print_idx++;
         } else {
           wifi_print_idx = 0; 
@@ -936,13 +943,20 @@ void clockTicker() {
     } else {
       // Если время еще не получено - отображать прочерки
       if (!init_time) {
-        if (halfSec) display->displayByte(_dash, _dash, _dash, _dash);
+        if (halfSec) {          
+          currDisplay[0] = _dash;  // display->displayByte(_dash, _dash, _dash, _dash);
+          currDisplay[1] = _dash;
+          currDisplay[2] = _dash;
+          currDisplay[3] = _dash;
+        }
       } else if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
         // Сработал будильник (звук) - плавное мерцание текущего времени      
-        if (halfSec) display->displayClock(hour(),minute());
+        if (halfSec) {
+          display->encodeClock(hour(), minute(), currDisplay);   // display->displayClock(hour(),minute());
+        }
         if (millis() - fade_time > 65) {
           fade_time = millis();
-          display->setBrightness(aCounter);        
+          currDisplayBrightness = aCounter; // display->setBrightness(aCounter);        
           if (aDirection) aCounter++; else aCounter--;
           if (aCounter > 7) {
             aDirection = false;
@@ -955,24 +969,31 @@ void clockTicker() {
       } else {
         // Время получено - отображать часы:минуты  
         #if (USE_WEATHER == 1)
-        // RailWar Evgeny (C)
         if (((useWeather > 0)) && weather_ok && (((second() + 10) % 30) >= 28)) {
           uint8_t t = abs(temperature);
           uint8_t atH = t / 10;
           uint8_t atL = t % 10;
-          display->point(false);
-          if (atH == 0)
-            display->displayByte(_empty, (temperature >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
-          else
-            display->displayByte((temperature >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
+          currDotState = false;   // display->point(false);
+          if (atH == 0) {            
+            currDisplay[0] = _empty;  // display->displayByte(_empty, (temperature >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
+            currDisplay[1] = (temperature >= 0) ? _empty : _dash;
+            currDisplay[2] = display->encodeDigit(atL);
+            currDisplay[3] = _degree;
+          }
+          else {            
+            currDisplay[0] = (temperature >= 0) ? _empty : _dash;  // display->displayByte((temperature >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
+            currDisplay[1] = display->encodeDigit(atH);
+            currDisplay[2] = display->encodeDigit(atL);
+            currDisplay[3] = _degree;
+          }
         } else 
         #endif
         {
-          display->displayClock(hour(),minute());         
+          display->encodeClock(hour(), minute(), currDisplay);   // display->displayClock(hour(),minute());   
           // Отображение часов - разделительное двоеточие...
-          if (halfSec) display->point(dotFlag);
+          if (halfSec) currDotState = dotFlag;  // display->point(dotFlag);
         }
-        display->setBrightness(isTurnedOff ? 1 : 7);
+        currDisplayBrightness = isTurnedOff ? 1 : 7; // display->setBrightness(isTurnedOff ? 1 : 7);
       }
     }
   }
@@ -1251,7 +1272,7 @@ void checkAlarmTime() {
     // После завершения работы - восстановить яркость индикатора
     #if (USE_TM1637 == 1)
     if (display != nullptr) {
-      display->setBrightness(7);
+      currDisplayBrightness = 7; // display->setBrightness(7);
     }
     #endif
     DEBUGLN(String(F("Будильник Авто-ВЫКЛ в ")) + padNum(h,2)+ ":" + padNum(m,2));
@@ -1345,7 +1366,7 @@ void stopAlarm() {
 
     #if (USE_TM1637 == 1)
     if (display != nullptr) {
-      display->setBrightness(7);
+      currDisplayBrightness = 7; // display->setBrightness(7);
     }
     #endif
 
