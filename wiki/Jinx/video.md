@@ -1,8 +1,9 @@
 # Захват видео программой «Jinx!»
 
-### По материалам пользователей **247760** и **7918514** в [issue #166](https://github.com/vvip-68/GyverPanelWiFi/issues/166#issuecomment-986279874) 
+### По материалам пользователей **247760** и **7918514** в [issue #166](https://github.com/vvip-68/GyverPanelWiFi/issues/166#issuecomment-986279874), a так же **saippuakauppias** и **HuskySmile** [discussion #50](https://github.com/vvip-68/LedPanelWiFi/discussions/50#discussioncomment-7939697)
 
-**247760**:
+
+## [247760](https://github.com/vvip-68/GyverPanelWiFi/issues/166#issuecomment-986279874):
 
 В двух словах, начало такое, а дальше как и с другими вариантами в JINX:  
 Предварительная базовая настройка под Вашу гирлянду. И погнали.
@@ -23,7 +24,7 @@
 
 [![Watch the video](https://i.imgur.com/vKb2F1B.png)](https://youtu.be/wy_lokJMGOI)
 
-**7918514**:
+## [7918514](https://github.com/vvip-68/GyverPanelWiFi/issues/166#issuecomment-986269325):
 
 Я Джинксом граблю видео с ютюба. Нахожу какую-нибудь анимацию компьютерную и в Джинксе включаю захват экрана.  
 Некоторые получаются  даже ничего...  
@@ -41,3 +42,17 @@ https://youtu.be/MW2OVIdGT0o
 ну и так далее, справа в подборке ещё много вылазит.
 
 Точно таким же способом можно выполнять захват кадров из мультиков или захват различных анимированных GIF-картинок, коих находится великое множество поисковиками Яндекс или Google
+
+## [saippuakauppias](https://github.com/vvip-68/LedPanelWiFi/discussions/50#discussion-5996177):
+
+Я нашел кучку гифок + наконвертил из видео с ютуба (скачивал через какой-то сайт, конвертил mp4 через https://ezgif.com/video-to-gif , там же кропал и менял FPS/длинну гифки ).
+
+Хочется ещё каких-нибудь эффектов, но уже устал искать (особенно хочется "мемов"). Авось кто-то ещё поделится :) 
+
+Мой пак гифок будет лежать здесь: https://disk.yandex.ru/d/1DYvkYP_kj3RTQ
+
+
+## [HuskySmile](https://github.com/vvip-68/LedPanelWiFi/discussions/50#discussioncomment-7939697):
+
+Я все эффекты с ютуба писал, делюсь своим плейлистом может кому что и понравится
+https://www.youtube.com/playlist?list=PLCMt0wzDgj_io5gko_5_plL1CKM0zFl6m

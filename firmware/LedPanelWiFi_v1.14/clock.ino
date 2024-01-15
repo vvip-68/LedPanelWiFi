@@ -28,164 +28,22 @@ uint8_t clockHue;
 
 CRGB clockLED[5] = {HOUR_COLOR, HOUR_COLOR, DOT_COLOR, MIN_COLOR, MIN_COLOR};
 
-// send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress& address) {
-
-  // Пока включена отладка позиционирования часов - запросы на текущее время не выполнять
-  if (debug_hours >= 0 && debug_mins >= 0) return;
-  
-  DEBUG(F("Отправка NTP пакета на сервер "));
-  DEBUGLN(ntpServerName);
-  // set all bytes in the buffer to 0
-  memset(packetBuffer, 0, NTP_PACKET_SIZE);
-  
-  // Initialize values needed to form NTP request
-  // (see URL above for details on the packets)
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-  packetBuffer[1] = 0;     // Stratum, or type of clock
-  packetBuffer[2] = 6;     // Polling Interval
-  packetBuffer[3] = 0xEC;  // Peer Clock Precision
-  // 8 bytes of zero for Root Delay & Root Dispersion
-  packetBuffer[12]  = 49;
-  packetBuffer[13]  = 0x4E;
-  packetBuffer[14]  = 49;
-  packetBuffer[15]  = 52;
-
-  // all NTP fields have been given values, now
-  // you can send a packet requesting a timestamp:
-  udp.beginPacket(address, 123); //NTP requests are to port 123
-  udp.write((const uint8_t*) packetBuffer, NTP_PACKET_SIZE);  
-  udp.endPacket();
-  udp.flush();
-  delay(0);
-}
-
-void parseNTP() {
-  getNtpInProgress = false;
-  DEBUGLN(F("Разбор пакета NTP"));
-  unsigned long highWord = word(incomeBuffer[40], incomeBuffer[41]);
-  unsigned long lowWord = word(incomeBuffer[42], incomeBuffer[43]);
-  // combine the four bytes (two words) into a long integer
-  // this is NTP time (seconds since Jan 1 1900):
-  unsigned long secsSince1900 = highWord << 16 | lowWord;    
-  // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
-  unsigned long seventyYears = 2208988800UL ;
-  int8_t sign = timeZoneOffset < 0 ? -1 : 1;
-  unsigned long t = secsSince1900 - seventyYears + timeZoneOffset * 3600UL + (sign * timeZoneOffsetMinutes * 60);
-
-  DEBUG(F("Секунд с 1970: "));
-  DEBUGLN(t);
-  DEBUG(F("Получено время: ")); 
-  DEBUGLN(getDateTimeString(t));
-
-  // Замечена ситуация, когда полученное время при корректировке слишком кардинально отличается
-  // от текущего установленного времени и после применения часы "сбиваются" на несеолько часов
-  // И остаются в таком состоянии до следующей корректировки.
-  // Если время полученное отличается от текущего более чем на 60 минут 30 сек - считаем корректировку недостоверной
-  // Часы не могут так быстро уходить вперед или отставать за период между корректировками
-  // Час нужен для перехода на зимнее/летнее время, иначе после перехода на зимнее/летнее время очередной запрос текущего времени будет отброшен
-  // Случайно иногда приходящее ошибочное время как правило - значительно больше часа разницы.
-  if (init_time && !not_check_time && abs((long)(now() - t)) > 3630) {
-    DEBUG(F("Текущее время: ")); 
-    DEBUGLN(getDateTimeString(now()));
-    DEBUGLN(F("Полученное время слишком отличается от текущего.")); 
-    DEBUGLN(F("Время признано недостоверным. Корректировка отменена")); 
-    return;
-  }
-
-  setTime(t);  
-  
-  // этот вызов нужен, чтобы отработали сопутствующие установке времени процедуры
-  setCurrentTime(hour(), minute(), second(), day(), month(), year());
-
-  // Если время запуска еще не определено - инициализировать его
-  if (upTime == 0) {
-    upTime = t - millis() / 1000L;
-  }
-
-  ntp_t = 0; ntp_cnt = 0; init_time = true; refresh_time = false; not_check_time = false;
-  
-  doc.clear();
-  doc["act"] = String(sTIME);
-  doc["server_name"] = ntpServerName;
-  doc["server_ip"] = timeServerIP.toString();
-  doc["result"] = F("OK");
-  doc["time"] = secsSince1900;
-  doc["s_time2"] = getDateTimeString(t);
-  
-  String out;
-  serializeJson(doc, out);      
-  doc.clear();
-  
-  SendWeb(out, TOPIC_TME);
-}
-
-void getNTP() {
-  if (!wifi_connected) return;
-  WiFi.hostByName(ntpServerName, timeServerIP);
-  IPAddress ip1, ip2;
-  ip1.fromString(F("0.0.0.0"));
-  ip2.fromString(F("255.255.255.255"));
-  if (timeServerIP == ip1 || timeServerIP == ip2) {
-    DEBUG(F("Не удалось получить IP aдрес сервера NTP -> "));
-    DEBUG(ntpServerName);
-    DEBUG(F(" -> "));
-    DEBUGLN(timeServerIP);
-    timeServerIP.fromString(F("85.21.78.91"));  // Один из ru.pool.ntp.org  // 91.207.136.55, 91.207.136.50, 46.17.46.226
-    DEBUG(F("Используем сервер по умолчанию: "));
-    DEBUGLN(timeServerIP);
-  }
-  getNtpInProgress = true;
-  printNtpServerName();  
-  sendNTPpacket(timeServerIP); // send an NTP packet to a time server
-  // wait to see if a reply is available
-  ntp_t = millis();  
-
-  doc.clear();
-  doc["act"] = String(sTIME);
-  doc["server_name"] = ntpServerName;
-  doc["server_ip"] = timeServerIP.toString();
-  doc["result"] = F("REQUEST");
-
-  String out;
-  serializeJson(doc, out);
-  doc.clear();
-  
-  SendWeb(out, TOPIC_TME);
-}
-
 String clockCurrentText() {
   
   hrs = hour();
+  uint8_t hh = hrs;
+  
+  if (time_h12) {
+    if (hh > 12) hh -= 12;
+    if (hh == 0) hh = 12;
+  }
   mins = minute();
 
-  String str(padNum(hrs, 2));
+  String str(padNum(hh, 2));
   str += ':';
   str += padNum(mins, 2);
   
   return str;
-}
-
-String dateCurrentTextShort() {
-  
-  aday = day();
-  amnth = month();
-  ayear = year();
-
-  String str(padNum(aday, 2)); str += '.'; str += padNum(amnth, 2); str += '.'; str += ayear;
-  
-  return str; 
-}
-
-String dateCurrentTextLong() {
-  
-  aday = day();
-  amnth = month();
-  ayear = year();
-
-  String str(padNum(aday, 2)); str += ' '; str += getMonthString(amnth); str += ' '; str += ayear; str += " года";
-  
-  return str; 
 }
 
 void clockColor() {
@@ -207,34 +65,46 @@ void clockColor() {
   }
     
   if (color_idx == -2) {
+    
     // Цвет по индексу настроек текущего ночного цвета     
     CRGB color = getNightClockColorByIndex(nightClockColor);
     for (uint8_t i = 0; i < 5; i++) clockLED[i] = color;
+    
   } else if (color_idx == -1) {     
+    
     // Инверсный от основного цвет
     CRGB color = globalColor == 0xFFFFFF
       ? color = CRGB::Navy
       : -CRGB(globalColor);
     for (uint8_t i = 0; i < 5; i++) clockLED[i] = color;  
+    
   } else if (color_idx == 0) {     
+    
     // Монохромные часы  
     uint8_t hue = effectScaleParam[MC_CLOCK];
     CHSV color = hue <= 1 ? CHSV(255, 0, 255): CHSV(hue, 255, 255);
     for (uint8_t i = 0; i < 5; i++) clockLED[i] = color;
+    
   } else if (color_idx == 1) {
+    
     // Каждая цифра своим цветом, плавная смена цвета
     for (uint8_t i = 0; i < 5; i++) clockLED[i] = CHSV(clockHue + HUE_GAP * i, 255, 255);
     clockLED[2] = CHSV(clockHue + 128 + HUE_GAP * 1, 255, 255); // точки делаем другой цвет
+    
   } else if (color_idx == 2) {
+    
     // Часы, точки, минуты своим цветом, плавная смена цвета
     clockLED[0] = CHSV(clockHue + HUE_GAP * 0, 255, 255);
     clockLED[1] = CHSV(clockHue + HUE_GAP * 0, 255, 255);
     clockLED[2] = CHSV(clockHue + 128 + HUE_GAP * 1, 255, 255); // точки делаем другой цвет
     clockLED[3] = CHSV(clockHue + HUE_GAP * 2, 255, 255);
     clockLED[4] = CHSV(clockHue + HUE_GAP * 2, 255, 255);
+    
   } else {
+    
     CRGB color = getGlobalClockColor();
     for (uint8_t i = 0; i < 5; i++) clockLED[i] = color;
+    
   }
 }
 
@@ -254,9 +124,8 @@ int8_t getClockX(int8_t x) {
 
 // нарисовать часы
 void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
-
   if (!(allowVertical || allowHorizontal)) return;
-  
+
   // Для отладки позиционирования часов с температурой
   bool debug = false; // debug_hours >= 0 && debug_mins >= 0;
   if (debug) {
@@ -268,13 +137,18 @@ void drawClock(uint8_t hrs, uint8_t mins, bool dots, int8_t X, int8_t Y) {
   
   int8_t x = X;
 
+  if (time_h12) {
+    if (hrs > 12) hrs -= 12;
+    if (hrs == 0) hrs = 12;
+  }
+
   uint8_t h10 = hrs / 10;
   uint8_t h01 = hrs % 10;
   uint8_t m10 = mins / 10;
   uint8_t m01 = mins % 10;
 
   #if (USE_WEATHER == 1)
-  uint8_t t = abs(temperature);
+  uint8_t t = abs((isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature));
   uint8_t dec_t = t / 10;
   #endif
   
@@ -491,7 +365,7 @@ uint16_t getClockWithTempWidth(uint8_t hrs, uint8_t mins) {
   uint8_t m01 = mins % 10;  
 
 #if (USE_WEATHER == 1)      
-  uint8_t t = abs(temperature);
+  uint8_t t = abs((isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature));
   uint8_t dec_t = t / 10;
   uint8_t edc_t = t % 10;
 
@@ -575,14 +449,15 @@ void drawTemperature([[maybe_unused]] int8_t X) {
 
   if (clockScrollSpeed >= 240) X = 0; 
 
-  uint8_t t = abs(temperature);
+  int8_t  th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
+  uint8_t t = abs(th);
   uint8_t dec_t = t / 10;
   uint8_t edc_t = t % 10;
 
   if (!allow_two_row) {
     temp_y = CLOCK_Y;
     uint8_t width = 0;
-    if (temperature == 0) {
+    if (th == 0) {
       width = (c_size == 1 ? 6 : 15);
     } else {
       width = (c_size == 1 ? 11 : 25);
@@ -597,22 +472,34 @@ void drawTemperature([[maybe_unused]] int8_t X) {
   // Получить цвет отображения значения температуры
   CRGB color;          
   if (isNightClock) 
-    color = useTemperatureColorNight ? (temperature < -3 ? nightClockBrightness : (temperature > 3 ? nightClockBrightness << 16 : nightClockBrightness << 16 | nightClockBrightness << 8 | nightClockBrightness)) : getNightClockColorByIndex(nightClockColor);
+    color = useTemperatureColorNight ? (th < -3 ? nightClockBrightness : (th > 3 ? nightClockBrightness << 16 : nightClockBrightness << 16 | nightClockBrightness << 8 | nightClockBrightness)) : getNightClockColorByIndex(nightClockColor);
   else
-    color = useTemperatureColor ? CRGB(HEXtoInt(getTemperatureColor(temperature))) : clockLED[0]; 
+    color = useTemperatureColor ? CRGB(HEXtoInt(getTemperatureColor(th))) : clockLED[0]; 
 
   if (c_size == 1) {
     // Отрисовка температуры в малых часах
     // Для правильного позиционирования - рисуем справа налево
-    if (temperature == 0) {
-      // При температуре = 0 - рисуем маленький значок C
+    if (th == 0) {
+      // При температуре = 0 - рисуем маленький значок C / F
       if (!(useTemperatureColor || isNightClock)) color = clockLED[1]; 
-      temp_x -= 1;  
-      for(uint8_t i = 0; i < 3; i++) {
-        drawPixelXY(getClockX(X + temp_x), temp_y + i, color);      
+      temp_x -= (isFarenheit ? 2 : 1);  
+      if (isFarenheit) {
+        // буква F
+        for(uint8_t i = 0; i < 5; i++) {
+          drawPixelXY(getClockX(X + temp_x), temp_y + 1 + i, color);      
+        }
+        for(uint8_t i = 0; i < 2; i++) {
+          drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y + 5, color); 
+        }     
+        drawPixelXY(getClockX(X + temp_x + 1), temp_y + 3, color);              
+      } else {
+        // буква C
+        for(uint8_t i = 0; i < 3; i++) {
+          drawPixelXY(getClockX(X + temp_x), temp_y + 1 + i, color);      
+        }
+        drawPixelXY(getClockX(X + temp_x + 1), temp_y + 1, color);      
+        drawPixelXY(getClockX(X + temp_x + 1), temp_y + 3, color);      
       }
-      drawPixelXY(getClockX(X + temp_x + 1), temp_y, color);      
-      drawPixelXY(getClockX(X + temp_x + 1), temp_y + 2, color);      
       temp_x -= 2;
     }
     temp_y += 1;
@@ -633,7 +520,7 @@ void drawTemperature([[maybe_unused]] int8_t X) {
             
     // Нарисовать '+' или '-' если температура не 0
     // Горизонтальная черта - общая для '-' и '+'
-    if (temperature != 0) {
+    if (th != 0) {
       if (!(useTemperatureColor || isNightClock)) color = clockLED[2]; 
       temp_x -= (last_digit == 1 ? 3 : 4);
       for(uint8_t i = 0; i < 3; i++) {
@@ -641,7 +528,7 @@ void drawTemperature([[maybe_unused]] int8_t X) {
       }
       
       // Для плюcа - вертикальная черта
-      if (temperature > 0) {
+      if (th > 0) {
         drawPixelXY(getClockX(X + temp_x + 1), temp_y + 1, color);
         drawPixelXY(getClockX(X + temp_x + 1), temp_y + 3, color);
       }
@@ -653,17 +540,23 @@ void drawTemperature([[maybe_unused]] int8_t X) {
     temp_y = allow_two_row ? CLOCK_Y - 5 : CLOCK_Y;
     while (temp_y < 0) temp_y++; 
 
-    // Буква 'C'
+    // Буква 'C'/'F'
     temp_x -= 4;
     if (!(useTemperatureColor || isNightClock))color = clockLED[1]; 
-    for(uint8_t i=0; i<5; i++) drawPixelXY(getClockX(X + temp_x), temp_y + 1 + i, color);
-    for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y, color);
-    for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y + 6, color);
-    drawPixelXY(getClockX(X + temp_x + 4), temp_y + 5, color);
-    drawPixelXY(getClockX(X + temp_x + 4), temp_y + 1, color);
+    if (isFarenheit) {
+      for(uint8_t i=0; i<7; i++) drawPixelXY(getClockX(X + temp_x), temp_y + i, color);
+      for(uint8_t i=0; i<4; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y + 6, color);
+      for(uint8_t i=0; i<2; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y + 3, color);
+    } else {
+      for(uint8_t i=0; i<5; i++) drawPixelXY(getClockX(X + temp_x), temp_y + 1 + i, color);
+      for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y, color);
+      for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + 1 + i), temp_y + 6, color);
+      drawPixelXY(getClockX(X + temp_x + 4), temp_y + 5, color);
+      drawPixelXY(getClockX(X + temp_x + 4), temp_y + 1, color);
+    }
 
     // Знак градусов; если ширина <= 24 - пробела между градусом и С нет
-    if (!(useTemperatureColor || isNightClock))color = clockLED[0]; 
+    if (!(useTemperatureColor || isNightClock)) color = clockLED[0]; 
     temp_x -= (pWIDTH <= 24 ? 3 : 4);
     drawPixelXY(getClockX(X + temp_x),   temp_y + 5, color);
     drawPixelXY(getClockX(X + temp_x),   temp_y + 4, color);
@@ -687,11 +580,12 @@ void drawTemperature([[maybe_unused]] int8_t X) {
     }
 
     // Если температура не нулевая - рисуем знак '+' или '-'
-    if (t != 0) {
+    if (th != 0) {
       if (!(useTemperatureColor || isNightClock))color = clockLED[2]; 
-      temp_x -= 3;
+      temp_x -= (dec_t == 1 ? 3 : 4);
+      if (temp_x < 0) temp_x = 0;
       for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + i), temp_y + 3, color);
-      if (temperature > 0) {
+      if (th > 0) {
         for(uint8_t i=0; i<3; i++) drawPixelXY(getClockX(X + temp_x + 1), temp_y + 2 + i, color);
       }
     }
@@ -871,9 +765,16 @@ void drawCalendar(uint8_t aday, uint8_t amnth, int16_t ayear, bool dots, int8_t 
 }
 
 void clockRoutine() {
+  
   if (loadingFlag) {
+    
     loadingFlag = false;
     // modeCode = MC_CLOCK;
+    
+    if (!init_time && !isNightClock) {
+      nextMode();
+      return;
+    }
   }
 
   // Очистка экрана. Сама отрисовка часов производится как
@@ -952,7 +853,12 @@ void clockTicker() {
       } else if (!isAlarmStopped && (isPlayAlarmSound || isAlarming)) {
         // Сработал будильник (звук) - плавное мерцание текущего времени      
         if (halfSec) {
-          display->encodeClock(hour(), minute(), currDisplay);   // display->displayClock(hour(),minute());
+          uint8_t hh = hour();
+          if (time_h12) {
+            if (hh > 12) hh -= 12;
+            if (hh == 0) hh = 12;
+          }
+          display->encodeClock(hh, minute(), currDisplay);   // display->displayClock(hour(),minute());
         }
         if (millis() - fade_time > 65) {
           fade_time = millis();
@@ -969,19 +875,20 @@ void clockTicker() {
       } else {
         // Время получено - отображать часы:минуты  
         #if (USE_WEATHER == 1)
-        if (((useWeather > 0)) && weather_ok && (((second() + 10) % 30) >= 28)) {
-          uint8_t t = abs(temperature);
+        if (useWeather > 0 && init_weather && weather_ok && (((second() + 10) % 30) >= 28)) {
+          int8_t  th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
+          uint8_t t = abs(th);
           uint8_t atH = t / 10;
           uint8_t atL = t % 10;
           currDotState = false;   // display->point(false);
           if (atH == 0) {            
-            currDisplay[0] = _empty;  // display->displayByte(_empty, (temperature >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
-            currDisplay[1] = (temperature >= 0) ? _empty : _dash;
+            currDisplay[0] = _empty;  // display->displayByte(_empty, (th >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
+            currDisplay[1] = (th >= 0) ? _empty : _dash;
             currDisplay[2] = display->encodeDigit(atL);
             currDisplay[3] = _degree;
           }
           else {            
-            currDisplay[0] = (temperature >= 0) ? _empty : _dash;  // display->displayByte((temperature >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
+            currDisplay[0] = (th >= 0) ? _empty : _dash;  // display->displayByte((th >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
             currDisplay[1] = display->encodeDigit(atH);
             currDisplay[2] = display->encodeDigit(atL);
             currDisplay[3] = _degree;
@@ -989,7 +896,12 @@ void clockTicker() {
         } else 
         #endif
         {
-          display->encodeClock(hour(), minute(), currDisplay);   // display->displayClock(hour(),minute());   
+          uint8_t hh = hour();
+          if (time_h12) {
+            if (hh > 12) hh -= 12;
+            if (hh == 0) hh = 12;
+          }
+          display->encodeClock(hh, minute(), currDisplay);   // display->displayClock(hour(),minute());   
           // Отображение часов - разделительное двоеточие...
           if (halfSec) currDotState = dotFlag;  // display->point(dotFlag);
         }
@@ -1098,12 +1010,12 @@ void calculateDawnTime() {
   dawnWeekDay = 0;
   if (!init_time || alarmWeekDay == 0) return;       // Время инициализировано? Хотя бы на один день будильник включен?
 
-  int8_t alrmWeekDay = weekday()-1;                  // day of the week, Sunday is day 0   
+  int8_t alrmWeekDay = weekday();                    // day of the week, Sunday is day 0   
   if (alrmWeekDay == 0) alrmWeekDay = 7;             // Sunday is day 7, Monday is day 1;
 
   uint8_t h = hour();
   uint8_t m = minute();
-  uint8_t w = weekday()-1;
+  uint8_t w = weekday();
   if (w == 0) w = 7;
 
   uint8_t cnt = 0;
@@ -1161,7 +1073,7 @@ void checkAlarmTime() {
 
   uint8_t h = hour();
   uint8_t m = minute();
-  uint8_t w = weekday()-1;
+  uint8_t w = weekday();
   if (w == 0) w = 7;
 
   // Будильник включен?
@@ -1208,7 +1120,7 @@ void checkAlarmTime() {
          #if (USE_MP3 == 1)
          if (useAlarmSound) PlayDawnSound();
          #endif
-         DEBUGLN(String(F("Рассвет ВКЛ в ")) + padNum(h,2) + ":" + padNum(m,2));
+         DEBUG(F("Рассвет ВКЛ в ")); DEBUG(padNum(h,2)); DEBUG(":"); DEBUGLN(padNum(m,2));
 
          doc.clear();
          doc["act"]   = F("ALARM");
@@ -1223,11 +1135,12 @@ void checkAlarmTime() {
        }
     }
     
-    delay(0); // Для предотвращения ESP8266 Watchdog Timer
+    yield();
     
     // При наступлении времени срабатывания будильника, если он еще не выключен пользователем - запустить режим часов и звук будильника
     if (alrmWeekDay == w && alrmHour == h && alrmMinute == m && isAlarming) {
-      DEBUGLN(String(F("Рассвет Авто-ВЫКЛ в ")) + padNum(h,2) + ":" + padNum(m,2));
+      DEBUG(F("Рассвет Авто-ВЫКЛ в ")); DEBUG(padNum(h,2)); DEBUG(":"); DEBUGLN(padNum(m,2));
+
       set_isAlarming(false);
       set_isAlarmStopped(false);
       set_isPlayAlarmSound(true);
@@ -1255,7 +1168,7 @@ void checkAlarmTime() {
       SendWeb(out, TOPIC_ALM);
     }
 
-    delay(0); // Для предотвращения ESP8266 Watchdog Timer
+    yield();
 
     // Если рассвет начинался и остановлен пользователем и время начала рассвета уже прошло - сбросить флаги, подготовив их к следующему циклу
     if (isAlarmStopped && ((w * 1000L + h * 60L + m) > (alrmWeekDay * 1000L + alrmHour * 60L + alrmMinute + alarmDuration))) {
@@ -1275,8 +1188,8 @@ void checkAlarmTime() {
       currDisplayBrightness = 7; // display->setBrightness(7);
     }
     #endif
-    DEBUGLN(String(F("Будильник Авто-ВЫКЛ в ")) + padNum(h,2)+ ":" + padNum(m,2));
-    
+    DEBUG(F("Будильник Авто-ВЫКЛ в ")); DEBUG(padNum(h,2)); DEBUG(":"); DEBUGLN(padNum(m,2));
+
     alarmSoundTimer.stopTimer();
     set_isPlayAlarmSound(false);
     StopSound(1000);   
@@ -1318,7 +1231,7 @@ void checkAlarmTime() {
     SendWeb(out, TOPIC_ALM);
   }
 
-  delay(0); // Для предотвращения ESP8266 Watchdog Timer
+  yield();
 
   #if (USE_MP3 == 1)
   // Плавное изменение громкости будильника
@@ -1345,7 +1258,7 @@ void checkAlarmTime() {
   }
   #endif
     
-  delay(0); // Для предотвращения ESP8266 Watchdog Timer    
+  yield();
 }
 
 void stopAlarm() {
@@ -1387,7 +1300,7 @@ void stopAlarm() {
     } else {
        setEffect(saveMode);
     }
-    delay(0);    
+    yield();
 
     doc.clear();
     doc["act"]   = F("ALARM");
@@ -1397,6 +1310,16 @@ void stopAlarm() {
     String out;
     serializeJson(doc, out);      
     doc.clear();
+
+    // Если идет прием вещания и был рассвет / будильник - картинка будильника рисуется в приоритете.
+    // После остановки будильника восстанавливается вывод картинки вещания, которая по размеру может быть 
+    // меньше чем целая матрица. Чтобы остатки картинки будильника стереть с экрана - очистить матрицу
+    
+    #if (USE_E131 == 1)
+    if (workMode == SLAVE && streaming) {
+      FastLED.clear();
+    }
+    #endif
     
     SendWeb(out, TOPIC_ALM);
   }
@@ -1656,7 +1579,7 @@ void SetAutoMode(uint8_t amode) {
 
     // Ночные часы
     text += F("ночные часы");
-    setSpecialMode(8);
+    setSpecialMode(3);
     
   } else {
     
@@ -1679,6 +1602,10 @@ void SetAutoMode(uint8_t amode) {
     // Включить указанный режим из списка доступных эффектов без дальнейшей смены
     // Значение ef может быть 0..N-1 - указанный режим из списка EFFECT_LIST (приведенное к индексу с 0)      
     setEffect(ef);
+
+    if (manualMode) {
+      putCurrentManualMode(ef);
+    }
   }
 
   if (!no_action) {
@@ -1843,11 +1770,4 @@ uint32_t getNightClockColorByIndex(uint8_t idx) {
     case 6: color = nightClockBrightness << 16 | nightClockBrightness << 8 | nightClockBrightness; break;  // White
   }  
   return color;
-}
-
-void printNtpServerName() {
-  DEBUG(F("NTP-сервер "));
-  DEBUG(ntpServerName);
-  DEBUG(F(" -> "));
-  DEBUGLN(timeServerIP);
 }

@@ -53,45 +53,68 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len, AsyncWebSocket
     String event(doc["e"].as<const char*>());
     String command(doc["d"].as<const char*>()); 
     
-    if (event == "cmd" && command.length() > 0) {  
+    if (event == "cmd" && command.length() > 0) {        
       // В одном сообщении может быть несколько команд. Каждая команда начинается с '$' и заканчивается ';'/ Пробелы между ';' и '$' НЕ допускаются.
       command.replace("\n", "~");
       command.replace(";$", "\n");
       uint32_t count = CountTokens(command, '\n');
+      String cmd; cmd.reserve(IN_CMD_SIZE);
 
       for (uint8_t i = 1; i <= count; i++) {
-        String cmd(GetToken(command, i, '\n'));
+        
+        cmd = GetToken(command, i, '\n');
         cmd.replace('~', '\n');
         cmd.trim();
         
         // После разделения команд во 2 и далее строке '$' (начало команды) удален - восстановить
-        if (!cmd.startsWith(F("$"))) {
+        if (cmd.charAt(0) != '$') {
           cmd = '$' + cmd;
         }
         // После разделения команд во 2 и далее строке ';' (конец команды) удален - восстановить
         // Команда '$6 ' не может быть в пакете и признак ';' (конец команды) не используется - не восстанавливать
-        if (!cmd.endsWith(";") && !cmd.startsWith(F("$6 "))) {
+        if (!cmd.endsWith(";") && cmd.charAt(1) != '6') {
           cmd += ';';
         }        
         if (cmd.length() > 0) {
-          if (queueLength < QSIZE_IN) {
-            queueLength++;
-            cmdQueue[queueWriteIdx++] = cmd;
-            if (queueWriteIdx >= QSIZE_IN) queueWriteIdx = 0;
+          // Команду запроса параметров '$6 7|' в очередь не помещать.
+          // Сразу по приходу - разабрать ключи и поместить изх в список запрошенных ключей 
+          if (cmd.startsWith("$6 7|")) {
+            // "$6 7|FM|UP" - эта команда используется в качестве ping, посылается каждые 2-3 секунда, ее выводить не нужно, чтобы не забивать вывод в лог
+            if (cmd != "$6 7|FM|UP") {          
+              DEBUG(F("WEB пакeт размером "));
+              DEBUGLN(cmd.length());          
+              DEBUG(F("<-- "));
+              DEBUGLN(cmd);          
+              // При поступлении каждой команды вывести в консоль информацию о свободной памяти
+              printMemoryInfo();
+            }
+            // Добавить ключи в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
+            cmd.replace("$6 7|",""); 
+            cmd.replace(' ','|');
+            int16_t pos_start = 0;
+            int16_t pos_end = cmd.indexOf('|', pos_start);
+            int16_t len = cmd.length();
+            String key; key.reserve(6);
+            if (pos_end < 0) pos_end = len;
+            while (pos_start < len && pos_end >= pos_start) {
+              if (pos_end > pos_start) {      
+                key = cmd.substring(pos_start, pos_end);
+                if (key.length() > 0) addKeyToChanged(key);
+              }
+              pos_start = pos_end + 1;
+              pos_end = cmd.indexOf('|', pos_start);
+              if (pos_end < 0) pos_end = len;
+            }          
           } else {
-            DEBUG(F("Переполнение очереди входящих команд - "));
-            DEBUGLN(QSIZE_IN);
-            DEBUG(F("Free: "));
-            DEBUG(ESP.getFreeHeap());
-            DEBUG(F(" Max: "));
-            #if defined(ESP8266)
-            DEBUG(ESP.getMaxFreeBlockSize());
-            DEBUG(F("  Frag: "));
-            DEBUG(ESP.getHeapFragmentation());
-            #else
-            DEBUG(ESP.getMaxAllocHeap());        
-            #endif     
-            DEBUGLN();                   
+            // Поместить пришедшую команду в очередь обработки
+            if (queueLength < QSIZE_IN) {
+              queueLength++;
+              cmdQueue[queueWriteIdx++] = cmd;
+              if (queueWriteIdx >= QSIZE_IN) queueWriteIdx = 0;
+            } else {
+              DEBUG(F("Переполнение очереди входящих команд - ")); DEBUG(QSIZE_IN); DEBUG(F("; ")); DEBUGLN(cmd);
+              printMemoryInfo();
+            }
           }
         }
       }    
@@ -105,11 +128,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_CONNECT:
       web_client_count++;
       last_web_client_id = client->id();
-      Serial.printf("WebSocket клиент #%u с адреса %s\n", last_web_client_id, client->remoteIP().toString().c_str());
+      Serial.printf(PSTR("WebSocket клиент #%u с адреса %s\n"), last_web_client_id, client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
       web_client_count--;
-      Serial.printf("WebSocket клиент #%u отключен\n", client->id());
+      Serial.printf(PSTR("WebSocket клиент #%u отключен\n"), client->id());
       break;
     case WS_EVT_DATA:
       handleWebSocketMessage(arg, data, len, client);
@@ -127,50 +150,11 @@ void initWebSocket() {
   server.addHandler(&ws);
 }
 
-/**
- * @brief подготовить и отправить сообщение активным вебсокет-клиентам
- * 
- * @param message - строка с телом сообщения
- * @param topic - топик
- */
-void prepareAndSendMessage(const String& message, const String& topic) {
-  // здесь создаётся вложенный сериализованный джейсон-объект, некрасиво, но так работает бэкэнд 
-  doc.clear();
-  doc["e"] = topic.c_str();    // т.к. объект короткоживущий - создаем через указатель
-  doc["d"] = message.c_str();
-
-  wsSrvSendAll(&ws, doc);  
-  doc.clear();
-}
-
-void putOutQueueW(const String& topic, const String& message) {
-  
-  // Если нет подключенных клиентов - ничего никому отправлять не нужно
-  if (web_client_count == 0) {
-    outWQueueReadIdx = 0;
-    outWQueueWriteIdx = 0;
-    outWQueueLength = 0;
-    return;
-  }  
-
-  // Помещаем сообщение в очередь отправки
-  if (outWQueueLength < QSIZE_OUT) {    
-    outWQueueLength++;
-    outWQueue[outWQueueWriteIdx] = message;
-    tpcWQueue[outWQueueWriteIdx] = topic;
-    outWQueueWriteIdx++;
-    if (outWQueueWriteIdx >= QSIZE_OUT) outWQueueWriteIdx = 0;
-  } else {
-    DEBUG(F("Переполнение очереди исходящих команд - "));
-    DEBUGLN(QSIZE_OUT);
-  }
-}
-
 void SendWeb(const String& message, const String& topic) {
   if (web_client_count < 0) web_client_count = 0;
   if (web_client_count == 0) return;
 
-  putOutQueueW(topic, message);
+  prepareAndSendMessage(message, topic);
 }
 
 void SendWebError(const String& message) {
@@ -183,106 +167,57 @@ void SendWebInfo(const String& message) {
 
 void SendWebKey(const String& key, const String& value) {
   String topic(TOPIC_STT);
-
-  doc.clear();
-  doc[key] = value;
-
   String out;
-  serializeJson(doc, out);      
-  doc.clear();
-  
+
   // Если key - ключ с возможно большим значением - отправлять как готовый json-объект
   // Если key - обычный ключ - удалить начальную и конечную фигурные скобки - тогда это будет
   // просто составная часть для накопительного объекта json
-  if (!isBigSizeKey(key)) {
-    out = out.substring(1, out.length() - 1);  
-    SendWeb(out, topic);  
-  } else {
-    bool canWrite = ws.availableForWriteAll(); 
-    if (canWrite) {
-      prepareAndSendMessage(out, topic);
-    } else {
-      SendWeb(out, topic);
-    }
+  uint16_t max_part_len = MAX_BUFFER_SIZE - 49;                    // <-- ??? должно пыть нечетным, иначе почему-то substring(0,max_part_len) рвет UTF8 строку посреди символа и 1-я часть строки в конце получает "обрубок"
+                                                                   //         с нераспознаваемым символом на конце, вторая часть - "обрубок" с нераспазноваемым символом в начале. Потом такая строка упаковывается в JSON 
+                                                                   //         принимая которую WebSocket говорит что фрейм не может быть распознан как UTF8 текст и рвет соединение Web-сокета,
+                                                                   //         что в логе браузера - постоянные "клиент был отключен" и все новые и новые попытки переподключения 
+  // Топик сообщения - основной топик плюс ключ (имя параметра)
+  if (value.length() <= max_part_len) {
+    // Значение все целиком влазит в буфер - отправляем за раз всю строку
+    doc.clear();  
+    doc[key] = value;
+    serializeJson(doc, out);      
+    doc.clear();
+    prepareAndSendMessage(out, topic);
+  } else {          
+    // Значение не влазит в буфер отправки - отправляем частями
+    // Первая часть в начале имеет фразу `!`, следуюшие части кроме последней начинаются с "`>`", последняя часть - `#`
+    bool first = true;
+    String str(value);
+    String tmp; tmp.reserve(max_part_len + 6);
+    while (true) {
+      if (str.length() <= max_part_len) {
+        tmp = "`#`"; tmp += str;                      // `#` - признак окончания незавершенной строки
+        doc.clear();  
+        doc[key] = tmp;        
+        serializeJson(doc, out);      
+        doc.clear();
+        prepareAndSendMessage(out, topic);
+        out.clear();        
+        break;
+      } else {
+        tmp = (first ? "`!`" : "`>`");                // '`!`' - признак начала незавершенной строки
+        tmp += str.substring(0, max_part_len);        // '`>`' - признак продолжения незавершенной строки
+        doc.clear();
+        doc[key] = tmp;
+        serializeJson(doc, out); 
+        doc.clear();   
+        prepareAndSendMessage(out, topic);
+        out.clear();  
+        str = str.substring(max_part_len);
+        first = false;
+      }
+    }  
   }
 }
 
 bool isClosed = false;
 
-// Отправка сообщений из очереди в Web-сокет
-void processOutQueueW() {
-
-  long interval = millis() - lastWebSend;
-  if (interval < 250) return;
-
-  String outMessage;
-    
-  // Пока есть сообщения в очереди и WebSocket способен их отправлять (не заполнена внутренняя очередь сокета)
-  // выполнить отправку накопившихся сообшщений из очереди
-  while (outWQueueLength > 0 && web_client_count > 0) {
-    
-    bool canWrite = ws.availableForWriteAll();      
-    if (!canWrite) {
-      if (!isClosed) {        
-        DEBUGLN(DELIM_LINE);                                              // !!!
-        DEBUGLN(F("Запись в сокет недоступна!"));                         // !!!
-        DEBUG(F("Клиентов подключено: "));                                // !!!
-        DEBUGLN( ws.count());                                             // !!!
-        DEBUGLN(F("Перезапуск сокета..."));                               // !!!
-        int8_t cnt = 0;
-        while (ws.count() > 0 && cnt < 100) {
-          ws.cleanupClients(0);
-          delay(10);
-          cnt++;
-        }
-        DEBUG(F("Клиентов подключено: ")); // !!!
-        DEBUGLN(ws.count());               // !!!
-        isClosed = true;        
-      }
-      break;
-    }
-    
-    isClosed = false;
-    
-    // Cодержимое отправляемого сообщения
-    String message(outWQueue[outWQueueReadIdx]);
-    String topic(tpcWQueue[outWQueueReadIdx]);
-
-    if (message.length() > 0) {
-      // Если message начинается с '{' - это готовое сообщение для отправки клиентам, только обернуть в конверт
-      // Если message НЕ начинается с '{' - это строка часть JSON-объекта пара ключ-значение
-      if (message[0] == '{') {
-        // {"act":"TIME","server_name":"ru.pool.ntp.org","server_ip":"85.21.78.23","result":"REQUEST"}
-        // {FM":"9008"}
-        // Такие сообщения могут быть а в любом топике
-        prepareAndSendMessage(message, topic);
-        lastWebSend = millis();  
-      } else {
-        // "FM":"9008" -- выделить значение ключа
-        // Такие сообщения могут быть только в топике TOPIC_STT
-        outMessage += message + ',';
-      }
-    }
-    
-    // Очищаем строку в очереди
-    outWQueue[outWQueueReadIdx].clear();  
-    tpcWQueue[outWQueueReadIdx].clear();
-    outWQueueReadIdx++;
-    
-    if (outWQueueReadIdx >= QSIZE_OUT) outWQueueReadIdx = 0;
-    outWQueueLength--;  
-  }
-
-  if (outMessage.length() > 0) {
-    // Были добавлены ключи-значения в накопительный объект -
-    // сформировать сообщение и отправить клиентам
-    outMessage = '{' + outMessage.substring(0, outMessage.length() - 1) + '}';
-    // Такие сообщения могут быть а в любом топике
-    prepareAndSendMessage(outMessage, TOPIC_STT);
-    lastWebSend = millis();  
-  }
-  
-}
 
 bool checkWebDirectory() {
 
@@ -294,7 +229,7 @@ bool checkWebDirectory() {
   if (LittleFS.exists(directoryName)) {    
     DEBUGLN(F("' обнаружена."));
   } else {
-    DEBUGLN(F("' не обнаружена."));
+    DEBUGLN(F("' не обнаружена.\n"));
     return false;
   }
   
@@ -305,6 +240,7 @@ bool checkWebDirectory() {
   if (p >= 0) dir_name = dir_name.substring(p + 1);
 
   checkWebSubDir(1, directoryName, dir_name);  
+  DEBUGLN();
 
   return true;
 }
@@ -313,6 +249,9 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
   
   uint32_t file_size;
   uint8_t  lvl;
+  String file_name; file_name.reserve(25);
+  String fs;        fs.reserve(10);
+  String sp;        sp.reserve(60);
 
   DEBUG(padRight(" ", level * 3)); DEBUG('['); DEBUG(dir_name); DEBUGLN(']');
   
@@ -327,37 +266,50 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
     #if defined(ESP32)
       File entry = folder.openNextFile();
       if (!entry) break;
-      String file_name(entry.name());
+      file_name = entry.name();
       // Полученное имя файла содержит имя папки (на ESP32 это так, на ESP8266 - только имя файла) - оставить только имя файла
       int16_t p = file_name.lastIndexOf("/");
       if (p >= 0) file_name = file_name.substring(p + 1);
     #else        
       if (!folder.next()) break;
       File entry = folder.openFile("r");
-      String file_name(entry.name());
+      file_name = entry.name();
     #endif
 
     if (!entry.isDirectory()) {
             
       file_size = entry.size();
-      String fs(file_size);
-      
-      if (file_size == 0) {
-        entry.close();
-        continue;    
-      }
-
-      String sp(padRight(" ", (level + 1) * 3)); sp += padRight(file_name, 26);
+      fs = file_size;
+      sp = padRight(" ", (level + 1) * 3); sp += padRight(file_name, 26);
       DEBUG(padRight(sp, 40));      
       DEBUGLN(padLeft(fs, 8));
       
     } else {
       lvl = level + 1;
       String str(full_dir_name); str += '/'; str += file_name;
-      checkWebSubDir(lvl, str, file_name);
+      if (file_name != "txt") { 
+        checkWebSubDir(lvl, str, file_name);
+      }
     }
     entry.close();
   }
+}
+
+/**
+ * @brief подготовить и отправить сообщение активным вебсокет-клиентам
+ * 
+ * @param message - строка с телом сообщения
+ * @param topic - топик
+ */
+void prepareAndSendMessage(const String& message, const String& topic) {
+
+  // здесь создаётся вложенный сериализованный джейсон-объект, некрасиво, но так работает бэкэнд 
+  doc.clear();
+  doc["e"] = topic.c_str();    // т.к. объект короткоживущий - создаем через указатель
+  doc["d"] = message.c_str();
+
+  wsSrvSendAll(&ws, doc);  
+  doc.clear();
 }
 
 /**
@@ -369,7 +321,7 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
  * @param data - json object to send
  */
 void wsSrvSendAll(AsyncWebSocket *ws, const JsonVariantConst& data){
-
+  
   if (!ws->count()) return;   // no client connected, nowhere to send
 
   size_t length = measureJson(data);
@@ -380,6 +332,11 @@ void wsSrvSendAll(AsyncWebSocket *ws, const JsonVariantConst& data){
     return;    // not enough mem to send data
   }
   
-  serializeJson(data, reinterpret_cast<char*>(buffer->get()), length);
+  #ifndef YUBOXMOD                                                                                                                                              
+    serializeJson(data, (char*)buffer->get(), length);                                                                                                        
+  #else                                                                                                                                                         
+    serializeJson(data, (char*)buffer->data(), length);                                                                                                       
+  #endif  
+  
   ws->textAll(buffer);
 }

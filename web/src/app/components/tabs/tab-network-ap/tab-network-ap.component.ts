@@ -5,7 +5,7 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty} from "../../../services/helper";
+import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, lengthValidator, validateCharacters} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -37,7 +37,7 @@ export class TabNetworkApComponent implements OnInit, OnDestroy {
   createAccessPoint = false;
 
   apFormControl = new FormControl('', [Validators.required]);
-  passAPFormControl = new FormControl('', [Validators.required]);
+  passAPFormControl = new FormControl('', [Validators.required, lengthValidator(8, 16), validateCharacters(this.L.$('Недопустимые символы'))]);
 
   matcher = new AppErrorStateMatcher();
 

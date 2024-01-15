@@ -40,6 +40,11 @@
             {{ L.$('Длина пароля от 8 до 64 символов!') }}
           </mat-error>
         }
+        @if (passwordFormControl.hasError('invalidChars')) {
+          <mat-error>
+            {{ L.$('Недопустимые символы') }}
+          </mat-error>
+        }
       </mat-form-field>
     </div>
 

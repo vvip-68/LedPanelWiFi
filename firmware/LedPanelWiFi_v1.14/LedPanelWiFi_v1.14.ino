@@ -1,23 +1,43 @@
 // Гайд по постройке матрицы: https://alexgyver.ru/matrix_guide/
 // Страница проекта на GitHub: https://github.com/vvip-68/LedPanelWiFi
 // Автор идеи, начальный проект - GyverMatrixBT: AlexGyver Technologies, 2019 (https://alexgyver.ru/gyvermatrixbt/)
-// Дальнейшее развитие: vvip-68, 2019-2023
+// Дальнейшее развитие: vvip-68, 2019-2024
 //
 // Дополнительные ссылки для Менеджера плат ESP8266 и ESP32 в Файл -> Настройки
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14a.2023.1218")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0114")
 
-// --------------------------   -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------
 //
 // Внимание!!!
+// Проект разрабатывался и тестировался для плат разработчика на базе 
+//   ESP8266 - 'NodeMCU ESP-12 DevKit v1.0' с CH340, CH341, CP2102, 'Wemos d1 mini' различных вариаций - у них у всех одинаковое назначение пинов
+//   ESP32   - 'ESP32-WROOM-32 DevKit' 30,32,38-pin - у них одинаковое назначение пинов, но возможно не все выведены на гребенку
+//
+// Также микроконтроллер ESP32 представлен на рынке другими наиболее распространенными вариациями ESP32 S2 / S2-mini / S3 / S3-mini / С3 / C3-mini и некоторыми другими
+// Эти микроконтроллеры отличаются от WROOM-32/WROVER-32 назначением и доступностью пинов, которые не совпадают с платами на базе ESP32 DevKit
+// Назначение пинов для перечисленных типов плат бралось отсюда:
+// ESP32         рекомендовано  https://github.com/espressif/arduino-esp32/blob/master/variants/esp32/pins_arduino.h            ESP32 Dev Module, ESP32-WROOM-DA Module, ESP32 Wrover Module   https://aliexpress.ru/item/32864722159.html,     https://aliexpress.ru/item/32836372640.html,  
+// ESP32-S2                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s2/pins_arduino.h          ESP32S2 Dev Module                                             https://aliexpress.ru/item/1005002247116977.html
+// ESP32-S2-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s2_mini/pins_arduino.h    LOLIN S2 Mini                                                  https://aliexpress.ru/item/1005004691697002.html
+// ESP32-S3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s3/pins_arduino.h          ESP32S3 Dev Module                                             https://aliexpress.ru/item/1005005383895711.html
+// ESP32-S3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s3_mini/pins_arduino.h    LOLIN S3 Mini                                                  https://aliexpress.ru/item/1005005449219195.html
+// ESP32-C3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32c3/pins_arduino.h          ESP32С3 Dev Module                                             https://aliexpress.ru/item/1005005653439200.html
+// ESP32-C3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_c3_mini/pins_arduino.h    LOLIN С3 Mini                                                  https://aliexpress.ru/item/1005006109082351.html
+//
+// Проверена и рекомендлвано к использованию ESP32-плата из первой строчки таблицы выше
+// https://aliexpress.ru/item/32959541446.html
+// https://aliexpress.ru/item/32836372640.html
+//
+// Для остальных плат возможно потребуется перепроверка назначения пинов с выяснением какие комбинации работают, а какие нет.
+//
 // Рабочие комбинации версий ядра и библиотек:
 //
-// Версия FastLED      - 3.6.0  // с 3.5.0 также работает
+// Версия FastLED      - 3.6.0  // 3.4, 3.5, 3.6 - смотри комментарий ниже в секции FastLED
 // Версия ядра ESP8266 - 3.1.2
-// Версия ядра ESP32   - 2.0.14 // Возможна установка 1.0.6; 
-//                              // На версиях 2.x.x (кроме 2.0.14) скетчи может не собираться совсем или собирается, но
+// Версия ядра ESP32   - 2.0.14 // На версиях 2.x.x (кроме 2.0.14) скетчи может не собираться совсем или собирается, но
 //                              // нет вывода на матрицу (до 2.0.6) или цифровые артефакты и подергивание эффектов и бегущей строки.
 //
 // -------------------------------------------------------------------------------------------------------
@@ -29,7 +49,7 @@
 //     - для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
 //
-// Для ядра ESP32 v2.0.14 / v1.0.6 
+// Для ядра ESP32 v2.0.14
 //   тип микроконтроллера в меню "Инструменты -> Плата" 
 //     - для большинства контроллеров выбирать "ESP32 Dev Module" 
 //     - для разновидностей ESP32S2 выбирать "ESP32S2 Dev Module" или соответствующее плате значение, содержащее 'S2' 
@@ -38,26 +58,50 @@
 //
 //   для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)";
-//       Если включена поддкржка всех возможностий и компилятор ругается на недостаток памяти - придется отказаться от
+//       Если включена поддержка всех возможностий и компилятор ругается на недостаток памяти - придется отказаться от
 //       возможности обновления "по воздуху" (OTA, Over The Air) и выбрать вариант распределения памяти устройства "Partition scheme: No OTA (2MB APP/2MB SPIFFS)";
 //
-//   Внимание!!! - если на версии ядра 1.0.6 при нажатии кнопки смены эффекта в Web-приложении вы получаете краш программы с сообщением в журнале либо "Stack overflow", либо "Heap corrupted"
-//   перейдите в папку C:\Users\<user>\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\ и далее найдите файлы
-//                     \cores\esp32\main.cpp, \tools\sdk\sdkconfig, \tools\sdk\include\config\sdkconfig.h
-//   В каждом из этих файлов найдите строчку - параметр CONFIG_ARDUINO_LOOP_STACK_SIZE и измените значение по умолчанию 8192 на 16138, пересоберите проект с новым значением параметра     
-// 
-// -------------------------------------------------------------------------------------------------------
+// // -------------------------------------------------------------------------------------------------------
 //
 // Настройки ArduinoIDE 
-//   для Wemos, NodeMCU и ESP32 смотри на скриншотов в корневой папке проекта - settings-wemos.png, settings-nodemcu.png и settings-esp32.png 
+//   для Wemos, NodeMCU и ESP32 смотри на скриншотах в корневой папке проекта - settings-wemos.png, settings-nodemcu.png и settings-esp32.png 
 //
 //   Внимание!!! 
 //     Настройки сборки в меню "Инструменты" для Wemos приведены на указанном скриншоте испробованы и в большинстве случаев работают нормально.           
 //     Однако мне встречались экземпляры, которые при данной настройке даже не запускались - в мониторе порта при старте контроллера только немного мусора.
 //     Для таких плат выберите значение "Flash Mode: DIO". Если не запустится и с ним - выбирайте значение "Flash Mode: DOUT (compatible)"
-//     Если и дальше будут проблемы - понижайте CPU Frequency со 160 MHz до 80 MHz
-//     Пробуйте вариант "Flash frequency" понижать с 80 MHz до 40 MHz или 26 MHz
+//     Если и дальше будут проблемы - пробуйте вариант "Flash frequency" понижать с 80 MHz до 40 MHz
 //     Вероятно с какими-то комбинациями этих настроек контроллер запустится
+//     
+//     Второй момент: польшинство микроконтроллеров нормально работают при установки частоты CPU в 160MHz.
+//     Если на частоте 160MHя не запускается или отсутствует вывод на матрицу - мерцает только самый первый светодиод матрицы
+//     попробуйте один или несколько следующих (магических) вариснтов:
+//       - Снизьте частоту CPU в меню "Интсрументы", "CPU Frequency" до стандартных 80MHz
+//       - В настройках оборудования в a_def_hard.h найдите MAGIC_1 установите его значение в 1
+//       - В настройках оборудования в a_def_hard.h найдите MAGIC_2 установите его значение в 1
+//       - В меню "Интсрументы", "C++ Exceptions" поставьте "Enabled"
+//       - Раскомментируем следующую за этой строкой строку с FASTLED_ALLOW_INTERRUPTS 0 - запрещаем FastLED прерывания, пока она занята отправкой сигнала на матрицу
+//         #define FASTLED_ALLOW_INTERRUPTS 0
+//
+//     Иногда это тоже помогает.  Магия, однако.
+//
+// -------------------------------------------------------------------------------------------------------
+//
+// *** FastLED
+// 
+// Последние эксперименты показали, что наиболее стабильная работа достигается при использовании ядер версии 
+// ESP8266 - 3.1.2, ESP32 - 2.0.14, библиотеки FastLED версии 3.6, 
+// параметр в строке 12 этого файла #define FASTLED_ALLOW_INTERRUPTS 0 закомментирован, то есть не используется
+//
+// Впрочем, похоже, поведение зависит от фаз луны и совокупности прочих настроек в меню "Инструменты", относящимся к параметрам компиляции.
+// Можете поэкспериментировать с включением / отключением параметра FASTLED_ALLOW_INTERRUPTS, а также различными версиями FastLED - 3.4-3.6
+// При одном и том же неизменном коде поведение устройства может меняться, например:
+// - нет осмысленного вывода на матрицу, горит только первый светодиод                                                          FastLED 3.4, FASTLED_ALLOW_INTERRUPTS закомментирован
+// - вывод на матрицу есть, первый светодиод горит нормально, текст покаывается плавно> периодические падения с сообщением 
+//  "Exception 4: Level1Interrupt: Level-1 interrupt as indicated by set level-1 bits in the INTERRUPT register"                FastLED 3.4, FASTLED_ALLOW_INTERRUPTS раскомментирован
+// - вывод на матрицу есть, но первый светодиод все равно горит не в такт основному изображению                                 FastLED 3.5
+// - вывод на матрицу есть, первый светодиод горит нормально, но текст показывается рывками + иногда полное замирание эффектов
+//   и первый светодиод начинает мерцать                                                                                        FastLED 3.5, 3.6, фазы луны
 //
 // -------------------------------------------------------------------------------------------------------
 //
@@ -80,7 +124,7 @@
 // По Datasheet напряжение питания DFPlayer - 4.2 вольта (с допустимым заявленным диапазоном 3.3В..5В), однако при использовании напряжения 
 // 5 вольт или чуть выше - плеер работает нестабильно (зависит от чипа - как повезет).
 //
-// Общая рекомендация - питать всю систему от напряжения 4.8 вольта при необходимости используя подпирающий диод между GND блока питания (матрицы) 
+// Общая рекомендация - питать всю систему от напряжения 4.9 вольта при необходимости используя подпирающий диод между GND блока питания (матрицы) 
 // и пином GND микроконтроллера / DFPlayer`a
 //
 // -------------------------------------------------------------------------------------------------------
@@ -101,7 +145,7 @@
 //
 // В a_hard_def.h найдите параметр TEXT_SHIFT. Это значение - на сколько колонок сдвигать текст за один проход
 // Скорость сдвига строки зависит от скорости вывода картинки на матьрицу. На больших матрицах требуется больше времени на вывод одного кадра
-// Если вам кажется что на максимальной скорости строка все равно движется медленно - укажите параметр TEXT_SHIFT равным 2 мли 3. 
+// Если вам кажется что на максимальной скорости строка все равно движется медленно - укажите параметр TEXT_SHIFT равным 2 или 3. 
 // Тогда каждый сдвиг текста будет выполняться сразу на 2 или три колонки. Текст будет двигаться быстрее, но визуально менее плавно
 //
 // --------------------------------------------------------
@@ -111,7 +155,14 @@
 // Библиотеку ESPAsyncE131 следует обязательно устанавливать из папки проекта. В ней исправлены ошибки стандартной
 // библиотеки (добавлен деструктор и освобождение выделяемых ресурсов), а также добавлен ряд функций, позволяющих
 // осуществлять передачу сформированных пакетов в сеть. Со стандартной версией библиотеки из менеджера библиотек
-// проект не будет компилироваться
+// проект не будет компилироваться. Вещание ведется в Multicast UDP в локальной сети. 
+// В настройках роутера Multicast должен быть разрешен, роутер обладать достаточной пропускной способностью.
+//
+// При недостаточной пропускной способности роутера вывод трансляции может проходить неравномерно, с рывками.
+// Некоторые роутеры (например TPLink Archer C80) имеют кривую реализацию протокола маршрутизации multicast
+// трафика, отдают полученные пакеты в сеть неравномерно. При большом входящем трафике роутер может "зависать", тогда
+// компьютеры в локальной сети будут писать "нет подключения к интернет". Так же на этом роутере наблюдалось полное зависание сети,
+// от 1 до 10 минут или до перезагрузки роутера при внезапном отключении одного из приемников multicat трафика.
 //
 // --------------------------------------------------------
 //
@@ -120,14 +171,14 @@
 // Библиотеку ESPAsyncWebServer владельцам IPhone следует обязательно устанавливать из папки проекта. 
 // В ней в файле WebResponses.cpp в строчках 538, 569 закомментарено добавление заголовка addHeader("Content-Disposition", buf)
 // Точнее перенесено в область if() else - для download=true.
-// Почему-то наличие этого заголовка в айфонах не открывает запрошенную страничку в браузере, а предлагает мохранить
-// загружаемый файл intex.html.gz на диск как обычный download- файл.
+// Почему-то наличие этого заголовка в айфонах не открывает запрошенную страничку в браузере, а предлагает сохранить
+// загружаемый файл intex.html.gz на диск как обычный download-файл.
 //
 // Сама библиотека с хотфиксами взята отсюда: https://github.com/vortigont/ESPAsyncWebServer/tree/hotfixes
 // Но в ней нет переноса addHeader("Content-Disposition", buf) что описано выше
 //
-// Прошивка требует компиляции с выделением места под файловую систему LittleFS, в которой хранятся файлы настроки подключения к сети,
-// файлы резервного копирования настроек, файл карты индексов адресации светодиодов матрицы, файлы Web-интерфейва, а также файлы картинок, 
+// Прошивка требует компиляции с выделением места под файловую систему LittleFS, в которой хранятся в файлах некоторые настроки,
+// файлы резервного копирования, файл карты индексов адресации светодиодов матрицы, файлы Web-интерфейса, а также файлы картинок, 
 // нарисованные пользователем в режиме рисования и используемые в эффекте "Слайды"
 //
 // Для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства выберите вариант:
@@ -143,7 +194,33 @@
 //
 // Некоторые SD-shield требуют напряжения питания 5 вольт, некоторые - 3.3 вольта
 // Если на SD-shield подать напряжение, не соответствующее его характеристикам - файлы с SD карты также будут не видны.
-// При использовании "матрешки" из Wemos d1 mini и соотвествующего ей Shield SD-card рекомендается распсивать ОБА пина питания - и +5В и +3.3В 
+// При использовании "матрешки" из Wemos d1 mini и соотвествующего ей Shield SD-card рекомендается распаивать ОБА пина питания - и +5В и +3.3В 
+//
+// Рекомендуемый к использованию шилд SD-карты: https://aliexpress.ru/item/32578362865.html
+// Он удобно устанавливается "матрешкой" на платы микроконтроллеров
+//   ESP8266 - Wemos d1 mini       - https://aliexpress.ru/item/32630518881.html
+//   ESP32   - Wemos d1 mini esp32 - https://aliexpress.ru/item/32858054775.html
+//
+// --------------------------------------------------------
+//
+// *** OTA - обновление "по воздуху" - Over The Air - без подключения к USB
+//
+// Обычно для обновления по воздуху, требуется, чтобы в меню "Инструменты" - "Flash Size" - была выбрана разметка файловой системы 
+// с выделением места под OTA:
+//   Для микроконтроллеров ESP8266 с 4МБ флэш-памяти рекомендуется вариант "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
+//   Для микроконтроллеров ESP32   с 4МБ флэш-памяти рекомендуется вариант "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)"; 
+//
+// Однако размер прошивки достиг (пред)критического размера, когда при поддержке всех включенных возможностей раздел приложения занимает 99%
+// flash-памяти (смотри сообщения компилятора при провверке скетча). В этом случае прошивка может загрузиться на плату, но при старте не запустится
+// на выполнение, а уйдет в вечный бесконечный цикл перезагрузки.
+//
+// Если такое случилось, для запуски прошивки нужно пойти по одному из следующих путей:
+// - Взять плату с бОльшим размером установленной флэш-памяти - 8MB или 16Ьии указать соответствующий размер в меню "Инструменты" - выбрать значения, соответствующие вашей плате
+// - Отключить поддержку некоторых возможностей, установив в настройках скетча константы USE_XXXX в 0 - поддержка отключена (USE_TP1637, USE_MP3, USE_SD, USE_ANIMATION, INITIALIZE_TEXTS и др.)
+// - Отказаться от обновления по воздуху, выбрав в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства выберите вариант: 
+//     Для микроконтроллеров ESP8266  - перейти на микроконтроллер ESP32
+//     Для микроконтроллеров ESP32    - с 4МБ флэш-памяти рекомендуется вариант "Partition scheme: No OTA (2MB App/2MB SPIFFS)"; 
+//   а также установив в настройках скетча константу USE_OTA в значение 0
 //
 // -------------------------------------------------------------------------------------------------------
 //
@@ -159,6 +236,9 @@
 // Версии (что нового): 
 // -------------------------------------------------------------------------------------------------------
 //
+// v1.14c - много оптимизации по работе с памятью, изменилась карта память EEPROM - выделено место под новые параметры (потребуется перенастройка параметров)
+//          новое: поддержка плат ESP32: S2, S2-mini, S3, S3-mini, C3, C3-mini, 12/24-часовой формат времени, Температура - в Цельсиях или Фаренгейтах
+// v1.14b - много оптимизации по работе с памятью, использование системных функций ядра для синхронизации времени серверами NTP. 
 // v1.14а - попытка оптимизировать работу с памятью. 
 // v1.14  - добавлено управление через Web-интерфейс.
 //          Android-приложения для настройки и управления устройством более несовместимы с этой версией и работать с ней не будут.
@@ -174,8 +254,6 @@
 //           если микроконтроллеру недостаточно оперативной памяти. Проблемы начинаются, когда свободной оперативной памяти остается менее 12-15 килобайт.
 //           Сколько памяти остается свободной - зависит от размера матрицы и включенных функций - MP3 Player, индикатор TM1637, поддержка E131 и т.д.
 //
-//          Управление через UDP канал прошивкой поддерживается, но в настоящий момент нет готового приложения, поддерживающего управления через UDP.
-//          
 //          Изменилась карта распределения хранения настроек в постоянной памяти EEPROM
 //          После сборки и загрузки скомпилированной прошивки 1.14 вам придется заново перенастраивать все эффекты
 //          и прочие настройки программы, в том числе набор текстов бегущей строки. Ввиду несовместимости расположения 
@@ -189,37 +267,16 @@
 
 #include "a_def_hard.h"     // Определение параметров матрицы, пинов подключения и т.п
 #include "a_def_soft.h"     // Определение параметров эффектов, переменных программы и т.п.
+#include "timeProcessor.h"  // Класс менеджмента времени (NTP, работа с временем)
 
 void setup() {
   #if defined(ESP8266)
     ESP.wdtEnable(WDTO_8S);
   #endif
 
-  // allocate heap mem for buffer
-  incomeBuffer = new char[BUF_MAX_SIZE];
-  
-  // Инициализация EEPROM и загрузка начальных значений переменных и параметров
-  EEPROM.begin(EEPROM_MAX);
-  delay(100);
-
-  uint8_t eeprom_id = EEPROMread(0);
-
-  // Загрузть настройки подключения пинов микроконтроллера к устройствам проекта
-  bool isEEPROMInitialized = eeprom_id == EEPROM_OK;
-  if (!isEEPROMInitialized) {
-    clearEEPROM();
-  }
-  
-  bool isWireInitialized = getWiringInitialized() && isEEPROMInitialized;
-  if (!isWireInitialized) {
-    initializeWiring();
-  }
-  loadWiring();
-
-  if (vDEBUG_SERIAL) {
-    Serial.begin(115200);
-    delay(300);
-  }
+  #if defined(ESP8266)
+    WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  #endif
 
   // пинаем генератор случайных чисел
   #if defined(ESP8266) && defined(TRUE_RANDOM)
@@ -230,32 +287,43 @@ void setup() {
   randomSeed(seed);
   random16_set_seed(seed);
 
-  host_name = HOST_NAME;
-  #ifdef DEVICE_ID
-    host_name += '-';
-    host_name += DEVICE_ID;
-  #endif
+  MAX_EFFECT = CountTokens(EFFECT_LIST, ',');
 
+  initializeEEPROM();
+
+  if (vDEBUG_SERIAL) {
+    Serial.begin(115200);
+    delay(300);
+  }
+
+  bool isWireInitialized = getWiringInitialized();
+  if (!(isWireInitialized && isEEPROMInitialized)) {
+    initializeWiring();
+  }
+  loadWiring();
+
+  host_name = HOST_NAME;
+  host_name.replace(' ','_');
+  
   DEBUGLN();
   DEBUGLN(FIRMWARE_VER);
+  DEBUG(F("CRC: "));
   
-  DEBUG(F("Контроллер: '"));
-  DEBUG(MCUType());
-  DEBUGLN("'");
+  DEBUG(F("Контроллер: "));
+  DEBUGLN(MCUTypeEx());
 
-  {  
+  {      
     #if defined(ESP32) && defined(ARDUINO_ESP32_RELEASE)
-      String core_type(F("ESP32"));
+      String core_type = F("ESP32");
       String core_version(ARDUINO_ESP32_RELEASE);
-    #endif  
-    #if defined(ESP8266) && defined(ARDUINO_ESP8266_RELEASE)
-      String core_type(F("ESP8266"));
+    #elif defined(ESP8266) && defined(ARDUINO_ESP8266_RELEASE)
+      String core_type = F("ESP8266");
       String core_version(ARDUINO_ESP8266_RELEASE);
     #endif
     if (core_version.length() > 0) {
-      core_version.replace("_", ".");
       DEBUG(F("Версия ядра: "));
       DEBUG(core_type);
+      core_version.replace("_", ".");
       DEBUG(F(" v"));
       DEBUGLN(core_version);
     }
@@ -268,9 +336,9 @@ void setup() {
     DEBUG(F("FastLED: ")); DEBUG(fv[0]); DEBUG('.');  DEBUG(fv_maj); DEBUG('.'); DEBUG(fv_min);    
     DEBUGLN();
   }
-  
+
   if (!isEEPROMInitialized) {
-    // Сама инициализация выполняется выше по коду. Тут - просто вывод сообщения о событии
+    // Сама инициализация выполняется выше по коду. Тут - просто вывод сообщения о событии? когда уже разрешен вывод в Serial
     DEBUGLN(F("Инициализация EEPROM..."));
   }  
   
@@ -280,30 +348,49 @@ void setup() {
     DEBUG(F("Обновлено до: 0x"));
     DEBUGLN(IntToHex(EEPROM_OK, 2));  
   }
-  DEBUG(F("Host: '"));
-  DEBUG(host_name);  
-  DEBUGLN(F("\'\n\nИнициализация файловой системы... "));
+
+  {
+    String system_name(getSystemName());
+    if (system_name.length() == 0) {
+      system_name = host_name;
+      system_name.replace('_',' ');
+    }
+    
+    DEBUG(F("Host: '"));
+    DEBUG(host_name);  
+    DEBUG(F("\'\nИмя : '"));
+    DEBUG(system_name);
+    DEBUGLN(F("\'\nИнициализация файловой системы... "));
+  }
   
   spiffs_ok = LittleFS.begin();
   if (!spiffs_ok) {
     DEBUGLN(F("Выполняется разметка файловой системы... "));
     LittleFS.format();
-    spiffs_ok = LittleFS.begin();    
+    spiffs_ok = LittleFS.begin();
   }
 
+  PGM_P sUsed  = PSTR("Использовано "); 
+  PGM_P sFrom  = PSTR(" из "); 
+  PGM_P sByte  = PSTR(" байт"); 
+  
+  #if defined(ESP8266)
+  PGM_P sError = PSTR("Ошибка получения сведений о файловой системе."); 
+  #endif
+  
   if (spiffs_ok) {
     #if defined(ESP32)
       spiffs_total_bytes = LittleFS.totalBytes();
       spiffs_used_bytes  = LittleFS.usedBytes();
-      DEBUG(F("Использовано ")); DEBUG(spiffs_used_bytes); DEBUG(F(" из ")); DEBUG(spiffs_total_bytes); DEBUGLN(F(" байт"));
+      DEBUG(sUsed); DEBUG(spiffs_used_bytes); DEBUG(F(sFrom)); DEBUG(spiffs_total_bytes); DEBUGLN(sByte);
     #else
       FSInfo fs_info;
       if (LittleFS.info(fs_info)) {
         spiffs_total_bytes = fs_info.totalBytes;
         spiffs_used_bytes  = fs_info.usedBytes;
-        DEBUG(F("Использовано ")); DEBUG(spiffs_used_bytes); DEBUG(F(" из ")); DEBUG(spiffs_total_bytes); DEBUGLN(F(" байт"));
+        DEBUG(sUsed); DEBUG(spiffs_used_bytes); DEBUG(sFrom); DEBUG(spiffs_total_bytes); DEBUGLN(sByte);
       } else {
-        DEBUGLN(F("Ошибка получения сведений о файловой системе."));
+        DEBUGLN(sError);
     }
     #endif
   } else {
@@ -311,16 +398,62 @@ void setup() {
     DEBUGLN(F("Управление через Web-канал недоступно."));
     DEBUGLN(F("Функционал \"Бегущая строка\" недоступен."));
   }
-  DEBUGLN();
  
   loadSettings();
+
+  FastLED.setBrightness(globalBrightness);
+  if (CURRENT_LIMIT > 0) {
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
+  }
+
+  // Настройки ленты
+  allocateLeds();         // leds =  new CRGB[NUM_LEDS];          
+  allocateOverlay();      // overlayLEDs = new CRGB[OVERLAY_SIZE];
+  DEBUGLN();
+
+  delay(10);
+  
+  if (leds != nullptr) {
+    FastLED.clear(true);
+    FastLED.show();
+  }
+
+  // Настройка кнопки
+  #if (USE_BUTTON  == 1)
+    int8_t pin_btn = getButtonPin();
+    if (pin_btn >= 0) {
+      if (vBUTTON_TYPE == 0)
+        butt = new GButton(pin_btn, LOW_PULL, NORM_OPEN);    // Для сенсорной кнопки
+      else
+        butt = new GButton(pin_btn, HIGH_PULL, NORM_OPEN);   // Для обычной кнопки
+    }
+    if (butt != nullptr) {
+      butt->setStepTimeout(100);
+      butt->setClickTimeout(250);
+      butt->setDebounce(50);
+      butt->tick();
+      butt->resetStates();
+    }
+  #endif
 
   // -----------------------------------------  
   // Вывод основных возможностей: поддержка в прошивке - 
   // включена или выключена + некоторые параметры
   // -----------------------------------------  
 
-  DEBUGLN();
+  PGM_P sDirection = PSTR("  Направление: ");
+  PGM_P sType      = PSTR("  Тип: ");
+  PGM_P sLeftDown  = PSTR("левый нижний"); 
+  PGM_P sLeftUp    = PSTR("левый верхний"); 
+  PGM_P sRightDown = PSTR("правый нижний"); 
+  PGM_P sRightUp   = PSTR("правый верхний"); 
+  PGM_P sToRight   = PSTR("вправо"); 
+  PGM_P sToLeft    = PSTR("влево"); 
+  PGM_P sToUp      = PSTR("вверх"); 
+  PGM_P sToDown    = PSTR("вниз"); 
+  PGM_P sZigzag    = PSTR("зигзаг"); 
+  PGM_P sParallel  = PSTR("параллельная"); 
+  
   DEBUG(F("Матрица: "));
   if (vDEVICE_TYPE == 0) DEBUG(F("труба "));
   if (vDEVICE_TYPE == 1) DEBUG(F("плоская "));
@@ -331,18 +464,18 @@ void setup() {
   } else {
     DEBUGLN(F("Адресация: по подключению"));
     DEBUG(F("  Угол: ")); 
-    if (sCONNECTION_ANGLE == 0) { DEBUGLN(F("левый нижний")); } else
-    if (sCONNECTION_ANGLE == 1) { DEBUGLN(F("левый верхний")); } else
-    if (sCONNECTION_ANGLE == 2) { DEBUGLN(F("правый верхний")); } else
-    if (sCONNECTION_ANGLE == 3) { DEBUGLN(F("правый нижний")); }
-    DEBUG(F("  Направление: "));
-    if (sSTRIP_DIRECTION == 0) { DEBUGLN(F("вправо")); } else
-    if (sSTRIP_DIRECTION == 1) { DEBUGLN(F("вверх")); } else
-    if (sSTRIP_DIRECTION == 2) { DEBUGLN(F("влево")); } else
-    if (sSTRIP_DIRECTION == 3) { DEBUGLN(F("вниз")); } 
-    DEBUG(F("  Тип: "));
-    if (sMATRIX_TYPE == 0) { DEBUGLN(F("зигзаг")); } else
-    if (sMATRIX_TYPE == 1) { DEBUGLN(F("параллельная")); }
+    if (sCONNECTION_ANGLE == 0) { DEBUGLN(sLeftDown); } else
+    if (sCONNECTION_ANGLE == 1) { DEBUGLN(sLeftUp); } else
+    if (sCONNECTION_ANGLE == 2) { DEBUGLN(sRightUp); } else
+    if (sCONNECTION_ANGLE == 3) { DEBUGLN(sRightDown); }
+    DEBUG(sDirection);
+    if (sSTRIP_DIRECTION == 0) { DEBUGLN(sToRight); } else
+    if (sSTRIP_DIRECTION == 1) { DEBUGLN(sToUp); } else
+    if (sSTRIP_DIRECTION == 2) { DEBUGLN(sToLeft); } else
+    if (sSTRIP_DIRECTION == 3) { DEBUGLN(sToDown); } 
+    DEBUG(sType);
+    if (sMATRIX_TYPE == 0) { DEBUGLN(sZigzag); } else
+    if (sMATRIX_TYPE == 1) { DEBUGLN(sParallel); }
     
     if (mWIDTH > 1 || mHEIGHT > 1) {
       DEBUG(F("  Размер сегмента: "));
@@ -350,18 +483,18 @@ void setup() {
       DEBUG(F("Cегменты: "));
       DEBUG(mWIDTH); DEBUG('x'); DEBUGLN(mHEIGHT);
       DEBUG(F("  Угол: ")); 
-      if (mANGLE == 0) { DEBUGLN(F("левый нижний")); } else
-      if (mANGLE == 1) { DEBUGLN(F("левый верхний")); } else
-      if (mANGLE == 2) { DEBUGLN(F("правый верхний")); } else
-      if (mANGLE == 3) { DEBUGLN(F("правый нижний")); }
-      DEBUG(F("  Направление: "));
-      if (mDIRECTION == 0) { DEBUGLN(F("вправо")); } else
-      if (mDIRECTION == 1) { DEBUGLN(F("вверх")); } else
-      if (mDIRECTION == 2) { DEBUGLN(F("влево")); } else
-      if (mDIRECTION == 3) { DEBUGLN(F("вниз")); }
-      DEBUG(F("  Тип: "));
-      if (mTYPE == 0) { DEBUGLN(F("зигзаг")); } else
-      if (mTYPE == 1) { DEBUGLN(F("параллельная")); }
+      if (mANGLE == 0) { DEBUGLN(sLeftDown); } else
+      if (mANGLE == 1) { DEBUGLN(sLeftUp); } else
+      if (mANGLE == 2) { DEBUGLN(sRightUp); } else
+      if (mANGLE == 3) { DEBUGLN(sRightDown); }
+      DEBUG(sDirection);
+      if (mDIRECTION == 0) { DEBUGLN(sToRight); } else
+      if (mDIRECTION == 1) { DEBUGLN(sToUp); } else
+      if (mDIRECTION == 2) { DEBUGLN(sToLeft); } else
+      if (mDIRECTION == 3) { DEBUGLN(sToDown); }
+      DEBUG(sType);
+      if (mTYPE == 0) { DEBUGLN(sZigzag); } else
+      if (mTYPE == 1) { DEBUGLN(sParallel); }
     }
   }
   
@@ -402,7 +535,7 @@ void setup() {
   if (BIG_FONT == 1)
     DEBUGLN(F("10x16"));
 
-  #if (USE_BUTTON  == 1)
+  #if (USE_BUTTON == 1)
     DEBUG(F("+ Кнопка управления: "));
     if (vBUTTON_TYPE == 0) DEBUG(F("сенсорная PIN="));
     if (vBUTTON_TYPE == 1) DEBUG(F("тактовая PIN="));
@@ -467,7 +600,12 @@ void setup() {
     #if defined(ESP8266)
       DEBUGLN(F(", CLK=D5, MISO=D6, MOSI=D7"));
     #else
-      DEBUGLN(F(", CLK=G18, MISO=G19, MOSI=G23"));
+      DEBUG(F(", CLK=G"));
+      DEBUG(SCK);
+      DEBUG(F(", MISO=G"));
+      DEBUG(MISO);
+      DEBUG(F(", MOSI=G"));
+      DEBUGLN(MOSI);
     #endif
   #else
     DEBUGLN();
@@ -480,6 +618,9 @@ void setup() {
   #else
     DEBUGLN();
   #endif
+
+  DEBUG((USE_OTA == 1 ? '+' : '-'));
+  DEBUGLN(F(" Поддержка OTA"));
 
   DEBUGLN();
 
@@ -507,24 +648,17 @@ void setup() {
   // -----------------------------------------
   
   // -----------------------------------------  
-    
-  // Настройки ленты
-  allocateLeds();         // leds =  new CRGB[NUM_LEDS];          
-  allocateOverlay();      // overlayLEDs = new CRGB[OVERLAY_SIZE];
-  DEBUGLN();
 
-  FastLED.setBrightness(globalBrightness);
-  if (CURRENT_LIMIT > 0) {
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT);
-  }
+  #if (USE_BUTTON  == 1)
+    if (butt != nullptr) butt->tick();
+  #endif
 
-  if (leds != nullptr) {
-    FastLED.clear();
-    FastLED.show();
-  }
-
-  // Распечатать список активных эффектов
-  printEffectUsage();
+  // Настраиваем снхронизацию времени
+  TimeProcessor::getInstance().setcustomntp(getNtpServer().c_str());
+  applyTimeZone(TZONE);
+  // Назначаем коллбэк на событие синхронизации времени
+  TimeProcessor::getInstance().attach_callback(ntpGotTimeCB);
+  useNtp ? TimeProcessor::getInstance().enable() : TimeProcessor::getInstance().disable();
   DEBUGLN();
   
   // Создать массив для карты индексов адресации светодиодов в ленте
@@ -536,12 +670,7 @@ void setup() {
   
   // Инициализация SD-карты
   #if (USE_SD == 1)
-    InitializeSD1();
-  #endif
-
-  // Инициализация SD-карты
-  #if (USE_SD == 1)
-    InitializeSD2();
+    InitializeSD();
   #endif
 
   // Проверить наличие резервной копии настроек EEPROM в файловой системе MK и/или на SD-карте
@@ -555,14 +684,6 @@ void setup() {
     DEBUGLN(F("FS://eeprom.bin"));
   }
 
-  // Поиск доступных анимаций
-  initAnimations();
-
-  // Поиск картинок, пригодных для эффекта "Слайды"
-  initialisePictures();
-
-  web_ok = checkWebDirectory();
-   
   #if (USE_POWER == 1)
     if (vPOWER_PIN >= 0) {
       pinMode(vPOWER_PIN, OUTPUT);
@@ -581,10 +702,20 @@ void setup() {
     }
   #endif
 
+  // Распечатать список активных эффектов
+  printEffectUsage();
+
+  #if (USE_ANIMATION == 1)
+    // Поиск доступных анимаций
+    initAnimations();
+    // Поиск картинок, пригодных для эффекта "Слайды"
+    initializePictures();
+  #endif
+   
+
   #if (USE_MP3 == 1)
     // Первый этап инициализации плеера - подключение и основные настройки
     InitializeDfPlayer1();
-    // Второй этап инициализации плеера - проверка наличия файлов звуков на SD карте
     {
       String message(F("MP3 плеер недоступен."));
       if (isDfPlayerOk) {
@@ -597,33 +728,53 @@ void setup() {
       }
     }
   #endif
-     
-  #if defined(ESP8266)
-    WiFi.setSleepMode(WIFI_NONE_SLEEP);
-  #endif
 
-  // Настройка кнопки
-  #if (USE_BUTTON  == 1)
-    int8_t pin_btn = getButtonPin();
-    if (pin_btn >= 0) {
-      if (vBUTTON_TYPE == 0)
-        butt = new GButton(pin_btn, LOW_PULL, NORM_OPEN);    // Для сенсорной кнопки
-      else
-        butt = new GButton(pin_btn, HIGH_PULL, NORM_OPEN);   // Для обычной кнопки
-    }
-    if (butt != nullptr) {
-      butt->setStepTimeout(100);
-      butt->setClickTimeout(300);
-      butt->setDebounce(50);
-      butt->tick();
-      butt->isHolded();
+  // Сформировать список файлов эффектов на SD-карте
+  #if (USE_SD == 1)
+    if (isSdCardExist) {
+      DEBUGLN(F("Поиск файлов эффектов Jinx!.."));    
+      if (sd_card_ok) {
+        loadDirectory();
+        sd_card_ok = countFiles > 0;
+        set_isSdCardReady(sd_card_ok);
+      }    
+      if (!sd_card_ok) {
+        DEBUGLN(F("Эффекты Jinx! на SD-карте не обнаружены"));
+      }
     }
   #endif
 
-  InitializeTexts();
+  // Подготовить тексты бегущей строки
+  InitializeTexts();  
 
-  DEBUG(F("Свободно памяти: "));
-  DEBUGLN(ESP.getFreeHeap());
+  // Проверить и распечатать список файлов для Web-управления
+  web_ok = checkWebDirectory();
+        
+  // В процессе подготовки файлов списков размер свободного места в файловой системе мог значительно уменьшиться
+  if (spiffs_ok) {
+    DEBUGLN(DELIM_LINE);
+    DEBUGLN(F("Файловая система: "));
+    #if defined(ESP32)
+      spiffs_total_bytes = LittleFS.totalBytes();
+      spiffs_used_bytes  = LittleFS.usedBytes();
+      DEBUG(sUsed); DEBUG(spiffs_used_bytes); DEBUG(F(sFrom)); DEBUG(spiffs_total_bytes); DEBUGLN(sByte);
+    #else
+      FSInfo fs_info;
+      if (LittleFS.info(fs_info)) {
+        spiffs_total_bytes = fs_info.totalBytes;
+        spiffs_used_bytes  = fs_info.usedBytes;
+        DEBUG(sUsed); DEBUG(spiffs_used_bytes); DEBUG(sFrom); DEBUG(spiffs_total_bytes); DEBUGLN(sByte);
+      } else {
+        DEBUGLN(sError);
+    }
+    #endif
+    DEBUGLN(DELIM_LINE);
+  }
+
+  PGM_P sMemFree  = PSTR("Свободно памяти: "); 
+  DEBUG(sMemFree);
+  printMemoryInfo();
+  DEBUGLN(DELIM_LINE);
 
   // Подключение к сети
   connectToNetwork();
@@ -644,51 +795,50 @@ void setup() {
     InitializeE131();
   #endif
 
-  // Port defaults to 8266
-  // ArduinoOTA.setPort(8266);
- 
-  // Hostname defaults to esp8266-[ChipID]
-  ArduinoOTA.setHostname(host_name.c_str());
- 
-  // No authentication by default
-  // ArduinoOTA.setPassword((const char *)"123");
- 
-  ArduinoOTA.onStart([]() {
-    String type;
-    if (ArduinoOTA.getCommand() == U_FLASH)
-      type = F("скетча...");
-    else // U_SPIFFS
-      type = F("файловой системы SPIFFS...");
-    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-    DEBUG(F("Начато обновление "));    
-    DEBUGLN(type);    
-  });
-
-  ArduinoOTA.onEnd([]() {
-    DEBUGLN(F("\nОбновление завершено"));
-  });
-
-  ArduinoOTA.onProgress([](uint32_t progress, uint32_t total) {
-    if (vDEBUG_SERIAL) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    }
-  });
-
-  ArduinoOTA.onError([](ota_error_t error) {
-    DEBUG(F("Ошибка: "));
-    DEBUGLN(error);
-    if      (error == OTA_AUTH_ERROR)    { DEBUGLN(F("Неверное имя/пароль сети")); }
-    else if (error == OTA_BEGIN_ERROR)   { DEBUGLN(F("Не удалось запустить обновление")); }
-    else if (error == OTA_CONNECT_ERROR) { DEBUGLN(F("Не удалось установить соединение")); }
-    else if (error == OTA_RECEIVE_ERROR) { DEBUGLN(F("Не удалось получить данные")); }
-    else if (error == OTA_END_ERROR)     { DEBUGLN(F("Ошибка завершения сессии")); }
-  });
-
-  ArduinoOTA.begin();
-
-  // UDP-клиент на указанном порту
-  udp.begin(localPort);
-
+  #if (USE_OTA == 1)
+    ArduinoOTA.setHostname(host_name.c_str());
+   
+    // Заливка скетча по сетевому порту в ArduinoIDE 2.2.1 запрашивает пароль и пустой пароль не принимает.
+    // На текущий момент для Arduino IDE 2.x плагинов для загрузки файловой системы на ESP32 - не существует (на ESP8266 есть)
+    // Заливка скетча по сетевому порту в ArduinoIDE 1.8.19 пароль не обязателен - можно закомментировать. Если указан - спросит
+    // Однако при наличии установленного пароля не выполняется загрузка файловой системы - пароль не спрашивает, просто говорит что ошибка аутентификации.
+    // Без установленного пароля загрузка файловой системы плагинами 'ESP32 LittleFS Data Upload' / 'ESP8266 LittleFS Data Upload' загружается успешно
+    // ArduinoOTA.setPassword((const char *)"12341234");   
+   
+    ArduinoOTA.onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = F("скетча...");
+      else // U_SPIFFS
+        type = F("файловой системы SPIFFS...");
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      DEBUG(F("Начато обновление "));    
+      DEBUGLN(type);    
+    });
+  
+    ArduinoOTA.onEnd([]() {
+      DEBUGLN(F("\nОбновление завершено"));
+    });
+  
+    ArduinoOTA.onProgress([](uint32_t progress, uint32_t total) {
+      if (vDEBUG_SERIAL) {
+        Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      }
+    });
+  
+    ArduinoOTA.onError([](ota_error_t error) {
+      DEBUG(F("Ошибка: "));
+      DEBUGLN(error);
+      if      (error == OTA_AUTH_ERROR)    { DEBUGLN(F("Неверное имя/пароль сети")); }
+      else if (error == OTA_BEGIN_ERROR)   { DEBUGLN(F("Не удалось запустить обновление")); }
+      else if (error == OTA_CONNECT_ERROR) { DEBUGLN(F("Не удалось установить соединение")); }
+      else if (error == OTA_RECEIVE_ERROR) { DEBUGLN(F("Не удалось получить данные")); }
+      else if (error == OTA_END_ERROR)     { DEBUGLN(F("Ошибка завершения сессии")); }
+    });
+  
+    ArduinoOTA.begin();
+  #endif
+  
   // Открываем Web-сокет управления через web-интерфейс
   initWebSocket();
 
@@ -710,11 +860,8 @@ void setup() {
     }
   #endif
 
-  DEBUG(F("Свободно памяти: "));
-  DEBUGLN(ESP.getFreeHeap());
-
-  // Таймер синхронизации часов
-  ntpSyncTimer.setInterval(1000 * 60 * SYNC_TIME_PERIOD);
+  DEBUG(sMemFree);
+  printMemoryInfo();
 
   #if (USE_WEATHER == 1)     
   // Таймер получения погоды
@@ -733,11 +880,11 @@ void setup() {
   // Это позволяет в случае внезапной перезагрузки матрицы (например по wdt), когда был включен спец-режим (например ночные часы или выкл. лампы)
   // снова включить его, а не отображать случайный обычный после включения матрицы
   int8_t spc_mode = getCurrentSpecMode();
-
+ 
   if (spc_mode >= 0 && spc_mode < MAX_SPEC_EFFECT) {
     setSpecialMode(spc_mode);
     set_isTurnedOff(spc_mode == 0);
-    set_isNightClock(spc_mode == 8);
+    set_isNightClock(spc_mode == 3);
   } else {
     set_thisMode(getCurrentManualMode());
     if (thisMode < 0 || thisMode == MC_TEXT || thisMode >= SPECIAL_EFFECTS_START) {
@@ -753,12 +900,35 @@ void setup() {
 }
 
 void loop() {
-  if (wifi_connected) {
-    ArduinoOTA.handle();
+
+  // В случаях, когда требуется программный перезапуск контроллера - выполняется очистка вызовом FastLED.clear(true);
+  // Однако, если сразу после этого вызвать ESP.restart() - FastLED не успевает отправить на матрицу сигнал очистки матрицы
+  // Поэтому там вызывается очистка матрицы и устанавливается флаг необходимости перезапуска, засекается время
+  // Только спустя 1000 мс - когда матрица уже должна очиститься - вызывается перезапуск микроконтроллера
+  if (needRestart) {
+    if (abs((long long)(millis() - needRestartTime)) > 1000) {
+      ESP.restart();
+    }
+    // Перед перезагрузкой - очистить матрицу
+    FastLED.clear();
+    FastLED.show();
+    delay(100);
+    return;
   }
 
+  #if (USE_BUTTON  == 1)
+    if (butt != nullptr) {
+      butt->tick();
+    }
+  #endif
+
+  #if (USE_OTA == 1)
+    if (wifi_connected) {
+      ArduinoOTA.handle();
+    }
+  #endif
+
   ws.cleanupClients();
-  processOutQueueW();
 
   // Если память под светодиоды была временно освобожденя для Web-сервера - рисовать негде. Ничего не делаем, просто ждем
   // пока WebServer закончит отправку файла и освободит память. В это время картинка на матрице "замрет".
@@ -771,7 +941,7 @@ void loop() {
 
   if (leds == nullptr) {
     // Памяти нет, массив не создан - ничего не делаем.
-    delay (10);
+    delay (25);
   } else {  
     // Если память под оверлей была временно освобожденя для Web-сервера - оверлей работать не будет. На матрице будут наблюдаться дефекты,
     // особенно на эффектах, работающих с оверлеем и в бегущей строке. Ждем пока WebServer закончит отправку файла и освободит памятью
@@ -804,14 +974,17 @@ void startWiFi(uint32_t waitTime) {
   set_wifi_connected(false);
   
   delay(10);               // Иначе получаем Core 1 panic'ed (Cache disabled but cached memory region accessed)
+  WiFi.setHostname(host_name.c_str());
   WiFi.mode(WIFI_STA);
  
   // Пытаемся соединиться с роутером в сети
-  if (ssid.length() > 0) {
+  String ssid(getSsid());
+  String pass(getPass());
+  if (ssid.length() > 0 && pass.length() > 0) {
     DEBUG(F("\nПодключение к "));
     DEBUG(ssid);
 
-    if (IP_STA[0] + IP_STA[1] + IP_STA[2] + IP_STA[3] > 0) {
+    if (IP_STA[0] + IP_STA[1] + IP_STA[2] + IP_STA[3] > 0) {      
       WiFi.config(IPAddress(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3]),  // 192.168.0.106
                   IPAddress(IP_STA[0], IP_STA[1], IP_STA[2], GTW),        // 192.168.0.1
                   IPAddress(255, 255, 255, 0),                            // Mask
@@ -825,13 +998,22 @@ void startWiFi(uint32_t waitTime) {
       DEBUG(IP_STA[2]);
       DEBUG('.');
       DEBUG(IP_STA[3]);                  
-    } 
+    } else {
+      WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+      DEBUG(F(" -> DCHP "));
+    }
 
     #if (USE_BUTTON == 1)
-      DEBUG(F("\nДвойное нажатие на кнопку для прерывания подключения\nи переход в режим точки доступа"));
+      DEBUGLN(F("\nНажмите на кнопку для прерывания подключения\nи переход в режим точки доступа"));
     #else
-      DEBUG(F("\nЕсли подключение не будет установлено в течение 3 минут -\nбудет создана точка доступа"));
+      DEBUGLN(F("\nЕсли подключение не будет установлено в течение 3 минут -\nбудет создана точка доступа"));
     #endif
+
+    FastLED.clear();
+    int8_t width = constrain(pWIDTH / 3, 4, 9);
+    int8_t offset_x = (pWIDTH - width) / 2;
+    int8_t y = pHEIGHT / 2;
+    int8_t cnt2 = 0, dir = 1;
     
     WiFi.begin(ssid.c_str(), pass.c_str());
   
@@ -843,9 +1025,16 @@ void startWiFi(uint32_t waitTime) {
     uint32_t start_wifi_check = millis();
     uint32_t last_wifi_check = 0;
     int16_t  cnt = 0;
+    uint8_t  cnt1 = 0;
+    
     while (!(stop_waiting || wifi_connected)) {
-      delay(1);
-      if (millis() - last_wifi_check > 250) {
+      yield();
+      
+      #if (USE_BUTTON  == 1)
+        if (butt != nullptr) butt->tick();
+      #endif      
+      
+      if (millis() - last_wifi_check > 100) {
         last_wifi_check = millis();
         set_wifi_connected(WiFi.status() == WL_CONNECTED); 
         if (wifi_connected) {
@@ -853,14 +1042,32 @@ void startWiFi(uint32_t waitTime) {
           DEBUGLN();
           DEBUG(F("WiFi подключен. IP адрес: "));
           DEBUGLN(WiFi.localIP());
+          if (mdns.begin(host_name)) {
+            DEBUGLN(F("MDNS - запущен"));
+          } else {
+            DEBUGLN(F("MDNS - ошибка запуска"));
+          }
           break;
         }
-        if (cnt % 50 == 0) {
-          DEBUGLN();
+        
+        if (cnt1++ > 3) {
+          cnt1 = 0; cnt++;
+          if (cnt > 0 && (cnt % 50 == 0)) {
+            DEBUGLN();
+          }
+          DEBUG('.');          
         }
-        DEBUG('.');
-        cnt++;
+
+        fadeToBlackBy(leds, NUM_LEDS, 35);
+        drawPixelXY(offset_x + cnt2, y, CRGB::Green);
+        if (dir > 0) {
+          if (cnt2++ >= width) dir = -1;
+        } else {
+          if (cnt2-- < 0) dir = 1;
+        }
+        FastLED.show();
       }
+      
       if (millis() - start_wifi_check > waitTime) {
         // Время ожидания подключения к сети вышло
         break;
@@ -868,18 +1075,13 @@ void startWiFi(uint32_t waitTime) {
       
       // Опрос состояния кнопки
       #if (USE_BUTTON  == 1)
-        delay(1);
-        if (butt != nullptr) {
-          butt->tick();
+        yield();
+        if (butt != nullptr && butt->hasClicks()) {
           if (butt->hasClicks()) {
-            int8_t clicks = butt->getClicks();
-            // Двойной клик прерывает ожидание подключения к локальной сети
-            if (clicks == 2) {
-              DEBUGLN();
-              DEBUGLN(F("Дважды нажата кнопка.\nОжидание подключения к сети WiFi прервано."));  
-              stop_waiting = true;            
-              break;
-            }
+            DEBUGLN();
+            DEBUGLN(F("\nНажата кнопка. Ожидание подключения к сети WiFi прервано."));  
+            stop_waiting = true;            
+            break;
           }
         }
       #endif
@@ -896,20 +1098,23 @@ void startSoftAP() {
   WiFi.softAPdisconnect(true);
   ap_connected = false;
 
+  String apName(getSoftAPName());
+  String apPass(getSoftAPPass());
+
   DEBUG(F("Создание точки доступа "));
   DEBUGLN(apName);
-  
-  ap_connected = WiFi.softAP(apName, apPass);
+
+  ap_connected = WiFi.softAP(apName.c_str(), apPass.c_str());
 
   for (uint8_t j = 0; j < 10; j++ ) {    
-    delay(0);
+    yield();
     if (ap_connected) {
       DEBUGLN();
       DEBUG(F("Точка доступа создана. Сеть: '"));
       DEBUG(apName);
       // Если пароль совпадает с паролем по умолчанию - печатать для информации,
       // если был изменен пользователем - не печатать
-      if (strcmp(apPass, "12341234") == 0) {
+      if (strcmp(apPass.c_str(), "12341234") == 0) {
         DEBUG(F("'. Пароль: '"));
         DEBUG(apPass);
       }
@@ -924,7 +1129,7 @@ void startSoftAP() {
     delay(500);
     
     DEBUG('.');
-    ap_connected = WiFi.softAP(apName, apPass);
+    ap_connected = WiFi.softAP(apName.c_str(), apPass.c_str());
   }  
   DEBUGLN();  
 
@@ -944,10 +1149,22 @@ void connectToNetwork() {
   }
 
   if (useSoftAP && !ap_connected) startSoftAP();    
+}
 
-  // Сообщить UDP порт, на который ожидаются подключения
-  if (wifi_connected || ap_connected) {
-    DEBUG(F("UDP-сервер на порту "));
-    DEBUGLN(localPort);
-  }
+
+/**
+ * @brief NTP time adjustment callback
+ * функция выызывается при синхронизации системного времени по NTP
+ * 
+ */
+void ntpGotTimeCB(){
+
+  // Флаг - время получено
+  init_time = useNtp;
+
+  // Пересчитать / скорректировать время срабатывания будильников
+  calculateDawnTime();      
+
+  // Пересчетать очередь ближайших событий {P} в бегущей строке - выставить флаг о необходимости пересчета
+  needRescanText = true;    
 }

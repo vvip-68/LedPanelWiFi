@@ -1,3 +1,4 @@
+#if (USE_ANIMATION == 1)
 
 const uint16_t mario0[] PROGMEM = {
 0x0000, 0x0000, 0x0000, 0x0000, 0x8000, 0xF800, 0xF800, 0xF800, 0xF800, 0xF820, 0x8000, 0x8000, 0x8000, 0x1040, 0x0000, 0x0000, 
@@ -115,3 +116,5 @@ const animation_t animation_mario PROGMEM = {
    .background_first_color = 0x000000,  // Цвет заливки ВСЕЙ матрицы перед тем, как рисовать самый первый фрейм при активации эффекта анимации
    .background_color = 0x000000         // Цвет заливки ВСЕЙ матрицы перед тем, как рисовать очередной фрейм
 };
+
+#endif

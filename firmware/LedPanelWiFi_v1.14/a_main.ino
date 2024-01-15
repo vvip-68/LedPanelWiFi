@@ -1,4 +1,5 @@
 // ----------------------------------------------------
+#include "timeProcessor.h"
 
 // Контроль времени цикла
 uint32_t last_ms = millis();  
@@ -19,7 +20,7 @@ uint32_t last_sent_screen_sync;
 #endif
 
 // Forward declaration
-String getStateValue(const String& key, int8_t effect, JsonVariant* value = nullptr, bool small = false);
+String getStateValue(const String& key, int8_t effect, bool small = false);
 
 void process() {  
 
@@ -32,28 +33,7 @@ void process() {
   #if (DEBUG_MEM_STP == 1)
     mem_now = ESP.getFreeHeap();
     if (mem_prv > 0) {
-      mem_dff = mem_prv - mem_now;
-      if (mem_dff != 0) {
-        DEBUG(F("alloc: "));
-        DEBUG(mem_prv);
-        DEBUG(F(" - "));
-        DEBUG(mem_now);
-        if (mem_dff > 0)
-          DEBUG(F(" <-- "));
-        else  
-          DEBUG(F(" --> "));
-        DEBUG(abs(mem_prv - mem_now));
-        #if defined(ESP8266)
-        DEBUG(F("  Max: "));
-        DEBUG(ESP.getMaxFreeBlockSize());
-        DEBUG(F("  Frag: "));
-        DEBUG(ESP.getHeapFragmentation());
-        #else
-        DEBUG(F("; Max: "));
-        DEBUGLN(ESP.getMaxAllocHeap());        
-        #endif            
-        DEBUGLN();
-      }
+      printMemoryDiff(mem_prv, mem_now, F("alloc: "));
     }
     mem_prv = mem_now;
   #endif
@@ -77,6 +57,8 @@ void process() {
         commandSetBrightness(globalBrightness);
         commandSetSpecialBrightness(specialBrightness);
         if (syncMode == COMMAND) {
+          // Установить  на клиентах время мастера, текущий цвет рисования, скорости прокрутки текста и часов,
+          // включить на клиентах тот же эффект или спец-режим, что сейчас на мастере
           commandSetCurrentTime(hour(), minute(), second(), day(), month(), year());
           commandSetGlobalColor(globalColor);
           commandSetTextSpeed(textScrollSpeed);
@@ -105,6 +87,16 @@ void process() {
           DEBUGLN(F("Ожидание поступления потока данных E1.31...\n"));
           e131_wait_command = false;
         }
+
+        // Включить специальный режим - эффекты не рисовать, ресурсов не занимать
+        saveSpecialMode = specialMode;
+        saveSpecialModeId = specialModeId;
+        saveMode = thisMode;
+        set_globalColor(0x000000);
+        set_thisMode(MC_FILL_COLOR);
+        setTimersForMode(thisMode);
+        idleTimer.stopTimer();
+                
       }
 
       prevWorkMode = workMode;
@@ -136,6 +128,15 @@ void process() {
       } else {
         DEBUGLN(F("Останов слушателя E1.31 потока"));
         FastLED.setBrightness(getMaxBrightness());
+      }
+
+      // При начале слушания вещания с мастера ресурсы были освобождены, включен режим черного экрана, чтобы память не расходовалась
+      // Сейчас вещание выключено - включаем режим тот, что был до перехода к приему трансляции
+      if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId < SPECIAL_EFFECTS_START) {
+        setSpecialMode(saveSpecialModeId);
+      } else {
+        setManualModeTo(getAutoplay());
+        setEffect(saveMode);
       }
 
       addKeyToChanged("E4");
@@ -170,565 +171,520 @@ void process() {
       setRandomMode(); 
     } else {
       #if (USE_E131 == 1)
-        if (!(e131_streaming && workMode == SLAVE)) {
+        if (!(streaming && workMode == SLAVE)) {
           DEBUG(F("Режим: ")); 
           DEBUG(effect_name);
           #if (DEBUG_MEM_EFF == 1)
-            DEBUG(F(" - Free: "));
-            DEBUG(ESP.getFreeHeap());
-            DEBUG(F(" Max: "));
-            #if defined(ESP8266)
-            DEBUG(ESP.getMaxFreeBlockSize());
-            DEBUG(F("  Frag: "));
-            DEBUG(ESP.getHeapFragmentation());
-            #else
-            DEBUG(ESP.getMaxAllocHeap());        
-            #endif     
+            printMemoryInfo();
           #endif
           DEBUGLN();       
         }
       #else
-        DEBUG(F("Режим: "));
+        DEBUG(F("Режим: ")); 
         DEBUG(effect_name);
         #if (DEBUG_MEM_EFF == 1)
-          DEBUG(F(" - Free: "));
-          DEBUG(ESP.getFreeHeap());
-          DEBUG(F(" Max: "));
-          #if defined(ESP8266)
-          DEBUG(ESP.getMaxFreeBlockSize());
-          DEBUG(F("  Frag: "));
-          DEBUG(ESP.getHeapFragmentation());
-          #else
-          DEBUG(ESP.getMaxAllocHeap());        
-          #endif     
+          printMemoryInfo();
         #endif
         DEBUGLN();       
-      #endif 
+      #endif
       tmpSaveMode = thisMode;    
     }               
   }
 
-  // на время принятия данных матрицу не обновляем!
-  if (!parseStarted) {
+  // Раз в час выполнять пересканирование текстов бегущих строк на наличие события непрерывного отслеживания.
+  // При сканировании события с нечеткими датами (со звездочками) просматриваются не далее чем на сутки вперед
+  // События с более поздним сроком не попадут в отслеживание. Поэтому требуется периодическое перестроение списка.
+  // Сканирование требуется без учета наличия соединения с интернетом и значения флага useNTP - время может быть установлено вручную с телефона
+  if (needRescanText || (init_time && (millis() - textCheckTime > SECS_PER_HOUR * 1000L))) {
+    rescanTextEvents();
+  }
 
-    // Раз в час выполнять пересканирование текстов бегущих строк на наличие события непрерывного отслеживания.
-    // При сканировании события с нечеткими датами (со звездочками) просматриваются не далее чем на сутки вперед
-    // События с более поздним сроком не попадут в отслеживание. Поэтому требуется периодическое перестроение списка.
-    // Сканирование требуется без учета наличия соединения с интернетом и значения флага useNTP - время может быть установлено вручную с телефона
-    if (init_time && (millis() - textCheckTime > SECS_PER_HOUR * 1000L)) {
-      rescanTextEvents();
-    }
-
-    if (wifi_connected) {
-
-      // Если настройки программы предполагают синхронизацию с NTP сервером и время пришло - выполнить синхронизацию
-      if (useNtp) {
-        if ((ntp_t > 0) && getNtpInProgress && (millis() - ntp_t > 5000)) {
-          DEBUGLN(F("Таймаут NTP запроса!"));
-          ntp_cnt++;
-          getNtpInProgress = false;
-          if (init_time && ntp_cnt >= 10) {
-            DEBUGLN(F("Не удалось установить соединение с NTP сервером."));  
-            refresh_time = false;
-          }
-          
-          doc.clear();
-          doc["act"]         = String(sTIME);
-          doc["server_name"] = ntpServerName;
-          doc["server_ip"]   = timeServerIP.toString();
-          doc["result"]      = String(sTIMEOUT);
-          
-          String out;
-          serializeJson(doc, out);      
-          doc.clear();
-
-          SendWeb(out, TOPIC_TME);
-        }
-        
-        bool timeToSync = ntpSyncTimer.isReady();
-        if (timeToSync) { ntp_cnt = 0; refresh_time = true; }
-        if (timeToSync || (refresh_time && (ntp_t == 0 || (millis() - ntp_t > 30000)) && (ntp_cnt < 10 || !init_time))) {
-          ntp_t = millis();
-          getNTP();
-        }
-      }
-
-      #if (USE_WEATHER == 1)  
-        if (useWeather > 0) {   
-          // Если настройки программы предполагают получение сведений о текущей погоде - выполнить обновление данных с погодного сервера
-          if ((weather_t > 0) && getWeatherInProgress && (millis() - weather_t > 5000)) {
-            DEBUGLN(F("Таймаут запроса погоды!"));
-            getWeatherInProgress = false;
-            weather_cnt++;
-            refresh_weather = true; weather_t = 0;
-            if (init_weather && weather_cnt >= 10) {
-              DEBUGLN(F("Не удалось установить соединение с сервером погоды."));  
-              refresh_weather = false;
-              init_weather = false;
-              
-              doc.clear();
-              doc["act"]    = String(sWEATHER);
-              doc["region"] = useWeather == 1 ? regionID : regionID2;
-              doc["result"] = String(sTIMEOUT);
-
-              String out;              
-              serializeJson(doc, out);      
-              doc.clear();
-              
-              SendWeb(out, TOPIC_WTR);
-            }
-          }
-          
-          bool timeToGetWeather = weatherTimer.isReady(); 
-          if (timeToGetWeather) { weather_cnt = 0; weather_t = 0; refresh_weather = true; }
-          // weather_t - время последней отправки запроса. Запрашивать погоду если weather_t обнулено или если последний (неудачный) запрос произошел не менее чем минуту назад
-          // иначе слишком частые запросы нарушают коммуникацию с приложением - устройство все время блокирующе запрашивает данные с сервера погоды
-          if (timeToGetWeather || (refresh_weather && (weather_t == 0 || (millis() - weather_t > 60000)) && (weather_cnt < 10 || !init_weather))) {            
-            weather_t = millis();
-            getWeatherInProgress = true;
-            getWeather();
-            if (weather_cnt >= 10) {
-              if (init_weather) {
-                udp.flush();
-              } else {
-                weather_cnt = 0;
-              }
-            }        
-          }
-        }
-      #endif
-    } 
+  if (wifi_connected) {
 
     #if (USE_WEATHER == 1)  
-      // Если погода не смогла обновиться дважды за период обновления погоды + 30сек "запаса" - считать погоду неинициализированной и не отображать погоду в часах
-      if (useWeather > 0 && init_weather && (millis() - weather_time > weatherActualityDuration * 3600L * 1000L)) {
-        init_weather = false;
-        refresh_weather = true;
-      }
-    #endif
+      if (useWeather > 0) {   
+        // Если настройки программы предполагают получение сведений о текущей погоде - выполнить обновление данных с погодного сервера
+        if ((weather_t > 0) && getWeatherInProgress && (millis() - weather_t > 5000)) {
+          DEBUGLN(F("Таймаут запроса погоды!"));
+          getWeatherInProgress = false;
+          weather_cnt++;
+          refresh_weather = true; weather_t = 0;
+          if (init_weather && weather_cnt >= TRY_GET_WEATHER_CNT) {
+            DEBUGLN(F("Не удалось установить соединение с сервером погоды."));  
+            refresh_weather = false;
+            init_weather = false;
+            
+            doc.clear();
+            doc["act"]    = String(sWEATHER);
+            doc["region"] = useWeather == 1 ? regionID : regionID2;
+            doc["result"] = String(sTIMEOUT);
 
-    // Проверить необходимость отправки сообщения об изменении состояния клиенту Web
-    if (changed_keys.length() > 1) {
-      // Удалить первый '|' и последний '|' и отправить значения по сформированному списку
-      if (changed_keys[0] == '|') changed_keys = changed_keys.substring(1);
-      if (changed_keys[changed_keys.length() - 1] == '|') changed_keys = changed_keys.substring(0, changed_keys.length()-1);
-      SendCurrentState(changed_keys);
-      changed_keys = "";
-    }
-        
-    if (init_time && !(wifi_connected && useNtp)) {
-      // Если нет соединения WiFi (возможно работает в режиме AP) - вместо запроса текущего времени интернета
-      // выполнить (пере)расчет времени рассвета, т.к. если рассвет выключить вручную до наступления времени будильника -
-      // следующее время рассвета считается неправильно. В часах без подключения к интернету и синхронизации времени с NTP сервера
-      // рассвет на следующий день не срабатывает, т.к. рассчитан неправильно
-      bool timeToSync = ntpSyncTimer.isReady();
-      if (timeToSync) calculateDawnTime();
-    }
-
-    bool needProcessEffect = true;
-    
-    #if (USE_E131 == 1)
-
-    // В режиме MASTER или STANDALONE эффект отрабатывать, если устройство не выключено или если сработал будильник
-    needProcessEffect = (workMode != SLAVE && !isTurnedOff) || isAlarming || isPlayAlarmSound || e131_wait_command || (workMode == SLAVE && !streaming);
-    
-    // Если сработал будильник - отрабатывать его эффект, даже если идет стриминг с мастера
-    if (workMode == SLAVE && (e131_streaming || e131_wait_command) && (!(isAlarming || isPlayAlarmSound))) {      
-      // Если идет прием потока данных с MASTER-устройства - проверить наличие пакета от мастера
-      if (e131 && !e131->isEmpty()) {
-        // Получен пакет данных. 
-        e131_last_packet = millis();
-        e131->pull(e131_packet);        
-        
-        idleTimer.reset();
-        
-        uint16_t CURRENT_UNIVERSE = htons(e131_packet->universe);      
-
-        /*
-        // Отладка: информация о полученном E1.31 пакете
-        Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u\n",
-                  CURRENT_UNIVERSE,                            // The Universe for this packet
-                  htons(e131_packet->property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
-                  e131->stats.num_packets,                     // Packet counter
-                  e131->stats.packet_errors);                  // Packet error counter
-        */     
-             
-        /*
-        // Отладка: вывод данных структуры полученного пакета E1.31 для первых двух вселенных
-        if (!flag_1 && CURRENT_UNIVERSE == 1 || !flag_2 && CURRENT_UNIVERSE == 2) {
-          printE131packet(e131_packet);
-          flag_1 |= CURRENT_UNIVERSE == 1;
-          flag_2 |= CURRENT_UNIVERSE == 2;
-        }
-        */
-        /*
-        Serial.print(CURRENT_UNIVERSE);
-        Serial.print(",");
-        ccnt++; 
-        if (ccnt>60) {
-          Serial.println();
-          ccnt=0;
-        }
-        */
-        
-        bool isCommand = isCommandPacket(e131_packet);
-                
-        // Если задан расчет FPS выводимых данных потока E1.31 - рассчитать и вывести в консоль
-        if (syncMode != COMMAND && E131_FPS_INTERVAL > 0) {
-          if (CURRENT_UNIVERSE == START_UNIVERSE && !isCommand) frameCnt++;
-          if (millis() - last_fps_time >= E131_FPS_INTERVAL) {
-            last_fps_time = millis();
-            DEBUG(F("FPS: "));
-            DEBUGLN(1000.0 * frameCnt / E131_FPS_INTERVAL);
-            frameCnt = 0;
+            String out;              
+            serializeJson(doc, out);      
+            doc.clear();
+            
+            SendWeb(out, TOPIC_WTR);
           }
         }
+        
+        bool timeToGetWeather = weatherTimer.isReady(); 
+        if (timeToGetWeather) { weather_cnt = 0; weather_t = 0; refresh_weather = true; }
+        // weather_t - время последней отправки запроса. Запрашивать погоду если weather_t обнулено или если последний (неудачный) запрос произошел не менее чем минуту назад
+        // иначе слишком частые запросы нарушают коммуникацию с приложением - устройство все время блокирующе запрашивает данные с сервера погоды
+        if (timeToGetWeather || (refresh_weather && (weather_t == 0 || (millis() - weather_t > 60000)) && weather_cnt < TRY_GET_WEATHER_CNT)) {
+          weather_t = millis();
+          getWeatherInProgress = true;
+          getWeather();
+          if (weather_cnt >= TRY_GET_WEATHER_CNT) {
+            if (!init_weather) {
+              // Если погода еще не была инициализирована - следующий запрос брать по меньщему из 5 минут или SYNC_WEATHER_PERIOD
+              weatherTimer.setInterval(1000 * 60 * min((uint16_t)5, SYNC_WEATHER_PERIOD));
+            }
+          }        
+        }            
+      }
+    #endif
+  } 
 
-        // Если пакет содержит команду - обработать ее
-        if (isCommand) {
-          processCommandPacket(e131_packet);          
-          needProcessEffect = syncMode == COMMAND;
-        } else
-        
-        // Если режим стрима - PHYSIC или LOGIC - вывести принятые данные на матрицу
-        // Физический вывод на матрицу выполнять при получении ПЕРВОГО (НАЧАЛЬНОГО) пакета группы,
-        // подразумевая что на предыдущем шаге все принятые пакеты уже разобраны и цвета помещены в массив leds[] - то есть полный кадр сформирован        
-        // Для всех остальных пакетов - просто разбирать их и помещать принятые данные части кадра в массив leds[];
-        // Если дожидаться последнего пакета группы и только потом выводить - для MASTER матриц чей размер меньше SLAVE - последний пакет не придет никогда
-        // и будет создаваться впечатление "зависшей" матрицы - нет вывода. Конечно, в этом случае при несовпадении размеров матриц MASTER и SLAVE
-        // будет выведена "каша", но хотя бы видно, что устройство не зависло...
-        
-        if (syncMode == PHYSIC || syncMode == LOGIC) {
-          if (CURRENT_UNIVERSE == START_UNIVERSE) {
-            // При получении первого фрейма группы - вывести на матрицу накопленный кадр
-            FastLEDshow();
-          }
-          // Поместить полученный кадр в буфер светодиодов
-          drawE131frame(e131_packet, syncMode);
+  #if (USE_WEATHER == 1)  
+    // Если погода не смогла обновиться дважды за период обновления погоды + 30сек "запаса" - считать погоду неинициализированной и не отображать погоду в часах
+    if (useWeather > 0 && init_weather && (millis() - weather_time > weatherActualityDuration * 3600L * 1000L)) {
+      init_weather = false;
+      refresh_weather = true;
+    }
+  #endif
+
+  // Проверить необходимость отправки сообщения об изменении состояния клиенту Web
+  if (changed_keys.length() > 1) {
+    SendCurrentState(changed_keys);
+    changed_keys.clear();
+  }
+      
+  bool needProcessEffect = true;
+  
+  #if (USE_E131 == 1)
+
+  // В режиме MASTER или STANDALONE эффект отрабатывать, если устройство не выключено или если сработал будильник
+  needProcessEffect = (workMode != SLAVE && !isTurnedOff) || isAlarming || isPlayAlarmSound || e131_wait_command || (workMode == SLAVE && !streaming);
+  
+  // Если сработал будильник - отрабатывать его эффект, даже если идет стриминг с мастера
+  if (workMode == SLAVE && (e131_streaming || e131_wait_command) && (!(isAlarming || isPlayAlarmSound))) {      
+    // Если идет прием потока данных с MASTER-устройства - проверить наличие пакета от мастера
+    if (e131 && !e131->isEmpty()) {
+      // Получен пакет данных. 
+      e131_last_packet = millis();
+      e131->pull(e131_packet);                
+      
+      idleTimer.reset();
+      
+      uint16_t CURRENT_UNIVERSE = htons(e131_packet->universe);      
+
+      /*
+      // Отладка: информация о полученном E1.31 пакете
+      Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u\n",
+                CURRENT_UNIVERSE,                            // The Universe for this packet
+                htons(e131_packet->property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
+                e131->stats.num_packets,                     // Packet counter
+                e131->stats.packet_errors);                  // Packet error counter
+      */     
+           
+      /*
+      // Отладка: вывод данных структуры полученного пакета E1.31 для первых двух вселенных
+      if (!flag_1 && CURRENT_UNIVERSE == 1 || !flag_2 && CURRENT_UNIVERSE == 2) {
+        printE131packet(e131_packet);
+        flag_1 |= CURRENT_UNIVERSE == 1;
+        flag_2 |= CURRENT_UNIVERSE == 2;
+      }
+      */
+      /*
+      Serial.print(CURRENT_UNIVERSE);
+      Serial.print(",");
+      ccnt++; 
+      if (ccnt>60) {
+        Serial.println();
+        ccnt=0;
+      }
+      */
+      
+      bool isCommand = isCommandPacket(e131_packet);
+              
+      // Если задан расчет FPS выводимых данных потока E1.31 - рассчитать и вывести в консоль
+      if (syncMode != COMMAND && E131_FPS_INTERVAL > 0) {
+        if (CURRENT_UNIVERSE == START_UNIVERSE && !isCommand) {
+          frameCnt++;
+        }
+        if (millis() - last_fps_time >= E131_FPS_INTERVAL) {
+          last_fps_time = millis();
+          DEBUG(F("FPS: "));
+          DEBUGLN(1000.0 * frameCnt / E131_FPS_INTERVAL);
+          frameCnt = 0;
         }
       }
+
+      // Если пакет содержит команду - обработать ее
+      if (isCommand) {
+        processCommandPacket(e131_packet);          
+        needProcessEffect = syncMode == COMMAND;
+      } else
+      
+      // Если режим стрима - PHYSIC или LOGIC - вывести принятые данные на матрицу
+      // Физический вывод на матрицу выполнять при получении ПЕРВОГО (НАЧАЛЬНОГО) пакета группы,
+      // подразумевая что на предыдущем шаге все принятые пакеты уже разобраны и цвета помещены в массив leds[] - то есть полный кадр сформирован        
+      // Для всех остальных пакетов - просто разбирать их и помещать принятые данные части кадра в массив leds[];
+      // Если дожидаться последнего пакета группы и только потом выводить - для MASTER матриц чей размер меньше SLAVE - последний пакет не придет никогда
+      // и будет создаваться впечатление "зависшей" матрицы - нет вывода. Конечно, в этом случае при несовпадении размеров матриц MASTER и SLAVE
+      // будет выведена "каша", но хотя бы видно, что устройство не зависло...
+      
+      if (syncMode == PHYSIC || syncMode == LOGIC) {          
+        if (CURRENT_UNIVERSE == START_UNIVERSE) {
+          // При получении первого фрейма группы - вывести на матрицу накопленный кадр
+          FastLEDshow();
+        }
+        // Поместить полученный кадр в буфер светодиодов
+        drawE131frame(e131_packet, syncMode);
+        yield();
+      }
     }
+  }
 
-    #endif
+  #endif
 
-    if (needProcessEffect) {
-      // Сформировать и вывести на матрицу текущий демо-режим
-      // При яркости = 1 остаются гореть только красные светодиоды и все эффекты теряют вид.
-      // поэтому отображать эффект "ночные часы"
-      // Обычное время формирования эффекта - 15-20мс. Если устройство выключена и формировать изображение не нужно - 
-      // экран просто очищается. Не нужно это делать слишком часто - в случае вещания в группу отправка пакетов экрана
-      // происодит столь часто, что это забивает сеть и роутер зависает. Компы в сети пишут нет подключения к интернету.
-      // Для предотвращения этого на пустых экранах делаем искусственную задержку в 15 мс.
-      // При таком подходе отправка экранов падает с 97 fps до 35 и сеть не виснет.
-      if (isTurnedOff && !(isAlarming || isPlayAlarmSound)) {
+  if (needProcessEffect) {
+    // Сформировать и вывести на матрицу текущий демо-режим
+    // При яркости = 1 остаются гореть только красные светодиоды и все эффекты теряют вид.
+    // поэтому отображать эффект "ночные часы"
+    if (isTurnedOff && !(isAlarming || isPlayAlarmSound)) {
+      // Черный экран - незачем часто обновлять. Делаем задержку в 1000 мс
+      if (abs((long long)(millis() - prevShowTimer)) > 1000) {
         FastLED.clear();  
         FastLEDshow();
-        delay(15);
-      } else {
-        uint8_t br = specialMode ? specialBrightness : globalBrightness;
-        if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
-          if (allowHorizontal || allowVertical) {
-            customRoutine(MC_CLOCK);    
-          } else {
+      }
+    } else {
+      uint8_t br = specialMode ? specialBrightness : globalBrightness;
+      if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
+        if (allowHorizontal || allowVertical) {
+          customRoutine(MC_CLOCK);    
+        } else {
+          // Черный экран - незачем часто обновлять. Делаем задержку в 1000 мс
+          if (abs((long long)(millis() - prevShowTimer)) > 1000) {
             FastLED.clear();  
             FastLEDshow();
-            // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
-            delay(100);
           }
-        } else {    
-          customRoutine(thisMode);
         }
+      } else {            
+        customRoutine(thisMode);
       }
-    } else 
-    #if (USE_E131 == 1)
-      if (isTurnedOff && workMode != SLAVE) {
-        FastLED.clear();
+    }
+  } else 
+  #if (USE_E131 == 1)
+    if (isTurnedOff && workMode != SLAVE) {
+      // Черный экран - незачем часто обновлять. Делаем задержку в 1000 мс
+      if (abs((long long)(millis() - prevShowTimer)) > 1000) {
+        FastLED.clear();  
         FastLEDshow();
-        // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
-        delay(100);
       }
-    #else
-      if (isTurnedOff) {
-        FastLED.clear();
+    }
+  #else
+    if (isTurnedOff) {
+      // Черный экран - незачем часто обновлять. Делаем задержку в 1000 мс
+      if (abs((long long)(millis() - prevShowTimer)) > 1000) {
+        FastLED.clear();  
         FastLEDshow();
-        // Черный экран - незачем часто обновлять. Делаем задержку в 100 мс
-        delay(100);
       }
-    #endif
-    
-    clockTicker();
+    }
+  #endif
+  
+  clockTicker();
 
-    #if (USE_TM1637 == 1)
-      if (display != nullptr) {
-        if (lastDisplay[0] != currDisplay[0] || lastDisplay[1] != currDisplay[1] || lastDisplay[2] != currDisplay[2] || lastDisplay[3] != currDisplay[3]) {
-          display->displayByte(currDisplay[0], currDisplay[1], currDisplay[2], currDisplay[3]);
-          lastDisplay[0] = currDisplay[0];
-          lastDisplay[1] = currDisplay[1];
-          lastDisplay[2] = currDisplay[2];
-          lastDisplay[3] = currDisplay[3];
-        }
-        if (lastDotState != currDotState) {
-          display->point(currDotState);
-          lastDotState = currDotState;
-        }
-        if (lastDisplayBrightness != currDisplayBrightness) {
-          display->setBrightness(currDisplayBrightness);
-          lastDisplayBrightness = currDisplayBrightness;
-        }
+  #if (USE_TM1637 == 1)
+    if (display != nullptr) {
+      if (lastDisplay[0] != currDisplay[0] || lastDisplay[1] != currDisplay[1] || lastDisplay[2] != currDisplay[2] || lastDisplay[3] != currDisplay[3]) {
+        display->displayByte(currDisplay[0], currDisplay[1], currDisplay[2], currDisplay[3]);
+        lastDisplay[0] = currDisplay[0];
+        lastDisplay[1] = currDisplay[1];
+        lastDisplay[2] = currDisplay[2];
+        lastDisplay[3] = currDisplay[3];
       }
-    #endif    
-    
-    checkAlarmTime();
-    checkAutoMode1Time();
-    checkAutoMode2Time();
-    checkAutoMode3Time();
-    checkAutoMode4Time();
-    #if (USE_WEATHER == 1)      
-    checkAutoMode5Time();
-    checkAutoMode6Time();
-    #endif  
+      if (lastDotState != currDotState) {
+        display->point(currDotState);
+        lastDotState = currDotState;
+      }
+      if (lastDisplayBrightness != currDisplayBrightness) {
+        display->setBrightness(currDisplayBrightness);
+        lastDisplayBrightness = currDisplayBrightness;
+      }
+    }
+  #endif    
+  
+  checkAlarmTime();
+  checkAutoMode1Time();
+  checkAutoMode2Time();
+  checkAutoMode3Time();
+  checkAutoMode4Time();
+  #if (USE_WEATHER == 1)      
+  checkAutoMode5Time();
+  checkAutoMode6Time();
+  #endif  
 
-    // --------------------- Управление линиями питания -------------------------
+  // --------------------- Управление линиями питания -------------------------
 
-    // Прочие клики работают только если не выключено
-    #if (USE_POWER == 1)
-      if (isTurnedOff) {
-        // Выключить питание матрицы
-        if (vPOWER_PIN >= 0) {
-          if (!isAlarming) {
-            digitalWrite(vPOWER_PIN, vPOWER_OFF);
-          } else {
-            digitalWrite(vPOWER_PIN, vPOWER_ON);
-          }
-        }  
-      } else {      
-        // Включить питание матрицы
-        if (vPOWER_PIN >= 0) {
+  // Прочие клики работают только если не выключено
+  #if (USE_POWER == 1)
+    if (isTurnedOff) {
+      // Выключить питание матрицы
+      if (vPOWER_PIN >= 0) {
+        if (!isAlarming) {
+          digitalWrite(vPOWER_PIN, vPOWER_OFF);
+        } else {
           digitalWrite(vPOWER_PIN, vPOWER_ON);
         }
+      }  
+    } else {      
+      // Включить питание матрицы
+      if (vPOWER_PIN >= 0) {
+        digitalWrite(vPOWER_PIN, vPOWER_ON);
       }
-    #endif
-
-    #if (USE_ALARM == 1)
-      if (vALARM_PIN >= 0) {
-        if (!isAlarmStopped && (isPlayAlarmSound || isAlarming || isRemoteAlarm)) {
-          digitalWrite(vALARM_PIN, vALARM_ON);
-        } else {
-          digitalWrite(vALARM_PIN, vALARM_OFF);
-        }
-        // Иногда клиент пропускает сигнал срабатывания будильника или клиент перезагрузился. 
-        // Тогда на мастере лампа активного будильника горит, а на клиентах нет. 
-        // Во избежание такого сценария послыать активность будильника каждые 1000 мс 
-        #if (USE_E131 == 1)
-          if (abs((long long)(millis() - last_sent_alarm_sync)) > 1000) {
-            commandAlarming(isAlarming || isPlayAlarmSound);
-            last_sent_alarm_sync = millis();
-          }          
-        #endif
-      }  
-    #endif      
-
-    #if (USE_AUX == 1)
-      if (vAUX_PIN >= 0) {
-        if (isAuxActive || isRemoteAuxActive) {
-          digitalWrite(vAUX_PIN, vAUX_ON);
-        } else {
-          digitalWrite(vAUX_PIN, vAUX_OFF);
-        }        
-        // Иногда клиент пропускает сигнал включения доп.линии или клиент перезагрузился. 
-        // Тогда на мастере лампа активного AUX горит, а на клиентах нет. 
-        // Во избежание такого сценария послыать активность AUX каждые 1000 мс 
-        #if (USE_E131 == 1)
-          if (abs((long long)(millis() - last_sent_aux_sync)) > 1000) {
-            commandAuxActive(isAuxActive);
-            last_sent_aux_sync = millis();
-          }        
-        #endif
-      }  
-    #endif      
-
-    // Текущий уровень яркости. Если ведомое устройство перезагрузится когда оно было выключено, а
-    // мастер в это время транслирует спец-режим (например ноачные часы), то приемнику не придет яркость
-    // и он останется с черным экраном, хотя на самом деле мастер что-то передает
-    #if (USE_E131 == 1)
-      if (abs((long long)(millis() - last_sent_brightness_sync)) > 1000) {
-        uint8_t value = specialMode ? specialBrightness : globalBrightness;
-        commandSetBrightness(value);
-        last_sent_brightness_sync = millis();
-      }        
-    #endif      
-        
-    // --------------------- Опрос нажатий кнопки -------------------------
-
-    #if (USE_BUTTON == 1)
-      if (butt != nullptr) {
-        butt->tick();  // обязательная функция отработки. Должна постоянно опрашиваться
-        
-        // Один клик
-        if (butt->isSingle()) clicks = 1;    
-        // Двойной клик
-        if (butt->isDouble()) clicks = 2;
-        // Тройной клик
-        if (butt->isTriple()) clicks = 3;
-        // Четверной и более клик
-        if (butt->hasClicks()) clicks = butt->getClicks();
-    
-        // Максимальное количество нажатий - 5-кратный клик
-        // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
-        // getClicks() возвращает 179, что абсолютная ерунда
-        if (clicks > 5) clicks = 0;
-
-        if (clicks == 1) {
-          if (one_click_time == 0) {
-            one_click_time = (uint32_t)millis();
-          }
-        } else if (clicks > 1) {
-          one_click_time = 0;
-        }
-        
-        if (butt->isPress()) {
-          // Состояние - кнопку нажали  
-        }
-        
-        if (butt->isRelease()) {
-          // Состояние - кнопку отпустили
-          isButtonHold = false;
-        }
-            
-        if (clicks > 0 && !clicks_printed) {
-          DEBUG(F("Кнопка нажата "));  
-          DEBUG(clicks);
-          DEBUGLN(F(" раз"));  
-          clicks_printed = true;
-        }
-    
-        // Любое нажатие кнопки останавливает будильник
-        if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
-          DEBUG(F("Выключение будильника кнопкой."));  
-          stopAlarm();
-          clicks_printed = false;
-          clicks = 0;
-        }
-        
-        bool isHolded = butt->isHolded();
-
-        // Одинарный клик - включить / выключить панель
-        // Одинарный клик + удержание - ночные часы или ночник лампа на минимальной яркости
-        if (clicks == 1 && (((uint32_t)(millis()) - one_click_time) > 500)) {
-          if (isHolded) {
-            if (isTurnedOff) {
-              // Клик + удержание в выключенном состоянии - лампа на минимальной яркости
-              // Включить панель - белый цвет
-              set_specialBrightness(6);
-              set_globalBrightness(6);
-              set_globalColor(0xFFFFFF);
-              isButtonHold = false;
-              setSpecialMode(1);
-            } else {
-              // Клик + удержание во включенном состоянии - включить ночные часы
-              setSpecialMode(8);
-            }
-            clicks = 255;
-            one_click_time = 0;
-            clicks_printed = false;
-         } else {
-           // Однократное короткое нажатие без удержаниz вкл/выкл лампу
-           turnOnOff();
-           clicks_printed = false;
-           clicks = 0;
-           one_click_time = 0;
-         }          
-       }
-
-       // Прочие клики работают только если не выключено
-       if (isTurnedOff) {
-        
-          // Выключить питание матрицы
-          //  - одинарный клик из выключенного состояния включает устройство - обработка в блоке выше
-          //  - двойной клик из выключенного состояния включает яркий белый свет
-          if (clicks == 2) {
-            // Включить панель - белый цвет
-            set_specialBrightness(255);
-            set_globalBrightness(255);
-            set_globalColor(0xFFFFFF);
-            isButtonHold = false;
-            setSpecialMode(1);
-            clicks = 0;
-            one_click_time = 0;
-          }     
-               
-       } else {
-          
-          // Включить питание матрицы
-          if (clicks == 0 && isHolded) {
-            // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
-            isButtonHold = true;
-            if (globalBrightness == 255)
-              brightDirection = false;
-            else if (globalBrightness <= 4){
-              brightDirection = true;
-              globalBrightness = 4;
-            } else  
-              brightDirection = !brightDirection;
-          }
-         
-          // Был двойной клик - следующий эффект, сброс автоматического переключения
-          if (clicks == 2) {
-            bool tmpSaveSpecial = specialMode;
-            resetModes();  
-            setManualModeTo(true);
-            if (tmpSaveSpecial) 
-              setRandomMode();        
-            else 
-              nextMode();
-            clicks = 0;
-            clicks_printed = false;
-          }
-    
-          // Тройное нажатие - включить случайный режим с автосменой
-          else if (clicks == 3) {
-            // Включить демо-режим
-            resetModes();          
-            setManualModeTo(false);        
-            setRandomMode();
-            clicks = 0;
-            clicks_printed = false;
-          }
-
-          // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
-          else if (clicks == 4) {
-            showCurrentIP();
-            clicks = 0;
-            clicks_printed = false;
-          }      
-
-          // Пятикратное нажатие - показать версию прошивки
-          else if (clicks == 5) {
-            showCurrentVersion();
-            clicks = 0;
-            clicks_printed = false;
-          }      
-              
-          // ... и т.д.
-          
-          // Обработка нажатой и удерживаемой кнопки
-          if (clicks == 0 && isButtonHold && butt->isStep() && thisMode != MC_DAWN_ALARM) {      
-            // Удержание кнопки повышает / понижает яркость панели (лампы)
-            processButtonStep();
-          }            
-        }
-      }  
-    #endif
-
-    // ------------------------------------------------------------------------
-
-    // Проверить - если долгое время не было ручного управления - переключиться в автоматический режим
-    if (!(isAlarming || isPlayAlarmSound)) checkIdleState();
-
-    // Если есть несохраненные в EEPROM данные - сохранить их
-    if (saveSettingsTimer.isReady()) {
-      saveSettings();
     }
+  #endif
+
+  #if (USE_ALARM == 1)
+    if (vALARM_PIN >= 0) {
+      if (!isAlarmStopped && (isPlayAlarmSound || isAlarming || isRemoteAlarm)) {
+        digitalWrite(vALARM_PIN, vALARM_ON);
+      } else {
+        digitalWrite(vALARM_PIN, vALARM_OFF);
+      }
+      // Иногда клиент пропускает сигнал срабатывания будильника или клиент перезагрузился. 
+      // Тогда на мастере лампа активного будильника горит, а на клиентах нет. 
+      // Во избежание такого сценария послыать активность будильника каждые 1000 мс 
+      #if (USE_E131 == 1)
+        if (abs((long long)(millis() - last_sent_alarm_sync)) > 1000) {
+          commandAlarming(isAlarming || isPlayAlarmSound);
+          last_sent_alarm_sync = millis();
+        }          
+      #endif
+    }  
+  #endif      
+
+  #if (USE_AUX == 1)
+    if (vAUX_PIN >= 0) {
+      if (isAuxActive || isRemoteAuxActive) {
+        digitalWrite(vAUX_PIN, vAUX_ON);
+      } else {
+        digitalWrite(vAUX_PIN, vAUX_OFF);
+      }        
+      // Иногда клиент пропускает сигнал включения доп.линии или клиент перезагрузился. 
+      // Тогда на мастере лампа активного AUX горит, а на клиентах нет. 
+      // Во избежание такого сценария послыать активность AUX каждые 1000 мс 
+      #if (USE_E131 == 1)
+        if (abs((long long)(millis() - last_sent_aux_sync)) > 1000) {
+          commandAuxActive(isAuxActive);
+          last_sent_aux_sync = millis();
+        }        
+      #endif
+    }  
+  #endif      
+
+  // Текущий уровень яркости. Если ведомое устройство перезагрузится когда оно было выключено, а
+  // мастер в это время транслирует спец-режим (например ноачные часы), то приемнику не придет яркость
+  // и он останется с черным экраном, хотя на самом деле мастер что-то передает
+  #if (USE_E131 == 1)
+    if (abs((long long)(millis() - last_sent_brightness_sync)) > 1000) {
+      uint8_t value = specialMode ? specialBrightness : globalBrightness;
+      commandSetBrightness(value);
+      last_sent_brightness_sync = millis();
+    }        
+  #endif      
+      
+  // --------------------- Опрос нажатий кнопки -------------------------
+
+  #if (USE_BUTTON == 1)
+    if (butt != nullptr) {
+      
+      // Один клик
+      if (butt->isSingle()) clicks = 1;    
+      // Двойной клик
+      if (butt->isDouble()) clicks = 2;
+      // Тройной клик
+      if (butt->isTriple()) clicks = 3;
+      // Четверной и более клик
+      if (butt->hasClicks()) clicks = butt->getClicks();
+  
+      // Максимальное количество нажатий - 5-кратный клик
+      // По неизвестными причинам (возможно ошибка в библиотеке GyverButtons) 
+      // getClicks() возвращает 179, что абсолютная ерунда
+      if (clicks > 5) clicks = 0;
+
+      if (clicks == 1) {
+        if (one_click_time == 0) {
+          one_click_time = (uint32_t)millis();
+        }
+      } else if (clicks > 1) {
+        one_click_time = 0;
+      }
+      
+      if (butt->isPress()) {
+        // Состояние - кнопку нажали  
+      }
+      
+      if (butt->isRelease()) {
+        // Состояние - кнопку отпустили
+        isButtonHold = false;
+      }
+          
+      if (clicks > 0 && !clicks_printed) {
+        DEBUG(F("Кнопка нажата "));  
+        DEBUG(clicks);
+        DEBUGLN(F(" раз"));  
+        clicks_printed = true;
+      }
+  
+      // Любое нажатие кнопки останавливает будильник
+      if ((isAlarming || isPlayAlarmSound) && (isButtonHold || clicks > 0)) {
+        DEBUG(F("Кнопка: Выключение будильника"));  
+        stopAlarm();
+        clicks_printed = false;
+        clicks = 0;
+      }
+      
+      bool isHolded = butt->isHolded();
+      if (isHolded) {
+        clicks = butt->getHoldClicks();
+        DEBUGLN(F("Кнопка: удержание"));  
+        isButtonHold = true;
+      }
+
+      // Одинарный клик - включить / выключить панель
+      // Одинарный клик + удержание
+      //  из "включено"  - ночные часы 
+      //  из "выключено" - ночник лампа на минимальной яркости
+      if (clicks == 1 && (((uint32_t)(millis()) - one_click_time) > 350)) {
+        if (isHolded) {          
+          if (isTurnedOff) {
+            // Клик + удержание в выключенном состоянии - лампа на минимальной яркости
+            // Включить панель - белый цвет
+            DEBUGLN(F("Кнопка: ночник"));
+            isButtonHold = false;
+            setSpecialMode(5);
+          } else {
+            // Клик + удержание во включенном состоянии - включить ночные часы
+            DEBUGLN(F("Кнопка: ночные часы"));
+            setSpecialMode(3);
+          }
+          clicks = 255;
+          one_click_time = 0;
+          clicks_printed = false;
+       } else {
+         // Однократное короткое нажатие без удержания вкл/выкл лампу
+         if (isTurnedOff) { 
+           DEBUGLN(F("Кнопка: включение"));
+         } else {
+           DEBUGLN(F("Кнопка: выключение"));
+         }  
+         turnOnOff();
+         clicks_printed = false;
+         clicks = 0;
+         one_click_time = 0;
+       }          
+       return;
+     }
+
+     if (isTurnedOff) {
+      
+        // Включить питание матрицы
+        //  - двойной клик из выключенного состояния включает яркий белый свет
+        if (clicks == 2) {
+          // Включить панель - белый цвет
+          DEBUGLN(F("Кнопка: яркая лампа"));
+          setSpecialMode(1);
+          isButtonHold = false;
+          clicks = 0;
+          one_click_time = 0;
+          return;
+        }     
+             
+     } else {
+        
+        // Прочие клики работают только если не выключено
+        // Включить питание матрицы
+        if (clicks == 0 && isHolded) {
+          // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
+          isButtonHold = true;
+          if (globalBrightness == 255)
+            brightDirection = false;
+          else if (globalBrightness <= 4) {
+            brightDirection = true;
+            globalBrightness = 4;
+          } else { 
+            brightDirection = !brightDirection;
+          }
+        }
+       
+        // Был двойной клик - следующий эффект, сброс автоматического переключения
+        if (clicks == 2) {
+          DEBUGLN(F("Кнопка: следующий режим"));
+          bool tmpSaveSpecial = specialMode;
+          resetModes();  
+          setManualModeTo(true);
+          if (tmpSaveSpecial) {
+            setRandomMode();        
+          } else {
+            nextMode();
+          }
+          clicks = 0;
+          clicks_printed = false;
+          return;
+        }
+  
+        // Тройное нажатие - включить случайный режим с автосменой
+        else if (clicks == 3) {
+          // Включить демо-режим
+          DEBUGLN(F("Кнопка: демо-режим"));
+          resetModes();          
+          setManualModeTo(false);        
+          setRandomMode();
+          clicks = 0;
+          clicks_printed = false;
+          return;
+        }
+
+        // Четырехкратное нажатие - показать текущий IP WiFi-соединения            
+        else if (clicks == 4) {
+          DEBUGLN(F("Кнопка: IP-адрес"));
+          showCurrentIP();
+          clicks = 0;
+          clicks_printed = false;
+          return;
+        }      
+
+        // Пятикратное нажатие - показать версию прошивки
+        else if (clicks == 5) {
+          DEBUGLN(F("Кнопка: версия прошивки"));
+          showCurrentVersion();
+          clicks = 0;
+          clicks_printed = false;
+          return;
+        }      
+            
+        // ... и т.д.
+        
+        // Обработка нажатой и удерживаемой кнопки
+        if (clicks == 0 && isButtonHold && butt->isStep() && thisMode != MC_DAWN_ALARM) {      
+          // Удержание кнопки повышает / понижает яркость панели (лампы)
+          processButtonStep();
+        }            
+      }
+    }  
+  #endif
+
+  // ------------------------------------------------------------------------
+
+  // Проверить - если долгое время не было ручного управления - переключиться в автоматический режим
+  if (!(isAlarming || isPlayAlarmSound)) checkIdleState();
+
+  // Если есть несохраненные в EEPROM данные - сохранить их
+  if (saveSettingsTimer.isReady()) {
+    saveSettings();
   }
 }
 
@@ -737,18 +693,18 @@ String getEffectName(int8_t mode) {
   switch (mode) {
     case MC_CLOCK:      
       if (isNightClock)
-        ef_name = String(MODE_NIGHT_CLOCK);
+        ef_name = FPSTR(MODE_NIGHT_CLOCK);
       else
-        ef_name = String(MODE_CLOCK);
+        ef_name = FPSTR(MODE_CLOCK);
       break;
     case MC_TEXT:
-      ef_name = String(MODE_RUNNING_TEXT);
+      ef_name = FPSTR(MODE_RUNNING_TEXT);
       break;
     case MC_LOADIMAGE:
-      ef_name = String(MODE_LOAD_PICTURE);
+      ef_name = FPSTR(MODE_LOAD_PICTURE);
       break;
     case MC_DRAW:
-      ef_name = String(MODE_DRAW);
+      ef_name = FPSTR(MODE_DRAW);
       break;
     case -1:      
       ef_name.clear();
@@ -783,17 +739,7 @@ void processButtonStep() {
 
 // ********************* ПРИНИМАЕМ ДАННЫЕ **********************
 
-void parsing() {
-  
-  // ****************** ОБРАБОТКА *****************
-  String  str, str1, str2, pictureLine;
-
-  char c;
-  bool    err = false;
-  int32_t pntX, pntY, pntColor, idx;
-  uint8_t alarmHourVal, alarmMinuteVal, b_tmp;
-  int8_t  tmp_eff, tmp_idx;
-
+void parsing() {  
   /*
     Протокол связи, посылка начинается с режима. Режимы:
     1 - Включение / выключение устройства
@@ -843,6 +789,7 @@ void parsing() {
         5 - пароль к точке доступа
         6 - настройки будильников
         7 - строка запрашиваемых параметров для процедуры getStateString(), например - "CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
+       10 - строка выбранной зоны часового пояса
        11 - картинка построчно $6 11|Y colorHEX,colorHEX,...,colorHEX
        12 - картинка по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX
        14 - текст бегущей строки для немедленного отображения без сохранения $6 14|text
@@ -861,6 +808,7 @@ void parsing() {
       - $8 7 N;   Запрос текущих параметров эффекта N, возвращается JSON с параметрами. Используется для редактирования эффекта в Web-интерфейсе;
       - $8 8 N D; D -> скорость эффекта N;
     12 - Настройки погоды
+      - $12 2 X;   - использовать Цельсий/Фаренгейт: X=0 - Цельсий; X=1 - Фаренгейт
       - $12 3 X;   - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в дневных часах
       - $12 4 X;   - использовать получение погоды с погодного сервера
       - $12 5 I С C2; - интервал получения погоды с сервера в минутах (I) и код региона C - Yandex и код региона C2 - OpenWeatherMap
@@ -877,14 +825,10 @@ void parsing() {
        - $14 0;  Черный экран (выкл);  
        - $14 1;  Белый экран (освещение);  
        - $14 2;  Цветной экран;  
-       - $14 3;  Огонь;  
-       - $14 4;  Конфетти;  
-       - $14 5;  Радуга;  
-       - $14 6;  Матрица;  
-       - $14 7;  Светлячки;  
-       - $14 8;  Часы ночные;
-       - $14 9;  Часы бегущей строкой;
-       - $14 10; Часы простые;  
+       - $14 3;  Часы ночные;
+       - $14 4;  Часы простые;
+       - $14 5;  Ночник (белая лампа на минимальной яркости);
+       - $14 6;  Выключение ночных часов - включить тот эффект что был до включения, восстановить состояние "Автосмена режима";
     15 - скорость $15 скорость таймер; 0 - таймер эффектов
     16 - Режим смены эффектов: $16 N; 
        - $16 0; - ручной режим;  
@@ -893,11 +837,9 @@ void parsing() {
        - $16 3; - NextMode; 
        - $16 5; - вкл/выкл случайный выбор следующего режима
     17 - Время автосмены эффектов и бездействия: $17 сек сек;
-    18 - Запрос текущих параметров программой: $18 0; ping из приложения на телефоне
     19 - работа с настройками часов
       - $19 1 X; - сохранить настройку X "Часы в эффектах"
       - $19 2 X; - Использовать синхронизацию часов NTP  X: 0 - нет, 1 - да
-      - $19 3 N ZH ZM; - Период синхронизации часов NTP (N) и Часовой пояс (часы ZH и минуты ZM)
       - $19 4 X; - Выключать индикатор TM1637 при выключении экрана X: 0 - нет, 1 - да
       - $19 5 X; - Режим цвета часов оверлея X: 0,1,2,3
       - $19 6 X; - Ориентация часов  X: 0 - горизонтально, 1 - вертикально
@@ -911,6 +853,7 @@ void parsing() {
       - $19 16 X; - Показывать дату в режиме часов  X: 0 - нет, 1 - да
       - $19 17 D I; - Продолжительность отображения даты / часов (в секундах)
       - $19 18 HH MM TT; - Установить указанное время HH:MM и температуру TT - для отладки позиционирования часов с температурой
+      - $19 19 X; - Показывать время в 12/24 часовом формате
     20 - настройки и управление будильников
       - $20 0;       - отключение будильника (сброс состояния isAlarming)
       - $20 2 X VV MA MB;
@@ -990,335 +933,390 @@ void parsing() {
         - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
   */  
 
-  // Если прием данных завершен и управляющая команда в intData[0] распознана
-  if (recievedFlag && intData[0] > 0 && intData[0] <= 23) {
-    recievedFlag = false;
+  // ****************** ОБРАБОТКА *****************
+  String  incomeBuffer, str, str1, str2, pictureLine;
 
-    // Режимs 18 и 6.7  не сбрасывают idleTimer
-    // Другие режимы сбрасывают таймер бездействия
-    if (!(intData[0] == 18 || (intData[0] == 6 && intData[1] == 7))) {
-      idleTimer.reset();
+  bool    err = false;
+  int32_t pntX, pntY, pntColor, idx;
+  uint8_t alarmHourVal, alarmMinuteVal, b_tmp{0};
+  int8_t  tmp_eff, tmp_idx;
+
+  // ****************** ПАРСИНГ *****************
+
+  // Есть поступившие команды в очереди?
+  if (queueLength == 0) return;
+
+  // Извлечь
+  incomeBuffer = cmdQueue[queueReadIdx++];
+  if (queueReadIdx >= QSIZE_IN) queueReadIdx = 0;
+  queueLength--;
+  
+  yield();
+
+  // Это команда (признак начала '$')?
+  if (incomeBuffer.length() == 0 || incomeBuffer.charAt(0) != '$') return;
+
+  // "$6 7|FM|UP" - 'та команда используется в качестве ping, посылается каждые 2-3 секунда, ее выводить не нужно, чтобы не забивать вывод в лог
+  if (incomeBuffer != "$6 7|FM|UP") {
+
+    DEBUG(F("WEB пакeт размером "));
+    DEBUGLN(incomeBuffer.length());
+
+    DEBUG(F("<-- "));
+    DEBUGLN(incomeBuffer);
+
+    // При поступлении каждой команды вывести в консоль информацию о свободной памяти
+    printMemoryInfo();
+  }
+  
+  // Блок команд $6 содержит переданные строки      
+  if (incomeBuffer.charAt(1) == '6') {                         // '$6 N|текст' если нужно принять строку - принимаем всю
+    
+    // Получена строка - используем ее как есть без парсинга.
+    // Разбор будет выполнен в блоке обработки $6      
+    intData[0] = 6;      
+    
+  } else {
+    
+    // Удалить завершающий символ - ';'
+    incomeBuffer.setCharAt(incomeBuffer.length() - 1, '\0');
+    
+    // Прочие команды представляют собой набор целых чисел, разделенных пробелами
+    // Некоторые команды могут содержать в себе цвет. Цвет будет извлечен в блоке обработки этой команды.
+    // При парсинге этой части - будет 0 <-- '$5 0 RRGGBB;' - '$13 15 00FFAA;' - '$19 14 00FFAA;'
+    // В строке в настоящее время может быть только одна команда, начинающаяся с '$' и заканчивающаяся ';'
+    // Все остальное нужно сложить в массив intData[] -> intData[0] - номер группы команд; intData[1] - команда; intData[2] и далее - параметры команды
+    
+    for (uint8_t i = 0; i < PARSE_AMOUNT; i++) intData[i] = 0;
+
+    idx  = incomeBuffer.indexOf(' ');
+    if (idx == -1) return;
+
+    uint8_t param_idx = 1;
+    String str, str1; 
+    
+    str = incomeBuffer.substring(1, idx);
+    str.trim();
+    intData[0] = str.toInt();
+
+    str = incomeBuffer.substring(idx + 1);
+    str1.reserve(10);
+    
+    while (str.length() > 0) {
+      idx = str.indexOf(' ');
+      if (idx == -1) {
+        str.trim();
+        intData[param_idx++] = str.toInt();
+        break;
+      } else {
+        str1 = str.substring(0, idx);        
+        str = str.substring(idx + 1);
+        str.trim();
+        str1.trim();
+        intData[param_idx++] = str1.toInt();
+      }      
     }
+  }
 
-    switch (intData[0]) {
+  // Известные команды - в диапазоне 1..23
+  if (intData[0] < 1 || intData[0] > 23) {
+    notifyUnknownCommand(incomeBuffer);
+    return;
+  }
 
-      // ----------------------------------------------------
-      // 1 - Включение / выключение устройства
-      //   - $1 0; - выключить
-      //   - $1 1; - включить
-      //   - $1 2; - переключить
+  // Режимs 18 и 6.7  не сбрасывают idleTimer
+  // Другие режимы сбрасывают таймер бездействия
+  if (!(intData[0] == 18 || (intData[0] == 6 && intData[1] == 7))) {
+    idleTimer.reset();
+  }
 
-      case 1:
-        if (intData[1] == 0) {
-          // Выключить устройство
-          turnOff();
-        } else
-        if (intData[1] == 1) {
-          // Включить устройство
-          turnOn();
-        } else
-        if (intData[1] == 2) {
-          // Переключить устройство
-          turnOnOff();
-        } 
-        else {
-          err = true;
-          notifyUnknownCommand(incomeBuffer, cmdSource);
+  switch (intData[0]) {
+
+    // ----------------------------------------------------
+    // 1 - Включение / выключение устройства
+    //   - $1 0; - выключить
+    //   - $1 1; - включить
+    //   - $1 2; - переключить
+
+    case 1:
+      if (intData[1] == 0) {
+        // Выключить устройство
+        turnOff();
+      } else
+      if (intData[1] == 1) {
+        // Включить устройство
+        turnOn();
+      } else
+      if (intData[1] == 2) {
+        // Переключить устройство
+        turnOnOff();
+      } 
+      else {
+        err = true;
+        notifyUnknownCommand(incomeBuffer);
+      }
+              
+      break;
+
+    // ----------------------------------------------------
+    // 2 - Настройка типа и размера матрицы, угла ее подключения, количество сегментов
+    //     - $2 M0 M1 M2 M3 M4 M5 M6 M7 M8 M9 M11
+    //       M0  - ширина сегмента матрицы 1..128
+    //       M1  - высота сегмента матрицы 1..128
+    //       M2  - тип сегмента матрицы - 0 - зигзаг; 1 - параллельная; 2 - карта индексов
+    //       M3  - угол подключения диодов в сегменте: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
+    //       M4  - направление ленты из угла сегмента: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
+    //       M5  - количество сегментов в ширину составной матрицы
+    //       M6  - количество сегментов в высоту составной матрицы
+    //       M7  - соединение сегментов составной матрицы: 0 - зигзаг, 1 - параллельная
+    //       M8  - угол 1-го сегмента мета-матрицы: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
+    //       M9  - направление следующих сегментов мета-матрицы из угла: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
+    //       M11 - индекс файла карты индексов в массиве mapFiles (при M2 == 2)
+
+    case 2:
+      // Установить новые параметры, которые вступят в силу после перезагрузки устройства
+      putMatrixSegmentWidth(intData[1]);
+      putMatrixSegmentHeight(intData[2]);
+      putMatrixSegmentType(intData[3]);
+      putMatrixSegmentAngle(intData[4]);
+      putMatrixSegmentDirection(intData[5]);
+    
+      putMetaMatrixWidth(intData[6]);
+      putMetaMatrixHeight(intData[7]);
+      putMetaMatrixType(intData[8]);
+      putMetaMatrixAngle(intData[9]);
+      putMetaMatrixDirection(intData[10]);
+
+      idx = (byte)intData[11];
+      if (mapListLen > 0 && idx >= 0 && idx < mapListLen) {
+        String file_name(mapFiles[idx]); // 32x16
+        int8_t p = file_name.lastIndexOf('x');
+        if (p >= 0) {
+          mapWIDTH = file_name.substring(0, p).toInt();
+          mapHEIGHT = file_name.substring(p + 1).toInt();
+          if (mapWIDTH < 8) mapWIDTH = 8;
+          if (mapHEIGHT < 8) mapHEIGHT = 8;
+          if (mapWIDTH > 128) mapWIDTH = 128;
+          if (mapHEIGHT > 128) mapHEIGHT = 128;
+          putMatrixMapWidth(mapWIDTH);
+          putMatrixMapHeight(mapHEIGHT);
         }
-        
-        // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        
-        break;
+      }
 
-      // ----------------------------------------------------
-      // 2 - Настройка типа и размера матрицы, угла ее подключения, количество сегментов
-      //     - $2 M0 M1 M2 M3 M4 M5 M6 M7 M8 M9 M11
-      //       M0  - ширина сегмента матрицы 1..128
-      //       M1  - высота сегмента матрицы 1..128
-      //       M2  - тип сегмента матрицы - 0 - зигзаг; 1 - параллельная; 2 - карта индексов
-      //       M3  - угол подключения диодов в сегменте: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
-      //       M4  - направление ленты из угла сегмента: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
-      //       M5  - количество сегментов в ширину составной матрицы
-      //       M6  - количество сегментов в высоту составной матрицы
-      //       M7  - соединение сегментов составной матрицы: 0 - зигзаг, 1 - параллельная
-      //       M8  - угол 1-го сегмента мета-матрицы: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
-      //       M9  - направление следующих сегментов мета-матрицы из угла: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
-      //       M11 - индекс файла карты индексов в массиве mapFiles (при M2 == 2)
+      // Сохранить измененные настройки
+      saveSettings();
 
-      case 2:
-        // Установить новые параметры, которые вступят в силу после перезагрузки устройства
-        putMatrixSegmentWidth(intData[1]);
-        putMatrixSegmentHeight(intData[2]);
-        putMatrixSegmentType(intData[3]);
-        putMatrixSegmentAngle(intData[4]);
-        putMatrixSegmentDirection(intData[5]);
-      
-        putMetaMatrixWidth(intData[6]);
-        putMetaMatrixHeight(intData[7]);
-        putMetaMatrixType(intData[8]);
-        putMetaMatrixAngle(intData[9]);
-        putMetaMatrixDirection(intData[10]);
+      needRestart = true;
+      needRestartTime = millis();
+      break;
 
-        idx = (byte)intData[11];
-        if (mapListLen > 0 && idx >= 0 && idx < mapListLen) {
-          String file_name(mapFiles[idx]); // 32x16
-          int8_t p = file_name.lastIndexOf('x');
-          if (p >= 0) {
-            mapWIDTH = file_name.substring(0, p).toInt();
-            mapHEIGHT = file_name.substring(p + 1).toInt();
-            if (mapWIDTH < 8) mapWIDTH = 8;
-            if (mapHEIGHT < 8) mapHEIGHT = 8;
-            if (mapWIDTH > 128) mapWIDTH = 128;
-            if (mapHEIGHT > 128) mapHEIGHT = 128;
-            putMatrixMapWidth(mapWIDTH);
-            putMatrixMapHeight(mapHEIGHT);
-          }
-        }
+    // ----------------------------------------------------
+    // 3 - управление играми из приложение WiFi Panel Player
+    //   - $3 0;  включить на устройстве демо-режим
+    //   - $3 1;  включить игру "Лабиринт" в режиме ожидания начала игры
+    //   - $3 2;  включить игру "Змейка" в режиме ожидания начала игры
+    //   - $3 3;  включить игру "Тетрис" в режиме ожидания начала игры
+    //   - $3 4;  включить игру "Арканоид" в режиме ожидания начала игры
+    //   - $3 10    - кнопка вверх
+    //   - $3 11    - кнопка вправо
+    //   - $3 12    - кнопка вниз
+    //   - $3 13    - кнопка влево
+    //   - $3 14    - центральная кнопка джойстика (ОК)
+    //   - $3 15 N; - скорость повтора нажатия кнопки * 10 (10 .. 100) => 100..1000 мс 
+    // ----------------------------------------------------
 
-        // Сохранить измененные настройки
-        saveSettings();
-
-        // Перед перезагрузкой - очистить матрицу
+    case 3:
+      if (intData[1] == 0) {
+        // Включить на устройстве демо-режим
         FastLED.clear();
-        FastLED.show();
-        
-        // После небольшой задержки перезагрузить контроллер
-        delay(500);
-        ESP.restart();
-        break;
+        FastLEDshow();
+        delay(50);
+        setManualModeTo(false);
+        set_CurrentSpecialMode(-1);
+        nextMode();
+      } else
+      if (intData[1] == 1) {
+        // Игра "Лабиринт"
+        setManualModeTo(true);
+        setEffect(MC_MAZE);
+        // Установили игру в ручном режиме. Для игры в ручном режиме скорость таймера должна быть минимальна для 
+        // максимально быстрой реакции на кнопки. Обычное включение игры в демо-режиме будет использовать настроенный таймер скорости игры
+        effectTimer.setInterval(10);
+        gameDemo = false;
+        gamePaused = true;
+        set_CurrentSpecialMode(-1);          
+      } else
+      if (intData[1] == 2) {
+        // Игра "Змейка"
+        setManualModeTo(true);
+        setEffect(MC_SNAKE);
+        gameDemo = false;
+        gamePaused = true;
+        set_CurrentSpecialMode(-1);
+      } else
+      if (intData[1] == 3) {
+        // Игра "Тетрис"
+        setManualModeTo(true);
+        setEffect(MC_TETRIS);
+        gameDemo = false;
+        gamePaused = true;
+        set_CurrentSpecialMode(-1);
+      } else
+      if (intData[1] == 4) {
+        // Игра "Арканоид"
+        setManualModeTo(true);
+        setEffect(MC_ARKANOID);
+        gameDemo = false;
+        gamePaused = true;
+        set_CurrentSpecialMode(-1);
+      } else
+      if (intData[1] == 10) {
+        // кнопка вверх
+        buttons = 0;
+        gamePaused = false;
+      } else
+      if (intData[1] == 11) {
+        // кнопка вправо
+        buttons = 1;
+        gamePaused = false;
+      } else
+      if (intData[1] == 12) {
+        // кнопка вниз
+        buttons = 2;
+        gamePaused = false;
+      } else
+      if (intData[1] == 13) {
+        // кнопка влево
+        buttons = 3;
+        gamePaused = false;
+      } else
+      if (intData[1] == 14) {
+        // кнопка влево
+        buttons = 5;
+        gamePaused = false;
+      } else
+      if (intData[1] == 15) {
+        // кнопка влево
+        set_GameButtonSpeed(intData[2]);
+        gamePaused = false;
+      }
+      else {
+        err = true;
+        notifyUnknownCommand(incomeBuffer);
+      }        
+              
+      break;
 
-      // ----------------------------------------------------
-      // 3 - управление играми из приложение WiFi Panel Player
-      //   - $3 0;  включить на устройстве демо-режим
-      //   - $3 1;  включить игру "Лабиринт" в режиме ожидания начала игры
-      //   - $3 2;  включить игру "Змейка" в режиме ожидания начала игры
-      //   - $3 3;  включить игру "Тетрис" в режиме ожидания начала игры
-      //   - $3 4;  включить игру "Арканоид" в режиме ожидания начала игры
-      //   - $3 10    - кнопка вверх
-      //   - $3 11    - кнопка вправо
-      //   - $3 12    - кнопка вниз
-      //   - $3 13    - кнопка влево
-      //   - $3 14    - центральная кнопка джойстика (ОК)
-      //   - $3 15 N; - скорость повтора нажатия кнопки * 10 (10 .. 100) => 100..1000 мс 
-      // ----------------------------------------------------
-
-      case 3:
-        if (intData[1] == 0) {
-          // Включить на устройстве демо-режим
-          FastLED.clear();
-          FastLEDshow();
-          delay(50);
-          setManualModeTo(false);
-          set_CurrentSpecialMode(-1);
-          nextMode();
-        } else
-        if (intData[1] == 1) {
-          // Игра "Лабиринт"
-          setManualModeTo(true);
-          setEffect(MC_MAZE);
-          // Установили игру в ручном режиме. Для игры в ручном режиме скорость таймера должна быть минимальна для 
-          // максимально быстрой реакции на кнопки. Обычное включение игры в демо-режиме будет использовать настроенный таймер скорости игры
-          effectTimer.setInterval(10);
-          gameDemo = false;
-          gamePaused = true;
-          set_CurrentSpecialMode(-1);          
-        } else
-        if (intData[1] == 2) {
-          // Игра "Змейка"
-          setManualModeTo(true);
-          setEffect(MC_SNAKE);
-          gameDemo = false;
-          gamePaused = true;
-          set_CurrentSpecialMode(-1);
-        } else
-        if (intData[1] == 3) {
-          // Игра "Тетрис"
-          setManualModeTo(true);
-          setEffect(MC_TETRIS);
-          gameDemo = false;
-          gamePaused = true;
-          set_CurrentSpecialMode(-1);
-        } else
-        if (intData[1] == 4) {
-          // Игра "Арканоид"
-          setManualModeTo(true);
-          setEffect(MC_ARKANOID);
-          gameDemo = false;
-          gamePaused = true;
-          set_CurrentSpecialMode(-1);
-        } else
-        if (intData[1] == 10) {
-          // кнопка вверх
-          buttons = 0;
-          gamePaused = false;
-        } else
-        if (intData[1] == 11) {
-          // кнопка вправо
-          buttons = 1;
-          gamePaused = false;
-        } else
-        if (intData[1] == 12) {
-          // кнопка вниз
-          buttons = 2;
-          gamePaused = false;
-        } else
-        if (intData[1] == 13) {
-          // кнопка влево
-          buttons = 3;
-          gamePaused = false;
-        } else
-        if (intData[1] == 14) {
-          // кнопка влево
-          buttons = 5;
-          gamePaused = false;
-        } else
-        if (intData[1] == 15) {
-          // кнопка влево
-          set_GameButtonSpeed(intData[2]);
-          gamePaused = false;
-        }
-        else {
-          err = true;
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        }        
-        
-        // Для команд, пришедших от UDP отправлять подтверждение что команда принята и обработана
-        if (!err && cmdSource == UDP){
-          sendAcknowledge();
-        }
-        
-        break;
-
-      // ----------------------------------------------------
-      // 4 - яркость - 
-      //  $4 0 value   установить текущий уровень общей яркости / яркости ночных часов
-      // ----------------------------------------------------
-      
-      case 4:
-        if (intData[1] == 0) {
-          // При включенном режиме ночных часов ползунок яркости регулирует только яркость ночных часов
-          // Для прочих режимов - общую яркость системы
-          if (isNightClock) {
-            set_nightClockBrightness(intData[2]); // setter            
-            set_specialBrightness(nightClockBrightness);
-          } else {
-            set_globalBrightness(intData[2]);
-            if (specialMode) set_specialBrightness(globalBrightness);
-            if (thisMode == MC_DRAW || thisMode == MC_LOADIMAGE) {
-              FastLEDshow();
-            }
-          }
+    // ----------------------------------------------------
+    // 4 - яркость - 
+    //  $4 0 value   установить текущий уровень общей яркости / яркости ночных часов
+    // ----------------------------------------------------
+    
+    case 4:
+      if (intData[1] == 0) {
+        // При включенном режиме ночных часов ползунок яркости регулирует только яркость ночных часов
+        // Для прочих режимов - общую яркость системы
+        if (isNightClock) {
+          set_nightClockBrightness(intData[2]); // setter            
+          set_specialBrightness(nightClockBrightness);
         } else {
-          err = true;
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        }
-        
-        // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        
-        break;
-
-      // ----------------------------------------------------
-      // 5 - рисование
-      //   $5 0 RRGGBB; - установить активный цвет рисования в формате RRGGBB
-      //   $5 1;        - очистить матрицу (заливка черным)
-      //   $5 2;        - заливка матрицы активным активным цветом рисования 
-      //   $5 3 X Y;    - рисовать точку активным цветом рисования в позицию X Y
-      //   $5 4 T N;    - запрос текущей картинки с матрицы в телефон: T - 0 - запрос строки с номером N; T - 1 - запрос колонки с номером N
-      //   $5 5 X;      - запрос списка файлов картинок X: 0 - с FS, 1 - SD
-      //   $5 6 X Y;    - рисовать точку черным в позицию X Y (стереть точку - ластик)
-      // ----------------------------------------------------
-
-      case 5:
-        if (thisMode != MC_DRAW) {
-          set_thisMode(MC_DRAW);
-          setManualModeTo(true);
-        }      
-        if (intData[1] == 0) {
-          // Установить активный цвет рисования - incomeBuffer = '$5 0 00FF00;'
-          str = String(incomeBuffer).substring(5,11);
-          set_drawColor(HEXtoInt(str));          
-        } else
-        if (intData[1] == 1) {
-          // Очистка матрицы (заливка черным)
-          FastLED.clear();
-        } else
-        if (intData[1] == 2) {
-          // Залить матрицу активным цвет ом рисования
-          fillAll(gammaCorrection(drawColor));
-        } else
-        if (intData[1] == 3) {
-          // Нарисовать точку активным цветом рисования в позиции X Y
-          drawPixelXY(intData[2], intData[3], gammaCorrection(drawColor));
-        } else
-        if (intData[1] == 4) {
-          // intData[2] - T=0 - запрос строки; T=1 - запрос колонки; 
-          // intData[3] - номер строки / колонки; 
-          sendImageLine(cmdSource, (uint8_t)intData[2], (uint8_t)intData[3]);
-        } else
-        if (intData[1] == 5) {
-          String str2(getStateString(F("FL"))); str2 += (intData[2] == 0 ? 0 : 1);
-          str = F("{\"FL\":\"["); str += str2; str += "]\"}";
-        } else
-        if (intData[1] == 6) {
-          // Нарисовать точку черным в позиции X Y - стереть точку, инструмент ластик
-          drawPixelXY(intData[2], intData[3], 0);
-        } else {
-          err = true;
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        }
-
-        if (!err) {
-          if (cmdSource == UDP) {
-            // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-            if (intData[1] == 5)
-              sendStringData(str);
-            else if (intData[1] != 4) 
-              sendAcknowledge();
-          } else {
-            if (intData[1] == 5) {
-              String tmpp("FL"); tmpp += (intData[2] == 0 ? 0 : 1);               
-              addKeyToChanged(tmpp);
-            }
+          set_globalBrightness(intData[2]);
+          if (specialMode) set_specialBrightness(globalBrightness);
+          if (thisMode == MC_DRAW || thisMode == MC_LOADIMAGE) {
+            FastLEDshow();
           }
         }
-                
-        break;
+      } else {
+        err = true;
+        notifyUnknownCommand(incomeBuffer);
+      }
+              
+      break;
 
-      // ----------------------------------------------------
-      // 6 - прием строки: строка принимается в формате N|text, где N:
-      //   0 - принятый текст бегущей строки $6 0|X|text - X - 0..9,A..Z - индекс строки
-      //   1 - имя сервера NTP
-      //   2 - имя сети (SSID)
-      //   3 - пароль к сети
-      //   4 - имя точки доступа
-      //   5 - пароль точки доступа
-      //   6 - настройки будильника в формате $6 6|DD EF WD HH1 MM1 HH2 MM2 HH3 MM3 HH4 MM4 HH5 MM5 HH6 MM6 HH7 MM7        
-      //   7 - строка запрашиваемых параметров для процедуры getStateString(), например - "$6 7|CE CC CO CK NC SC C1 DC DD DI NP NT NZ NS DW OF"
-      //  11 - картинка построчно $6 11|Y colorHEX,colorHEX,...,colorHEX
-      //  12 - картинка по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX
-      //  14 - текст бегущей строки для немедленного отображения без сохранения $6 14|text
-      //  15 - Загрузить пользовательскую картинку из файла на матрицу; $6 15|ST|filename; ST - "FS" - файловая система; "SD" - карточка
-      //  16 - Сохранить текущее изображение с матрицы в файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
-      //  17 - Удалить файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
-      //  18 - строка избранных эффектов в порядке следования. Каждый символ строки 0..9,A..Z,a..z - кодирует ID эффекта 0..MAX_EFFECT; Позиция в строке - очередность воспроизведения
-      //  19 - отображаемое имя системы
-      // ----------------------------------------------------
+    // ----------------------------------------------------
+    // 5 - рисование
+    //   $5 0 RRGGBB; - установить активный цвет рисования в формате RRGGBB
+    //   $5 1;        - очистить матрицу (заливка черным)
+    //   $5 2;        - заливка матрицы активным активным цветом рисования 
+    //   $5 3 X Y;    - рисовать точку активным цветом рисования в позицию X Y
+    //   $5 4 T N;    - запрос текущей картинки с матрицы в телефон: T - 0 - запрос строки с номером N; T - 1 - запрос колонки с номером N
+    //   $5 5 X;      - запрос списка файлов картинок X: 0 - с FS, 1 - SD
+    //   $5 6 X Y;    - рисовать точку черным в позицию X Y (стереть точку - ластик)
+    // ----------------------------------------------------
 
-      case 6:
-        tmp_idx = receiveText.indexOf('|');
-        if (tmp_idx > 0) {
-           b_tmp = receiveText.substring(0, tmp_idx).toInt();
-           str = receiveText.substring(tmp_idx+1, receiveText.length()+1);
-           switch(b_tmp) {
+    case 5:
+      if (thisMode != MC_DRAW) {
+        set_thisMode(MC_DRAW);
+        setManualModeTo(true);
+      }      
+      if (intData[1] == 0) {
+        // Установить активный цвет рисования - incomeBuffer = '$5 0 00FF00;'
+        set_drawColor(HEXtoInt(incomeBuffer.substring(5,11)));
+      } else
+      if (intData[1] == 1) {
+        // Очистка матрицы (заливка черным)
+        FastLED.clear();
+      } else
+      if (intData[1] == 2) {
+        // Залить матрицу активным цвет ом рисования
+        fillAll(gammaCorrection(drawColor));
+      } else
+      if (intData[1] == 3) {
+        // Нарисовать точку активным цветом рисования в позиции X Y
+        drawPixelXY(intData[2], intData[3], gammaCorrection(drawColor));
+      } else
+      if (intData[1] == 4) {
+        // intData[2] - T=0 - запрос строки; T=1 - запрос колонки; 
+        // intData[3] - номер строки / колонки; 
+        sendImageLine((uint8_t)intData[2], (uint8_t)intData[3]);
+      } else
+      if (intData[1] == 5) {
+        String tmp("FL"); tmp += (intData[2] == 0 ? 0 : 1);               
+        addKeyToChanged(tmp);
+      } else
+      if (intData[1] == 6) {
+        // Нарисовать точку черным в позиции X Y - стереть точку, инструмент ластик
+        drawPixelXY(intData[2], intData[3], 0);
+      } else {
+        err = true;
+        notifyUnknownCommand(incomeBuffer);
+      }
+      break;
 
-            case 0:
-              c = str[0];
+    // ----------------------------------------------------
+    // 6 - прием строки: строка принимается в формате N|text, где N:
+    //   0 - принятый текст бегущей строки $6 0|X|text - X - 0..9,A..Z - индекс строки
+    //   1 - имя сервера NTP
+    //   2 - имя сети (SSID)
+    //   3 - пароль к сети
+    //   4 - имя точки доступа
+    //   5 - пароль точки доступа
+    //   6 - настройки будильника в формате $6 6|DD EF WD HH1 MM1 HH2 MM2 HH3 MM3 HH4 MM4 HH5 MM5 HH6 MM6 HH7 MM7        
+    //   7 - строка запрашиваемых параметров, например - "$6 7|CE CC CO CK NC SC C1 DC DD DI NP NT NZ NS DW OF"
+    //  10 - строка выбранной зоны часового пояса
+    //  11 - картинка построчно $6 11|Y colorHEX,colorHEX,...,colorHEX
+    //  12 - картинка по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX
+    //  14 - текст бегущей строки для немедленного отображения без сохранения $6 14|text
+    //  15 - Загрузить пользовательскую картинку из файла на матрицу; $6 15|ST|filename; ST - "FS" - файловая система; "SD" - карточка
+    //  16 - Сохранить текущее изображение с матрицы в файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
+    //  17 - Удалить файл $6 16|ST|filename; ST - "FS" - файловая система; "SD" - карточка
+    //  18 - строка избранных эффектов в порядке следования. Каждый символ строки 0..9,A..Z,a..z - кодирует ID эффекта 0..MAX_EFFECT; Позиция в строке - очередность воспроизведения
+    //  19 - отображаемое имя системы
+    // ----------------------------------------------------
+
+    case 6:
+      tmp_idx = incomeBuffer.indexOf('|');                     // '$6 12|text'
+      if (tmp_idx > 0) {
+
+         str = incomeBuffer.substring(1, tmp_idx);             // '6 12';
+         idx = str.indexOf(' ');                              
+         b_tmp = incomeBuffer.substring(idx + 1).toInt();      // '12' -> 12
+         str = incomeBuffer.substring(tmp_idx + 1);            // 'text'
+         
+         switch(b_tmp) {
+
+          case 0: {
+              char c = str.charAt(0);
               str = str.substring(2);
               str.replace('\r', ' ');
               str.replace('\n', ' ');
@@ -1340,7 +1338,7 @@ void parsing() {
               
               preparedTextIdx = tmp_eff;
               preparedText = str;
-
+  
               // Если сохраняемая строка содержит макрос {P} - зависящий от времени - выполнить перерасчет времени наблюдаемых событий
               if (str.indexOf("{P") >= 0) {          
                 // Если строки еще нет в списке индексов строк, содержащих макрос {P} - добавить      
@@ -1354,7 +1352,7 @@ void parsing() {
                   textWithEvents.replace(String(c), "");
                 }
               }
-
+  
               // Скорректировать список непустых строк. Поиск какую строку показывать следующей будет
               // выполняться по этому списку, а не перебором всех строк с открытием и чтением содержимого файла) в поисках не пустой для сокращения времени выполнения операции.
               if (str.length() > 0) {
@@ -1366,1565 +1364,1248 @@ void parsing() {
                   textsNotEmpty.replace(String(c), "");
                 }                
               }
-
+  
               // Отправить уведомление об изменениях в строке
               editIdx = tmp_eff;
               addKeyToChanged("TY");         // Отправить также строку в канал WEB
               addKeyToChanged("TS");         // Текст в строке мог быть изменен - отправить в канал WEB состояние строк
+            }
+            break;
 
-              // Отправить подтверждение обработки команды в канал UDP
-              if (cmdSource == UDP) {
-                sendAcknowledge();
-              }
-              break;
+          case 1:
+            set_ntpServerName(str);
+            break;
 
-            case 1:
-              set_ntpServerName(str);
-              if (wifi_connected) {
-                refresh_time = true; ntp_t = 0; ntp_cnt = 0; not_check_time = true;
-              }
-              break;
+          case 2:
+            set_Ssid(str);
+            break;
 
-            case 2:
-              set_Ssid(str);
-              break;
+          case 3:
+            set_pass(str);
+            break;
 
-            case 3:
-              set_pass(str);
-              break;
+          case 4:
+            set_SoftAPName(str);
+            break;
 
-            case 4:
-              set_SoftAPName(str);
-              break;
+          case 5:
+            set_SoftAPPass(str);
+            // Передается в одном пакете - использовать SoftAP, имя точки и пароль
+            // После получения пароля - перезапустить создание точки доступа
+            if (useSoftAP) startSoftAP();
+            break;
+            
+          case 6:
+            // Настройки будильника в формате $6 6|DD EF WD AD HH1 MM1 HH2 MM2 HH3 MM3 HH4 MM4 HH5 MM5 HH6 MM6 HH7 MM7
+            // DD    - установка продолжительности рассвета (рассвет начинается за DD минут до установленного времени будильника)
+            // EF    - установка эффекта, который будет использован в качестве рассвета
+            // WD    - установка дней пн-вс как битовая маска
+            // AD    - продолжительность "звонка" сработавшего будильника
+            // HHx   - часы дня недели x (1-пн..7-вс)
+            // MMx   - минуты дня недели x (1-пн..7-вс)
+            //
+            // Остановить будильник, если он сработал
+            #if (USE_MP3 == 1)
+            if (isDfPlayerOk) {
+              dfPlayer.stop(); Delay(GUARD_DELAY);
+            }
+            set_soundFolder(0);
+            set_soundFile(0);
+            #endif
+            
+            set_isAlarming(false);
+            set_isAlarmStopped(false);
 
-            case 5:
-              set_SoftAPPass(str);
-              // Передается в одном пакете - использовать SoftAP, имя точки и пароль
-              // После получения пароля - перезапустить создание точки доступа
-              if (useSoftAP) startSoftAP();
-              break;
+            // Настройки содержат 18 элементов (см. формат выше)
+            tmp_eff = CountTokens(str, ' ');
+            if (tmp_eff == 18) {
+            
+              set_dawnDuration(constrain(GetToken(str, 1, ' ').toInt(),1,59));
+              set_alarmEffect(GetToken(str, 2, ' ').toInt());
+              set_alarmWeekDay(GetToken(str, 3, ' ').toInt());
+              set_alarmDuration(constrain(GetToken(str, 4, ' ').toInt(),1,10));
               
-            case 6:
-              // Настройки будильника в формате $6 6|DD EF WD AD HH1 MM1 HH2 MM2 HH3 MM3 HH4 MM4 HH5 MM5 HH6 MM6 HH7 MM7
-              // DD    - установка продолжительности рассвета (рассвет начинается за DD минут до установленного времени будильника)
-              // EF    - установка эффекта, который будет использован в качестве рассвета
-              // WD    - установка дней пн-вс как битовая маска
-              // AD    - продолжительность "звонка" сработавшего будильника
-              // HHx   - часы дня недели x (1-пн..7-вс)
-              // MMx   - минуты дня недели x (1-пн..7-вс)
-              //
-              // Остановить будильник, если он сработал
-              #if (USE_MP3 == 1)
-              if (isDfPlayerOk) {
-                dfPlayer.stop(); Delay(GUARD_DELAY);
-              }
-              set_soundFolder(0);
-              set_soundFile(0);
-              #endif
-              
-              set_isAlarming(false);
-              set_isAlarmStopped(false);
-
-              // Настройки содержат 18 элементов (см. формат выше)
-              tmp_eff = CountTokens(str, ' ');
-              if (tmp_eff == 18) {
-              
-                set_dawnDuration(constrain(GetToken(str, 1, ' ').toInt(),1,59));
-                set_alarmEffect(GetToken(str, 2, ' ').toInt());
-                set_alarmWeekDay(GetToken(str, 3, ' ').toInt());
-                set_alarmDuration(constrain(GetToken(str, 4, ' ').toInt(),1,10));
-                
-                for(uint8_t i=0; i<7; i++) {
-                  alarmHourVal = constrain(GetToken(str, i*2+5, ' ').toInt(), 0, 23);
-                  alarmMinuteVal = constrain(GetToken(str, i*2+6, ' ').toInt(), 0, 59);
-                  set_alarmTime(i+1, alarmHourVal, alarmMinuteVal);
-                }
-
-                // Рассчитать время начала рассвета будильника
-                calculateDawnTime();            
-              }
-              break;
-              
-            case 7:
-              // Запрос значений параметров, требуемых приложением вида str="CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
-              // Каждый запрашиваемый приложением параметр - для заполнения соответствующего поля в приложении 
-              // Передать строку для формирования, затем отправить параметры в приложение
-              if (cmdSource == UDP) {
-                str = getStateString(str);
-              } else {
-                // Если ключи разделены пробелом - заменить на пайпы '|'
-                // Затем добавить в строку измененных параметров changed_keys
-                // На следующей итерации параметры из строки changed_keys будут отправлены в канал Web
-                str.replace(' ','|');
-                addKeysToChanged(str);                
-              }
-              break;
-              
-            // Прием строки передаваемого отображения по строкам  $6 11|Y colorHEX,colorHEX,...,colorHEX;
-            case 11:
-              pictureLine = str; pictureLine += ',';
-              
-              if (thisMode != MC_LOADIMAGE) {
-                setManualModeTo(true);
-                set_thisMode(MC_LOADIMAGE);
-                FastLED.clear();
-                FastLEDshow();
-                delay(50);
-              }
-      
-              // Разбираем СТРОКУ из принятого буфера формата 'Y colorHEX,colorHEX,...,colorHEX'
-              // Получить номер строки (Y) для которой получили строку с данными (номер строки - сверху вниз, в то время как матрица - индекс строки снизу вверх)
-              b_tmp = pictureLine.indexOf(' ');
-              str = pictureLine.substring(0, b_tmp);
-              pntX = 0;
-              pntY = str.toInt();
-              pictureLine = pictureLine.substring(b_tmp+1);
-
-              // начало картинки - очистить матрицу
-              if (pntY == 0) {
-                FastLED.clear(); 
-                FastLEDshow();
-              }
-      
-              idx = pictureLine.indexOf(',');
-              while (idx > 0 && pntX < pWIDTH) {
-                str = pictureLine.substring(0, idx);
-                pictureLine = pictureLine.substring(idx + 1);
-                pntColor = HEXtoInt(str);
-                drawPixelXY(pntX, pHEIGHT - pntY - 1, gammaCorrection(pntColor));
-                pntX++;
-              }
-              
-              // Прием строки закончен - вывести матрицу              
-              FastLEDshow();
-              
-              // Строка подтверждения приема строки изображения              
-              if (cmdSource == UDP) {
-                str = "{\"L\":\"";  str += pntY; str += "\"}";
-                sendStringData(str);
-              } else {
-                SendWebKey("L", String(pntY));
+              for(uint8_t i=0; i<7; i++) {
+                alarmHourVal = constrain(GetToken(str, i*2+5, ' ').toInt(), 0, 23);
+                alarmMinuteVal = constrain(GetToken(str, i*2+6, ' ').toInt(), 0, 59);
+                set_alarmTime(i+1, alarmHourVal, alarmMinuteVal);
               }
 
-              break;
-
-            // Прием строки передаваемого отображения по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX;
-            case 12:
-              pictureLine = str; pictureLine += ',';
-
-              if (thisMode != MC_LOADIMAGE) {
-                setManualModeTo(true);
-                set_thisMode(MC_LOADIMAGE);
-                FastLED.clear();
-                FastLEDshow();
-                delay(50);
-              }
-      
-              // Разбираем СТРОКУ из принятого буфера формата 'X colorHEX,colorHEX,...,colorHEX'
-              // Получить номер колонки (X) для которой получили строку с данными (номер строки - сверху вниз, в то время как матрица - индекс строки снизу вверх)
-              b_tmp = pictureLine.indexOf(' ');
-              str = pictureLine.substring(0, b_tmp);
-              pntY = 0;
-              pntX = str.toInt();
-              pictureLine = pictureLine.substring(b_tmp+1);
-
-              // начало картинки - очистить матрицу
-              if (pntX == 0) {
-                FastLED.clear(); 
-                FastLEDshow();
-              }
-
-              idx = pictureLine.indexOf(',');
-              while (idx > 0 && pntY < pHEIGHT) {
-                str = pictureLine.substring(0, idx);
-                pictureLine = pictureLine.substring(idx + 1);
-                pntColor = HEXtoInt(str);
-                drawPixelXY(pntX, pHEIGHT - pntY - 1, gammaCorrection(pntColor));
-                pntY++;
-              }
-
-              // Прием строки закончен - вывести матрицу              
-              FastLEDshow();
-
-              // Строка подтверждения приема строки изображения              
-              if (cmdSource == UDP) {
-                str = "{\"C\":\""; str += pntX; str += "\"}";
-                sendStringData(str);
-              } else {
-                SendWebKey("C", String(pntX));
-              }              
-              break;
-
-            case 14:
-              // текст бегущей строки для немедленного отображения без сохранения               
-              setImmediateText(str);
-              break;
-
-            case 15:
-              // Загрузка картинки: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
-              if (thisMode != MC_DRAW) {
-                set_thisMode(MC_DRAW);
-                setManualModeTo(true);
-              }      
-              str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
-              str2 = str.substring(3);                                                    // Имя файла картинки без расширения
-              str = openImage(str1, str2, nullptr, false);
-              // Отправка уведомления или сообщения об ошибке в Web канал
-              if (cmdSource != UDP) {
-                if (str.length() == 0) {
-                  // Файл загружен
-                  str = String(MSG_FILE_LOADED);
-                  SendWebInfo(str);
-                } else {
-                  // Ошибка загрузки файла
-                  SendWebError(str);
-                }
-              }              
-              break;
-
-            case 16:
-              // Сохранение картинки: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
-              if (thisMode != MC_DRAW) {
-                set_thisMode(MC_DRAW);
-                setManualModeTo(true);
-              }      
-              str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
-              str2 = str.substring(3);                                                    // Имя файла картинки без расширения
-              str = saveImage(str1, str2);              
-              // Отправка уведомления или сообщения об ошибке в Web канал
-              if (cmdSource != UDP) {
-                if (str.length() == 0) {
-                  // Файл сохранен
-                  str = String(MSG_FILE_SAVED);
-                  SendWebInfo(str);
-                } else {
-                  // Ошибка сохранения файла
-                  SendWebError(str);
-                }
-              }              
-              break;
-
-            case 17:
-              // Удаление файла: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
-              if (thisMode != MC_DRAW) {
-                set_thisMode(MC_DRAW);
-                setManualModeTo(true);
-              }      
-              str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
-              str2 = str.substring(3);                                                    // Имя файла картинки без расширения
-              str = deleteImage(str1, str2);              
-              // Отправка уведомления или сообщения об ошибке в Web канал
-              if (cmdSource != UDP) {
-                // При успешно завершившейся операции возвращается пустая строка
-                if (str.length() == 0) {
-                  // Файл удален
-                  str = String(MSG_FILE_DELETED);
-                  SendWebInfo(str);
-                } else {
-                  // Ошибка удаления файла
-                  SendWebError(str);
-                }
-              }
-              break;
-
-            case 18:
-              effect_order = str;
-              effect_order_idx = 0;
-              if (effect_order.length() == 0) {
-                effect_order = "0";
-              }
-              saveEffectOrder();
-              if (!specialMode) {                
-                int8_t newMode = String(IDX_LINE).indexOf(effect_order[0]);
-                if (newMode >= 0 && newMode < MAX_EFFECT) {
-                  setEffect(newMode);
-                }
-              }
-              break;   
-
-            case 19:
-              set_SystemName(str);
-              break;
-           }
-        }
-
-        // При сохранении текста бегущей строки (b_tmp == 0) не нужно сразу автоматически сохранять ее в EEPROM - Сохранение будет выполнено по таймеру. 
-        // При получении запроса параметров (b_tmp == 7) ничего сохранять не нужно - просто отправить требуемые параметры
-        // При получении очередной строки изображения (b_tmp == 11 или b_tmp == 12) ничего сохранять не нужно
-        // При получении текста без сохранения (b_tmp == 14) ничего сохранять не нужно
-        // При загрузка / сохранение картинки (b_tmp == 15 или b_tmp == 16) ничего сохранять не нужно
-        // Остальные полученные строки - сохранять сразу, ибо это настройки сети, будильники и другая критически важная информация
-        switch (b_tmp) {
-          case 0:
+              // Рассчитать время начала рассвета будильника
+              calculateDawnTime();            
+            }
+            break;
+            
           case 7:
+            // Запрос значений параметров, требуемых приложением вида str="CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
+            // Каждый запрашиваемый приложением параметр - для заполнения соответствующего поля в приложении 
+            // Передать строку для формирования, затем отправить параметры в приложение
+            //
+            // Сейчас строка с запросом не помещается в очередь обработки, а обрабатывается сразу
+            // после приема из Web-сокета в web.ino -> handleWebSocketMessage()            
+            break;
+            
+          // Прием строки зоны часового пояса
+          case 10:
+            set_ntpTimeZone(str);
+            // Пересчитать / скорректировать время срабатывания будильников
+            calculateDawnTime();      
+            // Пересчетать очередь ближайших событий {P} в бегущей строке
+            rescanTextEvents();
+            break;
+
+          // Прием строки передаваемого отображения по строкам  $6 11|Y colorHEX,colorHEX,...,colorHEX;
           case 11:
+            pictureLine = str; pictureLine += ',';
+            
+            if (thisMode != MC_LOADIMAGE) {
+              setManualModeTo(true);
+              set_thisMode(MC_LOADIMAGE);
+              FastLED.clear();
+              FastLEDshow();
+              delay(50);
+            }
+    
+            // Разбираем СТРОКУ из принятого буфера формата 'Y colorHEX,colorHEX,...,colorHEX'
+            // Получить номер строки (Y) для которой получили строку с данными (номер строки - сверху вниз, в то время как матрица - индекс строки снизу вверх)
+            b_tmp = pictureLine.indexOf(' ');
+            str = pictureLine.substring(0, b_tmp);
+            pntX = 0;
+            pntY = str.toInt();
+            pictureLine = pictureLine.substring(b_tmp+1);
+
+            // начало картинки - очистить матрицу
+            if (pntY == 0) {
+              FastLED.clear(); 
+              FastLEDshow();
+            }
+    
+            idx = pictureLine.indexOf(',');
+            while (idx > 0 && pntX < pWIDTH) {
+              str = pictureLine.substring(0, idx);
+              pictureLine = pictureLine.substring(idx + 1);
+              pntColor = HEXtoInt(str);
+              drawPixelXY(pntX, pHEIGHT - pntY - 1, gammaCorrection(pntColor));
+              pntX++;
+            }
+            
+            // Прием строки закончен - вывести матрицу              
+            FastLEDshow();
+            
+            // Строка подтверждения приема строки изображения              
+            SendWebKey("L", String(pntY));
+
+            break;
+
+          // Прием строки передаваемого отображения по колонкам $6 12|X colorHEX,colorHEX,...,colorHEX;
           case 12:
+            pictureLine = str; pictureLine += ',';
+
+            if (thisMode != MC_LOADIMAGE) {
+              setManualModeTo(true);
+              set_thisMode(MC_LOADIMAGE);
+              FastLED.clear();
+              FastLEDshow();
+              delay(50);
+            }
+    
+            // Разбираем СТРОКУ из принятого буфера формата 'X colorHEX,colorHEX,...,colorHEX'
+            // Получить номер колонки (X) для которой получили строку с данными (номер строки - сверху вниз, в то время как матрица - индекс строки снизу вверх)
+            b_tmp = pictureLine.indexOf(' ');
+            str = pictureLine.substring(0, b_tmp);
+            pntY = 0;
+            pntX = str.toInt();
+            pictureLine = pictureLine.substring(b_tmp+1);
+
+            // начало картинки - очистить матрицу
+            if (pntX == 0) {
+              FastLED.clear(); 
+              FastLEDshow();
+            }
+
+            idx = pictureLine.indexOf(',');
+            while (idx > 0 && pntY < pHEIGHT) {
+              str = pictureLine.substring(0, idx);
+              pictureLine = pictureLine.substring(idx + 1);
+              pntColor = HEXtoInt(str);
+              drawPixelXY(pntX, pHEIGHT - pntY - 1, gammaCorrection(pntColor));
+              pntY++;
+            }
+
+            // Прием строки закончен - вывести матрицу              
+            FastLEDshow();
+
+            // Строка подтверждения приема строки изображения              
+            SendWebKey("C", String(pntX));
+            break;
+
           case 14:
+            // текст бегущей строки для немедленного отображения без сохранения               
+            setImmediateText(str);
+            break;
+
           case 15:
-          case 16:
-          case 17:
-            // Ничего делать не нужно
-            break;
-          default:  
-            saveSettings();
-            break;
-        }
-        
-        if (b_tmp <= 18) {
-          // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-          if (cmdSource == UDP) {
-            sendAcknowledge();
-          }
-        } else {
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        }        
-        break;
-
-      // ----------------------------------------------------
-      // 8 - эффект
-      //  - $8 0 N; включить эффект N
-      //  - $8 1 N D; D -> параметр #1 для эффекта N;
-      //  - $8 3 N D; D -> параметр #2 для эффекта N;
-      //  - $8 4 N X; вкл/выкл оверлей текста поверх эффекта; N - номер эффекта, X=0 - выкл X=1 - вкл 
-      //  - $8 5 N X; вкл/выкл оверлей часов поверх эффекта; N - номер эффекта, X=0 - выкл X=1 - вкл 
-      //  - $8 6 N D; D -> контрастность эффекта N;
-      //  - $8 7 N;   Запрос текущих параметров эффекта N, возвращается JSON с параметрами. Используется для редактирования эффекта в Web-интерфейсе;
-      //  - $8 8 N D; D -> скорость эффекта N;
-      // ----------------------------------------------------
-
-      case 8:      
-        tmp_eff = intData[2];
-        // intData[1] : действие -> 0 - выбор эффекта;  1 - параметры #1 и #2; 2 - вкл/выкл "использовать в демо-режиме"
-        // intData[2] : номер эффекта
-        // intData[3] : действие = 1: значение параметра #1 или #2
-        //              действие = 2: 0 - выкл; 1 - вкл;
-        if (intData[1] == 0) {    
-          // Включить эффект      
-          // Если в приложении выбраны эффект "Ночные часы" / "Дневные часы", но они недоступны из-за размеров матрицы - выключить матрицу
-          // Если в приложении выбраны часы, но они недоступны из-за размеров матрицы - брать другой случайный эффект
-          if (tmp_eff == MC_CLOCK){
-            if (!(allowHorizontal || allowVertical)) {
-              setRandomMode();
+            // Загрузка картинки: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
+            if (thisMode != MC_DRAW) {
+              set_thisMode(MC_DRAW);
+              setManualModeTo(true);
+            }      
+            str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
+            str2 = str.substring(3);                                                    // Имя файла картинки без расширения
+            str = openImage(str1, str2, nullptr, false, pWIDTH, pHEIGHT);
+            // Отправка уведомления или сообщения об ошибке в Web канал
+            if (str.length() == 0) {
+              // Файл загружен
+              SendWebInfo(MSG_FILE_LOADED);
             } else {
-              setSpecialMode(10);    // Дневные часы. Для ночных - 8
+              // Ошибка загрузки файла
+              SendWebError(str);
             }
-          } else {
-            loadingFlag = true;
-            setEffect(tmp_eff);
-            if (tmp_eff == MC_FILL_COLOR && globalColor == 0x000000) set_globalColor(0xffffff);
-          }
-          setManualModeTo(true);
-        } else 
-        
-        if (intData[1] == 1) {          
-          // Параметр #1 эффекта 
-          if (tmp_eff == MC_CLOCK){
-             // Параметр "Вариант" меняет цвет часов. 
-             if (isNightClock) {
-               // Для ночных часов - полученное значение -> в map 0..6 - код цвета ночных часов
-               set_nightClockColor(map(intData[3], 0,255, 0,6));
-               set_specialBrightness(nightClockBrightness);
-             } else {
-               // Для дневных часов - меняется цвет часов (параметр HUE цвета, hue < 2 - белый)
-               set_EffectScaleParam(tmp_eff, intData[3]);
-             }
-          } else {
-            set_EffectScaleParam(tmp_eff, intData[3]);
-            if (thisMode == tmp_eff && tmp_eff == MC_FILL_COLOR) {  
-              set_globalColor(getColorInt(CHSV(effectSpeed[MC_FILL_COLOR], effectScaleParam[MC_FILL_COLOR], 255)));
-            } else 
-            if (thisMode == tmp_eff && tmp_eff == MC_BALLS) {
-              // При получении параметра эффекта "Шарики" (кол-во шариков) - надо переинициализировать эффект
-              loadingFlag = true;
-            } else 
-            if (thisMode == tmp_eff && tmp_eff == MC_RUBIK) {
-              // При получении параметра эффекта "Кубик Рубика" (размер плашки) - надо переинициализировать эффект
-              loadingFlag = true;
-            }
-          }
-        } else 
-                
-        if (intData[1] == 3) {
-          // Параметр #2 эффекта
-          set_EffectScaleParam2(tmp_eff, intData[3]);
-          if (thisMode == tmp_eff && tmp_eff == MC_RAINBOW) {
-            // При получении параметра 2 эффекта "Радуга" (тип радуги) - надо переинициализировать эффект
-            // Если установлен тип радуги - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_ARROWS) {
-            // При получении параметра 2 эффекта "Стрелки" -  вид - надо переинициализировать эффект
-            // Если установлен тип - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_PAINTBALL) {
-            // При получении параметра 2 эффекта "Пэйнтбол" (сегменты) - надо переинициализировать эффект
-            loadingFlag = true;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_SWIRL) {
-            // При получении параметра 2 эффекта "Водоворот" (сегменты) - надо переинициализировать эффект
-            loadingFlag = true;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_CYCLON) {
-            // При получении параметра 2 эффекта "Циклон" (сегменты) - надо переинициализировать эффект
-            loadingFlag = true;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_PATTERNS) {
-            // При получении параметра 2 эффекта "Узоры" -  вид - надо переинициализировать эффект
-            // Если установлен узор - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_RUBIK) {
-            // При получении параметра 2 эффекта "Кубик рубика" -  вид - надо переинициализировать эффект
-            // Если установлен вариант - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_STARS) {
-            // При получении параметра 2 эффекта "Звездочки" -  вид - надо переинициализировать эффект
-            // Если установлен вариант - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_TRAFFIC) {
-            // При получении параметра 2 эффекта "Трафик" -  вид - надо переинициализировать эффект
-            // Если установлен вариант - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } else
-          if (thisMode == tmp_eff && tmp_eff == MC_IMAGE) {
-            // При получении параметра 2 эффекта "Анимация" -  вид - надо переинициализировать эффект
-            // Если установлена анимация - "случайная" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;
-          } 
-          #if (USE_SD == 1)
-          else
-          if (thisMode == tmp_eff && tmp_eff == MC_SDCARD) {
-            // При получении параметра 2 эффекта "SD-карта" -  вид - надо переинициализировать эффект
-            // Если установлен эффект - "случайный" - продолжаем показывать тот что был
-            loadingFlag = effectScaleParam2[tmp_eff] != 0;  // effectScaleParam2[tmp_eff]: 0 - случайно; 1 - последовательно; 2 и далее - привести к индексу массива списка файлов 
-          }          
-          #endif
-        } else
-
-        if (intData[1] == 4) {
-          // Вкл/выкл оверлей бегущей строки поверх эффекта
-          set_EffectTextOverlayUsage(tmp_eff, intData[3] == 1);           
-        } else 
-
-        if (intData[1] == 5) {
-          // Вкл/выкл оверлей часов поверх эффекта
-          set_EffectClockOverlayUsage(tmp_eff, intData[3] == 1);           
-        } else
-
-        if (intData[1] == 6) {
-          // Контрастность эффекта
-          set_EffectContrast(tmp_eff, intData[3]);          
-        } else
-
-        // Запрос параметров эффекта в виде объекта JSON (Web-интерфейс)
-        if (intData[1] == 7) {
-          // В сообщении может передаваться длинная строка - например список файлов с SD-карты (param2), требуется буфер значительного размера
-          doc.clear();
-          doc["act"]        = F("EDIT");
-          doc["id"]         = String(tmp_eff);
-          doc["name"]       = getEffectName(tmp_eff);          
-          doc["usage"]      = getStateValue("UE", tmp_eff, nullptr, true);
-          doc["allowClock"] = getStateValue("UC", tmp_eff, nullptr, true);
-          doc["allowText"]  = getStateValue("UT", tmp_eff, nullptr, true);
-          doc["speed"]      = getStateValue("SE", tmp_eff, nullptr, true);
-          doc["contrast"]   = getStateValue("BE", tmp_eff, nullptr, true);
-          doc["param1"]     = getStateValue("SS", tmp_eff, nullptr, true);
-          doc["param2"]     = getStateValue("SQ", tmp_eff, nullptr, true);          
-          // -----------------          
-          doc["paramName1"] = getParamNameForMode(tmp_eff);
-          doc["paramName2"] = getParam2NameForMode(tmp_eff);
-
-          String out;
-          serializeJson(doc, out);
-          doc.clear();
-          
-          SendWeb(out, TOPIC_EDT);
-        } else
-
-        // Скорость для эффекта 
-        if (intData[1] == 8) {
-          if (intData[3] == 255) intData[3] = 254;          
-          set_EffectSpeed(tmp_eff, 255 - intData[3]);
-          if (tmp_eff == thisMode) { 
-            if (thisMode == MC_FILL_COLOR) { 
-              set_globalColor(getColorInt(CHSV(effectSpeed[MC_FILL_COLOR], effectScaleParam[MC_FILL_COLOR], 255)));
-            }
-            setTimersForMode(thisMode);
-          }
-        }
-
-        // Для "1","2","4","5","6","8" - отправляются параметры, подтверждение отправлять не нужно. Для остальных - нужно
-        if (intData[1] >= 0 && intData[1] <= 8) {
-          // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-          if (cmdSource == UDP) {
-            sendAcknowledge();
-          }
-        } else {
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        }
-        break;
-
-      // ----------------------------------------------------
-      // 12 - Настройки погоды
-      // - $12 3 X;      - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в дневных часах
-      // - $12 4 X;      - использовать получение погоды с погодного сервера
-      // - $12 5 I С C2; - интервал получения погоды с сервера в минутах (I) и код региона C - Yandex и код региона C2 - OpenWeatherMap
-      // - $12 6 X;      - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в ночных часах
-      // ----------------------------------------------------
-
-      #if (USE_WEATHER == 1)                  
-      case 12:
-         switch (intData[1]) {
-           case 3:               // $12 3 X; - Использовать отображение температуры цветом 0 - нет; 1 - да
-             set_useTemperatureColor(intData[2] == 1);
-             break;
-           case 4:               // $12 4 X; - Использовать получение погоды с сервера 0 - нет; 1 - Yandex 2 - OpenWeatherMap
-             set_useWeather(intData[2]);
-             if (wifi_connected) {
-               refresh_weather = true; weather_t = 0; weather_cnt = 0; init_weather = false; 
-             }
-             if (thisMode == MC_WEATHER && !useWeather) {
-               loadingFlag = true;
-             }
-             break;
-           case 5:               // $12 5 I C C2; - Интервал обновления погоды с сервера в минутах, Код региона Yandex, Код региона OpenWeatherMap 
-             set_SYNC_WEATHER_PERIOD(intData[2]);
-             set_regionID(intData[3]);
-             set_regionID2(intData[4]);
-             weatherTimer.setInterval(1000L * 60 * SYNC_WEATHER_PERIOD);
-             if (wifi_connected) {
-               refresh_weather = true; weather_t = 0; weather_cnt = 0;
-             }
-             if (cmdSource != UDP) {
-               str = String(MSG_OP_SUCCESS);
-               SendWebInfo(str);
-             }
-             break;
-           case 6:               // $12 6 X; - Использовать отображение температуры цветом 0 - нет; 1 - да
-             set_useTemperatureColorNight(intData[2] == 1);
-             break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
             break;
-        }
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
-      #endif
 
-      // ----------------------------------------------------
-      // 13 - Настройки бегущей строки
-      // - $13 1 N;   - активация прокручивания строки с номером N 0..35
-      // - $13 2 N;   - запросить текст бегущей строки с индексом N 0..35 как есть, без обработки макросов - ответ TY
-      // - $13 9 D;   - сохранить настройку D - интервал в секундах отображения бегущей строки
-      // - $13 11 X;  - Режим цвета бегущей строки X: 0,1,2,           
-      // - $13 13 X;  - скорость прокрутки бегущей строки
-      // - $13 15 00FFAA; - цвет текстовой строки для режима "монохромный", сохраняемый в globalTextColor
-      // - $13 18 X;  - сохранить настройку X "Бегущая строка в эффектах" (общий, для всех эффектов), где X: 0 - отключено; 1 - включено
-      // ----------------------------------------------------
-
-      case 13:
-         switch (intData[1]) {
-           case 1:               // $13 1 N; установить строку N = 0..35 как активную отображаемую строку          
-             // Если строка 0 - управляющая - ее нельзя включать принудительно.
-             b_tmp = intData[2] > 0 || (intData[2] == 0 && textIndecies.length() > 0 && textIndecies[0] != '#');
-             if (b_tmp) {              
-               if (thisMode == MC_TEXT){
-                 setRandomMode();
-               }
-               nextTextLineIdx = intData[2];  // nextTextLineIdx - индекс следующей принудительно отображаемой строки
-               ignoreTextOverlaySettingforEffect = true;
-               fullTextFlag = true;
-               textLastTime = 0;
-             }
-             break;
-           case 2:               // $13 2 I; - Запросить исходный текст бегущей строки с индексом I 0..35 без обработки макросов
-             if (intData[2] >= 0 && intData[2] <= 35) {
-               editIdx = intData[2];
-               addKeyToChanged("TY");                  // Отправить также строку в канал WEB
-             }
-             break;
-           case 9:               // $13 9 D; - Периодичность отображения бегущей строки (в секундах D)
-             set_TEXT_INTERVAL(intData[2]);
-             str = String(MSG_OP_SUCCESS);
-             SendWebInfo(str);
-             break;
-           case 11:               // $13 11 X; - Режим цвета бегущей строкой X: 0,1,2,           
-             set_COLOR_TEXT_MODE(intData[2]);
-             break;
-           case 13:               // $13 13 X; - скорость прокрутки бегущей строки
-             set_textScrollSpeed(255 - intData[2]);             
-             setTimersForMode(thisMode);
-             break;
-           case 15:               // $13 15 00FFAA;
-             // В строке цвет - "$13 15 00FFAA;" - цвет часов текстовой строкой для режима "монохромный", сохраняемый в globalTextColor
-             str = String(incomeBuffer).substring(7,13);
-             set_globalTextColor((uint32_t)HEXtoInt(str));
-             str = String(MSG_OP_SUCCESS);
-             SendWebInfo(str);
-             break;
-           case 18:               // $13 18 X; - сохранить настройку X "Бегущая строка в эффектах"
-             set_textOverlayEnabled(intData[2] == 1);
-             if (!textOverlayEnabled) {
-               showTextNow = false;
-               ignoreTextOverlaySettingforEffect = false;
-             }
-             break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
+          case 16:
+            // Сохранение картинки: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
+            if (thisMode != MC_DRAW) {
+              set_thisMode(MC_DRAW);
+              setManualModeTo(true);
+            }      
+            str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
+            str2 = str.substring(3);                                                    // Имя файла картинки без расширения
+            str = saveImage(str1, str2, pWIDTH, pHEIGHT);              
+            // Отправка уведомления или сообщения об ошибке в Web канал
+            if (str.length() == 0) {
+              // Файл сохранен
+              SendWebInfo(MSG_FILE_SAVED);
+            } else {
+              // Ошибка сохранения файла
+              SendWebError(str);
+            }
             break;
-        }
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
-        
-      // ----------------------------------------------------
-      //  14 - быстрая установка ручных режимов с пред-настройками
-      // - $14 0;  Черный экран (выкл);  
-      // - $14 1;  Белый экран (освещение);  
-      // - $14 2;  Цветной экран;  
-      // - $14 3;  Огонь;  
-      // - $14 4;  Конфетти;  
-      // - $14 5;  Радуга;  
-      // - $14 6;  Матрица;  
-      // - $14 7;  Светлячки;  
-      // - $14 8;  Часы ночные;
-      // - $14 9;  Часы бегущей строкой;
-      // - $14 10; Часы простые;  
-      // ----------------------------------------------------
 
-      case 14:
-        if (intData[1] < 0 || intData[1] >= MAX_SPEC_EFFECT) {
-          notifyUnknownCommand(incomeBuffer, cmdSource);
-        } else {
-          if (intData[1] == 2) {
-             // Если в строке цвет - "$14 2 00FFAA;" - цвет лампы, сохраняемый в globalColor
-             str = String(incomeBuffer).substring(6,12); // $14 2 00FFAA;
-             set_globalColor((uint32_t)HEXtoInt(str));
-          }        
-          setSpecialMode(intData[1]);
-          // Для команд, пришедших от UDP отправить подтверждение выполнения команды
-          if (cmdSource == UDP) {
-            sendAcknowledge();
-          }
-        }
-        break;
+          case 17:
+            // Удаление файла: str = "TS|file", где TS - "FS" - внутр. память МК, "SD" - SD-карта; file - имя картинки без расширения
+            if (thisMode != MC_DRAW) {
+              set_thisMode(MC_DRAW);
+              setManualModeTo(true);
+            }      
+            str1 = USE_SD == 1 && FS_AS_SD == 0 ? str.substring(0,2) : String(F("FS")); // хранилище: если нет реальной SD-карты (эмуляция в FS) - использовать хранилище FS
+            str2 = str.substring(3);                                                    // Имя файла картинки без расширения
+            str = deleteImage(str1, str2, pWIDTH, pHEIGHT);              
+            // Отправка уведомления или сообщения об ошибке в Web канал
+            // При успешно завершившейся операции возвращается пустая строка
+            if (str.length() == 0) {
+              // Файл удален
+              SendWebInfo(MSG_FILE_DELETED);
+            } else {
+              // Ошибка удаления файла
+              SendWebError(str);
+            }
+            break;
+
+          case 18:
+            effect_order = str;
+            effect_order_idx = 0;
+            if (effect_order.length() == 0) {
+              effect_order = "0";
+            }
+            saveEffectOrder();
+            if (!specialMode) {                
+              int8_t newMode = String(IDX_LINE).indexOf(effect_order[0]);
+              if (newMode >= 0 && newMode < MAX_EFFECT) {
+                setEffect(newMode);
+              }
+            }
+            break;   
+
+          case 19:
+            set_SystemName(str);
+            break;
+         }
+      }
+
+      // При сохранении текста бегущей строки (b_tmp == 0) не нужно сразу автоматически сохранять ее в EEPROM - Сохранение будет выполнено по таймеру. 
+      // При получении запроса параметров (b_tmp == 7) ничего сохранять не нужно - просто отправить требуемые параметры
+      // При получении очередной строки изображения (b_tmp == 11 или b_tmp == 12) ничего сохранять не нужно
+      // При получении текста без сохранения (b_tmp == 14) ничего сохранять не нужно
+      // При загрузка / сохранение картинки (b_tmp == 15 или b_tmp == 16) ничего сохранять не нужно
+      // Остальные полученные строки - сохранять сразу, ибо это настройки сети, будильники и другая критически важная информация
+      switch (b_tmp) {
+        case 0:
+        case 7:
+        case 11:
+        case 12:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+          // Ничего делать не нужно
+          break;
+        default:  
+          saveSettings();
+          break;
+      }
       
-      // ----------------------------------------------------
-      // 15 - скорость $15 скорость таймер; 0 - таймер эффектов
-      // ----------------------------------------------------
+      if (b_tmp > 18) {
+        notifyUnknownCommand(incomeBuffer);
+      }        
+      break;
 
-      case 15: 
-        if (intData[2] == 0) {
-          if (intData[1] == 255) intData[1] = 254;
-          set_EffectSpeed(thisMode,255 - intData[1]); 
+    // ----------------------------------------------------
+    // 8 - эффект
+    //  - $8 0 N; включить эффект N
+    //  - $8 1 N D; D -> параметр #1 для эффекта N;
+    //  - $8 3 N D; D -> параметр #2 для эффекта N;
+    //  - $8 4 N X; вкл/выкл оверлей текста поверх эффекта; N - номер эффекта, X=0 - выкл X=1 - вкл 
+    //  - $8 5 N X; вкл/выкл оверлей часов поверх эффекта; N - номер эффекта, X=0 - выкл X=1 - вкл 
+    //  - $8 6 N D; D -> контрастность эффекта N;
+    //  - $8 7 N;   Запрос текущих параметров эффекта N, возвращается JSON с параметрами. Используется для редактирования эффекта в Web-интерфейсе;
+    //  - $8 8 N D; D -> скорость эффекта N;
+    // ----------------------------------------------------
+
+    case 8:      
+      tmp_eff = intData[2];
+      // intData[1] : действие -> 0 - выбор эффекта;  1 - параметры #1 и #2; 2 - вкл/выкл "использовать в демо-режиме"
+      // intData[2] : номер эффекта
+      // intData[3] : действие = 1: значение параметра #1 или #2
+      //              действие = 2: 0 - выкл; 1 - вкл;
+      if (intData[1] == 0) {    
+        // Включить эффект      
+        // Если в приложении выбраны эффект "Ночные часы" / "Дневные часы", но они недоступны из-за размеров матрицы - выключить матрицу
+        // Если в приложении выбраны часы, но они недоступны из-за размеров матрицы - брать другой случайный эффект
+        if (tmp_eff == MC_CLOCK){
+          if (!(allowHorizontal || allowVertical)) {
+            setRandomMode();
+          } else {
+            setSpecialMode(4);    // Дневные часы. Для ночных - 3
+          }
+        } else {
+          loadingFlag = true;
+          setEffect(tmp_eff);
+          putCurrentManualMode(tmp_eff);
+          if (tmp_eff == MC_FILL_COLOR && globalColor == 0x000000) set_globalColor(0xffffff);
+        }
+        setManualModeTo(true);
+      } else 
+      
+      if (intData[1] == 1) {          
+        // Параметр #1 эффекта 
+        if (tmp_eff == MC_CLOCK){
+           // Параметр "Вариант" меняет цвет часов. 
+           if (isNightClock) {
+             // Для ночных часов - полученное значение -> в map 0..6 - код цвета ночных часов
+             set_nightClockColor(map(intData[3], 0,255, 0,6));
+             set_specialBrightness(nightClockBrightness);
+           } else {
+             // Для дневных часов - меняется цвет часов (параметр HUE цвета, hue < 2 - белый)
+             set_EffectScaleParam(tmp_eff, intData[3]);
+           }
+        } else {
+          set_EffectScaleParam(tmp_eff, intData[3]);
+          if (thisMode == tmp_eff && tmp_eff == MC_FILL_COLOR) {  
+            set_globalColor(getColorInt(CHSV(effectSpeed[MC_FILL_COLOR], effectScaleParam[MC_FILL_COLOR], 255)));
+          } else 
+          if (thisMode == tmp_eff && tmp_eff == MC_BALLS) {
+            // При получении параметра эффекта "Шарики" (кол-во шариков) - надо переинициализировать эффект
+            loadingFlag = true;
+          } else 
+          if (thisMode == tmp_eff && tmp_eff == MC_RUBIK) {
+            // При получении параметра эффекта "Кубик Рубика" (размер плашки) - надо переинициализировать эффект
+            loadingFlag = true;
+          }
+        }
+      } else 
+              
+      if (intData[1] == 3) {
+        // Параметр #2 эффекта
+        set_EffectScaleParam2(tmp_eff, intData[3]);
+        if (thisMode == tmp_eff && tmp_eff == MC_RAINBOW) {
+          // При получении параметра 2 эффекта "Радуга" (тип радуги) - надо переинициализировать эффект
+          // Если установлен тип радуги - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_ARROWS) {
+          // При получении параметра 2 эффекта "Стрелки" -  вид - надо переинициализировать эффект
+          // Если установлен тип - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_PAINTBALL) {
+          // При получении параметра 2 эффекта "Пэйнтбол" (сегменты) - надо переинициализировать эффект
+          loadingFlag = true;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_SWIRL) {
+          // При получении параметра 2 эффекта "Водоворот" (сегменты) - надо переинициализировать эффект
+          loadingFlag = true;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_CYCLON) {
+          // При получении параметра 2 эффекта "Циклон" (сегменты) - надо переинициализировать эффект
+          loadingFlag = true;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_PATTERNS) {
+          // При получении параметра 2 эффекта "Узоры" -  вид - надо переинициализировать эффект
+          // Если установлен узор - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_RUBIK) {
+          // При получении параметра 2 эффекта "Кубик рубика" -  вид - надо переинициализировать эффект
+          // Если установлен вариант - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_STARS) {
+          // При получении параметра 2 эффекта "Звездочки" -  вид - надо переинициализировать эффект
+          // Если установлен вариант - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_TRAFFIC) {
+          // При получении параметра 2 эффекта "Трафик" -  вид - надо переинициализировать эффект
+          // Если установлен вариант - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_IMAGE) {
+          // При получении параметра 2 эффекта "Анимация" -  вид - надо переинициализировать эффект
+          // Если установлена анимация - "случайная" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } 
+        #if (USE_SD == 1)
+        else
+        if (thisMode == tmp_eff && tmp_eff == MC_SDCARD) {
+          // При получении параметра 2 эффекта "SD-карта" -  вид - надо переинициализировать эффект
+          // Если установлен эффект - "случайный" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;  // effectScaleParam2[tmp_eff]: 0 - случайно; 1 - последовательно; 2 и далее - привести к индексу массива списка файлов 
+        }          
+        #endif
+      } else
+
+      if (intData[1] == 4) {
+        // Вкл/выкл оверлей бегущей строки поверх эффекта
+        set_EffectTextOverlayUsage(tmp_eff, intData[3] == 1);           
+      } else 
+
+      if (intData[1] == 5) {
+        // Вкл/выкл оверлей часов поверх эффекта
+        set_EffectClockOverlayUsage(tmp_eff, intData[3] == 1);           
+      } else
+
+      if (intData[1] == 6) {
+        // Контрастность эффекта
+        set_EffectContrast(tmp_eff, intData[3]);          
+      } else
+
+      // Запрос параметров эффекта в виде объекта JSON (Web-интерфейс)
+      if (intData[1] == 7) {
+        String param2 = getStateValue("SQ", tmp_eff, true);
+        
+        doc.clear();
+        doc["act"]        = F("EDIT");
+        doc["id"]         = String(tmp_eff);
+        doc["name"]       = getEffectName(tmp_eff);          
+        doc["allowClock"] = getStateValue("UC", tmp_eff, true);
+        doc["allowText"]  = getStateValue("UT", tmp_eff, true);
+        doc["speed"]      = getStateValue("SE", tmp_eff, true);
+        doc["contrast"]   = getStateValue("BE", tmp_eff, true);
+        // -----------------          
+        doc["paramName1"] = getParamNameForMode(tmp_eff);
+        doc["paramName2"] = getParam2NameForMode(tmp_eff);
+        doc["param1"]     = getStateValue("SS", tmp_eff, true);
+        doc["param2"]     = param2;       
+
+        // Для некоторых эффектов параметр2 может быть слишком длинным и весь собранный json объект не влезет в буфер
+        // Если влезает - посылаем параметр в данном пакете json
+        // Если не влезает - отправляем ниже вторым и следующим запросами по частям
+
+        // Если объект не удалось сериализовать - строка значения param2 будет null
+        // Тогда нужно удалить doc["param2"] - затем ниже отправить его отдельным пакетом
+        String out;
+        serializeJson(doc, out);
+
+        // Сначала отправляем параметр для редактирования param2...
+        if (out.indexOf("\"param2\":null") != -1) {
+          SendWebKey("EDIT", param2);
+        }
+                
+        // затем отправляем структуру с остальными параметрами редактирования
+        // к тому моменту когда клиент получит структуру - недостающий параметр уже будет готов
+        // для формирования значений в окне данных
+        SendWeb(out, TOPIC_EDT);
+        
+      } else
+
+      // Скорость для эффекта 
+      if (intData[1] == 8) {
+        if (intData[3] == 255) intData[3] = 254;          
+        set_EffectSpeed(tmp_eff, 255 - intData[3]);
+        if (tmp_eff == thisMode) { 
           if (thisMode == MC_FILL_COLOR) { 
             set_globalColor(getColorInt(CHSV(effectSpeed[MC_FILL_COLOR], effectScaleParam[MC_FILL_COLOR], 255)));
           }
-          setTimersForMode(thisMode);           
-          // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-          if (cmdSource == UDP) {
-            sendAcknowledge();
-          }
-        } else {
-          notifyUnknownCommand(incomeBuffer, cmdSource);
+          setTimersForMode(thisMode);
         }
-        break;
+      }
 
-      // ----------------------------------------------------
-      // 16 - Режим смены эффектов: $16 N; 
-      //    - $16 0; - ручной режим;  
-      //    - $16 1; - авторежим; 
-      //    - $16 2; - PrevMode; 
-      //    - $16 3; - NextMode; 
-      //    - $16 5; - вкл/выкл случайный выбор следующего режима
-      // ----------------------------------------------------
+      // Для "1","2","4","5","6","8" - отправляются параметры, подтверждение отправлять не нужно. Для остальных - нужно
+      if (intData[1] > 8) {
+        notifyUnknownCommand(incomeBuffer);
+      }
+      break;
 
-      case 16:
-        if      (intData[1] == 0) setManualModeTo(true);
-        else if (intData[1] == 1) { resetModesExt(); setManualModeTo(false); }
-        else if (intData[1] == 2) prevMode();
-        else if (intData[1] == 3) nextMode();
-        else if (intData[1] == 5) set_useRandomSequence(intData[2] == 1);
+    // ----------------------------------------------------
+    // 12 - Настройки погоды
+    // - $12 2 X;      - использовать Цельсий/Фаренгейт: X=0 - Цельсий; X=1 - Фаренгейт
+    // - $12 3 X;      - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в дневных часах
+    // - $12 4 X;      - использовать получение погоды с погодного сервера
+    // - $12 5 I С C2; - интервал получения погоды с сервера в минутах (I) и код региона C - Yandex и код региона C2 - OpenWeatherMap
+    // - $12 6 X;      - использовать цвет для отображения температуры X=0 - выкл X=1 - вкл в ночных часах
+    // ----------------------------------------------------
 
-        putCurrentManualMode(manualMode ? (int8_t)thisMode : -1);
-        
-        if (manualMode) {
-          set_CurrentSpecialMode(-1);
-        }
+    #if (USE_WEATHER == 1)                  
+    case 12:
+       switch (intData[1]) {
+         case 2:               // $12 2 X; - использовать Цельсий/Фаренгейт: X=0 - Цельсий; X=1 - Фаренгейт
+           set_IsFarenheit(intData[2] != 0);
+           break;
+         case 3:               // $12 3 X; - Использовать отображение температуры цветом 0 - нет; 1 - да
+           set_useTemperatureColor(intData[2] == 1);
+           break;
+         case 4:               // $12 4 X; - Использовать получение погоды с сервера 0 - нет; 1 - Yandex 2 - OpenWeatherMap
+           set_useWeather(intData[2]);
+           if (wifi_connected) {
+             refresh_weather = true; weather_t = 0; weather_cnt = 0; init_weather = false; 
+           }
+           if (thisMode == MC_WEATHER && !useWeather) {
+             loadingFlag = true;
+           }
+           break;
+         case 5:               // $12 5 I C C2; - Интервал обновления погоды с сервера в минутах, Код региона Yandex, Код региона OpenWeatherMap 
+           // Из WebUI прихдит СНАЧАЛА регион погоды '$12 5', затем тут же - установка вкл/выкл - '$12 4'
+           // Чтобы два раза не вызывать обновление погоды - здесь ничего не делаем, а в '$12 4' выше сбрасываем таймеры и флаги необходимости обновления погоды
+           set_SYNC_WEATHER_PERIOD(intData[2]);
+           set_regionID(intData[3]);
+           set_regionID2(intData[4]);
+           SendWebInfo(MSG_OP_SUCCESS);
+           break;
+         case 6:               // $12 6 X; - Использовать отображение температуры цветом 0 - нет; 1 - да
+           set_useTemperatureColorNight(intData[2] == 1);
+           break;
+        default:
+          err = true;
+          notifyUnknownCommand(incomeBuffer);
+          break;
+      }
+      break;
+    #endif
 
-        if (intData[1] == 1) {
-          set_idleTime(getIdleTime());    
-          setIdleTimer();             
-          if (thisMode == MC_FILL_COLOR && globalColor == 0x000000) {
-            // Было выключено, режим "Лампа" с черным цветом - включить случайный режим
-            setRandomMode();
-          }
-        }
-        
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (cmdSource == UDP) {
-            sendAcknowledge();
-        }
-        break;
+    // ----------------------------------------------------
+    // 13 - Настройки бегущей строки
+    // - $13 1 N;   - активация прокручивания строки с номером N 0..35
+    // - $13 2 N;   - запросить текст бегущей строки с индексом N 0..35 как есть, без обработки макросов - ответ TY
+    // - $13 9 D;   - сохранить настройку D - интервал в секундах отображения бегущей строки
+    // - $13 11 X;  - Режим цвета бегущей строки X: 0,1,2,           
+    // - $13 13 X;  - скорость прокрутки бегущей строки
+    // - $13 15 00FFAA; - цвет текстовой строки для режима "монохромный", сохраняемый в globalTextColor
+    // - $13 18 X;  - сохранить настройку X "Бегущая строка в эффектах" (общий, для всех эффектов), где X: 0 - отключено; 1 - включено
+    // ----------------------------------------------------
 
-      // ----------------------------------------------------
-      // 17 - Время автосмены эффектов и бездействия: $17 сек
-      // ----------------------------------------------------
-
-      case 17: 
-        set_autoplayTime((uint32_t)intData[1] * 1000UL);   // секунды -> миллисек 
-        set_idleTime((uint32_t)intData[2] * 60 * 1000UL);  // минуты -> миллисек
-        if (!manualMode) {
-          autoplayTimer = millis();
-        }
-        setIdleTimer();             
-        // Для команд, пришедших от UDP отправлять при необходимости другие данные, например - состояние элементов управления на странице от которой пришла команда 
-        if (cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        if (cmdSource != UDP) {
-          str = String(MSG_OP_SUCCESS);
-          SendWebInfo(str);
-        }
-        break;
-
-      // ----------------------------------------------------
-      // $18 0; - ping
-      // ----------------------------------------------------
-
-      case 18:
-        // Данная команда ('$18 0;') поступает только из приложения на телефоне - пинг
-        if (cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
-
-      // ----------------------------------------------------
-      // 19 - работа с настройками часов
-      //   $19 1 X; - сохранить настройку X "Часы в эффектах" (общий, для всех эффектов)
-      //   $19 2 X; - Использовать синхронизацию часов NTP  X: 0 - нет, 1 - да
-      //   $19 3 N ZH ZM; - Период синхронизации часов NTP (N) и Часовой пояс (часы ZH и минуты ZM)
-      //   $19 4 X; - Выключать индикатор TM1637 при выключении экрана X: 0 - нет, 1 - да
-      //   $19 5 X; - Режим цвета часов оверлея X: 0,1,2,3
-      //   $19 6 X; - Ориентация часов  X: 0 - горизонтально, 1 - вертикально
-      //   $19 7 X; - Размер часов X: 0 - авто, 1 - малые 3х5, 2 - большие 5x7
-      //   $19 8 YYYY MM DD HH MM; - Установить текущее время YYYY.MM.DD HH:MM
-      //   $19 9 X; - Показывать температуру вместе с малыми часами 1 - да; 0 - нет
-      //   $19 10 X; - Цвет ночных часов:  0 - R; 1 - G; 2 - B; 3 - C; 3 - M; 5 - Y; 6 - W;
-      //   $19 11 X; - Яркость ночных часов:  0..255
-      //   $19 12 X; - скорость прокрутки часов оверлея или 0, если часы остановлены по центру
-      //   $19 14 00FFAA; - цвет часов оверлея, сохраняемый в globalClockColor
-      //   $19 16 X; - Показывать дату в режиме часов  X: 0 - нет, 1 - да
-      //   $19 17 D I; - Продолжительность отображения даты / часов (в секундах)
-      //   $19 18 HH MM TT; - Установить указанное время HH:MM и температуру TT - для отладки позиционирования часов с температурой
-      // ----------------------------------------------------
-
-      case 19: 
-         switch (intData[1]) {
-           case 1:               // $19 1 X; - сохранить настройку X "Часы в эффектах"
-             set_clockOverlayEnabled(((CLOCK_ORIENT == 0 && allowHorizontal) || (CLOCK_ORIENT == 1 && allowVertical)) ? intData[2] == 1 : false);
-             if (specialMode) specialClock = clockOverlayEnabled;
-             break;
-           case 2:               // $19 2 X; - Использовать синхронизацию часов NTP  X: 0 - нет, 1 - да
-             set_useNtp(intData[2] == 1);
-             if (wifi_connected) {
-               refresh_time = true; ntp_t = 0; ntp_cnt = 0; not_check_time = true;
+    case 13:
+       switch (intData[1]) {
+         case 1:               // $13 1 N; установить строку N = 0..35 как активную отображаемую строку          
+           // Если строка 0 - управляющая - ее нельзя включать принудительно.
+           b_tmp = intData[2] > 0 || (intData[2] == 0 && textIndecies.length() > 0 && textIndecies[0] != '#');
+           if (b_tmp) {              
+             if (thisMode == MC_TEXT){
+               setRandomMode();
              }
-             break;
-           case 3:               // $19 3 N ZH ZM; - Период синхронизации часов NTP (N) и Часовой пояс (часы ZH и минуты ZM)
-             set_SYNC_TIME_PERIOD(intData[2]);
-             set_timeZoneOffset((int8_t)intData[3]);
-             set_timeZoneOffsetMinutes((int8_t)intData[4]);
-             ntpSyncTimer.setInterval(1000L * 60 * SYNC_TIME_PERIOD);
-             if (wifi_connected) {
-               refresh_time = true; ntp_t = 0; ntp_cnt = 0; not_check_time = true;
-             }
-             if (cmdSource != UDP) {
-               str = String(MSG_OP_SUCCESS);
-               SendWebInfo(str);
-             }
-             break;
-           case 4:               // $19 4 X; - Выключать индикатор TM1637 при выключении экрана X: 0 - нет, 1 - да
-             set_needTurnOffClock(intData[2] == 1);
-             break;
-           case 5:               // $19 5 X; - Режим цвета часов оверлея X: 0,1,2,3
-             set_COLOR_MODE(intData[2]);
-             break;
-           case 6:               // $19 6 X; - Ориентация часов  X: 0 - горизонтально, 1 - вертикально
-             set_CLOCK_ORIENT(intData[2] == 1 ? 1  : 0);
-             if (allowHorizontal || allowVertical) {
-               if (CLOCK_ORIENT == 0 && !allowHorizontal) set_CLOCK_ORIENT(1);
-               if (CLOCK_ORIENT == 1 && !allowVertical) set_CLOCK_ORIENT(0);              
-             } else {
-               set_clockOverlayEnabled(false);
-             }             
-             // Центрируем часы по горизонтали/вертикали по ширине / высоте матрицы
-             checkClockOrigin();
-             break;
-           case 7:               // $19 7 X; - Размер часов  X: 0 - авто, 1 - малые 3х5, 2 - большие 5х7
-             set_CLOCK_SIZE(intData[2]);
-             checkClockOrigin();
-             // Шрифт отображения температуры в эффекте Погода зависит от установленного размера часов 
-             if (thisMode == MC_WEATHER) {
-               loadingFlag = true;
-             }
-             break;
-           case 8:               // $19 8 YYYY MM DD HH MM; - Установить текущее время YYYY.MM.DD HH:MM
-             setCurrentTime((uint8_t)intData[5],(uint8_t)intData[6],0,(uint8_t)intData[4],(uint8_t)intData[3],(uint16_t)intData[2]);
-             if (cmdSource != UDP) {
-               str = String(MSG_OP_SUCCESS);
-               SendWebInfo(str);
-             }
-             break;
-           case 9:               // $19 9 X; - Показывать температуру в режиме часов  X: 0 - нет, 1 - да
-             if (allowHorizontal || allowVertical) {
-               set_showWeatherInClock(intData[2] == 1);
-             } else {
-               set_showWeatherInClock(false);
-             }             
-             break;
-           case 10:               // $19 10 X; - Цвет ночных часов:  0 - R; 1 - G; 2 - B; 3 - C; 3 - M; 5 - Y; 6 - W;
-             set_nightClockColor(intData[2]);
-             if (isNightClock) {
-                set_specialBrightness(nightClockBrightness);
-             }             
-             break;
-           case 11:               // $19 11 X; - Яркость ночных часов:  1..255;
-             set_nightClockBrightness(intData[2]); // setter             
-             if (isNightClock) {
-                set_specialBrightness(nightClockBrightness);
-             }             
-             break;
-           case 12:               // $19 12 X; - скорость прокрутки часов оверлея или 0, если часы остановлены по центру
-             set_clockScrollSpeed(255 - intData[2]);
-             setTimersForMode(thisMode);
-             break;
-           case 14:               // $19 14 00FFAA;
-             // В строке цвет - "$19 14 00FFAA;" - цвет часов оверлея, сохраняемый в globalClockColor
-             str = String(incomeBuffer).substring(7,13);
-             set_globalClockColor((uint32_t)HEXtoInt(str));
-             break;
-           case 16:               // $19 16 X; - Показывать дату в режиме часов  X: 0 - нет, 1 - да
-             if (allowHorizontal || allowVertical) {
-               set_showDateInClock(intData[2] == 1);
-             } else {
-               set_clockOverlayEnabled(false);
-               set_showDateInClock(false);
-             }
-             break;
-           case 17:               // $19 17 D I; - Продолжительность отображения даты / часов (в секундах)
-             set_showDateDuration(intData[2]);
-             set_showDateInterval(intData[3]);
-             if (cmdSource != UDP) {
-               str = String(MSG_OP_SUCCESS);
-               SendWebInfo(str);
-             }
-             break;
-           case 18:               // $19 18 HH MM TT; - Установить указанное время HH:MM и температуру TT - для отладки позиционирования часов с температурой
-             debug_hours = intData[2];
-             debug_mins = intData[3];
-             debug_temperature = intData[4];
-             break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
-            break;
-        }
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
-
-      // ----------------------------------------------------
-      //  20 - настройки и управление будильников
-      // - $20 0;       - отключение будильника (сброс состояния isAlarming)
-      // - $20 2 X VV MA MB;
-      //      X    - исп звук будильника X=0 - нет, X=1 - да 
-      //     VV    - максимальная громкость
-      //     MA    - номер файла звука будильника
-      //     MB    - номер файла звука рассвета
-      // - $20 3 X NN VV; - пример звука будильника
-      //      X - 1 играть 0 - остановить
-      //     NN - номер файла звука будильника из папки SD:/01
-      //     VV - уровень громкости
-      // - $20 4 X NN VV; - пример звука рассвета
-      //      X - 1 играть 0 - остановить
-      //     NN - номер файла звука рассвета из папки SD:/02
-      //     VV - уровень громкости
-      // - $20 5 VV; - установит уровень громкости проигрывания примеров (когда уже играет)
-      //     VV - уровень громкости
-      // ----------------------------------------------------
+             nextTextLineIdx = intData[2];  // nextTextLineIdx - индекс следующей принудительно отображаемой строки
+             ignoreTextOverlaySettingforEffect = true;
+             fullTextFlag = true;
+             textLastTime = 0;
+           }
+           break;
+         case 2:               // $13 2 I; - Запросить исходный текст бегущей строки с индексом I 0..35 без обработки макросов
+           if (intData[2] >= 0 && intData[2] <= 35) {
+             editIdx = intData[2];
+             addKeyToChanged("TY");                  // Отправить также строку в канал WEB
+           }
+           break;
+         case 9:               // $13 9 D; - Периодичность отображения бегущей строки (в секундах D)
+           set_TEXT_INTERVAL(intData[2]);
+           SendWebInfo(MSG_OP_SUCCESS);
+           break;
+         case 11:               // $13 11 X; - Режим цвета бегущей строкой X: 0,1,2,           
+           set_COLOR_TEXT_MODE(intData[2]);
+           break;
+         case 13:               // $13 13 X; - скорость прокрутки бегущей строки
+           set_textScrollSpeed(255 - intData[2]);             
+           setTimersForMode(thisMode);
+           break;
+         case 15:               // $13 15 00FFAA;
+           // В строке цвет - "$13 15 00FFAA;" - цвет часов текстовой строкой для режима "монохромный", сохраняемый в globalTextColor
+           set_globalTextColor((uint32_t)HEXtoInt(incomeBuffer.substring(7,13)));
+           SendWebInfo(MSG_OP_SUCCESS);
+           break;
+         case 18:               // $13 18 X; - сохранить настройку X "Бегущая строка в эффектах"
+           set_textOverlayEnabled(intData[2] == 1);
+           if (!textOverlayEnabled) {
+             showTextNow = false;
+             ignoreTextOverlaySettingforEffect = false;
+           }
+           break;
+        default:
+          err = true;
+          notifyUnknownCommand(incomeBuffer);
+          break;
+      }
+      break;
       
-      case 20:
-        switch (intData[1]) { 
-          case 0:  
-            // $20 0;       - отключение будильника (сброс состояния isAlarming)
-            if (isAlarming || isPlayAlarmSound) stopAlarm();            
-            break;
-          case 2:
-            #if (USE_MP3 == 1)          
-            if (isDfPlayerOk) {
-              // $20 2 X VV MA MB;
-              //    X    - исп звук будильника X=0 - нет, X=1 - да 
-              //   VV    - максимальная громкость
-              //   MA    - номер файла звука будильника
-              //   MB    - номер файла звука рассвета
+    // ----------------------------------------------------
+    //  14 - быстрая установка ручных режимов с пред-настройками
+    // - $14 0;  Черный экран (выкл);  
+    // - $14 1;  Белый экран (освещение - яркая лампа);  
+    // - $14 2;  Цветной экран;  
+    // - $14 3;  Часы ночные;
+    // - $14 4;  Часы простые;  
+    // - $14 5;  Ночник - белая лампа на малой яркости;  
+    // - $14 6;  Выключение ночных часов - включить тот эффект что был до включения, восстановить состояние "Автосмена режима";
+    // ----------------------------------------------------
+
+    case 14:
+      if (intData[1] < 0 || intData[1] >= MAX_SPEC_EFFECT) {
+        notifyUnknownCommand(incomeBuffer);
+      } else {
+        if (intData[1] == 2) {
+           // Если в строке цвет - "$14 2 00FFAA;" - цвет лампы, сохраняемый в globalColor
+           set_globalColor((uint32_t)HEXtoInt(incomeBuffer.substring(6,12)));
+        }        
+        setSpecialMode(intData[1]);
+      }
+      break;
+    
+    // ----------------------------------------------------
+    // 15 - скорость $15 скорость таймер; 0 - таймер эффектов
+    // ----------------------------------------------------
+
+    case 15: 
+      if (intData[2] == 0) {
+        if (intData[1] == 255) intData[1] = 254;
+        set_EffectSpeed(thisMode,255 - intData[1]); 
+        if (thisMode == MC_FILL_COLOR) { 
+          set_globalColor(getColorInt(CHSV(effectSpeed[MC_FILL_COLOR], effectScaleParam[MC_FILL_COLOR], 255)));
+        }
+        setTimersForMode(thisMode);           
+      } else {
+        notifyUnknownCommand(incomeBuffer);
+      }
+      break;
+
+    // ----------------------------------------------------
+    // 16 - Режим смены эффектов: $16 N; 
+    //    - $16 0; - ручной режим;  
+    //    - $16 1; - авторежим; 
+    //    - $16 2; - PrevMode; 
+    //    - $16 3; - NextMode; 
+    //    - $16 5; - вкл/выкл случайный выбор следующего режима
+    // ----------------------------------------------------
+
+    case 16:
+      if      (intData[1] == 0) setManualModeTo(true);
+      else if (intData[1] == 1) { resetModesExt(); setManualModeTo(false); }
+      else if (intData[1] == 2) prevMode();
+      else if (intData[1] == 3) nextMode();
+      else if (intData[1] == 5) set_useRandomSequence(intData[2] == 1);
+
+      putCurrentManualMode(manualMode ? (int8_t)thisMode : -1);
+      
+      if (manualMode) {
+        set_CurrentSpecialMode(-1);
+      }
+
+      if (intData[1] == 1) {
+        set_idleTime(getIdleTime());    
+        setIdleTimer();             
+        if (thisMode == MC_FILL_COLOR && globalColor == 0x000000) {
+          // Было выключено, режим "Лампа" с черным цветом - включить случайный режим
+          setRandomMode();
+        }
+      }  
+      break;
+
+    // ----------------------------------------------------
+    // 17 - Время автосмены эффектов и бездействия: $17 сек
+    // ----------------------------------------------------
+
+    case 17: 
+      set_autoplayTime((uint32_t)intData[1] * 1000UL);   // секунды -> миллисек 
+      set_idleTime((uint32_t)intData[2] * 60 * 1000UL);  // минуты -> миллисек
+      if (!manualMode) {
+        autoplayTimer = millis();
+      }
+      setIdleTimer();             
+      SendWebInfo(MSG_OP_SUCCESS);
+      break;
+
+
+    // ----------------------------------------------------
+    // 19 - работа с настройками часов
+    //   $19 1 X; - сохранить настройку X "Часы в эффектах" (общий, для всех эффектов)
+    //   $19 2 X; - Использовать синхронизацию часов NTP  X: 0 - нет, 1 - да
+    //   $19 4 X; - Выключать индикатор TM1637 при выключении экрана X: 0 - нет, 1 - да
+    //   $19 5 X; - Режим цвета часов оверлея X: 0,1,2,3
+    //   $19 6 X; - Ориентация часов  X: 0 - горизонтально, 1 - вертикально
+    //   $19 7 X; - Размер часов X: 0 - авто, 1 - малые 3х5, 2 - большие 5x7
+    //   $19 8 YYYY MM DD HH MM; - Установить текущее время YYYY.MM.DD HH:MM
+    //   $19 9 X; - Показывать температуру вместе с малыми часами 1 - да; 0 - нет
+    //   $19 10 X; - Цвет ночных часов:  0 - R; 1 - G; 2 - B; 3 - C; 3 - M; 5 - Y; 6 - W;
+    //   $19 11 X; - Яркость ночных часов:  0..255
+    //   $19 12 X; - скорость прокрутки часов оверлея или 0, если часы остановлены по центру
+    //   $19 14 00FFAA; - цвет часов оверлея, сохраняемый в globalClockColor
+    //   $19 16 X; - Показывать дату в режиме часов  X: 0 - нет, 1 - да
+    //   $19 17 D I; - Продолжительность отображения даты / часов (в секундах)
+    //   $19 18 HH MM TT; - Установить указанное время HH:MM и температуру TT - для отладки позиционирования часов с температурой
+    //   $19 19 X; - Показывать время в 12/24 часовом формате  X: 0 - 24, 1 - 12
+    // ----------------------------------------------------
+
+    case 19: 
+       switch (intData[1]) {
+         case 1:               // $19 1 X; - сохранить настройку X "Часы в эффектах"
+           set_clockOverlayEnabled(((CLOCK_ORIENT == 0 && allowHorizontal) || (CLOCK_ORIENT == 1 && allowVertical)) ? intData[2] == 1 : false);
+           if (specialMode) specialClock = clockOverlayEnabled;
+           break;
+         case 2:               // $19 2 X; - Использовать синхронизацию часов NTP  X: 0 - нет, 1 - да
+           set_useNtp(intData[2] == 1);   // this will enable NTP sync also
+           break;
+         case 4:               // $19 4 X; - Выключать индикатор TM1637 при выключении экрана X: 0 - нет, 1 - да
+           set_needTurnOffClock(intData[2] == 1);
+           break;
+         case 5:               // $19 5 X; - Режим цвета часов оверлея X: 0,1,2,3
+           set_COLOR_MODE(intData[2]);
+           break;
+         case 6:               // $19 6 X; - Ориентация часов  X: 0 - горизонтально, 1 - вертикально
+           set_CLOCK_ORIENT(intData[2] == 1 ? 1  : 0);
+           if (allowHorizontal || allowVertical) {
+             if (CLOCK_ORIENT == 0 && !allowHorizontal) set_CLOCK_ORIENT(1);
+             if (CLOCK_ORIENT == 1 && !allowVertical) set_CLOCK_ORIENT(0);              
+           } else {
+             set_clockOverlayEnabled(false);
+           }             
+           // Центрируем часы по горизонтали/вертикали по ширине / высоте матрицы
+           checkClockOrigin();
+           break;
+         case 7:               // $19 7 X; - Размер часов  X: 0 - авто, 1 - малые 3х5, 2 - большие 5х7
+           set_CLOCK_SIZE(intData[2]);
+           checkClockOrigin();
+           // Шрифт отображения температуры в эффекте Погода зависит от установленного размера часов 
+           if (thisMode == MC_WEATHER) {
+             loadingFlag = true;
+           }
+           break;
+         case 8:               // $19 8 YYYY MM DD HH MM; - Установить текущее время YYYY.MM.DD HH:MM
+           // Установить полученное с веб-морды время (кнока "установить время вручную"),
+           // Выполнить перерасчет времени будильников и ожидателей времени наступления события в макросах бегущей строки
+           // Если идет вещание на клиентов - передать текущее (полученное) время клиентам
+           setCurrentTime((uint8_t)intData[5],(uint8_t)intData[6],0,(uint8_t)intData[4],(uint8_t)intData[3],(uint16_t)intData[2]);
+           SendWebInfo(MSG_OP_SUCCESS);
+           break;
+         case 9:               // $19 9 X; - Показывать температуру в режиме часов  X: 0 - нет, 1 - да
+           if (allowHorizontal || allowVertical) {
+             set_showWeatherInClock(intData[2] == 1);
+           } else {
+             set_showWeatherInClock(false);
+           }             
+           break;
+         case 10:               // $19 10 X; - Цвет ночных часов:  0 - R; 1 - G; 2 - B; 3 - C; 3 - M; 5 - Y; 6 - W;
+           set_nightClockColor(intData[2]);
+           if (isNightClock) {
+              set_specialBrightness(nightClockBrightness);
+           }             
+           break;
+         case 11:               // $19 11 X; - Яркость ночных часов:  1..255;
+           set_nightClockBrightness(intData[2]); // setter             
+           if (isNightClock) {
+              set_specialBrightness(nightClockBrightness);
+           }             
+           break;
+         case 12:               // $19 12 X; - скорость прокрутки часов оверлея или 0, если часы остановлены по центру
+           set_clockScrollSpeed(255 - intData[2]);
+           setTimersForMode(thisMode);
+           break;
+         case 14:               // $19 14 00FFAA;
+           // В строке цвет - "$19 14 00FFAA;" - цвет часов оверлея, сохраняемый в globalClockColor
+           set_globalClockColor((uint32_t)HEXtoInt(incomeBuffer.substring(7,13)));
+           break;
+         case 16:               // $19 16 X; - Показывать дату в режиме часов  X: 0 - нет, 1 - да
+           if (allowHorizontal || allowVertical) {
+             set_showDateInClock(intData[2] == 1);
+           } else {
+             set_clockOverlayEnabled(false);
+             set_showDateInClock(false);
+           }
+           break;
+         case 17:               // $19 17 D I; - Продолжительность отображения даты / часов (в секундах)
+           set_showDateDuration(intData[2]);
+           set_showDateInterval(intData[3]);
+           SendWebInfo(MSG_OP_SUCCESS);
+           break;
+         case 18:               // $19 18 HH MM TT; - Установить указанное время HH:MM и температуру TT - для отладки позиционирования часов с температурой
+           debug_hours = intData[2];
+           debug_mins = intData[3];
+           debug_temperature = intData[4];
+           break;
+         case 19:               //   $19 19 X; - Показывать время в 12/24 часовом формате  X: 0 - 24, 1 - 12
+           set_Time12(intData[2] == 1);
+           break;
+         default:
+           err = true;
+           notifyUnknownCommand(incomeBuffer);
+           break;
+      }
+      break;
+
+    // ----------------------------------------------------
+    //  20 - настройки и управление будильников
+    // - $20 0;       - отключение будильника (сброс состояния isAlarming)
+    // - $20 2 X VV MA MB;
+    //      X    - исп звук будильника X=0 - нет, X=1 - да 
+    //     VV    - максимальная громкость
+    //     MA    - номер файла звука будильника
+    //     MB    - номер файла звука рассвета
+    // - $20 3 X NN VV; - пример звука будильника
+    //      X - 1 играть 0 - остановить
+    //     NN - номер файла звука будильника из папки SD:/01
+    //     VV - уровень громкости
+    // - $20 4 X NN VV; - пример звука рассвета
+    //      X - 1 играть 0 - остановить
+    //     NN - номер файла звука рассвета из папки SD:/02
+    //     VV - уровень громкости
+    // - $20 5 VV; - установит уровень громкости проигрывания примеров (когда уже играет)
+    //     VV - уровень громкости
+    // ----------------------------------------------------
+    
+    case 20:
+      switch (intData[1]) { 
+        case 0:  
+          // $20 0;       - отключение будильника (сброс состояния isAlarming)
+          if (isAlarming || isPlayAlarmSound) stopAlarm();            
+          break;
+        case 2:
+          #if (USE_MP3 == 1)          
+          if (isDfPlayerOk) {
+            // $20 2 X VV MA MB;
+            //    X    - исп звук будильника X=0 - нет, X=1 - да 
+            //   VV    - максимальная громкость
+            //   MA    - номер файла звука будильника
+            //   MB    - номер файла звука рассвета
+            dfPlayer.stop(); Delay(GUARD_DELAY);
+            set_soundFolder(0);
+            set_soundFile(0);
+            set_isAlarming(false);
+            set_isAlarmStopped(false);
+            set_useAlarmSound(intData[2] == 1);              
+            set_maxAlarmVolume(constrain(intData[3],0,30));
+            set_alarmSound(intData[4] - 2);  // Индекс от приложения: 0 - нет; 1 - случайно; 2 - 1-й файл; 3 - ... -> -1 - нет; 0 - случайно; 1 - 1-й файл и т.д
+            set_dawnSound(intData[5] - 2);   // Индекс от приложения: 0 - нет; 1 - случайно; 2 - 1-й файл; 3 - ... -> -1 - нет; 0 - случайно; 1 - 1-й файл и т.д
+          }
+          #endif
+          break;
+        case 3:
+          #if (USE_MP3 == 1)
+          if (isDfPlayerOk) {
+            // $20 3 X NN VV; - пример звука будильника
+            //  X  - 1 играть 0 - остановить
+            //  NN - номер файла звука будильника из папки SD:/01
+            //  VV - уровень громкости
+            if (intData[2] == 0) {
               dfPlayer.stop(); Delay(GUARD_DELAY);
               set_soundFolder(0);
               set_soundFile(0);
-              set_isAlarming(false);
-              set_isAlarmStopped(false);
-              set_useAlarmSound(intData[2] == 1);              
-              set_maxAlarmVolume(constrain(intData[3],0,30));
-              set_alarmSound(intData[4] - 2);  // Индекс от приложения: 0 - нет; 1 - случайно; 2 - 1-й файл; 3 - ... -> -1 - нет; 0 - случайно; 1 - 1-й файл и т.д
-              set_dawnSound(intData[5] - 2);   // Индекс от приложения: 0 - нет; 1 - случайно; 2 - 1-й файл; 3 - ... -> -1 - нет; 0 - случайно; 1 - 1-й файл и т.д
-            }
-            #endif
-            break;
-          case 3:
-            #if (USE_MP3 == 1)
-            if (isDfPlayerOk) {
-              // $20 3 X NN VV; - пример звука будильника
-              //  X  - 1 играть 0 - остановить
-              //  NN - номер файла звука будильника из папки SD:/01
-              //  VV - уровень громкости
-              if (intData[2] == 0) {
+            } else {
+              b_tmp = intData[3] - 2;  // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
+              if (b_tmp > 0 && b_tmp <= alarmSoundsCount) {
                 dfPlayer.stop(); Delay(GUARD_DELAY);
+                set_soundFolder(1);
+                set_soundFile(b_tmp);
+                dfPlayer.setVolume(constrain(intData[4],0,30));   Delay(GUARD_DELAY);
+                dfPlayer.playFolderTrack(soundFolder, soundFile); Delay(GUARD_DELAY);
+                dfPlayer.setRepeatPlayCurrentTrack(true);         Delay(GUARD_DELAY);
+              } else {
                 set_soundFolder(0);
                 set_soundFile(0);
-              } else {
-                b_tmp = intData[3] - 2;  // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
-                if (b_tmp > 0 && b_tmp <= alarmSoundsCount) {
-                  dfPlayer.stop(); Delay(GUARD_DELAY);
-                  set_soundFolder(1);
-                  set_soundFile(b_tmp);
-                  dfPlayer.setVolume(constrain(intData[4],0,30));   Delay(GUARD_DELAY);
-                  dfPlayer.playFolderTrack(soundFolder, soundFile); Delay(GUARD_DELAY);
-                  dfPlayer.setRepeatPlayCurrentTrack(true);         Delay(GUARD_DELAY);
-                } else {
-                  set_soundFolder(0);
-                  set_soundFile(0);
-                }
               }
-            }  
-            #endif
-            break;
-          case 4:
-            #if (USE_MP3 == 1)
-            if (isDfPlayerOk) {
-              // $20 4 X NN VV; - пример звука рассвета
-              //    X  - 1 играть 0 - остановить
-              //    NN - номер файла звука рассвета из папки SD:/02
-              //    VV - уровень громкости
-              if (intData[2] == 0) {
-                dfPlayer.stop(); Delay(GUARD_DELAY);
+            }
+          }  
+          #endif
+          break;
+        case 4:
+          #if (USE_MP3 == 1)
+          if (isDfPlayerOk) {
+            // $20 4 X NN VV; - пример звука рассвета
+            //    X  - 1 играть 0 - остановить
+            //    NN - номер файла звука рассвета из папки SD:/02
+            //    VV - уровень громкости
+            if (intData[2] == 0) {
+              dfPlayer.stop(); Delay(GUARD_DELAY);
+              set_soundFolder(0);
+              set_soundFile(0);
+            } else {
+              dfPlayer.stop(); Delay(GUARD_DELAY);
+              b_tmp = intData[3] - 2; // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
+              if (b_tmp > 0 && b_tmp <= dawnSoundsCount) {
+                set_soundFolder(2);
+                set_soundFile(b_tmp);
+                dfPlayer.setVolume(constrain(intData[4],0,30));   Delay(GUARD_DELAY);
+                dfPlayer.playFolderTrack(soundFolder, soundFile); Delay(GUARD_DELAY);
+                dfPlayer.setRepeatPlayCurrentTrack(true);         Delay(GUARD_DELAY);
+              } else {
                 set_soundFolder(0);
                 set_soundFile(0);
-              } else {
-                dfPlayer.stop(); Delay(GUARD_DELAY);
-                b_tmp = intData[3] - 2; // Знач: -1 - нет; 0 - случайно; 1 и далее - файлы; -> В списке индексы: 1 - нет; 2 - случайно; 3 и далее - файлы
-                if (b_tmp > 0 && b_tmp <= dawnSoundsCount) {
-                  set_soundFolder(2);
-                  set_soundFile(b_tmp);
-                  dfPlayer.setVolume(constrain(intData[4],0,30));   Delay(GUARD_DELAY);
-                  dfPlayer.playFolderTrack(soundFolder, soundFile); Delay(GUARD_DELAY);
-                  dfPlayer.setRepeatPlayCurrentTrack(true);         Delay(GUARD_DELAY);
-                } else {
-                  set_soundFolder(0);
-                  set_soundFile(0);
-                }
               }
             }
-            #endif
-            break;
-          case 5:
-            #if (USE_MP3 == 1)
-            if (isDfPlayerOk && soundFolder > 0) {
-             // $20 5 VV; - установить уровень громкости проигрывания примеров (когда уже играет)
-             //    VV - уровень громкости
-             set_maxAlarmVolume(constrain(intData[2],0,30));
-             dfPlayer.setVolume(maxAlarmVolume); Delay(GUARD_DELAY);
+          }
+          #endif
+          break;
+        case 5:
+          #if (USE_MP3 == 1)
+          if (isDfPlayerOk && soundFolder > 0) {
+           // $20 5 VV; - установить уровень громкости проигрывания примеров (когда уже играет)
+           //    VV - уровень громкости
+           set_maxAlarmVolume(constrain(intData[2],0,30));
+           dfPlayer.setVolume(maxAlarmVolume); Delay(GUARD_DELAY);
+          }
+          #endif
+          break;
+        default:
+          err = true;
+          notifyUnknownCommand(incomeBuffer);
+          break;
+      }
+      break;
+
+    // ----------------------------------------------------
+    // 21 - настройки подключения к сети / точке доступа
+    //   $21 0 0; - не использовать точку доступа $21 0 1; - использовать точку доступа
+    //   $21 1 IP1 IP2 IP3 IP4; - установить статический IP адрес подключения к локальной WiFi сети, пример: $21 1 192 168 0 106;
+    //   $21 2; Выполнить переподключение к сети WiFi
+    // ----------------------------------------------------
+
+    case 21:
+      // Настройки подключения к сети
+      switch (intData[1]) { 
+        // $21 0 0 - не использовать точку доступа $21 0 1 - использовать точку доступа
+        case 0:  
+          set_useSoftAP(intData[2] == 1);
+          if (useSoftAP && !ap_connected) 
+            startSoftAP();
+          else if (!useSoftAP && ap_connected) {
+            if (wifi_connected) { 
+              ap_connected = false;              
+              WiFi.softAPdisconnect(true);
+              DEBUGLN(F("Точка доступа отключена."));
             }
-            #endif
-            break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
-            break;
-        }
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
+          }      
+          SendWebInfo(MSG_OP_SUCCESS);
+          break;
+        case 1:  
+          // $21 1 IP1 IP2 IP3 IP4 - установить статический IP адрес подключения к локальной WiFi сети, пример: $21 1 192 168 0 106
+          // Локальная сеть - 10.х.х.х или 172.16.х.х - 172.31.х.х или 192.168.х.х
+          // Если задан адрес не локальной сети - сбросить его в 0.0.0.0, что означает получение динамического адреса 
+          if (!(intData[2] == 10 || (intData[2] == 172 && intData[3] >= 16 && intData[3] <= 31) || (intData[2] == 192 && intData[3] == 168))) {
+            set_StaticIP(0, 0, 0, 0);
+          }
+          set_StaticIP(intData[2], intData[3], intData[4], intData[5]);
+          break;
+        case 2:  
+          // $21 2; Выполнить переподключение к сети WiFi
+          saveSettings();
+          delay(10);
+          FastLED.clear();
+          startWiFi(30000);     // Время ожидания подключения 30 сек
+          showCurrentIP();
+          break;
+        default:
+          err = true;
+          notifyUnknownCommand(incomeBuffer);
+          break;
+      }
+      break;
 
-      // ----------------------------------------------------
-      // 21 - настройки подключения к сети / точке доступа
-      //   $21 0 0; - не использовать точку доступа $21 0 1; - использовать точку доступа
-      //   $21 1 IP1 IP2 IP3 IP4; - установить статический IP адрес подключения к локальной WiFi сети, пример: $21 1 192 168 0 106;
-      //   $21 2; Выполнить переподключение к сети WiFi
-      // ----------------------------------------------------
+    // ----------------------------------------------------
+    // 22 - настройки включения режимов матрицы в указанное время NN5 - Действие на "Рассвет", NN6 - действие на "Закат"
+    // - $22 HH1 MM1 NN1 HH2 MM2 NN2 HH3 MM3 NN3 HH4 MM4 NN4 NN5 NN6;
+    //     HHn - час срабатывания
+    //     MMn - минуты срабатывания
+    //     NNn - эффект: -3 - выключено; -2 - выключить матрицу; -1 - ночные часы; 0 - случайный режим и далее по кругу; 1 и далее - список режимов EFFECT_LIST 
+    // ----------------------------------------------------
 
-      case 21:
-        // Настройки подключения к сети
-        switch (intData[1]) { 
-          // $21 0 0 - не использовать точку доступа $21 0 1 - использовать точку доступа
-          case 0:  
-            set_useSoftAP(intData[2] == 1);
-            if (useSoftAP && !ap_connected) 
-              startSoftAP();
-            else if (!useSoftAP && ap_connected) {
-              if (wifi_connected) { 
-                ap_connected = false;              
-                WiFi.softAPdisconnect(true);
-                DEBUGLN(F("Точка доступа отключена."));
-              }
-            }      
-            if (cmdSource != UDP) {
-              str = String(MSG_OP_SUCCESS);
-              SendWebInfo(str);
-            }
-            break;
-          case 1:  
-            // $21 1 IP1 IP2 IP3 IP4 - установить статический IP адрес подключения к локальной WiFi сети, пример: $21 1 192 168 0 106
-            // Локальная сеть - 10.х.х.х или 172.16.х.х - 172.31.х.х или 192.168.х.х
-            // Если задан адрес не локальной сети - сбросить его в 0.0.0.0, что означает получение динамического адреса 
-            if (!(intData[2] == 10 || (intData[2] == 172 && intData[3] >= 16 && intData[3] <= 31) || (intData[2] == 192 && intData[3] == 168))) {
-              set_StaticIP(0, 0, 0, 0);
-            }
-            set_StaticIP(intData[2], intData[3], intData[4], intData[5]);
-            break;
-          case 2:  
-            // $21 2; Выполнить переподключение к сети WiFi
-            saveSettings();
-            delay(10);
-            FastLED.clear();
-            startWiFi(30000);     // Время ожидания подключения 30 сек
-            showCurrentIP();
-            break;
-          default:
-            err = true;
-            notifyUnknownCommand(incomeBuffer, cmdSource);
-            break;
-        }
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        }
-        break;
+    case 22:
+      set_AM1_hour(intData[1]);
+      set_AM1_minute(intData[2]);
+      set_AM1_effect_id(intData[3]);
 
-      // ----------------------------------------------------
-      // 22 - настройки включения режимов матрицы в указанное время NN5 - Действие на "Рассвет", NN6 - действие на "Закат"
-      // - $22 HH1 MM1 NN1 HH2 MM2 NN2 HH3 MM3 NN3 HH4 MM4 NN4 NN5 NN6;
-      //     HHn - час срабатывания
-      //     MMn - минуты срабатывания
-      //     NNn - эффект: -3 - выключено; -2 - выключить матрицу; -1 - ночные часы; 0 - случайный режим и далее по кругу; 1 и далее - список режимов EFFECT_LIST 
-      // ----------------------------------------------------
+      set_AM2_hour(intData[4]);
+      set_AM2_minute(intData[5]);
+      set_AM2_effect_id(intData[6]);
 
-      case 22:
-        set_AM1_hour(intData[1]);
-        set_AM1_minute(intData[2]);
-        set_AM1_effect_id(intData[3]);
+      set_AM3_hour(intData[7]);
+      set_AM3_minute(intData[8]);
+      set_AM3_effect_id(intData[9]);
 
-        set_AM2_hour(intData[4]);
-        set_AM2_minute(intData[5]);
-        set_AM2_effect_id(intData[6]);
+      set_AM4_hour(intData[10]);
+      set_AM4_minute(intData[11]);
+      set_AM4_effect_id(intData[12]);
 
-        set_AM3_hour(intData[7]);
-        set_AM3_minute(intData[8]);
-        set_AM3_effect_id(intData[9]);
+      set_dawn_effect_id(intData[13]);   // Действие на время "Рассвет"
+      set_dusk_effect_id(intData[14]);   // Действие на время "Закат"
 
-        set_AM4_hour(intData[10]);
-        set_AM4_minute(intData[11]);
-        set_AM4_effect_id(intData[12]);
+      saveSettings();
+      
+      
+      SendWebInfo(MSG_OP_SUCCESS);
+      break;
 
-        set_dawn_effect_id(intData[13]);   // Действие на время "Рассвет"
-        set_dusk_effect_id(intData[14]);   // Действие на время "Закат"
+    // ----------------------------------------------------
+    // 23 - прочие настройки
+    // - $23 0 VAL;  - лимит по потребляемому току
+    // - $23 1 ST;   - Сохранить EEPROM в файл    ST = 0 - внутр. файл. систему; 1 - на SD-карту
+    // - $23 2 ST;   - Загрузить EEPROM из файла  ST = 0 - внутр. файл. системы; 1 - c SD-карты
+    // - $23 3 E1 E2 E3;   - Установка режима работы панели и способа трактовки полученных данных синхронизации
+    //       E1 - режим работы 0 - STANDALONE; 1 - MASTER; 2 - SLAVE
+    //       E2 - данные в кадре: 0 - физическое расположение цепочки диодов
+    //                            1 - логическое расположение - X,Y - 0,0 - левый верхний угол и далее вправо по X, затем вниз по Y
+    //                            2 - payload пакета - строка команды
+    //       E3 - группа синхронизации 0..9                      
+    // - $23 4; - перезагрузить устройство
+    // - $23 5 MX, MY, LX, LY, LW, LH; - настройуа окна отображения трансляции с MASTER на SLAVE
+    //       MX - логическая координата X мастера с которого начинается вывод на локальную матрицу    X,Y - левый верхний угол начала трансляции мастера
+    //       MY - логическая координата Y мастера с которого начинается вывод на локальную матрицу
+    //       LX - логическая координата X приемника на которую начинается вывод на локальную матрицу  X,Y - левый верхний угол начала отображения на приемнике
+    //       MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
+    //       LW - ширина окна отображения на локальной матрице
+    //       LH - высота окна отображения на локальной матрице
+    // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+    // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+    // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+    // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+    //     Ux - 1 - использовать линию, 0 - линия не используется
+    //     Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+    //     Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+    //     Lx - длина цепочки светодиодов, подключенной к линии x
+    // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
+    // - $23 11 X Y; - кнопка 
+    //     X - GPIO пин к которому подключена кнопка
+    //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
+    // - $23 12 X Y; - управление питанием матрицы
+    //     X - GPIO пин к которому подключено реле управления питанием
+    //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+    // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
+    //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+    //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+    // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
+    // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
+    //     X - STX - GPIO пин контроллера TX -> к RX плеера
+    //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
+    // - $23 16 X Y;  - Подключение пинов TM1637
+    //     X - DIO - GPIO пин контроллера к DIO индикатора
+    //     Y - CLK - GPIO пин контроллера к CLK индикатора
+    // - $23 17 X Y; - управление питанием по линии будильника
+    //     X - GPIO пин к которому подключено реле управления питанием
+    //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+    // - $23 18 X Y; - управление питанием по дополнительной линии управления
+    //     X - GPIO пин к которому подключено реле управления питанием по дополнительной линии
+    //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+    // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
+    // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
+    // ----------------------------------------------------
 
-        saveSettings();
-        
-        // Для команд, пришедших от UDP отправить подтверждение обработки команды
-        if (!err && cmdSource == UDP) {
-          sendAcknowledge();
-        } else {
-          // Для команд, пришедших от Web отправить сообщение об успешном выполнении операции
-          str = String(MSG_OP_SUCCESS);
-          SendWebInfo(str);
-        }        
-        break;
-
-      // ----------------------------------------------------
-      // 23 - прочие настройки
-      // - $23 0 VAL;  - лимит по потребляемому току
-      // - $23 1 ST;   - Сохранить EEPROM в файл    ST = 0 - внутр. файл. систему; 1 - на SD-карту
-      // - $23 2 ST;   - Загрузить EEPROM из файла  ST = 0 - внутр. файл. системы; 1 - c SD-карты
-      // - $23 3 E1 E2 E3;   - Установка режима работы панели и способа трактовки полученных данных синхронизации
-      //       E1 - режим работы 0 - STANDALONE; 1 - MASTER; 2 - SLAVE
-      //       E2 - данные в кадре: 0 - физическое расположение цепочки диодов
-      //                            1 - логическое расположение - X,Y - 0,0 - левый верхний угол и далее вправо по X, затем вниз по Y
-      //                            2 - payload пакета - строка команды
-      //       E3 - группа синхронизации 0..9                      
-      // - $23 4; - перезагрузить устройство
-      // - $23 5 MX, MY, LX, LY, LW, LH; - настройуа окна отображения трансляции с MASTER на SLAVE
-      //       MX - логическая координата X мастера с которого начинается вывод на локальную матрицу    X,Y - левый верхний угол начала трансляции мастера
-      //       MY - логическая координата Y мастера с которого начинается вывод на локальную матрицу
-      //       LX - логическая координата X приемника на которую начинается вывод на локальную матрицу  X,Y - левый верхний угол начала отображения на приемнике
-      //       MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
-      //       LW - ширина окна отображения на локальной матрице
-      //       LH - высота окна отображения на локальной матрице
-      // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
-      // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
-      // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
-      // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
-      //     Ux - 1 - использовать линию, 0 - линия не используется
-      //     Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
-      //     Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
-      //     Lx - длина цепочки светодиодов, подключенной к линии x
-      // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
-      // - $23 11 X Y; - кнопка 
-      //     X - GPIO пин к которому подключена кнопка
-      //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
-      // - $23 12 X Y; - управление питанием матрицы
-      //     X - GPIO пин к которому подключено реле управления питанием
-      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
-      // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
-      //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
-      //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
-      // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
-      // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
-      //     X - STX - GPIO пин контроллера TX -> к RX плеера
-      //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
-      // - $23 16 X Y;  - Подключение пинов TM1637
-      //     X - DIO - GPIO пин контроллера к DIO индикатора
-      //     Y - CLK - GPIO пин контроллера к CLK индикатора
-      // - $23 17 X Y; - управление питанием по линии будильника
-      //     X - GPIO пин к которому подключено реле управления питанием
-      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
-      // - $23 18 X Y; - управление питанием по дополнительной линии управления
-      //     X - GPIO пин к которому подключено реле управления питанием по дополнительной линии
-      //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
-      // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
-      // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
-      // ----------------------------------------------------
-
-      case 23: {
-        bool needSendAck = true;
-        switch(intData[1]) {
-          case 0:
-            set_CURRENT_LIMIT(intData[2]);
-            FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT == 0 ? 100000 : CURRENT_LIMIT); 
-            break;
-          case 1:
-            err = !saveEepromToFile(intData[2] == 1 ? F("SD") : F("FS"));
-            if (cmdSource == UDP) {
-              if (err) {
-                str = F("{\"ER\":\"[E~Не удалось сохранить резервную копию настроек]\"|\"EE\":");
-              } else {
-                str = F("{\"ER\":\"[I~Резервная копия настроек создана]\"|\"EE\":");
-              }
-              str += "\""; str += eeprom_backup; str += "\"}";
-              sendStringData(str);
-            } else {
-              if (err) {
-                str = String(MSG_BACKUP_SAVE_ERROR);
-                SendWebError(str);
-              } else {
-                str = String(MSG_BACKUP_SAVE_OK);
-                SendWebInfo(str);
-              }
-              addKeyToChanged("EE");
-            }
-            needSendAck = false;
-            break;
-          case 2:
-            err = !loadEepromFromFile(intData[2] == 1 ? F("SD") : F("FS"));
-            if (cmdSource == UDP) {
-              if (err) {
-                str = F("{\"ER\":\"[E~Не удалось загрузить резервную копию настроек]\"}");
-              } else {
-                str = F("{\"ER\":\"[I~Настройки из резервной копии восстановлены]\"}");
-              }
-              sendStringData(str);
-            } else {
-              if (err) {
-                str = String(MSG_BACKUP_LOAD_ERROR);
-                SendWebError(str);
-              } else {
-                str = String(MSG_BACKUP_LOAD_OK);
-                SendWebInfo(str);
-              }
-            }
-            needSendAck = false;
-            // Если настройки загружены без ошибок - перезагрузить устройство
-            if (!err) {
-              delay(500);
-              ESP.restart();
-            }
-            break;
-          case 3:
-            #if (USE_E131 == 1)
-            // Переинициализировать не нужно, если изменился только syncMode с PHYSIC на LOGIC или наоборот
-            {
-              bool needReInitialize = workMode != (eWorkModes)intData[2] || syncGroup != intData[4] || !((syncMode == PHYSIC && ((eSyncModes)intData[3] == LOGIC)) || (syncMode == LOGIC && (eSyncModes)intData[3] == PHYSIC));
-              set_SyncWorkMode((eWorkModes)intData[2]);
-              set_SyncDataMode((eSyncModes)intData[3]);
-              set_SyncGroup(intData[4]);
-              saveSettings();
-              if (needReInitialize) {
-                DisposeE131();
-                InitializeE131();
-              } else {
-                printWorkMode();  
-              }
-            }
-            #endif
-            break;
-          case 4:     
-            // Сохранить несохраненные настройки перед перезапуском устройства  
-            saveSettings();
-            delay(100);     
-            // Погасить жкран, перезапустить контроллер
-            FastLED.clear();
-            FastLED.show();
-            delay(100);     
-            ESP.restart();
-            break;
-          case 5:
-            #if (USE_E131 == 1)
-            {
-              masterX = intData[2];
-              masterY = intData[3];
-              localX  = intData[4];
-              localY  = intData[5];
-              localW  = intData[6];
-              localH  = intData[7];
-
-              // Сохранить настройки Viewport
-              set_SyncViewport(masterX, masterY, localX, localY, localW, localH);  
-              saveSettings();                  
-            }
-            #endif
-            break;
-          case 6:
-            // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
-            putLedLineUsage(1, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
-            putLedLinePin(1, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
-            putLedLineStartIndex(1, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
-            putLedLineLength(1, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
-            break;
-          case 7:
-            // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
-            putLedLineUsage(2, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
-            putLedLinePin(2, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
-            putLedLineStartIndex(2, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
-            putLedLineLength(2, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
-            break;
-          case 8:
-            // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
-            putLedLineUsage(3, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
-            putLedLinePin(3, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
-            putLedLineStartIndex(3, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
-            putLedLineLength(3, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
-            break;
-          case 9:
-            // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
-            putLedLineUsage(4, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
-            putLedLinePin(4, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
-            putLedLineStartIndex(4, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
-            putLedLineLength(4, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
-            break;
-          case 10:
-            // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
-            putDeviceType(intData[2]);
-            break;
-          case 11:
-            // - $23 11 X Y; - кнопка 
-            //     X - GPIO пин к которому подключена кнопка
-            //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
-            putButtonPin(intData[2]);
-            putButtonType(intData[3]);
-            break;
-          case 12:
-            // - $23 12 X Y; - управление питанием
-            //     X - GPIO пин к которому подключено реле управления питанием
-            //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
-            putPowerPin(intData[2]);
-            putPowerActiveLevel(intData[3]);
-            break;
-          case 13:
-            // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
-            //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
-            //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
-            putWaitPlayFinished(intData[2] == 1);
-            putRepeatPlay(intData[3] == 1);
-            break;
-          case 14:
-            // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
-            putDebugSerialEnable(intData[2] == 1);
-            break;
-          case 15:
-            // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
-            //     X - STX - GPIO пин контроллера TX -> к RX плеера
-            //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
-            putDFPlayerSTXPin(intData[2]);
-            putDFPlayerSRXPin(intData[3]);
-            break;
-          case 16:
-            // - $23 16 X Y;  - Подключение пинов TM1637
-            //     X - DIO - GPIO пин контроллера к DIO индикатора
-            //     Y - CLK - GPIO пин контроллера к CLK индикатора
-            putTM1637DIOPin(intData[2]);
-            putTM1637CLKPin(intData[3]);
-            break;
-          case 17:
-            // - $23 17 X Y; - управление дополнительной линией будильника
-            //     X - GPIO пин к которому подключено реле управления линии будильника
-            //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
-            putAlarmPin(intData[2]);
-            putAlarmActiveLevel(intData[3]);
-            break;
-          case 18:
-            // - $23 18 X Y; - управление дополнительной линией
-            //     X - GPIO пин к которому подключено реле управления линии
-            //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
-            putAuxPin(intData[2]);
-            putAuxActiveLevel(intData[3]);
-            break;
-          case 19:
-            // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
-            set_isAuxActive(intData[2] != 0);
-            saveSettings();
-            break;
-          case 20:
-            // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
-            set_AuxLineModes(intData[2]);
-            break;
-          default:
-            notifyUnknownCommand(incomeBuffer, cmdSource);
-            break;
-        }
-
-        if (needSendAck) {
-          if (cmdSource == UDP) {           
-            sendAcknowledge();
+    case 23: {
+      bool needSendAck = true;
+      switch(intData[1]) {
+        case 0:
+          set_CURRENT_LIMIT(intData[2]);
+          FastLED.setMaxPowerInVoltsAndMilliamps(5, CURRENT_LIMIT == 0 ? 100000 : CURRENT_LIMIT); 
+          break;
+        case 1:
+          err = !saveEepromToFile(intData[2] == 1 ? F("SD") : F("FS"));
+          if (err) {
+            SendWebError(MSG_BACKUP_SAVE_ERROR);
           } else {
-             str = String(MSG_OP_SUCCESS);
-             SendWebInfo(str);
+            SendWebInfo(MSG_BACKUP_SAVE_OK);
           }
-        }
-        break;
-      }
-
-      // ----------------------------------------------------
-      default:
-        notifyUnknownCommand(incomeBuffer, cmdSource);
-        break;
-    }
-  }
-
-  // ****************** ПАРСИНГ *****************
-
-  // Если предыдущий буфер еще не разобран - новых данных из сокета не читаем, продолжаем разбор уже считанного буфера
-  haveIncomeData = bufIdx > 0 && bufIdx < packetSize; 
-
-  if (!haveIncomeData) {
-    // Есть ли поступившие по каналу Web команды?
-    if (queueLength > 0) {
-      String command(cmdQueue[queueReadIdx++]);
-      if (queueReadIdx >= QSIZE_IN) queueReadIdx = 0;
-      queueLength--;
-      
-      haveIncomeData = true;
-      bufIdx = 0;
-      packetSize = command.length();
-      memcpy(incomeBuffer, command.c_str(), packetSize);
-
-      // Команды в очередь помещаются только из источника WEB; Команды из UDP обрабатываются сразу без помещения в очередь.
-      cmdSource = WEB; 
-      
-      // Эта команда используется в качестве ping, посылается каждые 2-3 секунда, ее выводить не нужно, чтобы не забивать вывод в лог
-      if (command != "$6 7|FM|UP") {
-
-        DEBUG(F("WEB пакeт размером "));
-        DEBUGLN(packetSize);
-
-        DEBUG(F("<-- "));
-        DEBUGLN(command);
-
-        // При поступлении каждой команды вывести в консоль информацию о свободной памяти
-        DEBUG(F("FM: "));
-        DEBUG(ESP.getFreeHeap());        
-        #if defined(ESP8266)
-        DEBUG(F("  Max: "));
-        DEBUG(ESP.getMaxFreeBlockSize());
-        DEBUG(F("  Frag: "));
-        DEBUG(ESP.getHeapFragmentation());
-        #else
-        DEBUG(F("; Max: "));
-        DEBUG(ESP.getMaxAllocHeap());        
-        #endif     
-        DEBUGLN();               
-      }
-    }
-  }
-  
-  if (!haveIncomeData) {
-    packetSize = udp.parsePacket();      
-    haveIncomeData = packetSize > 0;      
-  
-    if (haveIncomeData) {                
-      // read the packet into packetBufffer
-      int16_t len = udp.read(incomeBuffer, BUF_MAX_SIZE);
-      if (len > 0) {          
-        incomeBuffer[len] = 0;
-      }
-      bufIdx = 0;
-
-      cmdSource = UDP;
-      
-      delay(0);            // ESP8266/ESP32 при вызове delay отрабатывает стек IP протокола, дадим ему поработать        
-
-      DEBUG(F("UDP пакeт размером "));
-      DEBUGLN(packetSize);
-
-      // NTP packet from time server
-      if (udp.remotePort() == 123) {
-        DEBUG(F("UDP << ip='"));
-        IPAddress remote = udp.remoteIP();
-        DEBUG(remote.toString());
-        DEBUG(":");
-        DEBUG(udp.remotePort());      
-        DEBUGLN(F(" ntp sync"));        
-        parseNTP();
-        haveIncomeData = false;
-        bufIdx = 0;              
-      } else 
-      if (udp.remotePort() == localPort) {
-        DEBUG(F("<-- "));  
-        DEBUGLN(incomeBuffer);
-      }        
-    }
-  }
-
-  if (haveIncomeData) {         
-
-    // Из-за ошибки в компоненте UdpSender в Thunkable - теряются половина отправленных 
-    // символов, если их кодировка - двухбайтовый UTF8, т.к. оно вычисляет длину строки без учета двухбайтовости
-    // Чтобы символы не терялись - при отправке строки из андроид-программы, она добивается с конца пробелами
-    // Здесь эти конечные пробелы нужно предварительно удалить
-    while (packetSize > 0 && incomeBuffer[packetSize-1] == ' ') packetSize--;
-    incomeBuffer[packetSize] = 0;
-
-    if (parseMode == TEXT) {                         // если нужно принять строку - принимаем всю
-
-      // Оставшийся буфер преобразуем с строку
-      if (intData[0] == 6) {  // текст
-        receiveText = String(&incomeBuffer[bufIdx]);
-        receiveText.trim();
-      } else {
-        receiveText.clear();
-      }
-                
-      incomingByte = ending;                       // сразу завершаем парс
-      parseMode = NORMAL;
-      bufIdx = 0; 
-      packetSize = 0;                              // все байты из входящего пакета обработаны
-      
-    } else {
-      
-      incomingByte = incomeBuffer[bufIdx++];       // обязательно ЧИТАЕМ входящий символ
-      receiveText.clear();
-      
-    } 
-  }       
-    
-  if (haveIncomeData) {
-
-    if (parseStarted) {                                             // если приняли начальный символ (парсинг разрешён)
-      if (incomingByte != divider && incomingByte != ending) {      // если это не пробел И не конец
-        string_convert += incomingByte;                             // складываем в строку
-      } else {                                                      // если это пробел или ; конец пакета
-        if (parse_index == 0) {
-          uint8_t cmdMode = string_convert.toInt();
-          intData[0] = cmdMode;
-          if (cmdMode == 6) {
-            parseMode = TEXT;
+          addKeyToChanged("EE");
+          needSendAck = false;
+          break;
+        case 2:
+          err = !loadEepromFromFile(intData[2] == 1 ? F("SD") : F("FS"));
+          if (err) {
+            SendWebError(MSG_BACKUP_LOAD_ERROR);
+          } else {
+            SendWebInfo(MSG_BACKUP_LOAD_OK);
           }
-          else parseMode = NORMAL;
-        }
-
-        if (parse_index == 1) {       // для второго (с нуля) символа в посылке
-          if (parseMode == NORMAL) intData[parse_index] = string_convert.toInt();           // преобразуем строку в int и кладём в массив}
-          if (parseMode == COLOR) {                                                         // преобразуем строку HEX в цифру
-            set_globalColor((uint32_t)HEXtoInt(string_convert));
-            if (intData[0] == 0) {
-              incomingByte = ending;
-              parseStarted = false;
+          needSendAck = false;
+          // Если настройки загружены без ошибок - перезагрузить устройство
+          if (!err) {
+            needRestart = true;
+            needRestartTime = millis();
+          }
+          break;
+        case 3:
+          #if (USE_E131 == 1)
+          // Переинициализировать не нужно, если изменился только syncMode с PHYSIC на LOGIC или наоборот
+          {
+            bool needReInitialize = workMode != (eWorkModes)intData[2] || syncGroup != intData[4] || !((syncMode == PHYSIC && ((eSyncModes)intData[3] == LOGIC)) || (syncMode == LOGIC && (eSyncModes)intData[3] == PHYSIC));
+            set_SyncWorkMode((eWorkModes)intData[2]);
+            set_SyncDataMode((eSyncModes)intData[3]);
+            set_SyncGroup(intData[4]);
+            saveSettings();
+            if (needReInitialize) {
+              DisposeE131();
+              InitializeE131();
             } else {
-              parseMode = NORMAL;
+              printWorkMode();  
             }
           }
-        } else {
-          intData[parse_index] = string_convert.toInt();  // преобразуем строку в int и кладём в массив
-        }
-        string_convert.clear();                     // очищаем строку
-        parse_index++;                              // переходим к парсингу следующего элемента массива
+          #endif
+          break;
+        case 4:     
+          // Сохранить несохраненные настройки перед перезапуском устройства  
+          saveSettings();
+          delay(100);     
+          // Погасить экран, перезапустить контроллер
+          needRestart = true;
+          needRestartTime = millis();
+          break;
+        case 5:
+          #if (USE_E131 == 1)
+          {
+            masterX = intData[2];
+            masterY = intData[3];
+            localX  = intData[4];
+            localY  = intData[5];
+            localW  = intData[6];
+            localH  = intData[7];
+
+            // Сохранить настройки Viewport
+            set_SyncViewport(masterX, masterY, localX, localY, localW, localH);  
+            saveSettings();                  
+          }
+          #endif
+          break;
+        case 6:
+          // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+          putLedLineUsage(1, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+          putLedLinePin(1, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+          putLedLineStartIndex(1, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+          putLedLineLength(1, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          break;
+        case 7:
+          // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+          putLedLineUsage(2, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+          putLedLinePin(2, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+          putLedLineStartIndex(2, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+          putLedLineLength(2, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          break;
+        case 8:
+          // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+          putLedLineUsage(3, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+          putLedLinePin(3, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+          putLedLineStartIndex(3, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+          putLedLineLength(3, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          break;
+        case 9:
+          // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+          putLedLineUsage(4, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
+          putLedLinePin(4, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
+          putLedLineStartIndex(4, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
+          putLedLineLength(4, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          break;
+        case 10:
+          // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
+          putDeviceType(intData[2]);
+          break;
+        case 11:
+          // - $23 11 X Y; - кнопка 
+          //     X - GPIO пин к которому подключена кнопка
+          //     Y - BUTTON_TYPE - 0 - сенсорная кнопка, 1 - тактовая кнопка
+          putButtonPin(intData[2]);
+          putButtonType(intData[3]);
+          break;
+        case 12:
+          // - $23 12 X Y; - управление питанием
+          //     X - GPIO пин к которому подключено реле управления питанием
+          //     Y - 0 - активный уровень управления питанием - LOW, 1 - активный уровень управления питанием HIGH
+          putPowerPin(intData[2]);
+          putPowerActiveLevel(intData[3]);
+          break;
+        case 13:
+          // - $23 13 X Y; - для SD-карты - алгоритм воспроизведения ролика
+          //     X - WAIT_PLAY_FINISHED - алгоритм проигрывания эффекта SD-карта
+          //     Y - REPEAT_PLAY - алгоритм проигрывания эффекта SD-карта
+          putWaitPlayFinished(intData[2] == 1);
+          putRepeatPlay(intData[3] == 1);
+          break;
+        case 14:
+          // - $23 14 X;  - Вкл/выкл отладочного вывода в монитор порта DEBUG_SERIAL - 1-вкл, 0-выкл 
+          putDebugSerialEnable(intData[2] == 1);
+          break;
+        case 15:
+          // - $23 15 X Y;  - Подключение пинов MP3 DFPlayer
+          //     X - STX - GPIO пин контроллера TX -> к RX плеера
+          //     Y - SRX - GPIO пин контроллера RX -> к TX плеера
+          putDFPlayerSTXPin(intData[2]);
+          putDFPlayerSRXPin(intData[3]);
+          break;
+        case 16:
+          // - $23 16 X Y;  - Подключение пинов TM1637
+          //     X - DIO - GPIO пин контроллера к DIO индикатора
+          //     Y - CLK - GPIO пин контроллера к CLK индикатора
+          putTM1637DIOPin(intData[2]);
+          putTM1637CLKPin(intData[3]);
+          break;
+        case 17:
+          // - $23 17 X Y; - управление дополнительной линией будильника
+          //     X - GPIO пин к которому подключено реле управления линии будильника
+          //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
+          putAlarmPin(intData[2]);
+          putAlarmActiveLevel(intData[3]);
+          break;
+        case 18:
+          // - $23 18 X Y; - управление дополнительной линией
+          //     X - GPIO пин к которому подключено реле управления линии
+          //     Y - 0 - активный уровень управления - LOW, 1 - активный уровень управления HIGH
+          putAuxPin(intData[2]);
+          putAuxActiveLevel(intData[3]);
+          break;
+        case 19:
+          // - $23 19 VAL;  - ВКЛ/ВЫКЛ дополнительную линию питания; 0 - выключить; 1 - включить
+          set_isAuxActive(intData[2] != 0);
+          saveSettings();
+          break;
+        case 20:
+          // - $23 20 VAL;  - битовая маска состояния режимов управления дополнительным каналом питания по времени
+          set_AuxLineModes(intData[2]);
+          break;
+        default:
+          notifyUnknownCommand(incomeBuffer);
+          break;
       }
+
+      if (needSendAck) {
+         
+         SendWebInfo(MSG_OP_SUCCESS);
+      }
+      break;
     }
 
-    if (incomingByte == header) {                   // если это $
-      parseStarted = true;                          // поднимаем флаг, что можно парсить
-      parse_index = 0;                              // сбрасываем индекс
-      string_convert.clear();                       // очищаем строку
-    }
-
-    if (incomingByte == ending) {                   // если таки приняли ; - конец парсинга
-      parseMode = NORMAL;
-      parseStarted = false;                         // сброс
-      recievedFlag = true;                          // флаг на принятие
-      bufIdx = 0;
-    }
-
-    if (bufIdx >= packetSize) {                     // Весь буфер разобран 
-      bufIdx = 0;
-      packetSize = 0;
-    }
+    // ----------------------------------------------------
+    default:
+      notifyUnknownCommand(incomeBuffer);
+      break;
   }
 }
 
-void sendStringData(const String& str) {
-  // Используется только для коммуникации по UDP
-  uint16_t max_text_size = sizeof(incomeBuffer);        // Размер приемного буфера формирования текста загружаемой / отправляемой строки
-  memset(incomeBuffer, '\0', max_text_size);
-  str.toCharArray(incomeBuffer, str.length() + 1);        
-  udp.beginPacket(udp.remoteIP(), udp.remotePort());
-  udp.write((const uint8_t*) incomeBuffer, str.length()+1);
-  udp.endPacket();
-  delay(0);
-  DEBUG(F("UDP "));
-  DEBUG(udp.remoteIP().toString());
-  DEBUG(':');
-  DEBUG(udp.remotePort());
-  DEBUG(" >> ");
-  DEBUG(String(incomeBuffer));
-  DEBUGLN();
-}
+String getStateValue(const String& key, int8_t effect, bool shrt) {
 
-String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool shrt) {
-
+  yield();
+  
   // W:число     ширина матрицы
   // H:число     высота матрицы
-  // AB:[текст]  пароль точки доступа - Web-канал
+  // AB:текст    пароль точки доступа - Web-канал
   // AD:число    продолжительность рассвета, мин
   // AE:число    эффект, использующийся для будильника
   // AL:X        сработал будильник 0-нет, 1-да
@@ -2938,7 +2619,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // AM4A:NN     номер эффекта режима 4:   -3 - не используется; -2 - выключить матрицу; -1 - ночные часы;  0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
   // AM5A:NN     номер эффекта режима по времени "Рассвет":   -3 - не используется; -2 - выключить матрицу; -1 - ночные часы;  0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
   // AM6A:NN     номер эффекта режима по времени "Закат":     -3 - не используется; -2 - выключить матрицу; -1 - ночные часы;  0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
-  // AN:[текст]  имя точки доступа
+  // AN:текст    имя точки доступа
   // AT: DW HH MM  часы-минуты времени будильника для дня недели DW 1..7 -> например "AT:1 09 15"
   // AU:X        создавать точку доступа 0-нет, 1-да
   // AW:число    битовая маска дней недели будильника b6..b0: b0 - пн .. b7 - вс
@@ -2947,12 +2628,20 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // BS:число    задержка повтора нажатия кнопки в играх
   // C1:цвет     цвет режима "монохром" часов оверлея; цвет: 192,96,96 - R,G,B
   // C2:цвет     цвет режима "монохром" бегущей строки; цвет: 192,96,96 - R,G,B
+  // C12:X       12/24 часовой формат времени 0 - 24 часа, 1 -12 часов
   // CС:X        режим цвета часов оверлея: 0,1,2
   // CE:X        оверлей часов вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать часы в эффектах)
   // CH:X        доступны горизонтальные часы (по размерам), где Х = 0 - не доступны; 1 - доступны
   // CK:X        размер горизонтальных часов, где Х = 0 - авто; 1 - малые 3x5; 2 - большие 5x7 
   // CL:X        цвет рисования в формате RRGGBB
   // CO:X        ориентация часов: 0 - горизонтально, 1 - вертикально
+  // CRS1        контрольная сумма списка звуков будильника S1
+  // CRS2        контрольная сумма списка звуков рассвета S2
+  // CRS3        контрольная сумма списка звуков нотификации бегущей строки S3
+  // CRLE        контрольная сумма списка эффектов LE
+  // CRF0        контрольная сумма списка картинок с внутренней файловой системы FL0
+  // CRF1        контрольная сумма списка картинок с SD-карты FL1
+  // CRLF        контрольная сумма списка роликов с SD-карты LF   
   // CT:X        режим цвета текстовой строки: 0,1,2
   // CV:X        доступны вертикальные часы (по размерам), где Х = 0 - не доступны; 1 - доступны
   // DC:X        показывать дату вместе с часами 0-нет, 1-да
@@ -2973,21 +2662,21 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // ELH:X       высота окна вывода изображения с мастера в локальный viewport  
   // EE:X        Наличие сохраненных настроек EEPROM на SD-карте или в файловой системе МК: 0 - нет 1 - есть в FS; 2 - есть на SD; 3 - есть в FS и на SD
   // EF:число    текущий эффект - id
-  // EN:[текст]  текущий эффект - название
-  // ER:[текст]  отправка клиенту сообщения инфо/ошибки последней операции (WiFiPanel - сохр. резервной копии настроек; WiFiPlayer - сообщение операции с изображением)
+  // EN:текст    текущий эффект - название
+  // ER:текст    отправка клиенту сообщения инфо/ошибки последней операции (WiFiPanel - сохр. резервной копии настроек; WiFiPlayer - сообщение операции с изображением)
   // FG:X        состояние линии дополнительного управления битовая маска по режимам Use-OnOff
   // FK:X        состояние линии дополнительного управления 0: выключенаж 1 - включена
-  // FL0:[список] список файлов картинок нарисованных пользователем с внутренней памяти, разделенный запятыми, ограничители [] обязательны
-  // FL1:[список] список файлов картинок нарисованных пользователем с SD-карты, разделенный запятыми, ограничители [] обязательны
+  // FL0:список  список файлов картинок нарисованных пользователем с внутренней памяти, разделенный запятыми
+  // FL1:список  список файлов картинок нарисованных пользователем с SD-карты, разделенный запятыми
   // FM:X        количество свободной памяти
   // FS:X        доступность внутренней файловой системы микроконтроллера для хранения файлов: 0 - нет, 1 - да
-  // FV:[текст]  строка использовать/не использовать эффект вида '0010011100...010', 0 - не использовать, 1 - использовать. Длина - по кол-ву эффектов, позиция в строке - индекс эффекта
-  // HN:[текст]  Имя устройства (Host Name)
+  // FV:текст    строка использовать/не использовать эффект вида '0010011100...010', 0 - не использовать, 1 - использовать. Длина - по кол-ву эффектов, позиция в строке - индекс эффекта
+  // HN:текст    Имя устройства (Host Name)
   // IP:xx.xx.xx.xx Текущий IP адрес WiFi соединения в сети
   // IT:число    время бездействия в секундах
-  // LE:[список] список эффектов, разделенный запятыми, ограничители [] обязательны
-  // LF:[список] список файлов эффектов с SD-карты, разделенный запятыми, ограничители [] обязательны
-  // LG:[текст]  идентификатор языка интерфейса, ограничители [] обязательны
+  // LE:список   список эффектов, разделенный запятыми, ограничители [] обязательны
+  // LF:список   список файлов эффектов с SD-карты, разделенный запятыми, ограничители [] обязательны
+  // LG:текст    идентификатор языка интерфейса, ограничители [] обязательны
   // M0:число    ширина одного сегмента матрицы 1..128
   // M1:число    высота одного сегмента матрицы 1..128
   // M2:число    тип соединения диодов в сегменте матрицы: 0 - зигзаг, 1 - параллельная
@@ -2998,11 +2687,11 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // M7:число    соединение сегментов составной матрицы: 0 - зигзаг, 1 - параллельная
   // M8:число    угол 1-го сегмента составной матрицы: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
   // M9:число    направление следующих сегментов составной матрицы из угла: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
-  // M10:[список]список файлов карт индексов, разделенный запятыми, ограничители [] обязательны
+  // M10:список  список файлов карт индексов, разделенный запятыми, ограничители [] обязательны
   // M11:число   индекс текущей используемой карты индексов
   // MA:число    номер файла звука будильника из SD:/01
   // MB:число    номер файла звука рассвета из SD:/02
-  // MC:[текст]  тип микроконтроллера "ESP32", "ESP32S2", "NodeMCU", "Wemos d1 mini"
+  // MC:текст    тип микроконтроллера "ESP32", "ESP32S2", "NodeMCU", "Wemos d1 mini"
   // MD:число    сколько минут звучит будильник, если его не отключили
   // MP:папка~файл  номер папки и файла звука который проигрывается, номер папки и звука разделены '~'
   // MU:X        использовать звук в будильнике 0-нет, 1-да
@@ -3011,24 +2700,23 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // MZ:X        прошивка поддерживает MP3 плеер 0-нет, 1-да  - USE_MP3 == 1
   // NB:Х        яркость цвета ночных часов, где Х = 1..255
   // NС:Х        цвет ночных часов, где Х = 0 - R; 1 - G; 2 - B; 3 - C; 4 - M; 5 - Y;
-  // NM:число    часовой пояс  - минуты 0 / 15 / 30 / 45
   // NP:Х        использовать NTP, где Х = 0 - выкл; 1 - вкл
-  // NS:[текст]  сервер NTP, ограничители [] обязательны
-  // NT:число    период синхронизации NTP в минутах
-  // NW:[текст]  SSID сети подключения
-  // NX:[текст]  пароль подключения к сети - в Web канал
-  // NZ:число    часовой пояс -12..+12
+  // NS:текст    сервер NTP, ограничители [] обязательны
+  // NW:текст    SSID сети подключения
+  // NX:текст    пароль подключения к сети - в Web канал
+  // NZ:текст    правило временной зоны
   // OF:X        выключать часы вместе с лампой 0-нет, 1-да
   // PD:число    продолжительность режима в секундах
+  // PN:список   список пинов, разделенный запятыми: SS,MOSI,MISO,SCK,SDA,SCL,TX,RX 
   // PS:X        состояние программного вкл/выкл панели 0-выкл, 1-вкл
   // PW:число    ограничение по току в миллиамперах
   // PZ0:X       использовать управление питанием матрицы 0-нет, 1-да --> USE_POWER
   // PZ1:X       использовать управление питанием по линии будильника 0-нет, 1-да --> USE_ALARM
   // PZ2:X       использовать управление питанием по дополнительной линии 0-нет, 1-да --> USE_AUX
   // RM:Х        смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
-  // S1:[список] список звуков будильника, разделенный запятыми, ограничители [] обязательны        
-  // S2:[список] список звуков рассвета, разделенный запятыми, ограничители [] обязательны        
-  // S3:[список] список звуков для макроса {A} бегущей строки, ограничители [] обязательны        
+  // S1:список   список звуков будильника, разделенный запятыми
+  // S2:список   список звуков рассвета, разделенный запятыми
+  // S3:список   список звуков для макроса {A} бегущей строки
   // SC:число    скорость смещения часов оверлея
   // SD:X        наличие и доступность SD карты: Х = 0 - нат SD карты; 1 - SD карта доступна
   // SE:число    скорость эффектов
@@ -3041,6 +2729,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // TE:X        оверлей текста бегущей строки вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать бегущую строку в эффектах)
   // T1:[ЧЧ:MM]  время рассвета, полученное с погодного сервера
   // T2:[ЧЧ:MM]  время заката, полученное с погодного сервера
+  // TF:X        Температура C/F: 0 - Цельсий; 1 - Фаренгейт 
   // TI:число    интервал отображения текста бегущей строки
   // TM:X        в системе присутствует индикатор TM1637, где Х = 0 - нет; 1 - есть
   // TS:строка   строка состояния кнопок выбора текста из массива строк: TEXTS_MAX_COUNT символов 0..5, где
@@ -3055,8 +2744,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // UC:X        использовать часы поверх эффекта 0-нет, 1-да
   // UP:число    uptime системы в секундах
   // UT:X        использовать бегущую строку поверх эффекта 0-нет, 1-да
-  // VR:[строка] версия прошивки
-  // W1:[текст]  текущая погода ('ясно','пасмурно','дождь' и т.д.)
+  // VR:строка   версия прошивки
+  // W1:текст    текущая погода ('ясно','пасмурно','дождь' и т.д.)
   // W2:число    текущая температура
   // WC:X        Использовать цвет для отображения температуры в дневных часах  X: 0 - выключено; 1 - включено
   // WN:X        Использовать цвет для отображения температуры в ночных часах  X: 0 - выключено; 1 - включено
@@ -3082,43 +2771,225 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
  
   CRGB c;
 
+  if (key == "CRLE") {
+    uint16_t len = strlen_P(EFFECT_LIST); 
+    char buf[len + 1];
+    strcpy_P(buf, EFFECT_LIST); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRLE:");
+    str += crc;
+    return str; 
+  }
+
+  // Список эффектов прошивки
+  if (key == "LE") {
+    if (shrt) {
+      return FPSTR(EFFECT_LIST);
+    }
+    String str("LE:");
+    str += FPSTR(EFFECT_LIST);
+    return str; 
+  }
+
+  // Контрольная сумма списка картинок с внутренней файловой системы
+  if (key == "CRF0") {
+    String tmp(getStoredImages("FS", pWIDTH, pHEIGHT));
+    uint16_t len = tmp.length(); 
+    char buf[len + 1];
+    strcpy(buf, tmp.c_str()); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRF0:");
+    str += crc;
+    return str; 
+  }
+
+  // Список картинок с внутренней файловой системы
+  if (key == "FL0") {
+    if (shrt) {
+      return getStoredImages("FS", pWIDTH, pHEIGHT);
+    }
+    String str("FL:");
+    str += getStoredImages("FS", pWIDTH, pHEIGHT);
+    return str; 
+  }
+
+#if (USE_SD == 1)
+
+  if (key == "CRF1") {
+    String tmp(getStoredImages("SD", pWIDTH, pHEIGHT));
+    uint16_t len = tmp.length(); 
+    char buf[len + 1];
+    strcpy(buf, tmp.c_str()); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRF1:");
+    str += crc;
+    return str; 
+  }
+
+  // Список картинок с карты SD
+  if (key == "FL1") {
+    if (shrt) {
+      return getStoredImages("SD", pWIDTH, pHEIGHT);
+    }
+    String str("FL:");
+    str += getStoredImages("SD", pWIDTH, pHEIGHT);
+    return str; 
+  }
+
+  // Cписок файлов эффектов с SD-карты, разделенный запятыми
+  if (key == "CRLF") {
+    String tmp;
+    for (uint8_t i=0; i < countFiles; i++) {
+      tmp += "," + nameFiles[i];
+    }
+    if (tmp.length() > 0) tmp = tmp.substring(1);
+    uint16_t len = tmp.length(); 
+    char buf[len + 1];
+    strcpy(buf, tmp.c_str()); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRLF:");
+    str += crc;
+    return str; 
+  }
+
+  // Cписок файлов эффектов с SD-карты, разделенный запятыми
+  if (key == "LF") {    
+    String tmp;
+    for (uint8_t i=0; i < countFiles; i++) {
+      tmp += "," + nameFiles[i];
+    }
+    if (tmp.length() > 0) tmp = tmp.substring(1);
+    if (shrt) {
+      return tmp;
+    }
+    String str("LF:");
+    str += tmp;
+    return str; 
+  }
+#endif
+
+#if (USE_MP3 == 1)
+
+  // Запрос контролльной суммы списка звуков будильника
+  if (key == "CRS1") {
+    uint16_t len = strlen_P(ALARM_SOUND_LIST); 
+    char buf[len + 1];
+    strcpy_P(buf, ALARM_SOUND_LIST); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRS1:");
+    str += crc;
+    return str; 
+  }
+
+  // Запрос контролльной суммы списка звуков рассвета
+  if (key == "CRS2") {
+    uint16_t len = strlen_P(DAWN_SOUND_LIST); 
+    char buf[len + 1];
+    strcpy_P(buf, DAWN_SOUND_LIST); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRS2:");
+    str += crc;
+    return str; 
+  }
+
+  // Запрос контролльной суммы списка звуков бегущей строки
+  if (key == "CRS3") {
+    uint16_t len = strlen_P(NOTIFY_SOUND_LIST); 
+    char buf[len + 1];
+    strcpy_P(buf, NOTIFY_SOUND_LIST); 
+    uint8_t crc = getCrc8(reinterpret_cast<uint8_t*>(buf), len);
+    if (shrt) {
+      return String(crc);
+    }
+    String str("CRS3:");
+    str += crc;
+    return str; 
+  }
+
+  // Запрос звуков будильника
+  if (key == "S1") {
+    if (shrt) {
+      return FPSTR(ALARM_SOUND_LIST);
+    }
+    String str("S1:");
+    str += FPSTR(ALARM_SOUND_LIST);;
+    return str; 
+  }
+
+  // Запрос звуков рассвета
+  if (key == "S2") {
+    if (shrt) {
+      return FPSTR(DAWN_SOUND_LIST);
+    }
+    String str("S2:");
+    str += FPSTR(DAWN_SOUND_LIST);
+    return str;
+  }
+
+  // Запрос звуков бегущей строки
+  if (key == "S3") {
+    if (shrt) {
+      return FPSTR(NOTIFY_SOUND_LIST);
+    }
+    String str("S3:");
+    str += FPSTR(NOTIFY_SOUND_LIST);
+    return str; 
+  }
+#endif
+
   // Версия прошивки
   if (key == "VR") {
-    if (value || shrt) {
-      if (value) value->set(FIRMWARE_VER);
+    if (shrt) {
       return FIRMWARE_VER;
     }
-    String str("VR:[");
-    str += FIRMWARE_VER; str += ']';
+    String str("VR:");
+    str += FIRMWARE_VER;;
     return str;
   }
 
   // Имя устройства
   if (key == "HN") {
-    if (value || shrt) {
-      if (value) value->set(system_name);
-      return system_name;
+    String tmp(getSystemName());
+    if (tmp.length() == 0) tmp = host_name;
+    if (shrt) {
+      return tmp;
     }
-    String str("HN:[");
-    str += system_name; str += ']';
+    String str("HN:");
+    str += tmp;
     return str;
   }
 
   // Идентификатор языка интерфейса
   if (key == "LG") {
-    if (value || shrt) {
-      if (value) value->set(UI);
+    if (shrt) {
       return UI;
     }
-    String str("LG:[");
-    str += UI; str += ']';
+    String str("LG:");
+    str += UI;
     return str;
   }
 
   // Ширина матрицы
   if (key == "W")  {
-    if (value || shrt) {
-      if (value) value->set(pWIDTH);
+    if (shrt) {
       return String(pWIDTH);
     }
     String str("W:");
@@ -3128,8 +2999,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Высота матрицы
   if (key == "H")  {
-    if (value || shrt) {
-      if (value) value->set(pHEIGHT);
+    if (shrt) {
       return String(pHEIGHT);
     }
     String str("H:");
@@ -3139,8 +3009,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Программное вкл/выкл устройства
   if (key == "PS") {
-    if (value || shrt) {
-      if (value) value->set(!isTurnedOff);
+    if (shrt) {
       return String(!isTurnedOff);
     }
     String str("PS:");
@@ -3150,8 +3019,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Текущее состояние дополнительной линии управления питанием
   if (key == "FK") {
-    if (value || shrt) {
-      if (value) value->set(isAuxActive);
+    if (shrt) {
       return String(isAuxActive);
     }
     String str("FK:");
@@ -3161,8 +3029,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Битовая маска режимов использования дополнительной линии управления питанием
   if (key == "FG") {
-    if (value || shrt) {
-      if (value) value->set(auxLineModes);
+    if (shrt) {
       return String(auxLineModes);
     }
     String str("FG:");
@@ -3173,8 +3040,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Текущая яркость
   if (key == "BR") {
     uint8_t br = (isNightClock ? nightClockBrightness : (specialMode ? specialBrightness : globalBrightness));
-    if (value || shrt) {
-      if (value) value->set(br);
+    if (shrt) {
       return String(br);
     }
     String str("BR:");
@@ -3184,8 +3050,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   if (key == "BS") {
     uint8_t val = getGameButtonSpeed();
-    if (value || shrt) {
-      if (value) value->set(val);
+    if (shrt) {
       return String(val);
     }
     String str("BS:");
@@ -3195,8 +3060,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Ручной / Авто режим
   if (key == "DM") {
-    if (value || shrt) {
-      if (value) value->set(!manualMode);
+    if (shrt) {
       return String(!manualMode);
     }
     String str("DM:");
@@ -3206,8 +3070,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Продолжительность режима в секундах
   if (key == "PD") {
-    if (value || shrt) {
-      if (value) value->set(autoplayTime / 1000);
+    if (shrt) {
       return String(autoplayTime / 1000);
     }
     String str("PD:");
@@ -3215,10 +3078,21 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str; 
   }
 
+  // PN:список   список пинов, разделенный запятыми: SS,MOSI,MISO,SCK,SDA,SCL,TX,RX
+  // Эти пины в цифровом назначении зависят от выбранного типа платы микроконтроллера
+  if (key == "PN") {
+    String tmp(SS); tmp += ','; tmp += MOSI; tmp += ','; tmp += MISO; tmp += ','; tmp += SCK; tmp += ','; tmp += SDA; tmp += ','; tmp += SCL; tmp += ','; tmp += TX; tmp += ','; tmp += RX;
+    if (shrt) {
+      return tmp;
+    }
+    String str("PN:");
+    str += tmp;
+    return str; 
+  }
+
   // Время бездействия в минутах
   if (key == "IT") {
-    if (value || shrt) {
-      if (value) value->set(idleTime / 60 / 1000);
+    if (shrt) {
       return String(idleTime / 60 / 1000);
     }
     String str("IT:");
@@ -3228,8 +3102,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Сработал будильник 0-нет, 1-да
   if (key == "AL") {
-    if (value || shrt) {
-      if (value) value->set((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
+    if (shrt) {
       return String((isAlarming || isPlayAlarmSound) && !isAlarmStopped);
     }
     String str("AL:");
@@ -3239,8 +3112,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Смена режимов в случайном порядке, где Х = 0 - выкл; 1 - вкл
   if (key == "RM") {
-    if (value || shrt) {
-      if (value) value->set(useRandomSequence);
+    if (shrt) {
       return String(useRandomSequence);
     }
     String str("RM:");
@@ -3250,8 +3122,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Ограничение по току в миллиамперах
   if (key == "PW") {
-    if (value || shrt) {
-      if (value) value->set(CURRENT_LIMIT);
+    if (shrt) {
       return String(CURRENT_LIMIT);
     }
     String str("PW:");
@@ -3261,8 +3132,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Прошивка поддерживает погоду 
   if (key == "WZ") {
-    if (value || shrt) {
-      if (value) value->set(USE_WEATHER == 1);
+    if (shrt) {
       return String(USE_WEATHER == 1);
     }
     String str("WZ:");
@@ -3270,11 +3140,20 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str;
   }
 
-#if (USE_WEATHER == 1)                  
+#if (USE_WEATHER == 1)               
+  // Температура в Цельсиях / Фаренгейте
+  if (key == "TF") {
+    if (shrt) {
+      return String(isFarenheit);
+    }
+    String str("TF:");
+    str += isFarenheit;
+    return str;
+  }
+   
   // Использовать получение погоды с сервера: 0 - выключено; 1 - Yandex; 2 - OpenWeatherMap
   if (key == "WU") {
-    if (value || shrt) {
-      if (value) value->set(useWeather);
+    if (shrt) {
       return String(useWeather);
     }
     String str("WU:");
@@ -3284,8 +3163,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Период запроса сведений о погоде в минутах
   if (key == "WT") {
-    if (value || shrt) {
-      if (value) value->set(SYNC_WEATHER_PERIOD);
+    if (shrt) {
       return String(SYNC_WEATHER_PERIOD);
     }
     String str("WT:");
@@ -3295,8 +3173,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Регион погоды Yandex
   if (key == "WR") {
-    if (value || shrt) {
-      if (value) value->set(regionID);
+    if (shrt) {
       return String(regionID);
     }
     String str("WR:");
@@ -3306,8 +3183,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Регион погоды OpenWeatherMap
   if (key == "WS") {
-    if (value || shrt) {
-      if (value) value->set(regionID2);
+    if (shrt) {
       return String(regionID2);
     }
     String str("WS:");
@@ -3317,8 +3193,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Использовать цвет для отображения температуры в дневных часах: 0 - выключено; 1 - включено
   if (key == "WC") {
-    if (value || shrt) {
-      if (value) value->set(useTemperatureColor);
+    if (shrt) {
       return String(useTemperatureColor);
     }
     String str("WC:");
@@ -3328,8 +3203,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Использовать цвет для отображения температуры в ночных часах: 0 - выключено; 1 - включено
   if (key == "WN") {
-    if (value || shrt) {
-      if (value) value->set(useTemperatureColorNight);
+    if (shrt) {
       return String(useTemperatureColorNight);
     }
     String str("WN:");
@@ -3339,19 +3213,17 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Текущая погода
   if (key == "W1") {
-    if (value || shrt) {
-      if (value) value->set(weather);
+    if (shrt) {
       return weather;
     }
-    String str("W1:[");
-    str += weather; str += ']';
+    String str("W1:");
+    str += weather;
     return str;
   }
 
   // Текущая температура
   if (key == "W2") {
-    if (value || shrt) {
-      if (value) value->set(temperature);
+    if (shrt) {
       return String(temperature);
     }
     String str("W2:");
@@ -3362,32 +3234,29 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Время рассвета, полученное с погодного сервера
   if (key == "T1") {
     String t1(padNum(dawn_hour,2)); t1 += ':'; t1 += padNum(dawn_minute,2);
-    if (value || shrt) {
-      if (value) value->set(t1);
+    if (shrt) {
       return t1;
     }
-    String str("T1:[");
-    str += t1; str += ']';
+    String str("T1:");
+    str += t1;
     return str;
   }
 
   // Время заката, полученное с погодного сервера
   if (key == "T2") {
     String t2(padNum(dusk_hour,2)); t2 += ':'; t2 += padNum(dusk_minute,2);
-    if (value || shrt) {
-      if (value) value->set(t2);
+    if (shrt) {
       return t2;
     }
-    String str("T2:[");
-    str += t2; str += ']';
+    String str("T2:");
+    str += t2;
     return str;
   }
 #endif  
 
   // Текущий эффект - id
   if (key == "EF") {
-    if (value || shrt) {
-      if (value) value->set(effect);
+    if (shrt) {
       return String(effect);
     }
     String str("EF:");
@@ -3400,12 +3269,11 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     if (effect_name.length() == 0) {
       effect_name = getEffectName(effect);
     }
-    if (value || shrt) {
-      if (value) value->set(effect_name);
+    if (shrt) {
       return effect_name;
     }
-    String str("EN:[");
-    str+= effect_name; str += ']';
+    String str("EN:");
+    str+= effect_name;
     return str;
   }
 
@@ -3414,24 +3282,21 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Эффекты, которые отсутствуют в строке effect_order - не используются совсем. Пример строки - "FR1H5aShik";
   // Например буква F соответствует эффекту с ID=15 - MC_NOISE_RAINBOW, воспроизводится первым в опорядке, далее - эффект 'R' и т.д до конца строки
   if (key == "FV") {
-    if (value || shrt) {
-      if (value) value->set(effect_order);
+    if (shrt) {
       return effect_order;
     }
-    String str("FV:[");
-    str += effect_order; str += ']';
+    String str("FV:");
+    str += effect_order;
     return str;
   }
   
   // Оверлей бегущей строки
   if (key == "UT") {
     String tmp(getEffectTextOverlayUsage(effect));
-    if (value || shrt) {
+    if (shrt) {
       if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID) {
-        if (value) value->set("X");
         return String("X");
       }
-      if (value) value->set(getEffectTextOverlayUsage(effect));
       return tmp;
     }
     String str("UT:");
@@ -3443,12 +3308,10 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Оверлей часов   
   if (key == "UC") {
-    if (value || shrt) {
+    if (shrt) {
        if (effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK) {
-         if (value) value->set("X");
          return "X"; 
        }
-       if (value) value->set(getEffectClockOverlayUsage(effect));
        return String(getEffectClockOverlayUsage(effect));
     }
     String str("UC:");
@@ -3460,12 +3323,10 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Настройка скорости
   if (key == "SE") {
-    if (value || shrt) {
+    if (shrt) {
       if (effect == MC_PACIFICA || effect == MC_SHADOWS || effect == MC_CLOCK || effect == MC_FIRE2 || effect == MC_IMAGE) {
-        if (value) value->set("X");
         return String("X");
       }
-      if (value) value->set(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
       return String(255 - constrain(map(getEffectSpeed(effect), D_EFFECT_SPEED_MIN,D_EFFECT_SPEED_MAX, 0,255), 0,255));
     }
     String str("SE:");
@@ -3478,12 +3339,10 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Контраст
   if (key == "BE") {
     String tmp(getEffectContrast(effect));
-    if (value || shrt) {
+    if (shrt) {
       if (effect == MC_PACIFICA || effect == MC_DAWN_ALARM || effect == MC_MAZE || effect == MC_SNAKE || effect == MC_TETRIS || effect == MC_ARKANOID || effect == MC_CLOCK || effect == MC_SDCARD) {
-        if (value) value->set("X");
         return String("X");
       }  
-      if (value) value->set(getEffectContrast(effect));
       return tmp;
     }
     String str("BE:");
@@ -3495,8 +3354,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Эффекты не имеющие настройки вариации (параметр #1) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SS") {
-    if (value || shrt) {
-      if (value) value->set(getParamForMode(effect));
+    if (shrt) {
       return String(getParamForMode(effect));
     }
     String str("SS:");
@@ -3506,8 +3364,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Эффекты не имеющие настройки вариации (параметр #2) отправляют значение "Х" - программа делает ползунок настройки недоступным
   if (key == "SQ") {
-    if (value || shrt) {
-      if (value) value->set(getParam2ForMode(effect));
+    if (shrt) {
       return String(getParam2ForMode(effect));
     }
     String str("SQ:");
@@ -3517,8 +3374,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Разрешен оверлей бегущей строки
   if (key == "TE") {
-    if (value || shrt) {
-      if (value) value->set(textOverlayEnabled);
+    if (shrt) {
       return String(textOverlayEnabled);
     }
     String str("TE:");
@@ -3528,8 +3384,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Интервал показа бегущей строки
   if (key == "TI") {
-    if (value || shrt) {
-      if (value) value->set(TEXT_INTERVAL);
+    if (shrt) {
       return String(TEXT_INTERVAL);
     }
     String str("TI:");
@@ -3539,8 +3394,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Режим цвета отображения бегущей строки
   if (key == "CT") {
-    if (value || shrt) {
-      if (value) value->set(COLOR_TEXT_MODE);
+    if (shrt) {
       return String(COLOR_TEXT_MODE);
     }
     String str("CT:");
@@ -3550,8 +3404,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Скорость прокрутки текста
   if (key == "ST") {
-    if (value || shrt) {
-      if (value) value->set(255 - textScrollSpeed);
+    if (shrt) {
       return String(255 - textScrollSpeed);
     }
     String str("ST:");
@@ -3563,8 +3416,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "C1") {
     c = CRGB(globalClockColor);
     String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("C1:");
@@ -3576,8 +3428,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "C2") {
     c = CRGB(globalTextColor);
     String tmp(c.r); tmp += ','; tmp += c.g; tmp += ','; tmp += c.b;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("C2:");
@@ -3585,10 +3436,19 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str;
   }
 
+  // 12/24 часовой формат времени
+  if (key == "C12") {
+    if (shrt) {
+      return String(time_h12 ? '1' : '0');
+    }
+    String str("C12:");
+    str += (time_h12 ? '1' : '0');
+    return str;
+  }
+
   // Строка состояния заполненности строк текста
   if (key == "TS") {
-    if (value || shrt) {
-      if (value) value->set(textStates);
+    if (shrt) {
       return textStates;
     }
     String str("TS:");
@@ -3598,29 +3458,25 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Исходная строка с индексом editIdx без обработки для отправки в приложение для формирования
   if (key == "TY") {
-    String tmp;
+    String tmp; tmp.reserve(150);
     if (editIdx >= 0 && editIdx < TEXTS_MAX_COUNT) {
       tmp += editIdx; tmp += ':'; tmp += getAZIndex(editIdx); tmp += " > "; tmp += getTextByIndex(editIdx);
     } else {
       tmp += "-1: >";      
     }
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
-    String str("TY:[");
-    str += tmp; str += ']';
+    String str("TY:");
+    str += tmp;
     return str;
   }
-
   // Оверлей часов вкл/выкл
   if (key == "CE") {
-    if (value || shrt) {
+    if (shrt) {
       if (allowVertical || allowHorizontal) {
-        if (value) value->set(getClockOverlayEnabled());
         return String(getClockOverlayEnabled());
       } 
-      if (value) value->set("X");
       return String("X");
     }
     String str("CE:");
@@ -3630,8 +3486,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Режим цвета часов оверлея
   if (key == "CC") {
-    if (value || shrt) {
-      if (value) value->set(COLOR_MODE);
+    if (shrt) {
       return String(COLOR_MODE);
     }
     String str("CC:");
@@ -3641,8 +3496,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступны горизонтальные часы
   if (key == "CH") {
-    if (value || shrt) {
-      if (value) value->set(allowHorizontal);
+    if (shrt) {
       return String(allowHorizontal);
     }
     String str("CH:");
@@ -3652,8 +3506,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступны вертикальные часы
   if (key == "CV") {
-    if (value || shrt) {
-      if (value) value->set(allowVertical);
+    if (shrt) {
       return String(allowVertical);
     }
     String str("CV:");
@@ -3663,9 +3516,8 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Цвет рисования
   if (key == "CL") {
-    if (value || shrt) {
+    if (shrt) {
       String tmp(IntToHex(drawColor));
-      if (value) value->set(tmp);
       return tmp;
     }
     String str("CL:");
@@ -3675,12 +3527,10 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Ориентация часов
   if (key == "CO") {
-    if (value || shrt) {
+    if (shrt) {
       if (allowVertical || allowHorizontal) {
-        if (value) value->set(CLOCK_ORIENT);
         return String(CLOCK_ORIENT);
       }
-      if (value) value->set("X");
       return String("X");
     }
     String str("CO:");
@@ -3690,8 +3540,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Размер (режим) горизонтальных часов
   if (key == "CK") {
-    if (value || shrt) {
-      if (value) value->set(CLOCK_SIZE);
+    if (shrt) {
       return String(CLOCK_SIZE);
     }
     String str("CK:");
@@ -3701,8 +3550,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Яркость цвета ночных часов
   if (key == "NB") {
-    if (value || shrt) {
-      if (value) value->set(nightClockBrightness);
+    if (shrt) {
       return String(nightClockBrightness);
     }
     String str("NB:");
@@ -3712,8 +3560,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Код цвета ночных часов
   if (key == "NC") {
-    if (value || shrt) {
-      if (value) value->set(nightClockColor);
+    if (shrt) {
       return String(nightClockColor);
     }
     String str("NC:");
@@ -3723,8 +3570,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Скорость смещения (прокрутки) часов оверлея
   if (key == "SC") {
-    if (value || shrt) {
-      if (value) value->set(255 - clockScrollSpeed);
+    if (shrt) {
       return String(255 - clockScrollSpeed);
     }
     String str("SC:");
@@ -3734,8 +3580,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Показывать дату вместе с часами
   if (key == "DC") {
-    if (value || shrt) {
-      if (value) value->set(showDateInClock);
+    if (shrt) {
       return String(showDateInClock);
     }
     String str("DC:");
@@ -3745,8 +3590,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Продолжительность отображения даты в режиме часов (сек)
   if (key == "DD") {
-    if (value || shrt) {
-      if (value) value->set(showDateDuration);
+    if (shrt) {
       return String(showDateDuration);
     }
     String str("DD:");
@@ -3756,8 +3600,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Интервал отображения даты часов
   if (key == "DI") {
-    if (value || shrt) {
-      if (value) value->set(showDateInterval);
+    if (shrt) {
       return String(showDateInterval);
     }
     String str("DI:");
@@ -3767,8 +3610,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Использовать получение времени с интернета
   if (key == "NP") {
-    if (value || shrt) {
-      if (value) value->set(useNtp);
+    if (shrt) {
       return String(useNtp);
     }
     String str("NP:");
@@ -3776,55 +3618,32 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str;
   }
 
-  // Период синхронизации NTP в минутах
-  if (key == "NT") {
-    if (value || shrt) {
-      if (value) value->set(SYNC_TIME_PERIOD);
-      return String(SYNC_TIME_PERIOD); 
-    }
-    String str("NT:");
-    str += SYNC_TIME_PERIOD;
-    return str; 
-  }
-
-  // Часовой пояс - часы
-  if (key == "NZ") {
-    if (value || shrt) {
-      if (value) value->set(timeZoneOffset);
-      return String(timeZoneOffset);
-    }
-    String str("NZ:");
-    str += timeZoneOffset;
-    return str;
-  }
-
-  // Часовой пояс - минты
-  if (key == "NM") {
-    if (value || shrt) {
-      if (value) value->set(timeZoneOffsetMinutes);
-      return String(timeZoneOffsetMinutes);
-    }
-    String str("NM:");
-    str += timeZoneOffsetMinutes;
-    return str;
-  }
-
-  // Имя сервера NTP (url)
-  if (key == "NS") {
-    String tmp(ntpServerName);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+  // Отправка в UI правила временной зоны
+  if (key == "NZ") { 
+    String tmp(getTimeZone());
+    if (tmp.length() == 0) tmp = TZONE;
+    if (shrt) {
       return tmp;
     }
-    String str("NS:[");
-    str += tmp + ']';
+    String str("NP:");
+    str += tmp;
+    return str;
+  }
+  
+  // Имя сервера NTP (url)
+  if (key == "NS") {
+    String tmp(getNtpServer());
+    if (shrt) {
+      return tmp;
+    }
+    String str("NS:");
+    str += tmp;
     return str;
   }
 
   // Показывать температуру вместе с малыми часами 0-нет, 1-да
   if (key == "DW") {
-    if (value || shrt) {
-      if (value) value->set(showWeatherInClock);
+    if (shrt) {
       return String(showWeatherInClock);
     }
     String str("DW:");
@@ -3834,8 +3653,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Выключать часы TM1637 вместе с лампой 0-нет, 1-да
   if (key == "OF") {
-    if (value || shrt) {
-      if (value) value->set(needTurnOffClock);
+    if (shrt) {
       return String(needTurnOffClock);
     }
     String str("OF:");
@@ -3845,8 +3663,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Продолжительность рассвета, мин
   if (key == "AD") {
-    if (value || shrt) {
-      if (value) value->set(dawnDuration);
+    if (shrt) {
       return String(dawnDuration);
     }
     String str("AD:");
@@ -3856,8 +3673,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Битовая маска дней недели будильника
   if (key == "AW") {
-    if (value || shrt) {
-      if (value) value->set(alarmWeekDay);
+    if (shrt) {
       return String(alarmWeekDay);
     }
     String str("AW:");
@@ -3873,7 +3689,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "AT") {
     String str;
     str.reserve(80);
-    if (value || shrt) {
+    if (shrt) {
       for (uint8_t i=0; i<7; i++) {      
         str += "|";
         str += i + 1; 
@@ -3882,7 +3698,6 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
         str += ' ';
         str += alarmMinute[i];
       }
-      if (value) value->set(str.substring(1));
       return str.substring(1);
     }
     for (uint8_t i=0; i<7; i++) {      
@@ -3899,8 +3714,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Эффект применяемый в рассвете: Индекс в списке в приложении смартфона начинается с 1
   if (key == "AE") {
-    if (value || shrt) {
-      if (value) value->set(alarmEffect);
+    if (shrt) {
       return String(alarmEffect);
     }
     String str("AE:");
@@ -3910,8 +3724,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Сколько минут звучит будильник, если его не отключили
   if (key == "MD") {
-    if (value || shrt) {
-      if (value) value->set(alarmDuration);
+    if (shrt) {
       return String(alarmDuration);
     }
     String str("MD:");
@@ -3921,8 +3734,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Текущий "специальный режим" или -1 если нет активного
   if (key == "SM") {
-    if (value || shrt) {
-      if (value) value->set(specialModeId);
+    if (shrt) {
       return String(specialModeId);
     }
     String str("SM:");
@@ -3932,8 +3744,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3? неважно подключен или нет
   if (key == "MZ") {
-    if (value || shrt) {
-      if (value) value->set(USE_MP3 == 1);
+    if (shrt) {
       return String(USE_MP3 == 1);
     }
     String str("MZ:");
@@ -3943,8 +3754,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступность MP3-плеера - разрешен в прошивке USE_MP3 и обнаружено подключение    
   if (key == "MX") {
-    if (value || shrt) {
-      if (value) value->set(isDfPlayerOk);
+    if (shrt) {
       return String(isDfPlayerOk);
     }
     String str("MX:");
@@ -3954,8 +3764,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Наличие индикатора TM1637    
   if (key == "TM") {
-    if (value || shrt) {
-      if (value) value->set(USE_TM1637 == 1);
+    if (shrt) {
       return String(USE_TM1637 == 1);
     }
     String str("TM:");
@@ -3966,8 +3775,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 #if (USE_MP3 == 1)
   // Использовать звук будильника
   if (key == "MU") {
-    if (value || shrt) {
-      if (value) value->set(useAlarmSound);
+    if (shrt) {
       return String(useAlarmSound); 
     }
     String str("MU:");
@@ -3977,8 +3785,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Максимальная громкость будильника
   if (key == "MV") {
-    if (value || shrt) {
-      if (value) value->set(maxAlarmVolume);
+    if (shrt) {
       return String(maxAlarmVolume);
     }
     String str("MV:");
@@ -3988,8 +3795,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Номер файла звука будильника из SD:/01
   if (key == "MA") {
-    if (value || shrt) {
-      if (value) value->set(alarmSound);
+    if (shrt) {
       return String(alarmSound);
     }
     String str("MA:");
@@ -3999,8 +3805,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Номер файла звука рассвета из SD:/02
   if (key == "MB") {
-    if (value || shrt) {
-      if (value) value->set(dawnSound);
+    if (shrt) {
       return String(dawnSound);
     }
     String str("MB:");
@@ -4011,63 +3816,19 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Номер папки и файла звука который проигрывается
   if (key == "MP") {
     String tmp(soundFolder); tmp += '~'; tmp += (soundFile + 2);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("MP:");
     str += tmp;
     return str; 
   }
-
-  // Запрос звуков будильника
-  if (key == "S1") {
-    String tmp(ALARM_SOUND_LIST);
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("S1:[");
-    str += tmp.substring(0, BUF_MAX_SIZE - 12); 
-    str + ']';
-    return str; 
-  }
-
-  // Запрос звуков рассвета
-  if (key == "S2") {
-    String tmp(DAWN_SOUND_LIST);
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("S2:[");
-    str += tmp.substring(0,BUF_MAX_SIZE - 12);
-    str += ']'; 
-    return str;
-  }
-
-  // Запрос звуков бегкщей строки
-  if (key == "S3") {
-    String tmp(NOTIFY_SOUND_LIST);
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("S3:[");
-    str += tmp.substring(0, BUF_MAX_SIZE - 12);
-    str += ']';
-    return str; 
-  }
 #endif
 
   // uptime - время работы системы в секундах
   if (key == "UP") {
-    uint32_t upt = upTime;
-    if (upt > 0) {
-      upt = ((uint32_t)now()) - upt;
-    }
-    if (value || shrt) {
-      if (value) value->set(upt);
+    uint32_t upt = millis()/1000;
+    if (shrt) {
       return String(upt);  
     }
     String str("UP:");
@@ -4078,8 +3839,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // freemem - количество свободной памяти
   if (key == "FM") {
     int32_t freemem = ESP.getFreeHeap();
-    if (value || shrt) {
-      if (value) value->set(freemem);
+    if (shrt) {
       return String(freemem);  
     }
     String str("FM:");
@@ -4089,8 +3849,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // создавать точку доступа
   if (key == "AU") {
-    if (value || shrt) {
-      if (value) value->set(useSoftAP);
+    if (shrt) {
       return String(useSoftAP);  
     }
     String str("AU:");
@@ -4100,55 +3859,52 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Имя точки доступа
   if (key == "AN") {
-    String tmp(apName);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    String tmp(getSoftAPName());
+    if (shrt) {
       return tmp;
     }
-    String str("AN:[");
-    str += tmp; str += ']';
+    String str("AN:");
+    str += tmp;
     return str;
   }
 
   // Пароль точки доступа - Web-канал
   if (key == "AB") {
-    String tmp(apPass);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    String tmp(getSoftAPPass());
+    if (shrt) {
       return tmp;
     }
-    String str("AB:[");
-    str += tmp; str += ']';
+    String str("AB:");
+    str += tmp;
     return str;
   }
 
   // Имя локальной сети (SSID)
   if (key == "NW") {
-    if (value || shrt) {
-      if (value) value->set(ssid);
-      return ssid;
+    String tmp(getSsid());
+    if (shrt) {
+      return tmp;
     }
-    String str("NW:[");
-    str += ssid; str += ']';
+    String str("NW:");
+    str += tmp;
     return str;
   }
 
   // Пароль к сети - Web канал
   if (key == "NX") {
-    if (value || shrt) {
-      if (value) value->set(pass); 
-      return pass;
+    String tmp(getPass());
+    if (shrt) {
+      return tmp;
     }
-    String str("NX:[");
-    str += pass; str += ']';
+    String str("NX:");
+    str += tmp;
     return str;
   }
 
   // IP адрес
   if (key == "IP") {
     String tmp(wifi_connected ? WiFi.localIP().toString() : "");
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("IP:");
@@ -4159,8 +3915,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Время Режима №1
   if (key == "AM1T") {
     String tmp(padNum(AM1_hour,2)); tmp += ' '; tmp += padNum(AM1_minute, 2);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("AM1T:");
@@ -4170,8 +3925,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима №1
   if (key == "AM1A") {
-    if (value || shrt) {
-      if (value) value->set(AM1_effect_id);
+    if (shrt) {
       return String(AM1_effect_id);
     }
     String str("AM1A:");
@@ -4182,8 +3936,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Время Режима №2
   if (key == "AM2T") {
     String tmp(padNum(AM2_hour,2)); tmp += ' '; tmp += padNum(AM2_minute, 2);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("AM2T:");
@@ -4193,8 +3946,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима №2
   if (key == "AM2A") {
-    if (value || shrt) {
-      if (value) value->set(AM2_effect_id);
+    if (shrt) {
       return String(AM2_effect_id);
     }
     String str("AM2A:");
@@ -4205,8 +3957,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Время Режима №3
   if (key == "AM3T") {
     String tmp(padNum(AM3_hour,2)); tmp += ' '; tmp += padNum(AM3_minute,2);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("AM3T:");
@@ -4216,8 +3967,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима №3
   if (key == "AM3A") {
-    if (value || shrt) {
-      if (value) value->set(AM3_effect_id);
+    if (shrt) {
       return String(AM3_effect_id);
     }
     String str("AM3A:");
@@ -4228,8 +3978,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Время Режима №4
   if (key == "AM4T") {
     String tmp(padNum(AM4_hour,2)); tmp += ' '; tmp += padNum(AM4_minute,2);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("AM4T:");
@@ -4239,8 +3988,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима №4
   if (key == "AM4A") {
-    if (value || shrt) {
-      if (value) value->set(AM4_effect_id);
+    if (shrt) {
       return String(AM4_effect_id);
     }
     String str("AM4A:");
@@ -4250,8 +3998,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима "Рассвет"
   if (key == "AM5A") {
-    if (value || shrt) {
-      if (value) value->set(dawn_effect_id);
+    if (shrt) {
       return String(dawn_effect_id);
     }
     String str("AM5A:");
@@ -4261,8 +4008,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Действие Режима "Закат"
   if (key == "AM6A") {
-    if (value || shrt) {
-      if (value) value->set(dusk_effect_id);
+    if (shrt) {
       return String(dusk_effect_id);
     }
     String str("AM6A:");
@@ -4272,8 +4018,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Наличие резервной копии EEPROM
   if (key == "EE") {
-    if (value || shrt) {
-      if (value) value->set(eeprom_backup);
+    if (shrt) {
       return String(eeprom_backup);
     }
     String str("EE:");
@@ -4283,8 +4028,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступность внутренней файловой системы
   if (key == "FS") {
-    if (value || shrt) {
-      if (value) value->set(spiffs_ok);
+    if (shrt) {
       return String(spiffs_ok);
     }
     String str("FS:");
@@ -4292,49 +4036,9 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str; 
   }
 
-  // Список картинок с внутренней файловой системы
-  if (key == "FL0") {
-    String tmp(getStoredImages("FS"));
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("FL:[");
-    str += tmp.substring(0, BUF_MAX_SIZE - 12);
-    str += ']';
-    return str; 
-  }
-
-  // Список картинок с карты SD
-  if (key == "FL1") {
-    String tmp(getStoredImages("SD"));
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("FL:[");
-    str += tmp.substring(0, BUF_MAX_SIZE - 12);
-    str += ']';
-    return str; 
-  }
-
-  // Список эффектов прошивки
-  if (key == "LE") {
-    String tmp(EFFECT_LIST);
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("LE:[");
-    str += tmp.substring(0, BUF_MAX_SIZE - 12);
-    str += ']';
-    return str; 
-  }
-
   // Поддержка функционала SD-карты
   if (key == "SZ") {
-    if (value || shrt) {
-      if (value) value->set(USE_SD == 1);
+    if (shrt) {
       return String(USE_SD == 1);
     }
     String str("SZ:");
@@ -4345,8 +4049,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 #if (USE_SD == 1)
   // Наличие в системе SD карты (в т.ч и эмуляция в FS)
   if (key == "SX") {
-    if (value || shrt) {
-      if (value) value->set(isSdCardExist);
+    if (shrt) {
       return String(isSdCardExist);
     }
     String str("SX:");
@@ -4356,8 +4059,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Доступность на SD карте файлов эффектов (в т.ч и эмуляция в FS)
   if (key == "SD") {
-    if (value || shrt) {
-      if (value) value->set(isSdCardReady);
+    if (shrt) {
       return String(isSdCardReady);
     }
     String str("SD:");
@@ -4365,29 +4067,12 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     return str; 
   }
 
-  // Cписок файлов эффектов с SD-карты, разделенный запятыми, ограничители [] обязательны
-  if (key == "LF") {    
-    String tmp;
-    for (uint8_t i=0; i < countFiles; i++) {
-      tmp += "," + nameFiles[i];
-    }
-    if (tmp.length() > 0) tmp = tmp.substring(1);
-    if (value || shrt) {
-      if (value) value->set(tmp);
-      return tmp;
-    }
-    String str("LF:[");
-    str += tmp;
-    str += ']';
-    return str; 
-  }
 #endif
 
   // ширина одного сегмента матрицы
   if (key == "M0") {
     String tmp(sWIDTH);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M0:");
@@ -4398,8 +4083,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // высота одного сегмента матрицы
   if (key == "M1") {
     String tmp(sHEIGHT);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M1:");
@@ -4410,8 +4094,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // тип соединения диодов в сегменте матрицы
   if (key == "M2") {
     String tmp(sMATRIX_TYPE);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M2:");
@@ -4422,8 +4105,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // угол подключения диодов в сегменте
   if (key == "M3") {
     String tmp(sCONNECTION_ANGLE);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M3:");
@@ -4434,8 +4116,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // направление ленты из угла сегмента
   if (key == "M4") {
     String tmp(sSTRIP_DIRECTION);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M4:");
@@ -4446,8 +4127,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // количество сегментов в ширину составной матрицы
   if (key == "M5") {
     String tmp(mWIDTH);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M5:");
@@ -4458,8 +4138,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // количество сегментов в высоту составной матрицы
   if (key == "M6") {
     String tmp(mHEIGHT);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M6:");
@@ -4470,8 +4149,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // соединение сегментов составной матрицы
   if (key == "M7") {
     String tmp(mTYPE);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M7:");
@@ -4482,8 +4160,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // угол 1-го сегмента составной матрицы
   if (key == "M8") {
     String tmp(mANGLE);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M8:");
@@ -4494,8 +4171,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // направление следующих сегментов составной матрицы из угла
   if (key == "M9") {
     String tmp(mDIRECTION);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M9:");
@@ -4510,13 +4186,11 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       tmp += "," + mapFiles[i];
     }
     if (tmp.length() > 0) tmp = tmp.substring(1);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
-    String str("M10:[");
+    String str("M10:");
     str += tmp;
-    str += ']';
     return str; 
   }
 
@@ -4531,8 +4205,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       }
     }
     String tmp(idx);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("M11:");
@@ -4542,8 +4215,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Поддержка протокола E1.31
   if (key == "E0") {
-    if (value || shrt) {
-      if (value) value->set(USE_E131 == 1);
+    if (shrt) {
       return String(USE_E131 == 1);
     }
     String str("E0:");
@@ -4556,8 +4228,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // режим работы 0 - STANDALONE, 1 - MASTER, 2 - SLAVE
   if (key == "E1") {
     String tmp(workMode);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("E1:");
@@ -4568,8 +4239,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // тип данных работы 0 - PHYSIC, 1 - LOGIC, 2 - COMMAND
   if (key == "E2") {
     String tmp(syncMode);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("E2:");
@@ -4580,8 +4250,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Группа синхронизации 0..9
   if (key == "E3") {
     String tmp(syncGroup);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("E3:");
@@ -4591,8 +4260,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Идет вещание в режиме мастера или пакуты от мастера поступают - 1; Режим STANDALONE или вещение прервалось - 0
   if (key == "E4") {
-    if (value || shrt) {
-      if (value) value->set(streaming);
+    if (shrt) {
       return String(streaming);
     }
     String str("E4:");
@@ -4603,8 +4271,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Позиция X окна трансляции мастера
   if (key == "EMX") {
     String tmp(masterX);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("EMX:");
@@ -4615,8 +4282,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Позиция Y окна трансляции мастера
   if (key == "EMY") {
     String tmp(masterY);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("EMY:");
@@ -4627,8 +4293,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Позиция X локального окна окна приема трансляции с мастера
   if (key == "ELX") {
     String tmp(localX);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("ELX:");
@@ -4639,8 +4304,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Позиция Y локального окна окна приема трансляции с мастера
   if (key == "ELY") {
     String tmp(localY);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("ELY:");
@@ -4651,8 +4315,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Ширина локального окна окна приема трансляции с мастера
   if (key == "ELW") {
     String tmp(localW);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("ELW:");
@@ -4663,8 +4326,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Высота локального окна окна приема трансляции с мастера
   if (key == "ELH") {
     String tmp(localH);
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("ELH:");
@@ -4676,8 +4338,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Поддержка управления питанием матрицы
   if (key == "PZ0") {
-    if (value || shrt) {
-      if (value) value->set(USE_POWER == 1);
+    if (shrt) {
       return String(USE_POWER == 1);
     }
     String str("PZ0:");
@@ -4687,8 +4348,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Поддержка управления питанием линии будильника
   if (key == "PZ1") {
-    if (value || shrt) {
-      if (value) value->set(USE_ALARM == 1);
+    if (shrt) {
       return String(USE_ALARM == 1);
     }
     String str("PZ1:");
@@ -4698,8 +4358,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
     // Поддержка управления питанием дополнительной линии управления
   if (key == "PZ2") {
-    if (value || shrt) {
-      if (value) value->set(USE_AUX == 1);
+    if (shrt) {
       return String(USE_AUX == 1);
     }
     String str("PZ2:");
@@ -4710,8 +4369,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // Тип микроконтроллера
   if (key == "MC") {
     String mcType(MCUType());
-    if (value || shrt) {
-      if (value) value->set(mcType);
+    if (shrt) {
       return mcType;
     }
     String str("MC:");
@@ -4721,8 +4379,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // Наличие кнопки
   if (key == "UB") {
-    if (value || shrt) {
-      if (value) value->set(USE_BUTTON == 1);
+    if (shrt) {
       return String(USE_BUTTON == 1);
     }
     String str("UB:");
@@ -4738,8 +4395,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(1) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(1); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("2306:");
@@ -4755,8 +4411,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(2) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(2); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("2307:");
@@ -4772,8 +4427,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(3) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(3); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("2308:");
@@ -4789,8 +4443,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
       led_count = NUM_LEDS - led_start;
     }
     String tmp(getLedLineUsage(4) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(4); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return tmp;
     }
     String str("2309:");
@@ -4800,8 +4453,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2310:X       тип матрицы vDEVICE_TYPE: 0 - труба; 1 - панель
   if (key == "2310") {
-    if (value || shrt) {
-      if (value) value->set(vDEVICE_TYPE);
+    if (shrt) {
       return String(vDEVICE_TYPE);
     }
     String str("2310:");
@@ -4813,8 +4465,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "2311") {
     int8_t pin = USE_BUTTON == 1 ? getButtonPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += vBUTTON_TYPE;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2311:");
@@ -4826,8 +4477,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "2312") {
     int8_t pin = USE_POWER == 1 ? getPowerPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getPowerActiveLevel();
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2312:");
@@ -4838,8 +4488,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   // 2313:X Y    X - vWAIT_PLAY_FINISHED, Y - vREPEAT_PLAY
   if (key == "2313") {
     String tmp(getWaitPlayFinished()); tmp += ' '; tmp += getRepeatPlay();
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2313:");
@@ -4849,8 +4498,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
 
   // 2314:X      vDEBUG_SERIAL
   if (key == "2314") {
-    if (value || shrt) {
-      if (value) value->set(vDEBUG_SERIAL);
+    if (shrt) {
       return String(vDEBUG_SERIAL);
     }
     String str("2314:");
@@ -4863,8 +4511,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     int8_t pin1 = USE_MP3 == 1 ? getDFPlayerSTXPin() : -1; 
     int8_t pin2 = USE_MP3 == 1 ? getDFPlayerSRXPin() : -1; 
     String tmp(pin1); tmp += ' '; tmp += pin2;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2315:");
@@ -4877,8 +4524,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     int8_t pin1 = USE_TM1637 == 1 ? getTM1637DIOPin() : -1; 
     int8_t pin2 = USE_TM1637 == 1 ? getTM1637CLKPin() : -1; 
     String tmp(pin1); tmp += ' '; tmp += pin2;
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2316:");
@@ -4890,8 +4536,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "2317") {
     int8_t pin = USE_ALARM == 1 ? getAlarmPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getAlarmActiveLevel();
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2317:");
@@ -4903,8 +4548,7 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
   if (key == "2318") {
     int8_t pin = USE_AUX == 1 ? getAuxPin() : -1; 
     String tmp(pin); tmp += ' '; tmp += getAuxActiveLevel();
-    if (value || shrt) {
-      if (value) value->set(tmp);
+    if (shrt) {
       return String(tmp);
     }
     String str("2318:");
@@ -4914,67 +4558,6 @@ String getStateValue(const String& key, int8_t effect, JsonVariant* value, bool 
     
   // Запрошенный ключ не найден - вернуть пустую строку
   return "";
-}
-
-String getStateString(const String& pKeys) {
-  String keys(pKeys), str, s_tmp, key;
-  
-  key.reserve(6);
-  s_tmp.reserve(80);
-  
-  if (hasBigSizeKey(keys)) str.reserve(512);
-  else str.reserve(200);
-  
-  // Ключи буквы/цифры, разделенные пробелами или пайпами '|' 
-  // Если строка ключей ограничена квадратными скобками или кавычками - удалить их;
-  // В конце может быть ";" - не требуется - удалить ее (в середине ее быть не может)
-  keys.replace(";","");
-  keys.replace("[","");
-  keys.replace("]","");
-  keys.replace("\"","");
-
-  // Ключи могут быть разделены '|' или пробелами
-  keys.replace(" ","|");
-  keys.replace("/r"," ");
-  keys.replace("/n"," ");
-  keys.trim();
-  
-  int16_t pos_start = 0;
-  int16_t pos_end = keys.indexOf('|', pos_start);
-  int16_t len = keys.length();
-  if (pos_end < 0) pos_end = len;
-
-  // Некоторые параметры зависят от текущего эффекта
-  // Текущим эффектом может быть эффект, отсутствующий в списке эффектов и включенный как служебный эффект - 
-  // например "Ночные часы" или "IP адрес". 
-  // В этом случае в приложении эффект не будет найден - индекс в списке комбобокса
-  // будет 0 и приложение на телефоне крашится. В этом случае отправляем параметры случайного эффекта, точно из списка.
-  int8_t tmp_eff = thisMode;
-  if (tmp_eff >= SPECIAL_EFFECTS_START) {
-    tmp_eff = random8(0, MAX_EFFECT);
-  }
-
-  // Строка keys содержит ключи запрашиваемых данных, разделенных знаком '|', например "CE|CC|CO|CK|NC|SC|C1|DC|DD|DI|NP|NT|NZ|NS|DW|OF"
-  while (pos_start < len && pos_end >= pos_start) {
-    if (pos_end > pos_start) {      
-      key = keys.substring(pos_start, pos_end);
-      if (key.length() > 0) {
-        s_tmp = getStateValue(key, tmp_eff);
-        if (s_tmp.length() > 0) {
-          str += s_tmp + "|";
-        }
-      }      
-    }
-    pos_start = pos_end + 1;
-    pos_end = keys.indexOf('|', pos_start);
-    if (pos_end < 0) pos_end = len;
-  }
-
-  len = str.length();
-  if (len > 0 && str.charAt(len - 1) == '|') {
-    str = str.substring(0, len - 1);
-  }
-  return str;
 }
 
 // Первый параметр эффекта thisMode для отправки на телефон параметра "SS:"
@@ -5075,7 +4658,7 @@ String getParam2ForMode(uint8_t mode) {
      // Эффект "Узоры" имеет несколько вариантов - список выбора варианта отображения
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0               1    2, 3, ...
-     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += GetPatternsList();
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += FPSTR(LANG_PATTERNS_LIST);
      break;
    case MC_RUBIK:
      // Эффект "Кубик рубика" имеет несколько вариантов - список выбора варианта отображения
@@ -5092,13 +4675,15 @@ String getParam2ForMode(uint8_t mode) {
        str += ","; str += nameFiles[i];
      }     
      break;
-     #endif
+   #endif
+   #if (USE_ANIMATION == 1)  
    case MC_IMAGE:
      // Эффект "Анимация" имеет несколько вариантов - список выбора отображаемой картинки
      // Дополнительный параметр представлен в приложении списком выбора
      //           Маркер типа - список выбора         0,1,2,3,4               0                     1, 2, ...
-     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += GetAnimationsList();
+     str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,"); str += animations_list;
      break;
+   #endif  
    case MC_PAINTBALL:
    case MC_SWIRL:
    case MC_CYCLON:
@@ -5165,34 +4750,9 @@ String getParam2NameForMode(uint8_t mode) {
  return str;   
 }
 
-void sendAcknowledge() {
-  // Отправить подтверждение, чтобы клиентский сокет прервал ожидание
-  String reply("ack");
-  reply += ackCounter++;
-  reply += ";";  
-
-  uint8_t L = reply.length() + 1;
-  
-  memset(replyBuffer, '\0', L);
-  reply.toCharArray(replyBuffer, L);
-  
-  udp.beginPacket(udp.remoteIP(), udp.remotePort());
-  udp.write((const uint8_t*) replyBuffer, L);
-  udp.endPacket();
-  
-  DEBUG(F("Ответ на "));  
-  DEBUG(udp.remoteIP().toString());  
-  DEBUG(':');  
-  DEBUG(udp.remotePort());  
-  DEBUGLN(replyBuffer);    
-}
-
 void setSpecialMode(int8_t spc_mode) {
         
   loadingFlag = true;
-  set_isTurnedOff(false);   // setter
-  set_isNightClock(false);  // setter
-  specialModeId = -1;
 
   #if (USE_E131 == 1)
     commandSetSpecialMode(spc_mode);
@@ -5211,55 +4771,81 @@ void setSpecialMode(int8_t spc_mode) {
       specialClock = false;
       set_isTurnedOff(true); // setter
       break;
+      
     case 1:  // Белый экран (освещение);
       tmp_eff = MC_FILL_COLOR;
       set_globalColor(0xffffff);
       set_specialBrightness(255);
       break;
+      
     case 2:  // Лампа указанного цвета;
       tmp_eff = MC_FILL_COLOR;
       set_globalColor(getGlobalColor());
       break;
-    case 3:  // Огонь;
-      tmp_eff = MC_FIRE;
-      break;
-    case 4:  // Пейнтбол;
-      tmp_eff = MC_PAINTBALL;
-      break;
-    case 5:  // Радуга;
-      tmp_eff = MC_RAINBOW;
-      break;
-    case 6:  // Матрица;
-      tmp_eff = MC_MATRIX;
-      break;
-    case 7:  // Светлячки;
-      tmp_eff = MC_LIGHTERS;
-      break;
-    case 8:  // Ночные часы;  
+      
+    case 3:  // Ночные часы;  
       tmp_eff = MC_CLOCK;
+      // Сохранить какой эффект до до включения ночных часов, его яркость, состояние автосмены режима
+      saveSpecialMode = specialMode;
+      saveSpecialModeId = specialModeId;
+      saveMode = thisMode;
+      saveManualMode = manualMode;
+      // Подготовка к включению ночных часов
       specialClock = false;
       set_isNightClock(true); // setter
       set_specialBrightness(nightClockBrightness);
       FastLED.clear();
       break;
-    case 9:  // Палитра;
-      tmp_eff = MC_PALETTE;
-      break;
-    case 10:  // Часы (отдельным эффектом, а не оверлеем);  
+      
+    case 4:  // Часы (отдельным эффектом, а не оверлеем);  
       tmp_eff = MC_CLOCK;
       set_globalColor(getGlobalClockColor());
       specialClock = true;
       set_specialBrightness(globalBrightness);
       break;
+      
+    case 5:  // Белый экран (ночник);
+      tmp_eff = MC_FILL_COLOR;
+      set_globalColor(0xffffff);
+      set_specialBrightness(25);
+      break;
+      
+    case 6:  // Выключение ночных часов - восстановить эффект который был до включения и состояние "Автосмена режима" и яркость
+      if (isNightClock) {
+        set_isTurnedOff(false); 
+        set_isNightClock(false);        
+        if (saveSpecialMode && saveSpecialModeId != 0 && saveSpecialModeId != 3 && saveSpecialModeId < SPECIAL_EFFECTS_START) {
+          setSpecialMode(saveSpecialModeId);
+        } else {
+          saveMode = getCurrentManualMode();
+          if (saveMode >= MAX_EFFECT) {
+            setRandomMode(); 
+          } else {
+            if (saveMode == MC_FILL_COLOR && globalColor == 0) set_globalColor(0xFFFFFF);
+            setEffect(saveMode);
+          }
+          setManualModeTo(saveManualMode);
+          FastLEDsetBrightness(getMaxBrightness());
+        }        
+        // Восстановили режим который был до ночных часов, дальше ничего делать не нужно       
+        return;
+      }
+      break;
+    default:
+      specialModeId = -1;
+      break;
   }
+
+  set_isTurnedOff(spc_mode == 0); 
+  set_isNightClock(spc_mode == 3);
   
   if (tmp_eff >= 0) {    
     // Дальнейшее отображение изображения эффекта будет выполняться стандартной процедурой customRoutine()
+    putCurrentManualMode(thisMode);
     set_thisMode(tmp_eff);
     setTimersForMode(thisMode);
     setIdleTimer();             
     FastLEDsetBrightness(specialBrightness);
-    set_CurrentSpecialMode(spc_mode);
   }  
 
   setManualModeTo(true);
@@ -5345,6 +4931,8 @@ void showCurrentIP() {
   wifi_print_ip_text = true;
   wifi_print_idx = 0; 
   wifi_current_ip = wifi_connected ? WiFi.localIP().toString() : F("Нет подключения к сети WiFi");
+  loadingTextFlag = true;
+  fullTextFlag = false;
 }
 
 void showCurrentVersion() {
@@ -5356,6 +4944,8 @@ void showCurrentVersion() {
   wifi_print_version = true;
   wifi_print_ip = false;  
   wifi_print_ip_text = false;
+  loadingTextFlag = true;
+  fullTextFlag = false;
 }
 
 void setRandomMode() {
@@ -5429,7 +5019,7 @@ void setManualModeTo(bool isManual) {
   autoplayTimer = millis();
 }
 
-void sendImageLine(eSources src, uint8_t typ, uint8_t idx) {
+void sendImageLine(uint8_t typ, uint8_t idx) {
   // src   - откуда пришел запрос
   // typ=0 - отправить строку с номером idx
   // typ=1 - отправить колонку с номером idx
@@ -5445,7 +5035,7 @@ void sendImageLine(eSources src, uint8_t typ, uint8_t idx) {
       sCmd = "IR";
       imageLine = String(idx) + '|';
       for (uint8_t i=0; i<pWIDTH; i++) {
-        delay(0);
+        yield();
         imageLine += IntToHex(gammaCorrectionBack(getPixColorXY(i, pHEIGHT - idx - 1))) + ' ';
       }
     } else {
@@ -5453,18 +5043,13 @@ void sendImageLine(eSources src, uint8_t typ, uint8_t idx) {
       sCmd = "IC";
       imageLine = String(idx) + '|';
       for (uint8_t i = 0; i < pHEIGHT; i++) {
-        delay(0);
+        yield();
         imageLine += IntToHex(gammaCorrectionBack(getPixColorXY(idx, pHEIGHT - i - 1))) + ' ';
       }
     }
     imageLine.trim();
     imageLine.replace(" ", ",");    
-    if (src == UDP) {
-      sCmd = "{\"" + sCmd + "\":\"" + imageLine + "\"}";
-      sendStringData(imageLine);
-    } else {
-      SendWebKey(sCmd, imageLine);
-    }
+    SendWebKey(sCmd, imageLine);
   }  
 }
 
@@ -5491,6 +5076,10 @@ void turnOff() {
     setSpecialMode(0);
     putCurrentManualMode(saveMode);
     putAutoplay(mm);
+
+    FastLED.clear();  
+    FastLEDshow();
+    
     // Если устройство в режиме приемника и идет прием пакетов от мастера - вызов выше setSpecialMode(0) - выключение устройства
     // Уберет яркость в 0, хотя трансляция с мастера продолжает идти. Следующее правильное значение яркости придет
     // только со сменой эффекта или изменение контролов яркости мастера - когда мастер отсылает текущее значение яркости
@@ -5501,7 +5090,6 @@ void turnOff() {
         // Это нужно для случая -  кадр автономной работы по размерам больше кадра получаемого с мастера
         // Если не очищать матрицу - при включении вещания мы получим изображение с мастера, но в остальной области останется
         // изображение кадра с автономной работы           
-        FastLED.clear();  
         FastLED.setBrightness(bright);
       }
     #endif
@@ -5527,6 +5115,7 @@ void turnOn() {
       FastLEDsetBrightness(getMaxBrightness());
     }
   }
+  prevShowTimer = 0;
 }
 
 void setImmediateText(const String& str) {
@@ -5543,13 +5132,33 @@ void setImmediateText(const String& str) {
   #endif  
 }
 
+// Установка времени вручную, аргументы переданы из Web-UI - команда '$19 8 YYYY MM DD HH MM;'
+// Параметры передаются в виде отдельных int в массиве 
 void setCurrentTime(uint8_t hh, uint8_t mm, uint8_t ss, uint8_t dd, uint8_t nn, uint16_t yy) {
-  setTime(hh,mm,ss,dd,nn,yy);
-  init_time = true; refresh_time = false; ntp_cnt = 0; not_check_time = false;
+
+  struct tm tmStruct;
+  memset(&tmStruct, 0, sizeof(tmStruct));
+
+  tmStruct.tm_hour = hh;
+  tmStruct.tm_min = mm;
+  tmStruct.tm_sec = ss;
+  tmStruct.tm_mday = dd;
+  tmStruct.tm_mon = nn - 1;
+  tmStruct.tm_year = yy - 1900;
+
+  time_t time = mktime(&tmStruct);
+  timeval tv = { time, 0 };
+  settimeofday(&tv, NULL);
+
+  init_time = true;
+  
   debug_hours = -1;  debug_mins = -1;
   rescanTextEvents();
   calculateDawnTime();      
+  
   #if (USE_E131 == 1)
+  if (workMode == MASTER) {
     commandSetCurrentTime(hh,mm,ss,dd,nn,yy);
+  }
   #endif    
 }

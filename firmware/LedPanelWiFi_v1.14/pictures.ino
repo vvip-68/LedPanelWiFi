@@ -26,6 +26,8 @@
 // Скорость перемещения задается слайдером "Вариант". В крайнем левом положении слайдера картинка не перемещается и выводится по центру поля матрицы
 //
 
+#if (USE_ANIMATION == 1)
+
 CRGB     *picture;         // Буфер для загрузки кадра
 int8_t   pic_offset_x;     // Для движущихся картинок - смещение левого верхнего угла
 int8_t   pic_offset_y;
@@ -36,20 +38,20 @@ uint16_t move_delay_y;     // коли-во миллисекунд 5-200 * 10 ч
 int8_t   pic_fade;         // способ появления / скрытия картинки
 
 
-void initialisePictures() {
+void initializePictures() {
 
-  uint8_t saveWidth = pWIDTH;
-  uint8_t saveHeight = pHEIGHT;
   uint8_t tokenCount;
   
   // Для поиска картинок в папке используем процедуру getStoredImages() из animation.ini
   // Поскольку она ищет картинки в папке, соответствующей текущим pWIDTH и pHEIGHT - их нужно будет временно переопределить, в конце процедуры - восстановить
   // Результат из процедуры getStoredImages() - строка с именами файлов, разделенные запятыми
+
+  // Шаг 1. Если eсть SD-карта или эмуляция - ищем слайды на SD-карте в папке, соответствующей размером матрицы
   #if (USE_SD == 1 && FS_AS_SD == 0)
     if (sd_card_ok) {
       DEBUG(F("Поиск слайдов на SD в папке '")); DEBUG(pWIDTH); DEBUG('p'); DEBUG(pHEIGHT); DEBUGLN("'...");
       pictureStorage = "SD";
-      pictureList = getStoredImages(pictureStorage);
+      pictureList = getStoredImages(pictureStorage, pWIDTH, pHEIGHT);
       if (pictureList.length() != 0) {
         pictureWidth = pWIDTH;
         pictureHeight = pHEIGHT;
@@ -57,53 +59,58 @@ void initialisePictures() {
     }
   #endif
 
+  // Шаг 2. Если SD-карты нет или слайды на карте не найдены - ищем слайды в папке файловой системы, соответствующей размером матрицы
   if (pictureList.length() == 0) {
     DEBUG(F("Поиск слайдов на FS в папке '")); DEBUG(pWIDTH); DEBUG('p'); DEBUG(pHEIGHT); DEBUGLN("'...");
     pictureStorage = "FS";
-    pictureList = getStoredImages(pictureStorage);
+    pictureList = getStoredImages(pictureStorage, pWIDTH, pHEIGHT);
     if (pictureList.length() != 0) {
       pictureWidth = pWIDTH;
       pictureHeight = pHEIGHT;
     }    
   }
+  
+  // Если матрица не 16x16 - и файлов не найдено (в файловой системе и на SD-карте) - ищем в папке 16x16
+  // Если размер матрицы и так 16х16 - второй раз сканировать папки незачем
+  if (pictureList.length() == 0 && (pWIDTH != 16 || pHEIGHT != 16)) {
 
-  if (pWIDTH != 16 || pHEIGHT != 16) {
-    pWIDTH = 16;
-    pHEIGHT = 16;
-       
+    // Шаг 3. Если в Шаг 1 не нашли слайдов на SD-карте, соответствующих размеру матрицы - ищем слайды на SD-карте в папке '16p16'
     #if (USE_SD == 1 && FS_AS_SD == 0)
-      if (sd_card_ok && pictureList.length() == 0) {
+      if (sd_card_ok) {
         DEBUGLN(F("Поиск слайдов на SD в папке '16p16'..."));
         pictureStorage = "SD";
-        pictureList = getStoredImages(pictureStorage);
+        pictureList = getStoredImages(pictureStorage, 16, 16);
         if (pictureList.length() != 0) {
-          pictureWidth = pWIDTH;
-          pictureHeight = pHEIGHT;
+          pictureWidth = 16;
+          pictureHeight = 16;
         }    
       }
     #endif
   
+    // Шаг 4. Если в Шаг 2 не нашли слайдов в файловой системе, соответствующих размеру матрицы - ищем слайды в файловой системе в папке '16p16'
     if (pictureList.length() == 0) {
       DEBUGLN(F("Поиск слайдов на FS в папке '16p16'..."));
       pictureStorage = "FS";
-      pictureList = getStoredImages(pictureStorage);
+      pictureList = getStoredImages(pictureStorage, 16, 16);
       if (pictureList.length() != 0) {
-        pictureWidth = pWIDTH;
-        pictureHeight = pHEIGHT;
+        pictureWidth = 16;
+        pictureHeight = 16;
       }    
     }
+    
   }
 
-  if (pictureList.length() == 0) {
+  // Шаг 5. Если ни одного слайда нигде не найдена - слайды будут формироваться из внктренних кадров анимации "Погода"
+  //        Усли хоть что-то найдено в папках файловой системы или на SD-карте - будем использовать найденную анимацию для эффекта "Слайды"
+  if (pictureList.length() == 0) {  
     // Если подходящих картинок не найдено - будем брать картинки 16x16 - фреймы из эффекта "Погода" 
-    pictureStorage = "";
+    pictureStorage.clear();
     pictureWidth = 16;
     pictureHeight = 16;
     // Найти анимацию "Погода", посчитать сколько фреймов в анимации (макс MAX_FRAMES_COUNT)
-    String animList(IMAGE_LIST);
-    tokenCount = CountTokens(animList, ',');
+    tokenCount = CountTokens(IMAGE_LIST, ',');
     for (int i = 0; i < tokenCount; i++) {
-      String animName(GetToken(animList, i + 1, ','));
+      String animName(GetToken(IMAGE_LIST, i + 1, ','));
       if (animName == "Погода") {        
         weatherIndex = i;
         animation_t weather = animations[weatherIndex];
@@ -116,12 +123,15 @@ void initialisePictures() {
         break;
       }
     }
+    
     if (pictureIndexMax == 0) {
       DEBUGLN(F("Слайды не найдены"));  
     } else {
       DEBUGLN(F("Слайды не найдены. Будут использованы картинки эффекта 'Погода'"));  
     }
+    
   } else {
+    
     // Печатаем список найденных файлов картинок
     pictureIndexMax = CountTokens(pictureList, ',');
     DEBUG(F("Найдено ")); DEBUG(pictureIndexMax); DEBUG(F(" слайд(oв) размером ")); DEBUG(pictureWidth); DEBUG('x'); DEBUG(pictureHeight); DEBUGLN(':');
@@ -129,11 +139,8 @@ void initialisePictures() {
       DEBUG("   "); DEBUG(GetToken(pictureList, i + 1, ',')); DEBUGLN(".p");  
     }
   }
+  
   DEBUGLN();
-
-  // Восстановить текущие размеры
-  pWIDTH = saveWidth;
-  pHEIGHT = saveHeight;
 }
 
 bool getNextSlide() {
@@ -157,7 +164,7 @@ bool getNextSlide() {
     String picFile(GetToken(pictureList, pictureIndex + 1, ',')); picFile += ".p";      
     DEBUG(F("Загрузка слайда '")); DEBUG(picFile); DEBUGLN("'");      
     String file('/'); file += pictureWidth; file += 'p'; file += pictureHeight; file += '/'; file += picFile;
-    String error = openImage(pictureStorage, file, picture, true);
+    String error = openImage(pictureStorage, file, picture, true, pWIDTH, pHEIGHT);
     // Была ошибка при загрузке файла?
     res = error.length() == 0;
   }
@@ -456,3 +463,5 @@ void slideRoutine() {
 void slideRoutineRelease() {
   if (picture   != NULL) { delete [] picture; picture = NULL; }  
 }
+
+#endif

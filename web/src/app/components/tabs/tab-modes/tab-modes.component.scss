@@ -34,13 +34,13 @@
     flex-direction: column;
 
     --buttons-width: 350px;
-    --field-select-width: 188px;
-    --field-width: 148px;
+    --field-select-width: 178px;
+    --field-width: 158px;
     --label-width: 100px;
-    --field-select-aux-width: 156px;
-    --field-select-aux2-width: 36px;
-    --field-aux-width: 95px;
-    --label-aux-width: 60px;
+    --field-select-aux-width: 136px;
+    --field-select-aux2-width: 46px;
+    --field-aux-width: 120px;
+    --label-aux-width: 55px;
 
     .aux-title {
       width: 100%;
@@ -63,7 +63,7 @@
       &.aux {
 
         .aux-ctrls {
-          width: 86px;
+          width: 80px;
           height: 28px;
           padding: 4px 0 0 8px;
           display: flex;
@@ -94,6 +94,9 @@
 
           .mat-mdc-input-element {
             padding-left: calc(var(--label-aux-width) + 4px);
+            &.time-picker {
+              text-align: right;
+            }
           }
 
           &.select {
@@ -125,6 +128,9 @@
 
         .mat-mdc-input-element {
           padding-left: calc(var(--label-width) + 4px);
+          &.time-picker {
+            text-align: right;
+          }
         }
 
         .mdc-icon-button {

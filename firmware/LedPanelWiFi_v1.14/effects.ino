@@ -133,7 +133,7 @@ void lightBallsRoutine() {
     uint8_t d4 = ms / 97;
     
     for (uint8_t ii = 0; ii < seg_num; ii++) {
-      delay(0); // Для предотвращения ESP8266 Watchdog Timer      
+      yield();
       uint8_t cx = dir_mx == 0 ? (seg_offset * (ii + 1) + seg_size * ii) : 0;
       uint8_t cy = dir_mx == 0 ? 0 : (seg_offset * (ii + 1) + seg_size * ii);
       uint8_t color_shift = ii * 50;
@@ -233,7 +233,7 @@ void swirlRoutine() {
     uint8_t d6 = ms / 41;
     
     for (uint8_t ii = 0; ii < seg_num; ii++) {
-      delay(0); // Для предотвращения ESP8266 Watchdog Timer      
+      yield();
       uint8_t cx = dir_mx == 0 ? (seg_offset * (ii + 1) + seg_size * ii) : 0;
       uint8_t cy = dir_mx == 0 ? 0 : (seg_offset * (ii + 1) + seg_size * ii);
       uint8_t color_shift = ii * 50;
@@ -789,7 +789,7 @@ void trafficRoutine() {
     }
     for (int y = 0; y < pHEIGHT; y++) {
       traficLIndex[y] = -1;
-      traficTIndex[y] = -1;
+      traficRIndex[y] = -1;
     }
     
     uint8_t variant = getEffectScaleParamValue2(thisMode);  // 0 - Случайный, 1 - цветной, 2 - Монохром 
@@ -944,14 +944,14 @@ void trafficRoutine() {
 }
 
 void trafficRoutineRelease() {
-  if (traficTColors == NULL) { free(traficTColors); traficTColors = NULL; }
-  if (traficTIndex  == NULL) { free(traficTIndex);  traficTIndex  = NULL; }
-  if (traficBColors == NULL) { free(traficBColors); traficBColors = NULL; }
-  if (traficBIndex  == NULL) { free(traficBIndex);  traficBIndex  = NULL; }
-  if (traficLColors == NULL) { free(traficLColors); traficLColors = NULL; }
-  if (traficLIndex  == NULL) { free(traficLIndex);  traficLIndex  = NULL; }
-  if (traficRColors == NULL) { free(traficRColors); traficRColors = NULL; }
-  if (traficRIndex  == NULL) { free(traficRIndex);  traficRIndex  = NULL; }
+  if (traficTColors != NULL) { free(traficTColors); traficTColors = NULL; }
+  if (traficTIndex  != NULL) { free(traficTIndex);  traficTIndex  = NULL; }
+  if (traficBColors != NULL) { free(traficBColors); traficBColors = NULL; }
+  if (traficBIndex  != NULL) { free(traficBIndex);  traficBIndex  = NULL; }
+  if (traficLColors != NULL) { free(traficLColors); traficLColors = NULL; }
+  if (traficLIndex  != NULL) { free(traficLIndex);  traficLIndex  = NULL; }
+  if (traficRColors != NULL) { free(traficRColors); traficRColors = NULL; }
+  if (traficRIndex  != NULL) { free(traficRIndex);  traficRIndex  = NULL; }
 }
 
 // ********************************* ШАРИКИ *********************************
@@ -1167,7 +1167,7 @@ void lightersRoutine() {
 void lighters2RoutineRelease() {
   if (lightersPos   != NULL) { free(lightersPos);   lightersPos   = NULL; }
   if (lightersSpeed != NULL) { free(lightersSpeed); lightersSpeed = NULL; }
-  if (lightersColor == NULL) { free(lightersColor); lightersColor = NULL; }
+  if (lightersColor != NULL) { free(lightersColor); lightersColor = NULL; }
 }
 
 // ******************* МЕРЦАНИЕ ********************
@@ -1475,8 +1475,8 @@ void stars2Routine() {
 }
 
 void stars2RoutineRelease() {
-  if (starState  == NULL) { free(starState); starState = NULL; }
-  if (starBright == NULL) { free(starBright); starBright = NULL; }  
+  if (starState  != NULL) { free(starState); starState = NULL; }
+  if (starBright != NULL) { free(starBright); starBright = NULL; }  
 }
 
 // ********************* БУДИЛЬНИК-РАССВЕТ *********************

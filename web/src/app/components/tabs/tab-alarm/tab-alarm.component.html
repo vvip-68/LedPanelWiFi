@@ -67,7 +67,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Понедельник') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker1" readonly [format]="24" [(ngModel)]="day1_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker1" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day1_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker1></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -79,7 +79,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Вторник') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker2" readonly [format]="24" [(ngModel)]="day2_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker2" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day2_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker2></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -91,7 +91,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Среда') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker3" readonly [format]="24" [(ngModel)]="day3_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker3" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day3_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker3></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -103,7 +103,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Четверг') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker4" readonly [format]="24" [(ngModel)]="day4_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker4" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day4_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker4></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -115,7 +115,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Пятница') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker5" readonly [format]="24" [(ngModel)]="day5_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker5" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day5_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker5></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -127,7 +127,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Суббота') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker6" readonly [format]="24" [(ngModel)]="day6_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker6" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day6_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker6></ngx-mat-timepicker>
         </mat-form-field>
       </div>
@@ -139,7 +139,7 @@
 
         <mat-form-field floatLabel="always" class="daytime">
           <mat-label>{{ L.$('Воскресенье') }}</mat-label>
-          <input matInput [ngxMatTimepicker]="picker7" readonly [format]="24" [(ngModel)]="day7_time" [disableControl]="isDisabled()">
+          <input matInput [ngxMatTimepicker]="picker7" readonly [format]="time12H ? 12 : 24" [(ngModel)]="day7_time" [disableControl]="isDisabled()">
           <ngx-mat-timepicker #picker7></ngx-mat-timepicker>
         </mat-form-field>
       </div>

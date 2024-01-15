@@ -63,6 +63,14 @@
       </mat-form-field>
     </div>
 
+    <div class="field-container radio-buttons">
+      <mat-label>{{ L.$('Температура в градусах') }}</mat-label>
+      <mat-radio-group [(ngModel)]="isFarenheit" [disableControl]="isDisabled()" color="primary">
+        <mat-radio-button [value]="0" class="rb">°C</mat-radio-button>
+        <mat-radio-button [value]="1" class="rb">°F</mat-radio-button>
+      </mat-radio-group>
+    </div>
+
     <div class="field-container">
       <div class="action-button">
         <button mat-raised-button color="primary" (click)="applyWeather($event)" [disabled]="isDisabled() || !isWeatherValid()">{{L.$('Применить')}}</button>

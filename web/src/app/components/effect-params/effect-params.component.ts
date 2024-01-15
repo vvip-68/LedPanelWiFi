@@ -93,58 +93,62 @@ export class EffectParamsComponent implements OnInit {
           //    "paramName2": "Выбор",
           // }
 
-          this.allowClockVisible = this.model.id !== 0;      // 0 - эффект "Часы" - галка "Часы поверх эффекта" недоступны
-          this.allowTextVisible = data['allowText'] !== 'X';
-          this.contrastVisible = data['contrast'] !== 'X';
-          this.speedVisible = data['speed'] !== 'X';
-          this.param1Visible = data['param1'] !== 'X';
-          this.param2Visible = data['param2'] !== 'X';
+          this.allowClockVisible = this.model.id !== 0;        // 0 - эффект "Часы" - галка "Часы поверх эффекта" недоступны
+          this.allowTextVisible  = data['allowText'] !== 'X';
+          this.contrastVisible   = data['contrast']  !== 'X';
+          this.speedVisible      = data['speed']     !== 'X';
+          this.param1Visible     = data['param1']    !== 'X';
+          this.param2Visible     = data['param2']    !== 'X';
 
-          this.model.name = this.L.$(data['name'] as string);
-          this.model.allowClock = data['allowClock'] === '1';
-          this.model.allowText = data['allowText'] === '1';
-          this.model.contrast = this.contrastVisible ? Number(data['contrast']) : -1;
-          this.model.speed = this.speedVisible ? Number(data['speed']) : -1;
-          this.model.param1 = this.param1Visible ? Number(data['param1']) : -1;
-          this.model.param2 = this.param2Visible ? Number(data['param2']) : -1;
-          this.model.paramName1 = data['paramName1'] as string;
-          this.model.paramName2 = data['paramName2'] as string;
-          this.model.order = Number(data['order']);
+          this.model.name        = this.L.$(data['name'] as string);
+          this.model.allowClock  = data['allowClock'] === '1';
+          this.model.allowText   = data['allowText'] === '1';
+          this.model.contrast    = this.contrastVisible ? Number(data['contrast']) : -1;
+          this.model.speed       = this.speedVisible ? Number(data['speed']) : -1;
+          this.model.param1      = this.param1Visible ? Number(data['param1']) : -1;
+          this.model.param2      = this.param2Visible ? Number(data['param2']) : -1;
+          this.model.paramName1  = data['paramName1'] as string;
+          this.model.paramName2  = data['paramName2'] as string;
+          this.model.order       = Number(data['order']);
 
           if (isNaN(this.model.order)) this.model.order = -1;
 
           // @formatter:off
-          const aType = data['param2'] as string;
-          if (aType === 'X')          this.param2Control = ControlType.NONE;     else
-          if (aType.startsWith('L>')) this.param2Control = ControlType.COMBOBOX; else
-          if (aType.startsWith('C>')) this.param2Control = ControlType.CHECKBOX; else
-                                      this.param2Control = ControlType.SLIDER;
-          // @formatter:on
+          const param2 = data['param2'] as string ?? this.managementService.state.param2;
 
-          switch (this.param2Control) {
-            case ControlType.SLIDER: {
-              this.model.param2 = this.param2Visible ? Number(data['param2']) : -1;
-              break;
-            }
+          if (!isNullOrUndefined(param2)) {
+            if (param2 === 'X')          this.param2Control = ControlType.NONE;     else
+            if (param2.startsWith('L>')) this.param2Control = ControlType.COMBOBOX; else
+            if (param2.startsWith('C>')) this.param2Control = ControlType.CHECKBOX; else
+                                         this.param2Control = ControlType.SLIDER;
+            // @formatter:on
 
-            case ControlType.CHECKBOX: {
-              const parts = <string>(data['param2']).split('>');
-              this.param2Flag = Number(parts[1]) === 1;                  // 0 -false; 1 - true
-              this.model.paramName2 = parts[2] as string;
-              break;
-            }
-
-            case ControlType.COMBOBOX: {
-              const parts = <string>(data['param2']).split('>');
-              this.model.param2 = this.param2Visible ? Number(parts[1]) : -1;                   // 0 -false; 1 - true
-              const parts2 = (<string>parts[2]).split(',');
-              this.param2List = new Array<ComboBoxItem>();
-              for (let i = 0; i < parts2.length; i++) {
-                this.param2List.push(new ComboBoxItem(parts2[i], i));
+            switch (this.param2Control) {
+              case ControlType.SLIDER: {
+                this.model.param2 = this.param2Visible ? Number(param2) : -1;
+                break;
               }
-              break;
+
+              case ControlType.CHECKBOX: {
+                const parts = param2.split('>');
+                this.param2Flag = Number(parts[1]) === 1;                                         // 0 -false; 1 - true
+                this.model.paramName2 = parts[2] as string;
+                break;
+              }
+
+              case ControlType.COMBOBOX: {
+                const parts = param2.split('>');
+                this.model.param2 = this.param2Visible ? Number(parts[1]) : -1;                   // 0 -false; 1 - true
+                const parts2 = (<string>parts[2]).split(',');
+                this.param2List = new Array<ComboBoxItem>();
+                for (let i = 0; i < parts2.length; i++) {
+                  this.param2List.push(new ComboBoxItem(parts2[i], i));
+                }
+                break;
+              }
             }
           }
+          this.managementService.state.param2 = '';
 
           setTimeout(() => { this.isLoaded = true; }, 500);
         }

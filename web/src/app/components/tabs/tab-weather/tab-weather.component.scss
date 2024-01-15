@@ -20,6 +20,8 @@
 
     --field-width: 320px;
     --label-width: 184px;
+    --radio-label-width: 180px;
+    --radio-label-label-width: 25px;
 
     .field-container {
       margin: 8px 0 0 0;
@@ -27,6 +29,25 @@
       flex-direction: row;
       position: relative;
       padding: 0 12px;
+
+      &.radio-buttons {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-top: 6px;
+
+        mat-label {
+          font-size: 12px;
+          width: var(--radio-label-width) !important;
+        }
+
+        ::ng-deep .mdc-radio + label {
+          font-size: 14px;
+          margin-right: 13px;
+          padding-left: 0;
+          width: var(--radio-label-label-width)
+        }
+      }
 
       .action-button {
         width: var(--field-width);

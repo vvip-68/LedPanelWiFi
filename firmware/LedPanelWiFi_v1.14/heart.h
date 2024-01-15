@@ -1,4 +1,5 @@
 // Файл создан программой 'Jinx Frame Viewer'
+#if (USE_ANIMATION == 1)
 
 const uint16_t heart_0[] PROGMEM = {
     0x0000, 0xd003, 0xf800, 0x0000, 0xd80c, 0xd80c, 0x0000, 0x0000, 
@@ -62,3 +63,5 @@ const animation_t animation_heart PROGMEM = {
    .background_first_color = 0x000000,  // Цвет заливки ВСЕЙ матрицы перед тем, как рисовать самый первый фрейм при активации эффекта анимации
    .background_color = 0x000000         // Цвет заливки ВСЕЙ матрицы перед тем, как рисовать очередной фрейм
 };
+
+#endif

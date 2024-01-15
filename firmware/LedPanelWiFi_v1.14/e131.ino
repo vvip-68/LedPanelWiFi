@@ -161,20 +161,18 @@ bool drawE131frame(e131_packet_t *packet, eSyncModes syncMode) {
     uint8_t w = masterWidth == 0 ? pWIDTH : masterWidth;
     uint8_t h = masterHeight == 0 ? pHEIGHT : masterHeight;
     uint16_t numLeds = w * h;
-    uint16_t len = (170 + offset > numLeds) ? (numLeds - offset) : 170;  
-
+    uint16_t len = (170 + offset > numLeds) ? (numLeds - offset) : 170;      
     for (uint16_t i = 0; i < len; i++) {
       uint16_t idx = offset + i;
       int8_t  x = idx % w;                // Позиция точки X с экрана МАСТЕРА
       int8_t  y = h - idx / w - 1;        // Позиция точки Y с экрана МАСТЕРА
-
       // Если X,Y попадают в оболасть трансляции - вывести точку на матрицу, если не попадает - пропустить
       if (x >= masterX && x < (masterX + localW) && y >= masterY && y < (masterY + localH)) {
         uint16_t n = i * 3;
         CRGB color = CRGB(data[n], data[n+1], data[n+2]);      
         drawPixelXY(localX + x - masterX, localY + y - masterY, color);
       }
-    } 
+    }
   }
 
   return true;
@@ -447,8 +445,8 @@ void processCommandPacket(e131_packet_t *packet) {
       //   Канал 7 = x - часы
       //   Канал 8 = x - минуты
       //   Канал 9 = x - секунды
-      setCurrentTime(packet->property_values[7],packet->property_values[8],packet->property_values[9],
-                     packet->property_values[6],packet->property_values[5],2000+packet->property_values[4]);
+      setCurrentTime(packet->property_values[7], packet->property_values[8], packet->property_values[9],
+                     packet->property_values[6], packet->property_values[5], 2000+packet->property_values[4]);
       break;      
 
     case CMD_SPEED:

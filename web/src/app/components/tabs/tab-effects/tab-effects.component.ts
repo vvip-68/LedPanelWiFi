@@ -239,7 +239,7 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
     if (isNullOrUndefined(this.input2) || Number(this.input2.nativeElement.value) === 0) {
       return this.L.$('возврат в авторежим выключен');
     }
-    return `${this.L.$('включать авторежим через')} ${this.input2.nativeElement.value} ${this.L.$('минут')} ${this.L.$('[0 - выключено]')}`;
+    return `${this.L.$('в авторежим через')} ${this.input2.nativeElement.value} ${this.L.$('минут')} ${this.L.$('[ 0-выкл ]')}`;
   }
 
   getNightClockTooltip() {
@@ -262,11 +262,11 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
 
   toggleNightClock() {
     if (this.managementService.state.isNightClockRunnung())    // MC_NIGHT_CLOCK
-      // $3 0; - включить на устройстве демо-режим
-      this.socketService.sendText('$3 0;');
+      // $14 6;- выключить на устройстве ночные часы
+      this.socketService.sendText('$14 6;');
     else
-      // $14 8; - Включить ночные часы;
-      this.socketService.sendText('$14 8;');
+      // $14 3; - Включить ночные часы;
+      this.socketService.sendText('$14 3;');
   }
 
   toggleAuxLine() {

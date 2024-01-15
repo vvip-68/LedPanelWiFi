@@ -62,7 +62,7 @@ export class WebsocketService implements IWebsocketService, OnDestroy {
   // вспомогательный Observable для работы с подписками на сообщения
   private wsMessages$: Subject<IWsMessage<any>>;
 
-  private url = environment.production ? `ws://${window.location.hostname}/ws` : 'ws://192.168.0.101/ws'; // 'ws://192.168.4.1/ws';
+  private url = environment.production ? `ws://${window.location.hostname}/ws` : 'ws://192.168.0.90/ws'; // 'ws://192.168.4.1/ws';
 
   private pingInterval = 5000;
   private reconnectInterval = 5000;
@@ -100,6 +100,7 @@ export class WebsocketService implements IWebsocketService, OnDestroy {
         next: (event: Event) => {
           console.log('WebSocket connected!');
           this.connection$?.next(true);
+          this.ping();
           this.firstConnect = false;
         }
       }
@@ -130,7 +131,7 @@ export class WebsocketService implements IWebsocketService, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (data: IWsMessage<any>) => {
-          console.log(data);
+          console.log(data); //+++!!!
         },
         error: (error: ErrorEvent) => {
           console.error('WebSocket error!', error);

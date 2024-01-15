@@ -2,123 +2,49 @@
   <h1> {{controller}}</h1>
   <div class="mcu">
     @if (controller_type === 3) {
-      <div class="esp32">
-      <img src="../../../../assets/images/esp32.svg" width="173" height="355" alt="">
+      <div [class]="getControllerType()">
+        @switch (getControllerType()) {
+          @case ('esp32') {
+            <img src="assets/images/esp32.svg" width="173" height="355" alt="">
+          }
+          @case ('esp32s2') {
+            <img src="assets/images/esp32s2.svg" width="173" height="355" alt="">
+          }
+          @case ('esp32s2mini') {
+            <img src="assets/images/esp32s2mini.png" width="183" height="236" alt="">
+          }
+          @case ('esp32s3') {
+            <img src="assets/images/esp32s3.svg" width="173" height="402" alt="">
+          }
+          @case ('esp32s3mini') {
+            <img src="assets/images/esp32s3mini.png" width="183" height="235" alt="">
+          }
+          @case ('esp32c3') {
+            <img src="assets/images/esp32c3.svg" width="173" height="303" alt="">
+          }
+          @case ('esp32c3mini') {
+            <img src="assets/images/esp32c3mini.png" width="173" height="236" alt="">
+          }
+        }
 
-      <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark d2 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark d4 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d5 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark d12 warn" [matTooltip]="L.$('pull_low')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark d13 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d14 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d15 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
-      <div class="mark d16 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d17 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d18 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d19 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d21 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d22 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d23 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d25 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d26 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d27 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d32 ok"><mat-icon>done</mat-icon></div>
-      <div class="mark d33 ok"><mat-icon>done</mat-icon></div>
-
-      <div class="markp tx"  [ngClass]="{'set': getUsage('tx')}">G1/TX0</div>
-      <div class="markp rx"  [ngClass]="{'set': getUsage('rx')}">G3/RX0</div>
-      <div class="markp d2"  [ngClass]="{'set': getUsage('g2')}">G2</div>
-      <div class="markp d4"  [ngClass]="{'set': getUsage('g4')}">G4</div>
-      <div class="markp d5"  [ngClass]="{'set': getUsage('g5')}">G5</div>
-      <div class="markp d12" [ngClass]="{'set': getUsage('g12')}">G12</div>
-      <div class="markp d13" [ngClass]="{'set': getUsage('g13')}">G13</div>
-      <div class="markp d14" [ngClass]="{'set': getUsage('g14')}">G14</div>
-      <div class="markp d15" [ngClass]="{'set': getUsage('g15')}">G15</div>
-      <div class="markp d16"  [ngClass]="{'set': getUsage('g16')}">G16</div>
-      <div class="markp d17"  [ngClass]="{'set': getUsage('g17')}">G17</div>
-      <div class="markp d18"  [ngClass]="{'set': getUsage('g18')}">G18</div>
-      <div class="markp d19"  [ngClass]="{'set': getUsage('g19')}">G19</div>
-      <div class="markp d21"  [ngClass]="{'set': getUsage('g21')}">G21</div>
-      <div class="markp d22"  [ngClass]="{'set': getUsage('g22')}">G22</div>
-      <div class="markp d23"  [ngClass]="{'set': getUsage('g23')}">G23</div>
-      <div class="markp d25"  [ngClass]="{'set': getUsage('g25')}">G25</div>
-      <div class="markp d26"  [ngClass]="{'set': getUsage('g26')}">G26</div>
-      <div class="markp d27"  [ngClass]="{'set': getUsage('g27')}">G27</div>
-      <div class="markp d32"  [ngClass]="{'set': getUsage('g32')}">G32</div>
-      <div class="markp d33"  [ngClass]="{'set': getUsage('g33')}">G33</div>
-
-      @if (getUsage('tx')) {
-        <div class="markc tx" >{{ getUsageName('tx') }}</div>
-      }
-      @if (getUsage('rx')) {
-        <div class="markc rx" >{{ getUsageName('rx') }}</div>
-      }
-      @if (getUsage('g2')) {
-        <div class="markc d2" >{{ getUsageName('g2') }}</div>
-      }
-      @if (getUsage('g4')) {
-        <div class="markc d4" >{{ getUsageName('g4') }}</div>
-      }
-      @if (getUsage('g5')) {
-        <div class="markc d5" >{{ getUsageName('g5') }}</div>
-      }
-      @if (getUsage('g12')) {
-        <div class="markc d12">{{ getUsageName('g12') }}</div>
-      }
-      @if (getUsage('g13')) {
-        <div class="markc d13">{{ getUsageName('g13') }}</div>
-      }
-      @if (getUsage('g14')) {
-        <div class="markc d14">{{ getUsageName('g14') }}</div>
-      }
-      @if (getUsage('g15')) {
-        <div class="markc d15">{{ getUsageName('g15') }}</div>
-      }
-      @if (getUsage('g16')) {
-        <div class="markc d16" >{{ getUsageName('g16') }}</div>
-      }
-      @if (getUsage('g17')) {
-        <div class="markc d17" >{{ getUsageName('g17') }}</div>
-      }
-      @if (getUsage('g18')) {
-        <div class="markc d18" >{{ getUsageName('g18') }}</div>
-      }
-      @if (getUsage('g19')) {
-        <div class="markc d19" >{{ getUsageName('g19') }}</div>
-      }
-      @if (getUsage('g21')) {
-        <div class="markc d21" >{{ getUsageName('g21') }}</div>
-      }
-      @if (getUsage('g22')) {
-        <div class="markc d22" >{{ getUsageName('g22') }}</div>
-      }
-      @if (getUsage('g23')) {
-        <div class="markc d23" >{{ getUsageName('g23') }}</div>
-      }
-      @if (getUsage('g25')) {
-        <div class="markc d25" >{{ getUsageName('g25') }}</div>
-      }
-      @if (getUsage('g26')) {
-        <div class="markc d26" >{{ getUsageName('g26') }}</div>
-      }
-      @if (getUsage('g27')) {
-        <div class="markc d27" >{{ getUsageName('g27') }}</div>
-      }
-      @if (getUsage('g32')) {
-        <div class="markc d32" >{{ getUsageName('g32') }}</div>
-      }
-      @if (getUsage('g33')) {
-        <div class="markc d33" >{{ getUsageName('g33') }}</div>
-      }
+        @for (pin of getAllPins(); track pin) {
+          <div [class]="'mark ' + pin.alias + ' ' + (hasPinWarn(pin) ? 'warn' : 'ok')"  [matTooltip]="getPinTooltip(pin)" matTooltipPosition="before">
+            <mat-icon>{{hasPinWarn(pin) ? 'priority_high' : 'done' }}</mat-icon>
+          </div>
+          <div [class]="'markp ' + pin.alias"  [ngClass]="{'set': getUsage(pin.alias)}">
+            {{pin.name}}
+          </div>
+          @if (getUsage(pin.alias)) {
+            <div [class]="'markc ' + pin.alias" >{{ getUsageName(pin.alias) }}</div>
+          }
+        }
 
       </div>
     }
 
     @if (controller_type === 1) {
       <div class="nodemcu">
-        <img src="../../../../assets/images/nodemcu.svg" width="172" height="343" alt="">
+        <img src="assets/images/nodemcu.svg" width="172" height="323" alt="">
         <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
@@ -181,7 +107,7 @@
 
     @if (controller_type === 2) {
       <div class="wemos">
-        <img src="../../../../assets/images/wemos.svg" width="172" height="236" alt="">
+        <img src="assets/images/wemos.svg" width="172" height="236" alt="">
 
         <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
@@ -294,7 +220,7 @@
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="lines[0].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}"
-                    (valueChange)="unassignPin(lines[0].pin.gpio); lines[0].pin = assignPin($event, 'LED LINE 1'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(lines[0].pin.gpio); lines[0].pin = assignPin($event, 'LED 1'); updateRxTxUsage();">
           @for (pin of this.line1_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -340,7 +266,7 @@
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="lines[1].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"  [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}"
-                    (valueChange)="unassignPin(lines[1].pin.gpio); lines[1].pin = assignPin($event, 'LED LINE 2'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(lines[1].pin.gpio); lines[1].pin = assignPin($event, 'LED 2'); updateRxTxUsage();">
           @for (pin of this.line2_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -386,7 +312,7 @@
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="lines[2].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"  [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}"
-                    (valueChange)="unassignPin(lines[2].pin.gpio); lines[2].pin = assignPin($event, 'LED LINE 3'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(lines[2].pin.gpio); lines[2].pin = assignPin($event, 'LED 3'); updateRxTxUsage();">
           @for (pin of this.line3_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -432,7 +358,7 @@
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="lines[3].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"  [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}"
-                    (valueChange)="unassignPin(lines[3].pin.gpio); lines[3].pin = assignPin($event, 'LED LINE 4'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(lines[3].pin.gpio); lines[3].pin = assignPin($event, 'LED 4'); updateRxTxUsage();">
           @for (pin of this.line4_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -677,8 +603,8 @@
         <div class="toggler-label sd">
           <p>{{L.$('SRX:')}}</p>
         </div>
-        <mat-select [ngModel]="player_rx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
-                    (valueChange)="unassignPin(player_rx_pin.gpio); player_rx_pin = assignPin($event, 'MP3 SRX'); updateRxTxUsage();">
+        <mat-select [ngModel]="player_rx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller === 'ESP32'"
+                    (valueChange)="unassignPin(player_rx_pin.gpio); player_rx_pin = assignPin($event, 'MP3 RX'); updateRxTxUsage();">
           @for (pin of this.player_rx_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -688,8 +614,8 @@
         <div class="toggler-label sd left-space">
           <p>{{L.$('STX:')}}</p>
         </div>
-        <mat-select [ngModel]="player_tx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller_type === 3"
-                    (valueChange)="unassignPin(player_tx_pin.gpio); player_tx_pin = assignPin($event, 'MP3 STX'); updateRxTxUsage();">
+        <mat-select [ngModel]="player_tx_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled() || controller === 'ESP32'"
+                    (valueChange)="unassignPin(player_tx_pin.gpio); player_tx_pin = assignPin($event, 'MP3 TX'); updateRxTxUsage();">
           @for (pin of this.player_tx_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -699,7 +625,7 @@
       </div>
     }
 
-    @if (supportMP3 && controller_type === 3) {
+    @if (supportMP3 && controller === 'ESP32') {
       <div class="toggler-container led-lines">
         <div class="toggler-label info">
           <p>{{L.$('dfplayer-info')}}</p>
@@ -719,7 +645,7 @@
           <p>{{L.$('CLK:')}}</p>
         </div>
         <mat-select [ngModel]="tm1637_clk_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                    (valueChange)="unassignPin(tm1637_clk_pin.gpio); tm1637_clk_pin = assignPin($event, 'TM1637 CLK'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(tm1637_clk_pin.gpio); tm1637_clk_pin = assignPin($event, '1637 CLK'); updateRxTxUsage();">
           @for (pin of this.tm1637_clk_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
@@ -730,7 +656,7 @@
           <p>{{L.$('DIO:')}}</p>
         </div>
         <mat-select [ngModel]="tm1637_dio_pin.gpio" class="wide" panelClass="pin-select-panel" [disableControl]="isDisabled()"
-                    (valueChange)="unassignPin(tm1637_dio_pin.gpio); tm1637_dio_pin = assignPin($event, 'TM1637 DIO'); updateRxTxUsage();">
+                    (valueChange)="unassignPin(tm1637_dio_pin.gpio); tm1637_dio_pin = assignPin($event, '1637 DIO'); updateRxTxUsage();">
           @for (pin of this.tm1637_dio_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}

@@ -193,6 +193,12 @@ export class TabSynchComponent implements OnInit, OnDestroy {
     return this.mode.value === 1 && this.managementService.state.width * this.managementService.state.height > 2040;
   }
 
+  isValid(): boolean {
+    const isSlave = this.e131_mode === 2 && this.e131_type === 1;
+
+    return !isSlave ||  (this.masterXFormControl.valid && this.masterYFormControl.valid && this.localXFormControl.valid && this.localYFormControl.valid && this.localWFormControl.valid && this.localHFormControl.valid);
+  }
+
   ngOnDestroy() {
     this.destroy$.next(true);
     this.destroy$.complete();

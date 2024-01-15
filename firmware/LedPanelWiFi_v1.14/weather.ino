@@ -33,7 +33,7 @@ bool getWeather() {
   }  
 
   doc.clear();
-  doc["act"] = String(sWEATHER);
+  doc["act"] = FPSTR(sWEATHER);
   doc["region"] = useWeather == 1 ? regionID : regionID2;
   
   // Проверяем статус запроса
@@ -76,9 +76,34 @@ bool getWeather() {
     return false;                                                           // и пора прекращать всё это дело
   }
 
+  String regId(useWeather == 1 ? regionID : regionID2);
+
+  // Нам не нужно доставать все данные из ответа. Задаем фильтр - это существенно уменьшит размер требуемой памяти 
+  StaticJsonDocument<200> filter;
+  
+  if (useWeather == 1) {
+    // Yandex
+    filter["clocks"][regId]["weather"]["temp"] = true;  // Достаём температуру - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> temp
+    filter["clocks"][regId]["skyColor"] = true;         // Рекомендованный цвет фона
+    filter["clocks"][regId]["isNight"] = true;
+    filter["clocks"][regId]["weather"]["icon"] = true;  // Достаём иконку - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> icon
+    filter["clocks"][regId]["name"] = true;             // Город
+    filter["clocks"][regId]["sunrise"] = true;          // Время рассвета
+    filter["clocks"][regId]["sunset"] = true;           // Время заката
+  } else {
+    // OpenWeatherMap
+    filter["main"]["temp"] = true;                      // Температура -> main -> temp
+    filter["weather"][0]["icon"] = true;                // Достаём иконку -> weather[0] -> icon
+    filter["name"] = true;                              // Город
+    filter["weather"][0]["description"] = true;         // Строка погодных условий на языке, указаном в запросе
+    filter["weather"][0]["id"] = true;                  // Уточненный код погодных условий
+    filter["sys"]["sunrise"] = true;                    // Время рассвета
+    filter["sys"]["sunset"] = true;                     // Время заката    
+  }
+  
   // Parse JSON object
   doc.clear();
-  DeserializationError error = deserializeJson(doc, w_client);
+  DeserializationError error = deserializeJson(doc, w_client, DeserializationOption::Filter(filter));
   w_client.stop();
 
   if (error) {
@@ -97,10 +122,9 @@ bool getWeather() {
     
     return false;
   }
-
-  String regId(useWeather == 1 ? regionID : regionID2);
-  String town, sunrise, sunset;
   
+  String town, sunrise, sunset;
+
   if (useWeather == 1) {
     /*
     Yandex: {"time":1597989853200,
@@ -154,6 +178,7 @@ bool getWeather() {
 
     // Для срабатывания триггера на изменение значений
     set_temperature(temperature);
+    
   } else {
   /*
    OpenWeatherMap: {"coord":{"lon":92.79,"lat":56.01},
@@ -229,6 +254,9 @@ bool getWeather() {
   refresh_weather = false;
   weather_t = 0; 
   weather_cnt = 0;
+
+  // Следующий хапрос погоды - через SYNC_WEATHER_PERIOD минут
+  weatherTimer.setInterval(1000 * 60 * SYNC_WEATHER_PERIOD);
   
   DEBUG(F("Погода получена: "));
   if (useWeather == 1) {
@@ -538,10 +566,13 @@ bool getWeather() {
 
 #endif
 
+#if (USE_ANIMATION == 1)
+
 uint8_t fade_weather_phase = 0;        // Плавная смена картинок: 0 - плавное появление; 1 - отображение; 2 - затухание
 uint8_t fade_step = 0;
 uint8_t weather_frame_num = 0;
 int8_t  weather_text_x, weather_text_y;
+
 
 void weatherRoutine() {
 
@@ -550,7 +581,8 @@ void weatherRoutine() {
     // Есть ли возможность отрисовки температуры большим шрифтом?
     bool big_font = c_size == 2 && (pWIDTH > image_desc.frame_width + 10 || pHEIGHT > image_desc.frame_height + 7);
 
-    uint8_t t = abs(temperature);
+    int8_t  th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
+    uint8_t t = abs(th);
     uint8_t dec_t = t / 10;
     uint8_t edc_t = t % 10;
 
@@ -568,10 +600,10 @@ void weatherRoutine() {
       if (edc_t == 1) temp_width -= 1;            // 1 занимает 2 колонки а не 3
     }
 
-    // Если температура 0 - нужно рисовать знак градуса или букву 'c'
+    // Если температура 0 - нужно рисовать знак градуса или букву 'c'/'f'
     // Если температура другая - для большого шрифта, если позволяет место - рисовать знак градуса. Если не позволяет - не рисовать.
-    bool need_deg = (t == 0) || (big_font && t != 0);
-    if (need_deg) temp_width += (big_font ? (t == 0 ? 0 : 4) : (t == 0 ? 3 : 0));    
+    bool need_deg = (th == 0) || (big_font && th != 0);
+    if (need_deg) temp_width += (big_font ? (th == 0 ? 0 : 4) : (th == 0 ? 3 : 0));    
   #endif
   
   if (loadingFlag) {
@@ -598,9 +630,6 @@ void weatherRoutine() {
     fade_weather_phase = init_weather ? 1 : 0;                         // плавное появление картинки
   }  
 
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
-
   #if (USE_WEATHER == 1)     
     if (useWeather > 0) {
       pos_x = (pWIDTH - image_desc.frame_width - temp_width) / 2 + 1;
@@ -609,7 +638,7 @@ void weatherRoutine() {
       while(pos_y + image_desc.frame_height > pHEIGHT) pos_y--;
       // Если знак градуса не обязателен к рисованию и он не влазит в ширину - уменьшить ширину текста температуры на знакоместо градуса
       // Исключение - если цифры температуры целиком ниже картинки - знак градуса можно оставить
-      if (need_deg && big_font && t != 0 && ((image_desc.frame_width + temp_width) > pWIDTH) && ((image_desc.frame_height + 7) > pHEIGHT)) {
+      if (need_deg && big_font && th != 0 && ((image_desc.frame_width + temp_width) > pWIDTH) && ((image_desc.frame_height + 7) > pHEIGHT)) {
         need_deg = false;
         temp_width -= 4;
         pos_x += 2;
@@ -651,6 +680,11 @@ void weatherRoutine() {
       }
     }
   #endif
+
+  // Отображение картинок погоды - довольно статичное. Не нужно слишком часто перерисовывать картинку
+  bool need_draw = millis() - last_draw_frame >= 100;
+  if (!need_draw) return; 
+  last_draw_frame = millis();
 
   // Нарисовать картинку
   loadImageFrame(weather_array[weather_frame_num]);
@@ -707,28 +741,40 @@ void weatherRoutine() {
   if (useWeather > 0 && init_weather) {
     
     // Получить цвет отображения значения температуры
-    CRGB color = useTemperatureColor ? CRGB(HEXtoInt(getTemperatureColor(temperature))) : CRGB::White;
+    CRGB color = useTemperatureColor ? CRGB(HEXtoInt(getTemperatureColor(th))) : CRGB::White;
     int16_t temp_x = weather_text_x + temp_width;
     int16_t temp_y = weather_text_y;
     
     // Для правильного позиционирования - рисуем справа налево
-    // Нужно ли рисовать букву "c" в малом шрифте или знак градуса в большом шрифте?
+    // Нужно ли рисовать букву "c"/"f" в малом шрифте или знак градуса в большом шрифте?
     if (need_deg) {
       if (big_font) {
         temp_x -= 4;  
         // Для больших часов рисуем значок градуса
         for(uint8_t i = 0; i < 2; i++) drawPixelXY(getClockX(temp_x), temp_y + 4 + i, color);      
-        drawPixelXY(getClockX(temp_x + 1), temp_y+3, color);      
-        drawPixelXY(getClockX(temp_x + 1), temp_y+6, color);      
+        drawPixelXY(getClockX(temp_x + 1), temp_y + 3, color);      
+        drawPixelXY(getClockX(temp_x + 1), temp_y + 6, color);      
         for(uint8_t i = 0; i < 2; i++) drawPixelXY(getClockX(temp_x+2), temp_y + 4 + i, color);      
       } else {
         temp_x -= 3;  
-        // При температуре = 0 - рисуем маленький значок C
-        for(uint8_t i = 0; i < 3; i++) {
-          drawPixelXY(getClockX(temp_x), temp_y + i, color);      
+        // При температуре = 0 - рисуем маленький значок C/F
+        if (isFarenheit) {
+          // буква F
+          for(uint8_t i = 0; i < 5; i++) {
+            drawPixelXY(getClockX(temp_x), temp_y + i, color);      
+          }
+          for(uint8_t i = 0; i < 2; i++) {
+            drawPixelXY(getClockX(temp_x + 1 + i), temp_y + 4, color); 
+          }     
+          drawPixelXY(getClockX(temp_x + 1), temp_y + 2, color);              
+        } else {
+          // буква C
+          for(uint8_t i = 0; i < 3; i++) {
+            drawPixelXY(getClockX(temp_x), temp_y + i, color);      
+          }
+          drawPixelXY(getClockX(temp_x + 1), temp_y, color);      
+          drawPixelXY(getClockX(temp_x + 1), temp_y + 2, color);      
         }
-        drawPixelXY(getClockX(temp_x + 1), temp_y, color);      
-        drawPixelXY(getClockX(temp_x + 1), temp_y + 2, color);      
       }
     }
 
@@ -756,19 +802,21 @@ void weatherRoutine() {
             
     // Нарисовать '+' или '-' если температура не 0
     // Горизонтальная черта - общая для '-' и '+'
-    if (temperature != 0) {
+    if (th != 0) {
       uint8_t dy = big_font ? 2 : 0;
       temp_x -= 4;
       for(uint8_t i = 0; i < 3; i++) {
-        drawPixelXY(getClockX(temp_x + i), temp_y + 2 + dy, color);      
+        drawPixelXY(getClockX(temp_x + i), temp_y + 1 + dy, color);      
       }      
       // Для плюса - вертикальная черта
-      if (temperature > 0) {
-        drawPixelXY(getClockX(temp_x + 1), temp_y + 1 + dy, color);
-        drawPixelXY(getClockX(temp_x + 1), temp_y + 3 + dy, color);
+      if (th > 0) {
+        drawPixelXY(getClockX(temp_x + 1), temp_y + 0 + dy, color);
+        drawPixelXY(getClockX(temp_x + 1), temp_y + 2 + dy, color);
       }
     }    
   }
   
   #endif  
 }
+
+#endif

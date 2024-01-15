@@ -28,7 +28,7 @@
     </div>
 
     <div class="field-container">
-      <mat-form-field hintLabel="{{ L.$('до 16 символов') }}" floatLabel="always">
+      <mat-form-field hintLabel="{{ L.$('от 8 до 16 символов') }}" floatLabel="always">
         <mat-label>{{ L.$('Пароль') }}</mat-label>
         <input matInput #inputAPPass required maxlength="16" autocomplete="new-password"
                [formControl]="passAPFormControl"
@@ -42,6 +42,16 @@
         @if (passAPFormControl.hasError('required')) {
           <mat-error>
             {{ L.$('Поле не может быть пустым!') }}
+          </mat-error>
+        }
+        @if (passAPFormControl.hasError('length') && !passAPFormControl.hasError('required')) {
+          <mat-error>
+            {{ L.$('Длина пароля от 8 до 16 символов!') }}
+          </mat-error>
+        }
+        @if (passAPFormControl.hasError('invalidChars')) {
+          <mat-error>
+            {{ L.$('Недопустимые символы') }}
           </mat-error>
         }
       </mat-form-field>

@@ -85,6 +85,14 @@
           </div>
         }
 
+        <div class="field-container radio-buttons">
+          <mat-label>{{ L.$('12/24 формат') }}</mat-label>
+          <mat-radio-group [(ngModel)]="time12h" [disableControl]="isDisabled()" (change)="changeTimeFormat()" color="primary">
+            <mat-radio-button [value]="1" class="rb"> {{ L.$('12H') }}</mat-radio-button>
+            <mat-radio-button [value]="0" class="rb"> {{ L.$('24H') }}</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
         @if (isLargeClockAvailable()) {
           <div class="field-container radio-buttons">
             <mat-label>{{ L.$('Размер часов') }}</mat-label>
@@ -236,44 +244,29 @@
       </div>
 
       <div class="field-container ntp-serv">
-        <mat-form-field hintLabel="{{ L.$('Интервал синхронизации') }}" floatLabel="always" class="date">
-          <mat-label>{{ L.$('Синх. каждые') }}</mat-label>
-          <input matInput class="right" autocomplete="new-password" type="number" [min]="5" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                 [formControl]="ntpSyncIntervalFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          <p matTextSuffix="">{{ L.$('мин') }}</p>
-          @if (ntpSyncIntervalFormControl.hasError('required')) {
-            <mat-error>
-              {{ L.$('Поле не может быть пустым!') }}
-            </mat-error>
-          }
-          @if (ntpSyncIntervalFormControl.hasError('range') && !ntpSyncIntervalFormControl.hasError('required')) {
-            <mat-error>
-              {{ L.$('от 5 до 240 минут') }}
-            </mat-error>
-          }
+
+        <mat-form-field floatLabel="always" class="select">
+          <mat-label>{{ L.$('Зона времени') }}</mat-label>
+          <mat-select [(ngModel)]="time_area" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="timeAreaChanged($event)">
+            @for (area of time_area_list; track area) {
+              <mat-option [value]="area.value">
+                {{area.displayText}}
+              </mat-option>
+            }
+          </mat-select>
         </mat-form-field>
 
-        <div style="width:12px"></div>
-
-        <mat-form-field hintLabel="{{ L.$('Часовой пояс в формате ЧЧ:MM') }}" floatLabel="always" class="date">
+        <mat-form-field floatLabel="always" class="select">
           <mat-label>{{ L.$('Часовой пояс') }}</mat-label>
-          <input matInput class="right" autocomplete="new-password" type="text" restrict inputType="timezone" (keydown)="commonService.checkLength($event, 6)" (keyup)="commonService.checkLength($event, 6)"
-                 [formControl]="ntpTimeZoneFormControl"
-                 [disableControl]="isDisabled()"
-                 [errorStateMatcher]="matcher">
-          @if (ntpTimeZoneFormControl.hasError('required')) {
-            <mat-error>
-              {{ L.$('Поле не может быть пустым!') }}
-            </mat-error>
-          }
-          @if (ntpTimeZoneFormControl.hasError('timezone') && !ntpTimeZoneFormControl.hasError('required')) {
-            <mat-error>
-              {{ L.$('Неверное значение часового пояса') }}
-            </mat-error>
-          }
+          <mat-select [(ngModel)]="time_zone" panelClass="app-select-panel shift-160px" [disableControl]="isDisabled()" (valueChange)="timeZoneChanged($event)">
+            @for (zone of getTimeZones(time_area); track zone) {
+              <mat-option [value]="zone.value">
+                {{zone.displayText}}
+              </mat-option>
+            }
+          </mat-select>
         </mat-form-field>
+
       </div>
 
       <div style="flex:1"></div>

@@ -119,7 +119,3 @@ void patternRoutine() {
 
   drawPattern(patternIdx, 10, 10);  
 }
-
-String GetPatternsList() {
-  return String(PATTERNS_LIST);
-}

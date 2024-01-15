@@ -5,7 +5,7 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
+import {AppErrorStateMatcher, convertTimeTo24, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import { MatSliderModule } from '@angular/material/slider';
@@ -70,6 +70,7 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
   public alarm_playing_file: string = '';
   public alarm_use_sound: boolean = false;
   public alarm_volume: number = 20;
+  public time12H: boolean = false;           // false: 24H;  true: 12H
 
   public isAlarmPlaying: boolean = false;
   public isDawnPlaying: boolean = false;
@@ -92,7 +93,7 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          const request = 'MX|AL|AE|AD|AT|AW|MD';
+          const request = 'MX|C12|AL|AE|AD|AT|AW|MD';
           this.managementService.getKeys(request);
         }
       });
@@ -182,14 +183,18 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
               if (this.supportMP3) {
                 let request = 'MA|MB|MP|MU|MV';
                 if (this.managementService.alarm_sounds.length === 0) {
-                  request += '|S1'
+                  request += '|CRS1'
                 }
                 if (this.managementService.dawn_sounds.length === 0) {
-                  request += '|S2'
+                  request += '|CRS2'
                 }
                 this.managementService.getKeys(request);
               }
               break;
+            case 'C12': {
+              this.time12H = this.managementService.state.time12h;
+              break;
+            }
           }
         }
       });
@@ -254,13 +259,13 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
     const WD = (this.day7_On ? 1 : 0) * 64 | (this.day6_On ? 1 : 0) * 32 | (this.day5_On ? 1 : 0) * 16 |
                (this.day4_On ? 1 : 0) * 8  | (this.day3_On ? 1 : 0) * 4  | (this.day2_On ? 1 : 0) * 2  | (this.day1_On ? 1 : 0);
     // @formatter:oт
-    const time1 = this.day1_time.replace(':',' ');
-    const time2 = this.day2_time.replace(':',' ');
-    const time3 = this.day3_time.replace(':',' ');
-    const time4 = this.day4_time.replace(':',' ');
-    const time5 = this.day5_time.replace(':',' ');
-    const time6 = this.day6_time.replace(':',' ');
-    const time7 = this.day7_time.replace(':',' ');
+    let time1 = convertTimeTo24(this.day1_time).replace(':',' ');
+    let time2 = convertTimeTo24(this.day2_time).replace(':',' ');
+    let time3 = convertTimeTo24(this.day3_time).replace(':',' ');
+    let time4 = convertTimeTo24(this.day4_time).replace(':',' ');
+    let time5 = convertTimeTo24(this.day5_time).replace(':',' ');
+    let time6 = convertTimeTo24(this.day6_time).replace(':',' ');
+    let time7 = convertTimeTo24(this.day7_time).replace(':',' ');
 
     this.socketService.sendText(`$6 6|${DD} ${EF} ${WD} ${AD} ${time1} ${time2} ${time3} ${time4} ${time5} ${time6} ${time7}`);
   }

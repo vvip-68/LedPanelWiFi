@@ -24,6 +24,8 @@
     #define IMAGE_LIST F("Сердце,Марио,Погода")   // Добавьте в список имя вашей анимации
 */
 
+#if (USE_ANIMATION == 1)
+
 #define MAX_FRAMES_COUNT 20
 
 // Структура описания анимации
@@ -72,7 +74,6 @@ typedef struct {
  
 uint8_t  max_image_num;              // Количество используемых анимаций
 uint8_t* use_animations;             // Массив с индексами доступных к использованию анимаций из массива animations
-String   animations_list;            // Список имен анимаций, который будет передан в приложение на смартфоне
 
 // -----------------------------------------------------------------------------------------------------------
 
@@ -101,19 +102,21 @@ const animation_t animations[] = {
 void initAnimations() {  
   
   // Полный список анимаций, которые определены в приложении
-  String  name_list(IMAGE_LIST);
-  String  anim_name;
-  uint8_t image_num = CountTokens(name_list, ',');
+  String  anim_name;       anim_name.reserve(50);
+  String anim_list = ""; 
+  anim_list.reserve(strlen_P(IMAGE_LIST) + 10);
+  
+  uint8_t image_num = CountTokens(IMAGE_LIST, ',');
   uint8_t use_num = 0;  
   
   use_animations = new uint8_t[image_num];
 
   // Анимация "Сердце" имеет размеры 8x8 и предназначена для отображения на любых размерах матриц
   use_animations[0] = use_num++;
-  anim_name = GetToken(name_list, 1, ',');
-  animations_list += anim_name + ",";
+  anim_name = GetToken(IMAGE_LIST, 1, ',');
+  anim_list += anim_name + ",";
   
-  DEBUGLN(F("\nНайденные анимации:"));
+  DEBUGLN(F("Найденные анимации:"));
   DEBUG(F("   "));
   DEBUG(anim_name);
   DEBUG('\t');
@@ -127,8 +130,8 @@ void initAnimations() {
     int8_t anim_width  = animations[i].frame_width;
     int8_t anim_height = animations[i].frame_height;
     if (anim_width <= pWIDTH && anim_height <= pHEIGHT) {
-      anim_name = GetToken(name_list, i + 1, ',');
-      animations_list += anim_name; animations_list +=  ',';
+      anim_name = GetToken(IMAGE_LIST, i + 1, ',');
+      anim_list += anim_name; anim_list +=  ',';
       use_animations[use_num++] = i;
       DEBUG(F("   "));
       DEBUG(anim_name);
@@ -141,8 +144,11 @@ void initAnimations() {
   DEBUGLN();
   
   // Удалить последнюю запятую из списка имен анимаций
-  uint8_t len = animations_list.length();
-  animations_list = animations_list.substring(0, len - 1);  
+  size_t str_len = anim_list.length();
+  anim_list.setCharAt(str_len, '\0');
+
+  // Сохранить сформированный список в глобальную переменную
+  animations_list = anim_list;
   max_image_num = use_num;
 }
 
@@ -459,7 +465,7 @@ void animationRoutine() {
 
   bool need_change_frame = millis() - last_draw_frame >= image_desc.draw_frame_interval;
 
-  if (draw_by_row && !need_change_frame) return; 
+  if (!need_change_frame) return; 
 
   // Нужна заливка всей матрицы перед отрисовкой очередного кадра?  
   if (!first_draw && frame_completed && ((image_desc.options & 16) > 0)) {
@@ -492,7 +498,7 @@ void animationRoutine() {
   
   // -----------------------------------------------
   // или - рисуем кадр целиком за раз
-  // -----------------------------------------------
+  // -----------------------------------------------  
   {
     loadImageFrame(ppFrame);
   }
@@ -547,6 +553,37 @@ void animationRoutine() {
     }
   }
 }
+
+// gamma correction для expandColor
+static const uint8_t PROGMEM
+
+gamma5[] = {
+  0x00, 0x01, 0x02, 0x03, 0x05, 0x07, 0x09, 0x0b,
+  0x0e, 0x11, 0x14, 0x18, 0x1d, 0x22, 0x28, 0x2e,
+  0x36, 0x3d, 0x46, 0x4f, 0x59, 0x64, 0x6f, 0x7c,
+  0x89, 0x97, 0xa6, 0xb6, 0xc7, 0xd9, 0xeb, 0xff
+},
+
+gamma6[] = {
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08,
+  0x09, 0x0a, 0x0b, 0x0d, 0x0e, 0x10, 0x12, 0x13,
+  0x15, 0x17, 0x19, 0x1b, 0x1d, 0x20, 0x22, 0x25,
+  0x27, 0x2a, 0x2d, 0x30, 0x33, 0x37, 0x3a, 0x3e,
+  0x41, 0x45, 0x49, 0x4d, 0x52, 0x56, 0x5b, 0x5f,
+  0x64, 0x69, 0x6e, 0x74, 0x79, 0x7f, 0x85, 0x8b,
+  0x91, 0x97, 0x9d, 0xa4, 0xab, 0xb2, 0xb9, 0xc0,
+  0xc7, 0xcf, 0xd6, 0xde, 0xe6, 0xee, 0xf7, 0xff
+};
+
+// преобразовать цвет из 16 битного в 24 битный
+static uint32_t expandColor(uint16_t color) {
+  return ((uint32_t)pgm_read_byte(&gamma5[ color >> 11       ]) << 16) |
+         ((uint32_t)pgm_read_byte(&gamma6[(color >> 5) & 0x3F]) <<  8) |
+                    pgm_read_byte(&gamma5[ color       & 0x1F]);
+}
+
+#endif
+
 
 // ---------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------
@@ -657,43 +694,17 @@ uint32_t gammaCorrectionBack(uint32_t color) {
   return newColor;
 }
 
-// gamma correction для expandColor
-static const uint8_t PROGMEM
-gamma5[] = {
-  0x00, 0x01, 0x02, 0x03, 0x05, 0x07, 0x09, 0x0b,
-  0x0e, 0x11, 0x14, 0x18, 0x1d, 0x22, 0x28, 0x2e,
-  0x36, 0x3d, 0x46, 0x4f, 0x59, 0x64, 0x6f, 0x7c,
-  0x89, 0x97, 0xa6, 0xb6, 0xc7, 0xd9, 0xeb, 0xff
-},
-gamma6[] = {
-  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08,
-  0x09, 0x0a, 0x0b, 0x0d, 0x0e, 0x10, 0x12, 0x13,
-  0x15, 0x17, 0x19, 0x1b, 0x1d, 0x20, 0x22, 0x25,
-  0x27, 0x2a, 0x2d, 0x30, 0x33, 0x37, 0x3a, 0x3e,
-  0x41, 0x45, 0x49, 0x4d, 0x52, 0x56, 0x5b, 0x5f,
-  0x64, 0x69, 0x6e, 0x74, 0x79, 0x7f, 0x85, 0x8b,
-  0x91, 0x97, 0x9d, 0xa4, 0xab, 0xb2, 0xb9, 0xc0,
-  0xc7, 0xcf, 0xd6, 0xde, 0xe6, 0xee, 0xf7, 0xff
-};
-
-// преобразовать цвет из 16 битного в 24 битный
-static uint32_t expandColor(uint16_t color) {
-  return ((uint32_t)pgm_read_byte(&gamma5[ color >> 11       ]) << 16) |
-         ((uint32_t)pgm_read_byte(&gamma6[(color >> 5) & 0x3F]) <<  8) |
-         pgm_read_byte(&gamma5[ color       & 0x1F]);
-}
 
 // ---------------------------------------------------
 // Сохранение/Загрузка/Удаление/Получение списка
 // изображений, которые пользователь нарисовал на матрице
-// в программе WiFiPlayer
 // ---------------------------------------------------
 
-String openImage(String storage, String fName, void* lds, bool exactName) {
+String openImage(String storage, String fName, void* lds, bool exactName, int8_t width, int8_t height) {
 
   File file;
   bool ok = true;
-  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
+  String directoryName('/'); directoryName += width; directoryName += 'p'; directoryName += height;
   String fileName;
   if (exactName) 
     fileName = fName; 
@@ -712,7 +723,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
     if (!SD.exists(directoryName)) {
       ok = SD.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
+        message = FPSTR(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -725,7 +736,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
     if (!LittleFS.exists(directoryName)) {
       ok = LittleFS.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
+        message = FPSTR(MSG_FOLDER_NOT_FOUND); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -734,7 +745,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   }
 
   if (!file) {
-    message = String(MSG_FILE_NOT_FOUND); message += " '"; message += fileName; message += '\'';
+    message = FPSTR(MSG_FILE_NOT_FOUND); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     return message;
   }
@@ -744,7 +755,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   len = file.read(buf, 3);
   ok = len == 3;
   if (!ok) {
-    message = String(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
+    message = FPSTR(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     file.close();
     return message;
@@ -761,7 +772,7 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
       len = file.read(buf, 3);
       ok = len == 3;
       if (!ok) {
-        message = String(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
+        message = FPSTR(MSG_FILE_LOAD_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         file.close();
         return message;
@@ -796,26 +807,26 @@ String openImage(String storage, String fName, void* lds, bool exactName) {
   return message;
 }
 
-String saveImage(String storage, const String& fName) {
+String saveImage(const String& pStorage, const String& fName, int8_t width, int8_t height) {
   
   File file;
   bool ok = true;
-  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
+  String storage(pStorage);
+  String directoryName('/'); directoryName += width; directoryName += 'p'; directoryName += height;
   String fileName(directoryName); fileName += '/'; fileName += fName; fileName += ".p";
   String message = "";
 
   // Если нет поддержки SD=карты - работать с внутренней файловой системой МК
-  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = String(F("FS"));
+  if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = F("FS");
 
-  DEBUG(F("Сохранение файла: "));
-  DEBUGLN(storage + String(F(":/")) + fileName);
+  DEBUG(F("Сохранение файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fileName);
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
   if (storage == "SD") {    
     if (!SD.exists(directoryName)) {
       ok = SD.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
+        message = FPSTR(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -825,7 +836,7 @@ String saveImage(String storage, const String& fName) {
     if (SD.exists(fileName)) {
       ok = SD.remove(fileName);
       if (!ok) {
-        message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
+        message = FPSTR(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -839,7 +850,7 @@ String saveImage(String storage, const String& fName) {
     if (!LittleFS.exists(directoryName)) {
       ok = LittleFS.mkdir(directoryName);
       if (!ok) {
-        message = String(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
+        message = FPSTR(MSG_FOLDER_CREATE_ERROR); message += " '"; message += directoryName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -849,7 +860,7 @@ String saveImage(String storage, const String& fName) {
     if (LittleFS.exists(fileName)) {
       ok = LittleFS.remove(fileName);
       if (!ok) {
-        message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
+        message = FPSTR(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         return message;
       }
@@ -859,7 +870,7 @@ String saveImage(String storage, const String& fName) {
   }
 
   if (!file) {
-    message = String(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
+    message = FPSTR(MSG_FILE_CREATE_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     return message;
   }
@@ -869,7 +880,7 @@ String saveImage(String storage, const String& fName) {
   len = file.write(buf, 3);
   ok = len == 3;
   if (!ok) {
-    message = String(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
+    message = FPSTR(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
     DEBUGLN(message);
     file.close();
     return message;
@@ -883,7 +894,7 @@ String saveImage(String storage, const String& fName) {
       len = file.write(buf, 3);
       ok = len == 3;
       if (!ok) {
-        message = String(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
+        message = FPSTR(MSG_FILE_SAVE_ERROR); message += " '"; message += fileName; message += '\'';
         DEBUGLN(message);
         file.close();
         return message;
@@ -896,9 +907,9 @@ String saveImage(String storage, const String& fName) {
   return message;
 }
 
-String deleteImage(String storage, String fName) {
+String deleteImage(const String& storage, String fName, int8_t width, int8_t height) {
   bool ok = false;
-  String fileName('/'); fileName += pWIDTH; fileName += 'p'; fileName += pHEIGHT; fileName += '/'; fileName += fName; fileName += ".p";
+  String fileName('/'); fileName += width; fileName += 'p'; fileName += height; fileName += '/'; fileName += fName; fileName += ".p";
 
   DEBUG(F("Удаление файла: "));
   DEBUG(storage);
@@ -925,10 +936,10 @@ String deleteImage(String storage, String fName) {
   return "";
 }
 
-String getStoredImages(String storage) {
+String getStoredImages(String storage, int8_t width, int8_t height) {
 
   File entry;
-  String directoryName('/'); directoryName += pWIDTH; directoryName += 'p'; directoryName += pHEIGHT;
+  String directoryName('/'); directoryName += width; directoryName += 'p'; directoryName += height;
   String list = "";
   
   #if (USE_SD == 1 && FS_AS_SD == 0)
@@ -1023,11 +1034,5 @@ String getStoredImages(String storage) {
     }
   }
   
-  if (list.length() > 0) list = list.substring(1);
-    
-  return list;
-}
-
-String GetAnimationsList() {
-  return animations_list;
+  return (list.length() > 0 ? list.substring(1) : String(""));    
 }

@@ -1,3 +1,29 @@
+// *************************************************************************
+
+#define EEPROM_MAX    1536                  // Максимальный размер EEPROM доступный для использования (4096)
+#define EFFECT_EEPROM  800                  // Начальная ячейка eeprom с параметрами эффектов, 10 байт на эффект
+
+// *************************************************************************
+
+void initializeEEPROM() {
+
+  // Инициализация EEPROM? подготовка к работе
+  
+  EEPROM.begin(EEPROM_MAX);
+  delay(100);
+
+  eeprom_id = EEPROMread(0);
+  isEEPROMInitialized =  eeprom_id == EEPROM_OK;
+  
+  if (!isEEPROMInitialized) {
+    clearEEPROM();
+    vDEBUG_SERIAL = DEBUG_SERIAL;
+  } else {
+    vDEBUG_SERIAL = getDebugSerialEnable();  
+  }
+
+}
+
 void loadSettings() {
 
   // Адреса в EEPROM:
@@ -7,8 +33,9 @@ void loadSettings() {
   //    3 - время автосмены режимов в сек                                                                    // getAutoplayTime()             // putAutoplayTime(autoplayTime / 1000L)     // autoplayTime - мс; в ячейке - в сек
   //    4 - время бездействия до переключения в авторежим в минутах                                          // getIdleTime()                 // putIdleTime(idleTime / 60L / 1000L)       // idleTime - мс; в ячейке - в мин
   //    5 - использовать синхронизацию времени через NTP                                                     // getUseNtp()                   // putUseNtp(useNtp)
-  //  6,7 - период синхронизации NTP (int16_t - 2 байта) в минутах                                           // getNtpSyncTime()              // putNtpSyncTime(SYNC_TIME_PERIOD)
-  //    8 - time zone UTC+X - часы -12..12                                                                   // getTimeZone();                // putTimeZone(timeZoneOffset)
+  //    6 - 12/24-часовой формат времени                                                                     // getTime12()                   // putTime12(time_h12) 
+  //    7 - градусы Сельсия / Фаренгейта                                                                     // getIsFarenheit()              // putIsFarengeit(isFarenheit)
+  //  **8 - свободно
   //    9 - выключать индикатор часов при выключении лампы true - выключать / false - не выключать           // getTurnOffClockOnLampOff()    // putTurnOffClockOnLampOff(needTurnOffClock)
   //   10 - IP[0]                                                                                            // getStaticIP()                 // putStaticIP(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3])
   //   11 - IP[1]                                                                                            // - " -                         // - " -
@@ -55,7 +82,7 @@ void loadSettings() {
   //   52 - Будильник, время: воскресенье : часы                                                             // getAlarmHour(7)               // putAlarmTime(7, alarmHour[6], alarmMinute[6])
   //   53 - Будильник, время: воскресенье : минуты                                                           // getAlarmMinute(7)             // putAlarmTime(7, alarmHour[6], alarmMinute[6])
   //  54-63   - имя точки доступа    - 10 байт                                                               // getSoftAPName().toCharArray(apName, 10)       // putSoftAPName(String(apName))       // char apName[11] = ""
-  //  64-79   - пароль точки доступа - 16 байт                                                               // getSoftAPPass().toCharArray(apPass, 17)       // putSoftAPPass(String(apPass))       // char apPass[17] = "" 
+  //  64-79   - пароль точки доступа - 16 байт                                                               // getSoftAPPass().toCharArray(apPass, 16)       // putSoftAPPass(String(apPass))       // char apPass[17] = "" 
   //   80 - ширина сегмента матрицы
   //   81 - высота сегмента матрицы
   //   82 - тип сегмента матрицы (параллельная / зигзаг)
@@ -71,7 +98,7 @@ void loadSettings() {
   //   92 - группа синхронизации
   //   94 - полная ширина матрицы при использовании карты индексов
   //   95 - полная высота матрицы при использовании карты индексов
-  //   96 - time zone UTC+X - минуты                                                                         // getTimeZoneMinutes();          // putTimeZoneMinutes(timeZoneOffsetMinutes)
+  //**96  - свободно
   //   97 - время задержки повтора нажатия кнопки в играх 10..100                                            // getGameButtonSpeed();          // putGameButtonSpeed(val)
   //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
   //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
@@ -117,8 +144,7 @@ void loadSettings() {
   //  243 - Режим по времени "Рассвет" - так же как для режима 1                                             // getAM5effect()                 // putAM5effect(dawn_effect_id)
   // 244,245,246,247 - Код региона OpenWeatherMap для получения погоды (4 байта - uint32_t)                  // getWeatherRegion2()            // putWeatherRegion2(regionID2)
   //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)
-  //**249 - не используется
-  //**279 - не используется
+  //**249-279 - не используется
   // 280 - битовая маска b0-b3 - использование каналов вывода на ленту, b6 - DEBUG_SERIAL; b7 - флаг инициализации
   // 281 - пин вывода на ленту линии 1          LED_PIN
   // 282,283 - начальный индекс диодов линии 1 
@@ -150,31 +176,24 @@ void loadSettings() {
   // 316,317 - битовая маска включения дополнительного пина по режимам 00 00 00 00, где  b0,b2,b4,b6 0 - включить пин, 1 - выключить пин; b1,b3,b5,b7 - включен режим времени (1) или нет (0). b1,b0 - Режим 1 .. b7,b6 - Режим 4
   // 318 - текущее состояние дополнительной линии 0 - выключена; 1 - включена
   // 319-350 - 16 символов UTF8 имени устройства (строка)
-  // **351 - не используется
-  //  ...
-  //**399 - не используется
-  //  400 - 400+(Nэфф*10)   - скорость эффекта
-  //  401 - 400+(Nэфф*10)+1 - b0 - 1 - использовать текст поверх эффекта; 0 - не использовать; b1 - 1 - использовать часы поверх эффекта; 0 - не использовать;
-  //  402 - 400+(Nэфф*10)+2 - специальный параметр эффекта #1
-  //  403 - 400+(Nэфф*10)+3 - специальный параметр эффекта #2
-  //  404 - 400+(Nэфф*10)+4 - контраст эффекта
-  //  405 - 400+(Nэфф*10)+5 - индекс порядка воспроизведения (order)
-  //  406 - 400+(Nэфф*10)+6 - зарезервировано
-  //  407 - 400+(Nэфф*10)+7 - зарезервировано
-  //  408 - 400+(Nэфф*10)+8 - зарезервировано
-  //  409 - 400+(Nэфф*10)+9 - зарезервировано
-  //  999 - последняя ячейка области хранения параметров эффектов
+  // 351-399 - 48 символов правила формирования TIME ZONE для сервиса NTP  
+  // 400-431 - имя сети (ssid) до 32 симворов
+  // 432-495 - пароль к сети до 64 символов
+  //*496-799 - не используется
+  // 800 - 800+(Nэфф*10)   - скорость эффекта
+  // 801 - 800+(Nэфф*10)+1 - b0 - 1 - использовать текст поверх эффекта; 0 - не использовать; b1 - 1 - использовать часы поверх эффекта; 0 - не использовать;
+  // 802 - 800+(Nэфф*10)+2 - специальный параметр эффекта #1
+  // 803 - 800+(Nэфф*10)+3 - специальный параметр эффекта #2
+  // 804 - 800+(Nэфф*10)+4 - контраст эффекта
+  // 805 - 800+(Nэфф*10)+5 - индекс порядка воспроизведения (order)
+  // 806 - 800+(Nэфф*10)+6 - зарезервировано
+  // 807 - 800+(Nэфф*10)+7 - зарезервировано
+  // 808 - 800+(Nэфф*10)+8 - зарезервировано
+  // 809 - 800+(Nэфф*10)+9 - зарезервировано
+  // ---
   //********
-  // 1000 - не используется
+  // EEPROM_MAX-1 - верхняя граница выделенного EEPROM
   //********
-
-  // Сначала инициализируем имя сети/точки доступа, пароли и имя NTP-сервера значениями по умолчанию.
-  // Ниже, если EEPROM уже инициализирован - из него будут загружены актуальные значения
-  strcpy(apName, DEFAULT_AP_NAME);
-  strcpy(apPass, DEFAULT_AP_PASS);
-  strcpy(ntpServerName, DEFAULT_NTP_SERVER);    
-  ssid = NETWORK_SSID;
-  pass = NETWORK_PASS;
 
   // Инициализировано ли EEPROM
   bool isInitialized = EEPROMread(0) == EEPROM_OK;  
@@ -227,12 +246,11 @@ void loadSettings() {
     idleTime            = getIdleTime();
 
     useNtp                = getUseNtp();
-    timeZoneOffset        = getTimeZone();
-    timeZoneOffsetMinutes = getTimeZoneMinutes();
+    time_h12              = getTime12();
+    
     clockOverlayEnabled   = getClockOverlayEnabled();
     textOverlayEnabled    = getTextOverlayEnabled();
 
-    SYNC_TIME_PERIOD      = getNtpSyncTime();
     manualMode            = getAutoplay();
     CLOCK_ORIENT          = getClockOrientation();
     COLOR_MODE            = getClockColor();
@@ -287,19 +305,6 @@ void loadSettings() {
     globalTextColor     = getGlobalTextColor();     // цвет часов бегущей строки в режиме цвета "Монохром"
 
     useSoftAP = getUseSoftAP();
-    getSoftAPName().toCharArray(apName, 10);        //  54-63   - имя точки доступа    ( 9 байт макс) + 1 байт '\0'
-    getSoftAPPass().toCharArray(apPass, 17);        //  64-79   - пароль точки доступа (16 байт макс) + 1 байт '\0'
-    getNtpServer().toCharArray(ntpServerName, 31);  //  120-149 - имя NTP сервера      (30 байт макс) + 1 байт '\0'
-
-    ssid = getSsid();                               //          - имя сети WiFi
-    pass = getPass();                               //          - пароль сети WiFi
-    
-    system_name = getSystemName();                  //          - Отображаемое имя системы
-    if (system_name.length() == 0) system_name = host_name;
-        
-    if (strlen(apName) == 0) strcpy(apName, DEFAULT_AP_NAME);
-    if (strlen(apPass) == 0) strcpy(apPass, DEFAULT_AP_PASS);
-    if (strlen(ntpServerName) == 0) strcpy(ntpServerName, DEFAULT_NTP_SERVER);
 
     AM1_hour       = getAM1hour();
     AM1_minute     = getAM1minute();
@@ -324,6 +329,7 @@ void loadSettings() {
     useTemperatureColor = getUseTemperatureColor();
     useTemperatureColorNight = getUseTemperatureColorNight();
     showWeatherInClock  = getShowWeatherInClock();
+    isFarenheit         = getIsFarenheit();
   #endif  
 
     getStaticIP();
@@ -380,12 +386,11 @@ void saveDefaults() {
   putIdleTime(_idleTime > 255 ? 255 : _idleTime);
 
   putUseNtp(useNtp);
-  putTimeZone(timeZoneOffset);
-  putTimeZoneMinutes(timeZoneOffsetMinutes);
+  putTimeZone(TZONE);
   putClockOverlayEnabled(clockOverlayEnabled);
   putTextOverlayEnabled(textOverlayEnabled);
+  putTime12(time_h12);
 
-  putNtpSyncTime(SYNC_TIME_PERIOD);
   putAutoplay(manualMode);
 
   putClockOrientation(CLOCK_ORIENT);
@@ -451,11 +456,6 @@ void saveDefaults() {
 
   putUseSoftAP(useSoftAP);
 
-  strcpy(apName, DEFAULT_AP_NAME);
-  strcpy(apPass, DEFAULT_AP_PASS);
-  ssid = NETWORK_SSID;
-  pass = NETWORK_PASS;
-
   #if (USE_E131 == 1)
     workMode = STANDALONE;                  // По умолчанию - самостоятельный режим работы
     syncMode = LOGIC;                       // По умолчанию - размещение данных в логическом порядке - левый верхний угол, далее вправо и вниз.
@@ -465,13 +465,11 @@ void saveDefaults() {
     putSyncGroup(syncGroup);
   #endif
 
-  putSoftAPName(apName);
-  putSoftAPPass(apPass);
-  putSsid(ssid);
-  putPass(pass);
-
-  strcpy(ntpServerName, DEFAULT_NTP_SERVER);
-  putNtpServer(ntpServerName);
+  putSoftAPName(DEFAULT_AP_NAME);
+  putSoftAPPass(DEFAULT_AP_PASS);
+  putSsid(NETWORK_SSID);
+  putPass(NETWORK_PASS);
+  putNtpServer(DEFAULT_NTP_SERVER);
 
   putAM1hour(AM1_hour);                 // Режим 1 по времени - часы
   putAM1minute(AM1_minute);             // Режим 1 по времени - минуты
@@ -495,6 +493,7 @@ void saveDefaults() {
   putWeatherInterval(SYNC_WEATHER_PERIOD);
   putUseTemperatureColor(useTemperatureColor);
   putShowWeatherInClock(showWeatherInClock);
+  putIsFarenheit(isFarenheit);
 #endif
        
   putStaticIP(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3]);
@@ -524,7 +523,6 @@ void saveSettings() {
 void loadWiring() {
   // Пины подключения в переменные загружать не нужно - они будут считываться перед использованием, т.к их применение происходит один раз при инициализации
   // Загрузка переменных, описывающих поведение "перефирийных" устройств в зависимости от их значения - эти значения используются во многих местах программы
-  vDEBUG_SERIAL = getDebugSerialEnable();      // DEBUG_SERIAL 
   vDEVICE_TYPE = getDeviceType();              // DEVICE_TYPE
   vBUTTON_TYPE = getButtonType();              // BUTTON_TYPE
   vWAIT_PLAY_FINISHED = getWaitPlayFinished(); // WAIT_PLAY_FINISHED
@@ -545,6 +543,7 @@ void loadWiring() {
 
 // Инициализация параметров приложения, описывающих типы оборудования и пины подключения
 void initializeWiring() { 
+  
   // Инициализировать начальные значения "переферийных" устройств и пины подключения из define определенных пользователем для оборудования 
   putDebugSerialEnable(DEBUG_SERIAL == 1);
   putDeviceType(DEVICE_TYPE);
@@ -575,7 +574,7 @@ void initializeWiring() {
   putLedLineStartIndex(4, 0);                       // Индекс начала вывода - N/A   
   putLedLineLength(4, NUM_LEDS);                    // Длина сегмента - N/A
 
-  #if (USE_BTN == 1)
+  #if (USE_BUTTON == 1)
     putButtonPin(PIN_BTN);                          // Пин подключения кнопки
   #else
     putButtonPin(-1);                               // Пин подключения кнопки
@@ -985,18 +984,6 @@ bool getUseNtp() {
   return EEPROMread(5) != 0;
 }
 
-void putNtpSyncTime(uint16_t value) {
-  if (value != getNtpSyncTime()) {
-    EEPROM_int_write(6, value);
-  }
-}
-
-uint16_t getNtpSyncTime() {
-  uint16_t time = EEPROM_int_read(6);  
-  if (time == 0) time = 60;
-  return time;
-}
-
 void putGameButtonSpeed(int8_t value) {
   if (value < 10) value = 10;
   if (value > 100) value = 100;
@@ -1013,29 +1000,14 @@ uint8_t getGameButtonSpeed() {
   return val;
 }
 
-void putTimeZone(int8_t value) {
-  if (value != getTimeZone()) {
-    EEPROMwrite(8, (uint8_t)value);
+String getTimeZone() {
+  return EEPROM_string_read(351, 48);
+}
+
+void putTimeZone(const String& tz) {
+  if (tz != getTimeZone()) {
+    EEPROM_string_write(351, tz, 48);
   }
-}
-
-int8_t getTimeZone() {
-  return (int8_t)EEPROMread(8);
-}
-
-void putTimeZoneMinutes(int8_t value) {
-  if (value != getTimeZoneMinutes()) {
-    if (value < 0) value = 0;
-    if (value > 59) value = 59;
-    EEPROMwrite(96, (uint8_t)value);
-  }
-}
-
-int8_t getTimeZoneMinutes() {
-  int8_t value = (int8_t)EEPROMread(96);
-  if (value < 0) value = 0;
-  if (value > 59) value = 59;
-  return value;
 }
 
 bool getTurnOffClockOnLampOff() {
@@ -1228,127 +1200,26 @@ void putSoftAPPass(const String& SoftAPPass) {
   }
 }
 
-// ssid – символьная строка, содержащая SSID точки доступа, к которой мы хотим подключиться (может содержать не более 32 символов).
+// ssid – имя локальной сети в виде символьной строки, которая может содержать до 32 символов
 String getSsid() {
-  File file;
-  bool ok = true;
-  
-  #if defined(ESP32)
-    String fileName("/ssid");
-  #else
-    String fileName("ssid");
-  #endif  
-  
-  file = LittleFS.open(fileName, "r");
-
-  String ssid;
-  if (file) {
-    // считываем содержимое файла ssid
-    char buf[33];
-    memset(buf, '\0', 33);
-    size_t len = file.read((uint8_t*)buf, 33);
-    ok = len > 0;    
-    file.close();
-    if (ok) ssid = String(buf);
-  } else {
-    DEBUGLN(F("Нет конфигурации сети: SSID не задан"));    
-  }
-  return ssid;
+  return EEPROM_string_read(400, 32);
 }
 
-bool putSsid(const String& Ssid) {
-  File file;
-  bool ok = true;
-  #if defined(ESP32)
-    String fileName("/ssid");
-  #else
-    String fileName("ssid");
-  #endif  
-  if (LittleFS.exists(fileName)) {
-    ok = LittleFS.remove(fileName);
+void putSsid(const String& ssid) {
+  if (ssid != getSsid()) {
+    EEPROM_string_write(400, ssid, 32);
   }
-  if (ok) {
-    file = LittleFS.open(fileName, "w");
-    if (file) {
-      size_t len = Ssid.length()+1, lenw = 0;
-      if (len > 32) len = 32;
-      char buf[33];
-      memset(buf, '\0', 33);
-      Ssid.toCharArray(buf, len);
-      lenw = file.write((uint8_t*)buf, len);
-      ok = lenw == len;       
-      file.close();
-    } else {
-      ok = false;
-    }
-  }
-  if (!ok) {
-    DEBUGLN(F("Ошибка сохранения SSID"));
-  } 
-  return ok; 
 }
 
-// password – это пароль к точке доступа в виде символьной строки, которая может содержать от 8 до 64 символов
+// пароль к локальной сети в виде символьной строки, которая может содержать от 8 до 64 символов
 String getPass() {
-  File file;
-  bool ok = true;
-  
-  #if defined(ESP32)
-    String fileName("/pass");
-  #else
-    String fileName("pass");
-  #endif  
-
-  String pass = "";
-  
-  file = LittleFS.open(fileName, "r");
-  if (file) {
-    // считываем содержимое файла pass
-    char buf[65];
-    memset(buf, '\0', 65);
-    size_t len = file.read((uint8_t*)buf, 65);
-    ok = len > 0; 
-    file.close();
-    if (ok) pass = String(buf);
-  } else {
-    DEBUGLN(F("Нет конфигурации сети: пароль не задан"));    
-  }
-  return pass;
+  return EEPROM_string_read(432, 64);
 }
 
-bool putPass(const String& Pass) {
-  File file;
-  bool ok = true;
-  
-  #if defined(ESP32)
-    String fileName("/pass");
-  #else
-    String fileName("pass");
-  #endif  
-  
-  if (LittleFS.exists(fileName)) {
-    ok = LittleFS.remove(fileName);
+void putPass(const String& pass) {
+  if (pass != getPass()) {
+    EEPROM_string_write(432, pass, 64);
   }
-  
-  if (ok) {
-    file = LittleFS.open(fileName, "w");
-    if (file) {
-      size_t len = Pass.length()+1, lenw = 0;
-      if (len > 64) len = 64;
-      char buf[65];
-      memset(buf, '\0', 65);
-      Pass.toCharArray(buf, len);
-      lenw = file.write((uint8_t*)buf, len);
-      ok = lenw == len;
-      file.close();
-    } else {
-      ok = false;
-    }
-  }
-  if (!ok) {
-    DEBUGLN(F("Ошибка сохранения пароля"));
-  } 
-  return ok; 
 }
 
 // -----------------------------
@@ -1736,6 +1607,8 @@ uint8_t getTextScrollSpeed() {
   return clr;
 }
 
+#if (USE_WEATHER == 1)
+
 uint8_t getUseWeather() {
   return EEPROMread(174);
 }
@@ -1800,6 +1673,21 @@ void putUseTemperatureColorNight(bool use) {
     EEPROMwrite(181, use ? 1 : 0);
   }
 }
+
+// градусы Цельсия / Фаренгейта
+bool getIsFarenheit() {
+  uint8_t value = EEPROMread(7);               // 0 - Цельсий, 1 - Фаренгейт
+  return  value != 0;
+}
+
+// градусы Цельсия / Фаренгейта
+void putIsFarenheit(bool isFarenheit) {
+  if (isFarenheit != getIsFarenheit()) {
+    EEPROMwrite(7, isFarenheit ? 1 : 0);       //  0 - Цельсий, 1 - Фаренгейт
+  }
+}
+
+#endif
 
 #if (USE_E131 == 1)
 
@@ -1884,8 +1772,8 @@ void printEffectUsage() {
   int8_t cnt = 0;  
   String codes(IDX_LINE);
   String name_list(EFFECT_LIST);
-  String effect_name;
-
+  String effect_name; effect_name.reserve(40);
+  
   DEBUGLN(F("Выбранные эффекты и их порядок: "));
 
   for (uint8_t i = 0; i < effect_order.length(); i++) {
@@ -1894,19 +1782,31 @@ void printEffectUsage() {
     if (eff_idx >= 0) {
       effect_name = GetToken(name_list, eff_idx+1, ',');
       cnt++;
-      DEBUG("   "); DEBUG(padNum(cnt, 2)); DEBUG(". "); DEBUGLN(effect_name);
+      if (effect_name.length() > 0) {
+        DEBUG("   "); DEBUG(padNum(cnt, 2)); DEBUG(". "); DEBUGLN(effect_name);
+      }
     }
   }
 
   DEBUGLN(F("\nОтключенные эффекты: "));
 
+  bool found = false;
   for (int i = 0; i < MAX_EFFECT; i++) {
     char eff = codes[i];
     if (effect_order.indexOf(eff) < 0) {
-      effect_name = GetToken(name_list, i+1, ',');      
-      DEBUG("   "); DEBUGLN(effect_name);
+      found = true;
+      effect_name = GetToken(name_list, i + 1, ',');      
+      if (effect_name.length() > 0) {
+        DEBUG("   "); DEBUG(padNum(i + 1, 2)); DEBUG(". "); DEBUGLN(effect_name);
+      }
     }
   }  
+
+  if (!found) {
+    DEBUGLN(F("   Все эффекты используются"));
+  }
+  
+  DEBUGLN();  
 }
 
 void saveEffectOrder() {
@@ -2327,6 +2227,19 @@ void putSystemName(const String& name) {
   }
 }
 
+// 12/24-часовой формат времени
+bool getTime12() {
+  uint8_t value = EEPROMread(6);               // 0 - 24 часа, 1 - 12 часов
+  return  value != 0;
+}
+
+// 12/24-часовой формат времени
+void putTime12(bool time_h12) {
+  if (time_h12 != getTime12()) {
+    EEPROMwrite(6, time_h12 ? 1 : 0);          // 0 - 24 часа, 1 - 12 часов
+  }
+}
+
 // ----------------------------------------------------------
 
 uint8_t EEPROMread(uint16_t addr) {    
@@ -2501,7 +2414,7 @@ bool saveEepromToFile(const String& pStorage) {
   }
 
   while (idx < EEPROM_MAX) {
-    delay(0);
+    yield();
     if (cnt >= part_size) {
       len = file.write(buf, cnt);
       ok = len == cnt;
@@ -2594,7 +2507,7 @@ bool loadEepromFromFile(const String& pStorage) {
   clearEEPROM();
   
   while (idx < EEPROM_MAX) {
-    delay(0);
+    yield();
     memset(buf, 0, part_size);
     len = file.read(buf, part_size);
     for (uint8_t i=0; i<len; i++) {

@@ -19,15 +19,21 @@ void InitializeDfPlayer1() {
 #if (USE_MP3 == 1)
   DEBUGLN(F("\nИнициализация MP3-плеера..."));
   isDfPlayerOk = true;
-  #if defined(ESP32)
-    // Используются аппаратный RX2/TX2 - GPIO 16/17 - mp3Serial это аппаратный Serial2
+  #if (CONFIG_IDF_TARGET_ESP32)
+    // ESP32-WROOM-32
+    // Используются аппаратный UART2 RX2/TX2 - GPIO 16/17 - mp3Serial это аппаратный Serial2
     mp3Serial.begin(9600);
   #else  
-    // Используются назначенные пины - mp3Serial это программный SoftwareSerial
+    // ESP8266, ESP32-S2/S3/C3
+    // Используются назначенные пины - mp3Serial это программный SoftwareSerial для ESP8266 или аппаратный с назначением пинов на ESP32-S2/S3/C3
     int8_t srx_pin = getDFPlayerSRXPin();
     int8_t stx_pin = getDFPlayerSTXPin();
     if (srx_pin >= 0 && stx_pin >= 0) {
-      mp3Serial.begin(9600, SWSERIAL_8N1, srx_pin, stx_pin);    
+      #if defined(ESP8266)
+        mp3Serial.begin(9600, SWSERIAL_8N1, srx_pin, stx_pin);    
+      #else  
+        mp3Serial.begin(9600, SERIAL_8N1, srx_pin, stx_pin);    
+      #endif  
     } else {
       return;
     }
@@ -58,13 +64,14 @@ void InitializeDfPlayer2() {
   int8_t srx_pin = getDFPlayerSRXPin();
   int8_t stx_pin = getDFPlayerSTXPin();
   if (srx_pin >= 0 && stx_pin >= 0) {
-    refreshDfPlayerFiles();    
+    refreshDfPlayerFiles();
     DEBUG(F("Звуков будильника найдено: "));
     DEBUGLN(alarmSoundsCount);
     DEBUG(F("Звуков рассвета найдено: "));
     DEBUGLN(dawnSoundsCount);
     DEBUG(F("Звуков сообщений найдено: "));
     DEBUGLN(noteSoundsCount);
+    DEBUGLN();
     set_isDfPlayerOk(alarmSoundsCount + dawnSoundsCount + noteSoundsCount > 0);
   } else {
     set_isDfPlayerOk(false);
@@ -121,8 +128,9 @@ void refreshDfPlayerFiles() {
   } while ((val == 0 || new_val == 0 || val != new_val) && cnt < 3);    
   noteSoundsCount = val < 0 ? 0 : val;
 
-  DEBUGLN();  
+  DEBUGLN();    
 }
+
 #endif
 
 void PlayAlarmSound() {

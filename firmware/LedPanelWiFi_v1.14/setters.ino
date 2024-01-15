@@ -3,6 +3,8 @@
 // чтобы зафиксировать изменение значения. Для этой цели данная страница содержит функции - сеттеры, 
 // устанавливающие значения переменных.
 
+#include "timeProcessor.h"
+
 // Добавление ключа в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
 void addKeyToChanged(const String& key) {
   String search('|'); search += key; search += '|';
@@ -11,23 +13,6 @@ void addKeyToChanged(const String& key) {
   if (changed_keys.indexOf(search) < 0) {
     changed_keys += key;
     changed_keys += '|';
-  }
-}
-
-// Добавление списка ключей в список изменившихся параметров, чьи новые значения необходимо отправить на сервер
-void addKeysToChanged(const String& str) {
-  int16_t pos_start = 0;
-  int16_t pos_end = str.indexOf('|', pos_start);
-  int16_t len = str.length();
-  if (pos_end < 0) pos_end = len;
-  while (pos_start < len && pos_end >= pos_start) {
-    if (pos_end > pos_start) {      
-      String key(str.substring(pos_start, pos_end));
-      if (key.length() > 0) addKeyToChanged(key);
-    }
-    pos_start = pos_end + 1;
-    pos_end = str.indexOf('|', pos_start);
-    if (pos_end < 0) pos_end = len;
   }
 }
 
@@ -222,16 +207,19 @@ void set_temperature(int8_t value) {
   temperature = value;
   addKeyToChanged("W2");
 }
+
+// TF temperature - в Цельсиях / Фаренгейтах
+void set_IsFarenheit(bool value) {
+  if (isFarenheit == value) return;
+  putIsFarenheit(value);
+  isFarenheit = value;
+  addKeyToChanged("TF");
+}
+
 #endif
 
 // EF thisMode
 // EN thisMode
-// UT thisMode
-// UC thisMode
-// SE thisMode
-// BE thisMode
-// SS thisMode
-// SQ thisMode
 void set_thisMode(int8_t value) {
   if (thisMode == value) return;
   
@@ -239,45 +227,29 @@ void set_thisMode(int8_t value) {
   if (!valid) return;
 
   valid = (value >= 0 && value < MAX_EFFECT);
-
-  String old_SQ, old_SS, old_SE, old_BE, old_UT, old_UC;
-
-  if (valid) {
-    old_UT = getStateValue("UT", thisMode);
-    old_UC = getStateValue("UC", thisMode);
-    old_SE = getStateValue("SE", thisMode);
-    old_BE = getStateValue("BE", thisMode);
-    old_SS = getParamForMode(thisMode);
-    old_SQ = getParam2ForMode(thisMode);
-  }
-
+  
+  // Переключили на новый режим
   thisMode = value;
   effect_name.clear();
-  
+
+  // Ролучили имя нового режима
   if (valid && !isTurnedOff) {
     effect_name += getEffectName(value);
   } else if (isTurnedOff) {
     effect_name += F("Выключено");
   } else {
     switch (value) {
-      case MC_DRAW:              effect_name += String(MODE_DRAW); break;
-      case MC_LOADIMAGE:         effect_name += String(MODE_LOAD_PICTURE); break;
-      case MC_TEXT:              effect_name += String(MODE_RUNNING_TEXT); break;
-      case MC_DAWN_ALARM_SPIRAL: effect_name += String(MODE_DAWN); break;
-      case MC_DAWN_ALARM_SQUARE: effect_name += String(MODE_DAWN); break;
+      case MC_DRAW:              effect_name += FPSTR(MODE_DRAW); break;
+      case MC_LOADIMAGE:         effect_name += FPSTR(MODE_LOAD_PICTURE); break;
+      case MC_TEXT:              effect_name += FPSTR(MODE_RUNNING_TEXT); break;
+      case MC_DAWN_ALARM_SPIRAL: effect_name += FPSTR(MODE_DAWN); break;
+      case MC_DAWN_ALARM_SQUARE: effect_name += FPSTR(MODE_DAWN); break;
     }
   }
 
   addKeyToChanged("EF");
   addKeyToChanged("EN");
-
-  if (value < 0 || (valid && old_UT != getStateValue("UT", value)))  addKeyToChanged("UT");
-  if (value < 0 || (valid && old_UC != getStateValue("UC", value)))  addKeyToChanged("UC");
-  if (value < 0 || (valid && old_SE != getStateValue("SE", value)))  addKeyToChanged("SE");
-  if (value < 0 || (valid && old_BE != getStateValue("BE", value)))  addKeyToChanged("BE");
-  if (value < 0 || (valid && old_SS != getParamForMode(value)))      addKeyToChanged("SS");
-  if (value < 0 || (valid && old_SQ != getParam2ForMode(value)))     addKeyToChanged("SQ");
-
+     
   #if (USE_E131 == 1)
     commandSetMode(thisMode);
   #endif      
@@ -460,6 +432,14 @@ void set_globalTextColor(uint32_t value) {
   addKeyToChanged("C2");
 }
 
+// C12 12/24-часовой фоормат времени
+void set_Time12(bool value) {
+  if (time_h12 == value) return;
+  putTime12(value);
+  time_h12 = value;
+  addKeyToChanged("C12");
+}
+
 // CE clockOverlayEnabled
 void set_clockOverlayEnabled(bool value) {
   bool old_value = clockOverlayEnabled;
@@ -569,58 +549,40 @@ void set_useNtp(bool value) {
   putUseNtp(value);
   useNtp = getUseNtp();
   addKeyToChanged("NP");
+  useNtp ? TimeProcessor::getInstance().enable() : TimeProcessor::getInstance().disable();
 }
 
-// NT SYNC_TIME_PERIOD
-void set_SYNC_TIME_PERIOD(uint16_t value) {
-  if (SYNC_TIME_PERIOD == value) return;
-  putNtpSyncTime(value);
-  SYNC_TIME_PERIOD = getNtpSyncTime();
-  addKeyToChanged("NT");
-}
-
-// NZ timeZoneOffset
-void set_timeZoneOffset(int16_t value) {
-  if (timeZoneOffset == value) return;
+// TZ ntpTimeZone
+void set_ntpTimeZone(const String& value) {
+  if (getTimeZone() == value) return;
   putTimeZone(value);
-  timeZoneOffset = getTimeZone();
-  addKeyToChanged("NZ");
-}
-
-// NM timeZoneOffsetMinutes
-void set_timeZoneOffsetMinutes(int16_t value) {
-  if (timeZoneOffsetMinutes == value) return;
-  putTimeZoneMinutes(value);
-  timeZoneOffsetMinutes = getTimeZoneMinutes();
-  addKeyToChanged("NM");
+  applyTimeZone(value);
+  addKeyToChanged("TZ");
 }
 
 // NS ntpServerName
 void set_ntpServerName(const String& value) {
   if (getNtpServer() == value) return;
   putNtpServer(value);  
-  getNtpServer().toCharArray(ntpServerName, 31);
   addKeyToChanged("NS");
+  TimeProcessor::getInstance().setcustomntp(value.c_str());
 }
 
 // NW ssid
 void set_Ssid(const String& value) {
   putSsid(value);
-  ssid = value;
   addKeyToChanged("NW");
 }
 
 // HN - system/host name
 void set_SystemName(const String& value) {
   putSystemName(value);
-  system_name = value;
   addKeyToChanged("HN");
 }
 
 // NA|NX pass
 void set_pass(const String& value) {
   putPass(value);
-  pass = value;
   addKeyToChanged("NA");
   addKeyToChanged("NX");
 }
@@ -629,7 +591,6 @@ void set_pass(const String& value) {
 void set_SoftAPName(const String& value) {
   if (getSoftAPName() == value) return;
   putSoftAPName(value);
-  getSoftAPName().toCharArray(apName, 10);
   addKeyToChanged("AN");
 }              
 
@@ -637,7 +598,6 @@ void set_SoftAPName(const String& value) {
 void set_SoftAPPass(const String& value) {
   if (getSoftAPPass() == value) return;
   putSoftAPPass(value);
-  getSoftAPPass().toCharArray(apPass, 16);
   addKeyToChanged("AA");
   addKeyToChanged("AB");
 }              
@@ -970,3 +930,11 @@ void set_SyncViewport(int8_t masterX, int8_t masterY, int8_t localX, int8_t loca
 }
 
 #endif
+
+void applyTimeZone(const String& value) {
+  // value - правило времннОй зоны. Может впереди содержать трехзначный индекс строки в списке: 'MSK-3' или '349_MSK-3'
+  // если индекс есть - нужно удалить его
+  String rule = value.indexOf('_') > 0 ? value.substring(4) : value; 
+  TimeProcessor::getInstance().tzsetup(rule.c_str());
+}
+  

@@ -34,8 +34,6 @@
 #define LANG 'RUS'
 #endif
 
-static const char DELIM_LINE[] PROGMEM = "-------------------------------------------";
-
 // ============================================== RUS ============================================== 
 
 #if (LANG == 'RUS')
@@ -43,23 +41,38 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // Список и порядок эффектов, передаваемый в Web-интерфейс. 
   // Порядок имен эффектов в списке должен соответствовать списку эффектов, определенному в файле a_def_soft.h 
-  // в строках, начиная с 119 
+  // в строках, начиная с 89. Данный список передается в Web-клиент, для чего требуется буфер. Буфер имеет размер MAX_BUFFER_SIZE
+  // Если даннвя строка (UTF-8, два байта на символ) не влезет в буфер - эффекты не будут переданы в Web-интерфейс, плашки эффектов будут отсутствовать,
+  // в логах браузера будет строчка
+  //  {"e": "stt","d": "{\"LE\":null}"}
+  //  json='{"LE":null}'
+  // В этом случае нужно либо сокращать имена эффектов, либо увеличивать размер буфера. Но увеличение размера буфера может привести к нехватки памяти
+  // и нестабильной работе прошивки на ESP8266. На ESP32 памяти больше - размер буфера можно увеличиватью
+
+  static const char EFFECT_LIST[] PROGMEM =
+    "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," 
+    "Цветной шум,Облака,Лава,Плазма,Бензин на воде,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," 
+    "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," 
+    "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Узоры,Рубик,Звёзды,Штора,Трафик,Рассвет"
+
+  // Эффекты Анимации, Погоды, Слайды и SD-карта могут быть отключены условиями USE_ANIMATION = 0 и USE_SD = 0
+  // Список эффектов передается в WebUI позиционно: эффект "Часы" имеют ID=0, эффект "SD-карта" имеет ID=47 (см. определение в a_def_soft.h)
+  // При включении на стороне WebUI в контроллер передается ID (точнее позиция эффекта в списке). 
+  // Чтобы при отключении например "Анимациия","Погода","Слайды" не было смещения - нумерации эффектов вместо отсутствующих передается пустая строка
+  // Тогда при получении списка WebUI пропустит пустые эффекты, но позиции останутся правильными и эффект "SD-карта" будет иметь ID=47, а не 44
+  
+  #if (USE_ANIMATION == 1)
+    ",Анимация,Погода,Слайды"
+  #else  
+    ",,,"
+  #endif
   
   #if (USE_SD == 1)   
-    static const char EFFECT_LIST[] PROGMEM = 
-      "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," \
-      "Цветной шум,Облака,Лава,Плазма,Радужные переливы,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," \
-      "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," \
-      "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Узоры,Рубик,Звёзды,Штора,Трафик," \
-      "Слайды,Рассвет,SD-Карта";
-  #else
-    static const char EFFECT_LIST[] PROGMEM =
-      "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," \
-      "Цветной шум,Облака,Лава,Плазма,Радужные переливы,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," \
-      "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," \
-      "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Анимация,Погода,Узоры,Рубик,Звёзды,Штора,Трафик," \
-      "Слайды,Рассвет";
+    ",SD-Карта"
+  #else  
+    ","
   #endif
+  ;                 // <-- эта точчка с запятой закрывает оператор static const char EFFECT_LIST[] PROGMEM =
 
   // ****************** ОПРЕДЕЛЕНИЯ ПАРАМЕТРОВ БУДИЛЬНИКА ********************
   
@@ -91,10 +104,9 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // Список звуков для макроса {A} бегущей строки
   static const char NOTIFY_SOUND_LIST[] PROGMEM = 
-    "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
-    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal," \
+    "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board,"
+    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal,"
     "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3";
-
   #endif
 
   // Список названия анимаций. Анимации определены в файле 'animation.ino'
@@ -104,7 +116,7 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
 
   // Список названий узоров
   static const char LANG_PATTERNS_LIST[] PROGMEM = 
-    "Зигзаг,Ноты,Ромб,Сердце,Елка,Клетка,Смайлик,Зигзаг,Полосы,Волны,Чешуя,Портьера,Плетенка,Снежинка,Квадратики,Греция,Круги,Рулет," \
+    "Зигзаг,Ноты,Ромб,Сердце,Елка,Клетка,Смайлик,Зигзаг,Полосы,Волны,Чешуя,Портьера,Плетенка,Снежинка,Квадратики,Греция,Круги,Рулет,"
     "Узор 1,Узор 2,Узор 3,Узор 4,Узор 5,Узор 6,Узор 7,Узор 8,Узор 9,Узор 10,Узор 11,Узор 12,Узор 13,Узор 14";
 
   // Погодные условия от Yandex
@@ -256,6 +268,7 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   // на шаге инициализации при первом запуске прошивки на микроконтроллере.
   // Данные примеры содержат некоторые варианты использования макросов в бегущей строке.
   
+  #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
   static const char textLine_1[] PROGMEM = "Всё будет хорошо!";
   static const char textLine_2[] PROGMEM = "До {C#00D0FF}Нового года {C#FFFFFF}осталось {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}";
@@ -292,7 +305,8 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char textLine_X[] PROGMEM = "Курочка по зёрнышку, копеечка к копеечке!";
   static const char textLine_Y[] PROGMEM = "Подъем через {P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "-Доброе утро!";
-
+  #endif
+  
   // Строки результатов выполнения операций и некоторых других сообщений, передаваемых
   // из прошивки в Web-приложение для отображения
   
@@ -301,11 +315,11 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char MSG_FILE_SAVED[] PROGMEM         = "Файл сохранен";
   static const char MSG_FILE_SAVE_ERROR[] PROGMEM    = "Ошибка записи в файл";
   static const char MSG_FILE_CREATE_ERROR[] PROGMEM  = "Ошибка создания файла";
-  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Ошибка создания папки для хранения изображений";
+  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Ошибка создания папки хранилища";
   static const char MSG_FILE_LOADED[] PROGMEM        = "Файл загружен";
   static const char MSG_FILE_LOAD_ERROR[] PROGMEM    = "Ошибка чтения файла";
   static const char MSG_FILE_NOT_FOUND[] PROGMEM     = "Файл не найден";
-  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Папка для хранения изображений не найдена";
+  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Папка не найдена";
   static const char MSG_BACKUP_SAVE_ERROR[] PROGMEM  = "Не удалось сохранить резервную копию настроек";
   static const char MSG_BACKUP_SAVE_OK[] PROGMEM     = "Резервная копия настроек создана";
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Не удалось загрузить резервную копию настроек";
@@ -331,23 +345,27 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
 
   // List of effects names and order in sequence trensferring to Web-application. 
   // Order of Names MUST correspont to order of effect ID definitions declared in a_def_soft.h file
-  // starting from line 119
+  // starting from line 89
   
-  #if (USE_SD == 1)
-    static const char EFFECT_LIST[] PROGMEM = 
-      "Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti," \
-      "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
-      "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
-      "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
-      "Curtain,Traffic,Slides,Dawn,SD-card";
-  #else
-    static const char EFFECT_LIST[] PROGMEM =
-      "Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti," \
-      "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change," \
-      "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid," \
-      "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Animation,Weather,Patterns,Rubic,Stars," \
-      "Curtain,Traffic,Slides,Dawn";
+  static const char EFFECT_LIST[] PROGMEM =
+    "Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti,"
+    "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change,"
+    "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid,"
+    "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Patterns,Rubic,Stars,"
+    "Curtain,Traffic,Dawn"
+    
+  #if (USE_ANIMATION == 1)
+    ",Animation,Weather,Slides"
+  #else  
+    ",,,"
   #endif
+
+  #if (USE_SD == 1)
+    ",SD-card"
+  #else  
+    ","
+  #endif
+  ;         // <-- this ';' closes the operator static const char EFFECT_LIST[] PROGMEM =
   
   // ****************** SOUNDS OF ALARMS, DAWN and RUNNING TEXT MACRO {A} ********************
   
@@ -379,8 +397,8 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // List of sounds for {A} macros of running text in phone application or Web-interface
   static const char NOTIFY_SOUND_LIST[] PROGMEM = 
-    "Piece Of Cake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
-    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal," \
+    "Piece Of Cake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board,"
+    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal,"
     "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3";
   
   #endif
@@ -393,7 +411,7 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // List names of Patterns effect
   static const char LANG_PATTERNS_LIST[] PROGMEM = 
-    "Zigzag,Notes,Rhomb,Heart,Fir tree,Cells,Smile,Zigzag-2,Streaks,Waves,Scales,Curtain,Wicker,Snowflake,Squares,Greece,Circles,Roll," \
+    "Zigzag,Notes,Rhomb,Heart,Fir tree,Cells,Smile,Zigzag-2,Streaks,Waves,Scales,Curtain,Wicker,Snowflake,Squares,Greece,Circles,Roll,"
     "Pattern 1,Pattern 2,Pattern 3,Pattern 4,Pattern 5,Pattern 6,Pattern 7,Pattern 8,Pattern 9,Pattern 10,Pattern 11,Pattern 12,Pattern 13,Pattern 14";
 
   // Weather condition from Yandex
@@ -545,6 +563,7 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   // at the initialization step when the firmware is first started on the microcontroller.
   // These examples contain some options for using macros in a running line.
 
+  #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
   static const char textLine_1[]         = "";
   static const char textLine_2[] PROGMEM = "There are {C#10FF00}{R01.01.***+} {C#FFFFFF} left until the {C#00D0FF}New year!{S01.12.****#31.12.**** 23:59:59}{E21}";
@@ -581,7 +600,8 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char textLine_X[]         = "";
   static const char textLine_Y[] PROGMEM = "Wake up in {P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "-Good morning!";
-
+  #endif
+  
   // Lines of results of operations and some other messages transmitted
   // from the firmware to the Web application to display
 
@@ -590,11 +610,11 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char MSG_FILE_SAVED[] PROGMEM         = "File sucessfully saved";
   static const char MSG_FILE_SAVE_ERROR[] PROGMEM    = "File write error";
   static const char MSG_FILE_CREATE_ERROR[] PROGMEM  = "File create error";
-  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Unable to create folder for images storage";
+  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Unable to create folder for storage";
   static const char MSG_FILE_LOADED[] PROGMEM        = "File loaded";
   static const char MSG_FILE_LOAD_ERROR[] PROGMEM    = "File read error";
   static const char MSG_FILE_NOT_FOUND[] PROGMEM     = "File not found";
-  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Folder with images storage not found";
+  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Folder storage not found";
   static const char MSG_BACKUP_SAVE_ERROR[] PROGMEM  = "Error while create backup file";
   static const char MSG_BACKUP_SAVE_OK[] PROGMEM     = "Backup file sucessfully saved";
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Unable to load backup file";
@@ -620,23 +640,27 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // Lista y orden de los efectos, transmitido al interfaz web. 
   // El orden de los nombres de los efectos en la lista debe coincidir con la lista de los efectos determinada en el archivo a_def_soft.h 
-  // en las lineas desde 119 
+  // en las lineas desde 89 
   
-#if (USE_SD == 1)
-    static const char EFFECT_LIST[] PROGMEM =
-      "Reloj,Lampara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti," \
-      "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color," \
-      "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid," \
-      "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Animación,Clima,Patrones,Rubik,Estrellas,Cortina,Tráfico," \
-      "Diapositivas,Amanecer,Tarjeta SD";
+  static const char EFFECT_LIST[] PROGMEM =
+    "Reloj,Lámpara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti,"
+    "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color,"
+    "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid,"
+    "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Patrones,Rubik,Estrellas,Cortina,Tráfico,"
+    "Amanecer"
+  
+  #if (USE_ANIMATION == 1)
+    ",Animación,Clima,Diapositivas"
   #else
-    static const char EFFECT_LIST[] PROGMEM =
-      "Reloj,Lámpara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti," \
-      "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color," \
-      "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid," \
-      "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Animación,Clima,Patrones,Rubik,Estrellas,Cortina,Tráfico," \
-      "Diapositivas,Amanecer";
+    ",,,"
   #endif
+
+  #if (USE_SD == 1)
+    ",Tarjeta SD"
+  #else  
+    ","
+  #endif
+  ;         // <-- esto ';' cierra el operador static const char EFFECT_LIST[] PROGMEM =
 
   // ****************** DEFINICION DE LOS PARAMETROS DEL DESPERTADOR ********************
   
@@ -668,8 +692,8 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   
   // Lista de los sonidos `para el macro {A} de letrero de desplazamiento
   static const char NOTIFY_SOUND_LIST[] PROGMEM = 
-    "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board," \
-    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal," \
+    "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board,"
+    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal,"
     "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3";
   
   #endif
@@ -681,12 +705,12 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
 
   // Lista de nombres de los patrones
   static const char LANG_PATTERNS_LIS[] PROGMEM = 
-    "Zigzag,Notas musicales,Rombo,Corazón,Arbol de Navidad,Celda,Carita sonriente,Zigzag,Rayas,Ondas,Escamas,Cortinas,Trenza,Copo de nieve,Cuadrados,Grecia,Círculos,Rollo," \
+    "Zigzag,Notas musicales,Rombo,Corazón,Arbol de Navidad,Celda,Carita sonriente,Zigzag,Rayas,Ondas,Escamas,Cortinas,Trenza,Copo de nieve,Cuadrados,Grecia,Círculos,Rollo," 
     "Patron 1,Patron 2,Patron 3,Patron 4,Patron 5,Patron 6,Patron 7,Patron 8,Patron 9,Patron 10,Patron 11,Patron 12,Patron 13,Patron 14";
 
   // Condiciones del tiempo por Yandex
   static const char Y_CODE_01[] PROGMEM = "parcialmente nublado, lluvia ligera";             // cloudy, light rain
-  static const char Y_CODE_02[] PROGMEM =  "parcialmente nublado, nieve ligera";              // cloudy, light snow
+  static const char Y_CODE_02[] PROGMEM = "parcialmente nublado, nieve ligera";              // cloudy, light snow
   static const char Y_CODE_03[] PROGMEM = "parcialmente nublado, nieve ligera con lluvia";   // cloudy, wet snow
   static const char Y_CODE_04[] PROGMEM = "parcialmente nublado";                            // partly cloudy
   static const char Y_CODE_05[] PROGMEM = "parcialmente nublado, lluvia";                    // partly cloudy, rain
@@ -834,6 +858,7 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   // en el paso de inicializacion al primer comienzo del firmware del microcontrolador.
   // Estos ejemplos contienes algunos variantes del uso de los macros en el letrero de desplazamiento. 
   
+  #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
   static const char textLine_1[] PROGMEM = "¡Todo estará bien!";
   static const char textLine_2[] PROGMEM = "Hasta {C#00D0FF}La Navidad {C#FFFFFF}se queda {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}";
@@ -870,7 +895,8 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char textLine_X[]         = "";
   static const char textLine_Y[] PROGMEM = "Levantote desde{P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "¡BUENOS DIAS!";
-
+  #endif
+  
   // Líneas de resultados de ejecución de operaciones y algunos otros mensajes transmitidos
   // del firmware a la aplicación web para mostrar
   
@@ -879,11 +905,11 @@ static const char DELIM_LINE[] PROGMEM = "--------------------------------------
   static const char MSG_FILE_SAVED[] PROGMEM         = "Archivo guardado";
   static const char MSG_FILE_SAVE_ERROR[] PROGMEM    = "Error al escribir en el archivo";
   static const char MSG_FILE_CREATE_ERROR[] PROGMEM  = "Error de creación de archivo";
-  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Error al crear una carpeta para almacenar imágenes";
+  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Error al crear una carpeta de almacenamiento";
   static const char MSG_FILE_LOADED[] PROGMEM        = "Archivo descargado";
   static const char MSG_FILE_LOAD_ERROR[] PROGMEM    = "Error de lectura de archivo";
   static const char MSG_FILE_NOT_FOUND[] PROGMEM     = "Archivo no encontrado";
-  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Carpeta de imágenes no encontrada";
+  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM   = "Carpeta no encontrada";
   static const char MSG_BACKUP_SAVE_ERROR[] PROGMEM  = "No se pudo hacer una copia de seguridad de la configuración";
   static const char MSG_BACKUP_SAVE_OK[] PROGMEM     = "Configuraciones respaldadas creadas";
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Error al cargar la copia de seguridad de la configuración";

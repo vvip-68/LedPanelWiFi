@@ -5,8 +5,8 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {ComboBoxItem} from "../../../models/combo-box.model";
-import {distinctUntilChanged} from "rxjs/operators";
-import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator, timeZoneValidator} from "../../../services/helper";
+import {distinctUntilChanged, map} from "rxjs/operators";
+import {AppErrorStateMatcher, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { InputRestrictionDirective } from '../../../directives/input-restrict.directive';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +20,8 @@ import { DisableControlDirective } from '../../../directives/disable-control.dir
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {stripComments} from "jsonc-parser";
 
 @Component({
     selector: 'app-tab-clock',
@@ -47,6 +49,7 @@ export class TabClockComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
   public supportWeather: boolean = false;
+  public time12h = -1;
   public clock_use_overlay = false;
   public clock_orientation: number = -1;
   public orient_list: ComboBoxItem[] = [];
@@ -62,21 +65,25 @@ export class TabClockComponent implements OnInit, OnDestroy {
   public clock_tm1627_off = false;
   public clock_scroll_speed = -1;
 
+  public time_area_list: ComboBoxItem[] = [];
+  public time_area: string = '';
+  public time_zone: string = '';
+
   private speedChanged$ = new BehaviorSubject(this.clock_scroll_speed);
 
   showDateDurationFormControl = new FormControl(0, [Validators.required, rangeValidator(2, 240)]);
   showDateIntervalFormControl = new FormControl(0, [Validators.required, rangeValidator(2, 240)]);
   ntpServerNameFormControl = new FormControl('', [Validators.required]);
-  ntpSyncIntervalFormControl = new FormControl(0, [Validators.required, rangeValidator(5, 240)]);
-  ntpTimeZoneFormControl = new FormControl('', [Validators.required, timeZoneValidator()]);
+  ntpTimeZoneFormControl = new FormControl('', [Validators.required]);
   matcher = new AppErrorStateMatcher();
 
   constructor(
     public socketService: WebsocketService,
     public managementService: ManagementService,
     public commonService: CommonService,
-    public L: LanguagesService
-  ) {
+    public L: LanguagesService,
+    private httpClient: HttpClient)
+  {
     this.color_list.push(new ComboBoxItem(this.L.$('Одноцветные'), 0));
     this.color_list.push(new ComboBoxItem(this.L.$('Каждая цифра свой цвет'), 1));
     this.color_list.push(new ComboBoxItem(this.L.$('Часы, точки, минуты'), 2));
@@ -95,7 +102,7 @@ export class TabClockComponent implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          let request = 'CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NS|NT|NZ|SC|WC|WN|WZ';
+          let request = 'C12|CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NZ|NS|SC|WC|WN|WZ';
           if (this.managementService.state.supportTM1637) {
             request += '|OF';
           }
@@ -108,6 +115,9 @@ export class TabClockComponent implements OnInit, OnDestroy {
       .subscribe((key: string) => {
         if (!isNullOrUndefinedOrEmpty(key)) {
           switch (key) {
+            case 'C12':
+              this.time12h = this.managementService.state.time12h ? 1 : 0;
+              break;
             case 'CE':
               this.clock_use_overlay = this.managementService.state.clock_use_overlay;
               break;
@@ -147,17 +157,23 @@ export class TabClockComponent implements OnInit, OnDestroy {
             case 'NS':
               this.ntpServerNameFormControl.setValue(this.managementService.state.clock_ntp_server);
               break;
-            case 'NT':
-              this.ntpSyncIntervalFormControl.setValue(this.managementService.state.clock_ntp_sync);
-              break;
             case 'NZ':
-            case 'NM':
-              const time_zone_hour = this.managementService.state.clock_time_zone_hour;
-              const time_zone_minutes = this.managementService.state.clock_time_zone_minutes;
-              if (time_zone_minutes === 0)
-                this.ntpTimeZoneFormControl.setValue(`${time_zone_hour}`);
-              else
-                this.ntpTimeZoneFormControl.setValue(`${time_zone_hour}:${time_zone_minutes.toString().padStart(2, '0')}`);
+              this.ntpTimeZoneFormControl.setValue(this.managementService.state.clock_time_zone);
+              // Если карта ключей уже загружена - составить список зон времени по ключам карты временнЫх зон
+              const list = this.managementService.tz_map.keys();
+              let value = list.next().value;
+              this.time_area_list = [];
+              while (!isNullOrUndefinedOrEmpty(value)) {
+                this.time_area_list.push(new ComboBoxItem(value, value));
+                value = list.next().value;
+              }
+              // Если временные зоны еще не были загружены - загрузить
+              // Если уже были загружены - найти в списках текущую временнУю зону
+              if (this.time_area_list.length === 0) {
+                this.loadTimeZones();
+              } else {
+                this.findCurrentTimeZone();
+              }
               break;
             case 'OF':
               this.clock_tm1627_off = this.managementService.state.clock_tm1627_off;
@@ -181,6 +197,72 @@ export class TabClockComponent implements OnInit, OnDestroy {
           this.socketService.sendText(`$19 12 ${value};`);
         }
       });
+  }
+
+  public loadTimeZones() {
+    const filePath = `assets/tz-${this.L.lang}.json`;
+    const headers = new HttpHeaders();
+    this.httpClient.get(filePath, {headers, responseType: 'text'})
+      .pipe(map(response => JSON.parse(stripComments(<string>response))))
+      .subscribe({
+        next: (data) => {
+          //  {
+          //     "label": "Africa/Abidjan",
+          //     "value": "000_GMT0"
+          //   },
+          const keys = Object.keys(data);
+          let first = true;
+          let area = '';
+          let list: ComboBoxItem[] = [];
+          let item_idx = 0;
+
+          for (const key of keys) {
+            const label = data[key].label;
+            const zone = data[key].value;
+            const idx = label.indexOf('/');
+            const c_area = label.substring(0, idx);
+            const c_zone = label.substring(idx + 1);
+            item_idx++;
+
+            if (first) {area = c_area; first = false;}
+
+            const zx = zone.indexOf('_');
+            if (zone === this.managementService.state.clock_time_zone || (zx !== -1 && zone.substring(zx + 1) === this.managementService.state.clock_time_zone)) {
+              this.time_area = area;
+              this.time_zone = zone;
+            }
+
+            if (c_area !== area || item_idx === keys.length) {
+              this.time_area_list.push(new ComboBoxItem(area, area));
+              if (item_idx === keys.length) {
+                list.push(new ComboBoxItem(c_zone, zone));
+              }
+              list.sort((a,b) => a.displayText.localeCompare(b.displayText));
+              this.managementService.tz_map.set(area, list);
+              area = c_area;
+              list = [];
+            }
+
+            list.push(new ComboBoxItem(c_zone, zone));
+          }
+          this.time_area_list.sort((a,b) => a.displayText.localeCompare(b.displayText));
+        },
+        error: (error) => {
+          console.warn('Не удалось загрузить список временных зон');
+          console.warn(error.message);
+        }
+      });
+  }
+
+  findCurrentTimeZone() {
+    const tz_rule = this.managementService.state.clock_time_zone;
+    this.managementService.tz_map.forEach((list, area) => {
+      const item = list.find(item => item.value === tz_rule);
+      if (item) {
+        this.time_area = area;
+        this.time_zone = item.value;
+      }
+    })
   }
 
   formatLabel(value: number) {
@@ -219,6 +301,19 @@ export class TabClockComponent implements OnInit, OnDestroy {
     }
   }
 
+  timeAreaChanged(value: string) {
+    this.time_area = value;
+  }
+
+  timeZoneChanged(value: string) {
+    this.time_zone = value;
+  }
+
+  getTimeZones(area: string): ComboBoxItem[] {
+    return this.managementService.tz_map.get(area) || [];
+  }
+
+
   toggleTemperatureInClock() {
     this.clock_show_temp = !this.clock_show_temp;
     // $19 9 X;    - Показывать температуру вместе с часами X=1 - да; X=0 - нет
@@ -248,8 +343,13 @@ export class TabClockComponent implements OnInit, OnDestroy {
   }
 
   changeClockSize() {
-    // $19 7 X;    - Размер часов X: 0 - автовыбор ы звыисимости от размера матрицы (3x5 или 5x7), 1 - малые 3х5, 2 - большие 5x7
+    // $19 7 X;    - Размер часов X: 0 - автовыбор в звыисимости от размера матрицы (3x5 или 5x7), 1 - малые 3х5, 2 - большие 5x7
     this.socketService.sendText(`$19 7 ${this.clock_size};`);
+  }
+
+  changeTimeFormat() {
+    // $19 19 X;    - X=0 - 24-часовой формат, X=1 - 12-часовой формат
+    this.socketService.sendText(`$19 19 ${this.time12h};`);
   }
 
   isLargeClockAvailable(): boolean {
@@ -299,36 +399,18 @@ export class TabClockComponent implements OnInit, OnDestroy {
   }
 
   isValidSync(): boolean {
-    return this.ntpSyncIntervalFormControl.valid && this.ntpTimeZoneFormControl.valid;
+    return this.ntpServerNameFormControl.valid;
   }
 
   applySyncSettings($event: MouseEvent) {
-    // $6 1|текст  - имя сервера NTP
-    // $19 3 N Z;  - $19 3 N ZH ZM; - Период синхронизации часов NTP (N) и Часовой пояс (ZH) -12..12  и минуты 0 / 15 / 30 / 45 (ZM)
-    const N = this.managementService.state.clock_ntp_sync = this.ntpSyncIntervalFormControl.value as number;
-    const tz = this.ntpTimeZoneFormControl.value as string;
+    // $6 1|текст   - имя сервера NTP
+    // $6 10|текст  - Выбранное правила временнОй зоны часового пояса
 
-    let ZH = 0;
-    let ZM = 0;
-    // Часовой пояс - число от -12 до 12 - если нет минут
-    // Если минуты есть - отделяются от часов символом двоеточие ':'
-    const tzp = tz.trim().split(':');
-    if (tzp.length == 1) {
-      // нет минут, только часы
-      ZH = Number(tzp[0])
-    } else {
-      // есть минуты
-      ZH = Number(tzp[0])
-      ZM = Number(tzp[1])
-    }
-
-    this.managementService.state.clock_time_zone_hour = ZH;
-    this.managementService.state.clock_time_zone_minutes = ZM;
-
-    const server_name = this.managementService.state.clock_ntp_server = this.ntpServerNameFormControl.value as string
+    const server_name = this.managementService.state.clock_ntp_server = this.ntpServerNameFormControl.value as string;
+    const time_zone = this.managementService.state.clock_time_zone = this.time_zone;
 
     this.socketService.sendText(`$6 1|${server_name}`);
-    this.socketService.sendText(`$19 3 ${N} ${ZH} ${ZM};`);
+    this.socketService.sendText(`$6 10|${time_zone}`);
   }
 
   ngOnDestroy() {

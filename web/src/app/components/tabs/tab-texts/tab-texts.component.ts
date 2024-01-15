@@ -62,7 +62,7 @@ export class TabTextsComponent implements OnInit, OnDestroy {
   @ViewChild('dateS2', {static: true}) dateS2!: ElementRef;
 
   // @formatter:off
-  public text_color_mode = -1;           // CT  - CT:X	режим цвета текстовой строки: 0 - монохром, 1 - радуга, 2 - каждая буква своим цветом
+  public text_color_mode = -1;          // CT  - CT:X	режим цвета текстовой строки: 0 - монохром, 1 - радуга, 2 - каждая буква своим цветом
   public text_use_overlay = false;      // TE  - TE:X	оверлей текста бегущей строки вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать бегущую строку в эффектах)
   public text_scroll_speed = -1;        // ST  - ST:число	скорость смещения бегущей строки
   public text_cells_type = '';           // TS  - TS:строка - строка состояния кнопок выбора текста из массива строк: 36 символов 0..5, где
@@ -188,8 +188,11 @@ export class TabTextsComponent implements OnInit, OnDestroy {
               }
               break;
             case 'MX':
+              // Если в прошивке включена поддержка MP3-плеера - запросить контрольную сумму списка звуков нотификации
+              // Если список уже загружен и контрольная суппа совпадает - использовать сохраненный в localStorage
+              // Если список не загружен или контрольная сумма не совпадает - запросить список (обработка в management.service.ts)
               if (this.managementService.state.supportMP3) {
-                this.managementService.getKeys('S3');
+                this.managementService.getKeys('CRS3');
               }
               break;
             case 'WZ':
@@ -325,6 +328,8 @@ export class TabTextsComponent implements OnInit, OnDestroy {
     }
     if (this.buttons[i].text.length > 0) {
       text += '\n' + this.buttons[i].text;
+    } else {
+      this.socketService.sendText(`$13 2 ${i};`);
     }
     return text;
   }

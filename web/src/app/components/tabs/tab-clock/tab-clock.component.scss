@@ -32,10 +32,9 @@
       --label-width: 160px;
       --check-label-width: 138px;
       --radio-label-width: 138px;
+      --radio-label-label-width: 19px;
       --date-field-width: 164px;
       --date-label-width: 100px;
-      --ntp-field-width: 338px;
-      --ntp-label-width: 126px;
 
       .toggler-container {
         width: 100%;
@@ -179,6 +178,7 @@
           ::ng-deep .mdc-radio + label {
             margin-right: 13px;
             padding-left: 0;
+            width: var(--radio-label-label-width)
           }
         }
 
@@ -251,15 +251,18 @@
         }
 
         &.ntp-serv {
+          display: flex;
+          flex-direction: column;
+
           ::ng-deep mat-form-field {
-            width: var(--ntp-field-width);
+            width: var(--field-width);
 
             .mdc-floating-label {
-              width: var(--ntp-label-width) !important;
+              width: calc(var(--label-width) + 4px) !important;
             }
 
             .mat-mdc-input-element {
-              padding-left: calc(var(--ntp-label-width) + 4px);
+              padding-left: calc(var(--label-width) + 8px);
               text-align: left;
             }
 

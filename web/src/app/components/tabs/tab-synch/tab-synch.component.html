@@ -168,7 +168,7 @@
 
     <div class="field-container">
       <div class="action-button">
-        <button mat-raised-button color="primary" (click)="applySyncSettings($event)" [disabled]="isDisabled() || isDisabled2()">{{L.$('Применить')}}</button>
+        <button mat-raised-button color="primary" (click)="applySyncSettings($event)" [disabled]="isDisabled() || isDisabled2() || !isValid()">{{L.$('Применить')}}</button>
       </div>
     </div>
 

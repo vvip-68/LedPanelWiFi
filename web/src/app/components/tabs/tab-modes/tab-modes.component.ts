@@ -5,7 +5,7 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import {distinctUntilChanged} from "rxjs/operators";
-import {isNullOrUndefinedOrEmpty} from "../../../services/helper";
+import {convertTimeTo12, convertTimeTo24, isNullOrUndefinedOrEmpty} from "../../../services/helper";
 import {ComboBoxItem} from "../../../models/combo-box.model";
 import {EffectModel} from "../../../models/effect.model";
 import { MatButtonModule } from '@angular/material/button';
@@ -63,6 +63,8 @@ export class TabModesComponent implements OnInit, OnDestroy {
   public supportWeather: boolean = false;
   public supportAuxLine: boolean = false;
 
+  public time12H: boolean = false;           // false: 24H;  true: 12H
+
   public isMode1AuxUse: boolean = false;
   public isMode1AuxOn: boolean = false;
   public isMode2AuxUse: boolean = false;
@@ -90,7 +92,7 @@ export class TabModesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'WZ|AM1T|AM1A|AM2T|AM2A|AM3T|AM3A|AM4T|AM4A|T1|AM5A|T2|AM6A|PZ2|FG';
+          const request = 'WZ|C12|AM1T|AM1A|AM2T|AM2A|AM3T|AM3A|AM4T|AM4A|T1|AM5A|T2|AM6A|PZ2|FG';
           this.managementService.getKeys(request);
         }
       });
@@ -135,11 +137,15 @@ export class TabModesComponent implements OnInit, OnDestroy {
               this.mode6_effect = this.managementService.state.mode6_effect;
               break;
             case 'T1': {
-              this.mode5_time = this.managementService.state.time_sunrise;
+              this.mode5_time = this.time12H
+                ? convertTimeTo12(this.managementService.state.time_sunrise)
+                : this.managementService.state.time_sunrise;
               break;
             }
             case 'T2': {
-              this.mode6_time = this.managementService.state.time_sunset
+              this.mode6_time = this.time12H
+                ? convertTimeTo12(this.managementService.state.time_sunset)
+                : this.managementService.state.time_sunset;
               break;
             }
             case 'WZ': {
@@ -166,6 +172,10 @@ export class TabModesComponent implements OnInit, OnDestroy {
               this.isMode6AuxOn = (auxPowerMask & 2048) > 0;
               break;
             }
+            case 'C12': {
+              this.time12H = this.managementService.state.time12h;
+              break;
+            }
           }
         }
       });
@@ -174,7 +184,7 @@ export class TabModesComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$)).subscribe((effects: EffectModel[]) => {
       this.effects = [];
       this.effects.push({value: -3, displayText: this.L.$('Нет действия')});
-      this.effects.push({value: -2, displayText: this.L.$('Выключить матрицу')});
+      this.effects.push({value: -2, displayText: this.L.$('Выключить')});
       this.effects.push({value: -1, displayText: this.L.$('Ночные часы')});
       this.effects.push({value: 0, displayText: this.L.$('Демо режим')});
       let idx = 1;
@@ -198,25 +208,25 @@ export class TabModesComponent implements OnInit, OnDestroy {
     //     NNn - эффект: -3 - выключено; -2 - выключить матрицу; -1 - ночные часы; 0 - случайный режим и далее по кругу; 1 и далее - список режимов EFFECT_LIST
     // ----------------------------------------------------
 
-    let time = this.mode1_time.split(':');
+    let time = convertTimeTo24(this.mode1_time).split(':');
     this.managementService.state.mode1_time = `${time[0]} ${time[1]}`;
     const HH1 = Number(time[0]);
     const MM1 = Number(time[1]);
     const NN1 = this.mode1_effect;
 
-    time = this.mode2_time.split(':');
+    time = convertTimeTo24(this.mode2_time).split(':');
     this.managementService.state.mode2_time = `${time[0]} ${time[1]}`;
     const HH2 = Number(time[0]);
     const MM2 = Number(time[1]);
     const NN2 = this.mode2_effect;
 
-    time = this.mode3_time.split(':');
+    time = convertTimeTo24(this.mode3_time).split(':');
     this.managementService.state.mode3_time = `${time[0]} ${time[1]}`;
     const HH3 = Number(time[0]);
     const MM3 = Number(time[1]);
     const NN3 = this.mode3_effect;
 
-    time = this.mode4_time.split(':');
+    time = convertTimeTo24(this.mode4_time).split(':');
     this.managementService.state.mode4_time = `${time[0]} ${time[1]}`;
     const HH4 = Number(time[0]);
     const MM4 = Number(time[1]);

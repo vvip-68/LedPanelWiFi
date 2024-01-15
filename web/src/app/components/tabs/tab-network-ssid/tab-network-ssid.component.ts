@@ -5,7 +5,7 @@ import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
 import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import {AppErrorStateMatcher, ipV4Validator, isNullOrUndefinedOrEmpty, lengthValidator} from "../../../services/helper";
+import {AppErrorStateMatcher, ipV4Validator, isNullOrUndefinedOrEmpty, lengthValidator, validateCharacters} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
 import { InputRestrictionDirective } from '../../../directives/input-restrict.directive';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,7 +36,7 @@ export class TabNetworkSsidComponent implements OnInit, OnDestroy {
   hidePassword = true;
 
   ssidFormControl = new FormControl('', [Validators.required]);
-  passwordFormControl = new FormControl('', [Validators.required, lengthValidator(8, 64)]);
+  passwordFormControl = new FormControl('', [Validators.required, lengthValidator(8, 64), validateCharacters(this.L.$('Недопустимые символы'))]);
   ipAddressFormControl = new FormControl('', [ipV4Validator()]);
 
   matcher = new AppErrorStateMatcher();

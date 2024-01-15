@@ -6,12 +6,14 @@
 
 File fxdata;
 
-int8_t  file_idx;    // Служебное - для определения какой следующий файл воспроизводить
+int8_t file_idx;    // Служебное - для определения какой следующий файл воспроизводить
 String fileName;
 
-void InitializeSD1() {  
+void InitializeSD() {  
+  
   set_isSdCardReady(false);
   set_isSdCardExist(false);
+  
   #if (USE_SD == 1 && FS_AS_SD == 0)
     DEBUGLN(F("Инициализация SD-карты..."));  
     sd_card_ok = SD.begin(SD_CS_PIN);
@@ -21,45 +23,39 @@ void InitializeSD1() {
     sd_card_ok = true;
     set_isSdCardExist(true);
   #endif
-}
 
-void InitializeSD2() {  
+  DEBUG(F("SD-карта "));
   if (!sd_card_ok) {
-    DEBUGLN(F("SD-карта не подключена."));
-    return;
+    DEBUGLN(F("не "));
   }
-  DEBUGLN(F("SD-карта подключена."));
-
-  File file;
+  DEBUGLN(F("подключена."));
   
-  #if defined(ESP32)
-    String file_name(F("/t.t"));
-  #else
-    String file_name(F("t.t"));
-  #endif
+  if (!sd_card_ok) return;
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
-  file = SD.open(file_name, FILE_WRITE);
-  bool ok = file != 0;
-  if (ok) {    
-    file.println(FIRMWARE_VER);
-    file.close();
-    ok = SD.remove(file_name);
-  }
-  if (ok) {    
-    DEBUGLN(F("SD-карта только для чтения"));    
-  }
-  #endif
+    File file;
+  
+    #if defined(ESP32)
+      String file_name(F("/t.t"));
+    #else
+      String file_name(F("t.t"));
+    #endif
 
-  DEBUGLN(F("Поиск файлов эффектов Jinx!.."));
-  if (sd_card_ok) {
-    loadDirectory();
-    sd_card_ok = countFiles > 0;
-    set_isSdCardReady(sd_card_ok);
-  }
-  if (!sd_card_ok) {
-    DEBUGLN(F("Эффекты Jinx! на SD-карте не обнаружены"));
-  }
+    file = SD.open(file_name, FILE_WRITE);
+    bool ok = file != 0;
+  
+    if (ok) {    
+      file.println(FIRMWARE_VER);
+      file.close();
+      ok = SD.remove(file_name);
+    }
+    
+    if (!ok) {    
+      DEBUGLN(F("SD-карта только для чтения"));    
+    }
+  #endif
+  
+  DEBUGLN();
 }
 
 void loadDirectory() {
@@ -183,6 +179,7 @@ void loadDirectory() {
   }  else {
     sortAndShow(directoryName);     
   }  
+  
 }
 
 // ----------------------------------
@@ -250,7 +247,7 @@ void sortAndShow(const String& directoryName) {
     
     if (!fxdata) {
       error = true;
-      DEBUGLN("   " + padRight(nameFiles[x],16) + String(F("ERR - ошибка загрузки")));
+      DEBUG("   "); DEBUG(padRight(nameFiles[x],16)); DEBUGLN(F("ERR - ошибка загрузки"));
       nameFiles[x] = "";
       continue;
     }

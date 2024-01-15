@@ -106,7 +106,7 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в главном экране
-          const request: string = `FS|SX|CL|FL${this.storage}`;
+          const request: string = `FS|SX|CL|CRF${this.storage}`;
           this.managementService.getKeys(request);
         }
         // Если соединение пропало во время загрузки картинки - остановить
@@ -225,7 +225,7 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
     // Получить список картинок, найденных в файловой системе или на SD карте в зависимости от
     // текущего выбранного хранилища
     setTimeout(() => {
-      this.managementService.getKeys(`FL${this.storage}`);
+      this.managementService.getKeys(`CRF${this.storage}`);
     }, 1000);
   }
 
@@ -491,7 +491,7 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   changeStorage() {
-    this.managementService.getKeys(`FL${this.storage}`);
+    this.managementService.getKeys(`CRF${this.storage}`);
     this.picture_file = -1;
   }
 

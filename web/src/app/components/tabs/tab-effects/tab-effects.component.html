@@ -131,16 +131,17 @@
               </button>
             </div>
 
-            <div style="width:12px"></div>
-
-            <div class="block-params mode-params aux-button" [matTooltip]="getAuxTooltip()">
-              <button mat-raised-button color="primary" class="aux"
-                      [ngClass]="{'active': isAuxActive, 'disabled': isAuxDisabled()}"
-                      [disabled]="isAuxDisabled()" (click)="toggleAuxLine()">
-                <mat-icon>power_settings_new</mat-icon>
-                <span>{{ L.$('AUX') }}</span>
-              </button>
-            </div>
+            @if (isAuxSupported) {
+              <div style="width:12px"></div>
+              <div class="block-params mode-params aux-button" [matTooltip]="getAuxTooltip()">
+                <button mat-raised-button color="primary" class="aux"
+                        [ngClass]="{'active': isAuxActive, 'disabled': isAuxDisabled()}"
+                        [disabled]="isAuxDisabled()" (click)="toggleAuxLine()">
+                  <mat-icon>power_settings_new</mat-icon>
+                  <span>{{ L.$('AUX') }}</span>
+                </button>
+              </div>
+            }
           </div>
 
         </div>

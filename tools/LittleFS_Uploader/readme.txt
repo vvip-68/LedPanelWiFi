@@ -21,7 +21,8 @@ https://github.com/earlephilhower/arduino-esp8266littlefs-plugin
 
 Для ESP32 используется свой плагин для загрузки файлов в файловую систему LittleFS ESP32
 
-https://github.com/lorol/arduino-esp32littlefs-plugin
+https://github.com/lorol/arduino-esp32littlefs-plugin или 
+https://github.com/lorol/arduino-esp32fs-plugin
 
 Установка плагина и загрузка файлов - аналогично описанной для ESP8266
 

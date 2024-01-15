@@ -90,28 +90,50 @@ export function isValidIPv4(str: string) {
   return regExp.test(str);
 }
 
-export function timeZoneValidator(): ValidatorFn {
-  return (control: AbstractControl): { [key: string]: boolean } | null => {
-    if (!isNullOrUndefinedOrEmpty(control.value)) {
-      let hours = 0;
-      let minutes = 0;
-      // Часовой пояс - число от -12 до 12 - если нет минут
-      // Если минуты есть - отделяются от часов символом двоеточие ':'
-      const tz = control.value.trim().split(':');
-      if (tz.length == 1) {
-        // нет минут, только часы
-        if (!_isNumberValue(tz[0])) return {'timezone': true};
-        hours = Number(tz[0])
-      } else {
-        // есть минуты
-        if (!_isNumberValue(tz[0])) return {'timezone': true};
-        hours = Number(tz[0])
-        if (!_isNumberValue(tz[1])) return {'timezone': true};
-        minutes = Number(tz[1])
-      }
-      if (hours < -12 || hours > 12) return {'timezone': true};
-      if (!(minutes === 0 || minutes === 15 || minutes === 30 || minutes === 45)) return {'timezone': true};
-    }
-    return null;
+export function makeid(length: number) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  let counter = 0;
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    counter += 1;
+  }
+  return result;
+}
+
+export function validateCharacters(message: string): ValidatorFn {
+  return formControl => {
+    const obj = formControl.value;
+    const regExp = /^[a-zA-Z0-9.+!@#$%^&*()_-]+$/;
+    return !regExp.test(formControl.value) && obj.length > 0 ? { ['invalidChars']: message } : null;
   };
+}
+
+export function convertTimeTo24(time: string): string {
+  // time = 'HH:MM AM' или 'HH:MM PM' при 12-часовом формате
+  // time = 'HH:MM' при 24-часовом формате
+  if (!time.endsWith('M')) return time;
+
+  time = time.replace(' ', ':');
+  const [hh, mm, pm] = time.split(':');
+  const isPM = pm === 'PM';
+  let h = Number(hh) + (isPM ? 12 : 0);
+  if (h > 23) h -= 24;
+
+  return `${h}:${mm}`;
+}
+
+export function convertTimeTo12(time: string): string {
+  // time = 'HH:MM AM' или 'HH:MM PM' при 12-часовом формате
+  // time = 'HH:MM' при 24-часовом формате
+  if (time.endsWith('M')) return time;
+
+  const [hh, mm] = time.split(':');
+  let h = Number(hh);
+  const isPM = h >= 12;
+  if (isPM) h -= 12;
+  if (h === 0) h = 12;
+
+  return `${h}:${mm} ${isPM ? 'PM' : 'AM'}`;
 }

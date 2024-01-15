@@ -14,21 +14,8 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool textReady = textTimer.isReady();
 
   bool effectReady = aMode == MC_IMAGE || effectTimer.isReady(); // "Анимация" использует собственные "таймеры" для отрисовки - отрисовка без задержек; Здесь таймер опрашивать нельзя - он после опроса сбросится. 
-                                                                 //  А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона  
-
-  if (!(effectReady || (clockReady && !showTextNow) || (textReady && (showTextNow || thisMode == MC_TEXT)))) {
-
-    // Вообще вывод изображения на матрицу подразумевался после того, как сделаны изменения в кадре - а это происходит либо на таймере эффекта, либо на таймере бегущей строки.
-    // Однако на ядре 3.1.2 по каким-то внутренним причинам вывод на матрицу часто пропускается в результате эффект или текст "дергается", т.к. предыдущий кадр был пропущен
-    // Поэтому если время смены кадра не пришло - все равно выводим содержимое на матрицу - так надежнее изображение будет выведено на матрицу и
-    // пропуски кадра будут незаметными, даже если они были. Однако чаще 5 мс тоже выводить не нужно - постоянный вывод приводит к мерцанию светодиодов
-    if (millis() - prevShowTimer > 5) {
-      FastLED.show();
-      prevShowTimer = millis();
-    }
-    return; 
-  }
-
+                                                                 //  А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона    
+                                                                 
   // В прошлой итерации часы / текст были наложены с оверлеем?
   // Если да - восстановить пиксели эффекта сохраненные перед наложением часов / текста
   if (overlayDelayed && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE) {
@@ -48,19 +35,25 @@ void doEffectWithOverlay(uint8_t aMode) {
       // Если передать строку с макросом отключения - processMacrosInText() вернет любую другую строку вместо отключенной
       // Чтобы это не произошло - нужно удалить признак отключенности
       currentTextLineIdx = momentTextIdx;
+      macrosTextLineIdx = -1;
+      specialTextEffect = -1;
+
       String text(getTextByIndex(currentTextLineIdx));
       if (text.length() > 0 && text[0] == '-') text = text.substring(1);
+      
       while (text.indexOf("{-}") >= 0) text.replace("{-}","");
       currentText = processMacrosInText(text);  
       ignoreTextOverlaySettingforEffect = textOverlayEnabled;
       loadingTextFlag = true;
     }
+    
   }
 
   // Оверлей нужен для всех эффектов, иначе при малой скорости эффекта и большой скорости часов поверх эффекта буквы-цифры "смазываются"
   bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
+  bool needShowScreen = false;
   
   String out;
 
@@ -72,7 +65,7 @@ void doEffectWithOverlay(uint8_t aMode) {
 
     // Обработать следующую строку для отображения, установить параметры;
     // Если нет строк к отображению - продолжать отображать оверлей часов
- 
+
     if (prepareNextText(currentText)) {
       moment_active = momentTextIdx >= 0;      
       fullTextFlag = false;
@@ -85,6 +78,7 @@ void doEffectWithOverlay(uint8_t aMode) {
         ignoreTextOverlaySettingforEffect = true;
       } else {
         pTextCount = 0;
+        macrosTextLineIdx = -1;
       }
 
       #if (USE_E131 == 1)
@@ -131,7 +125,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       saveEffectBeforeText = thisMode;   // сохранить текущий эффект
       setTimersForMode(specialTextEffect);
       // Если заказанный эффект не тот же, что сейчас воспроизводится или если эффект имеет вариант - выполнить инициализацию эффекта
-      loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >=0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
+      loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >= 0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
     }
   } else
 
@@ -189,9 +183,13 @@ void doEffectWithOverlay(uint8_t aMode) {
   if (needStopText || mandatoryStopText) {    
     showTextNow = false; 
     mandatoryStopText = false;
+    ResetRunningTextFlags();
     currentText.clear();
+    
     ignoreTextOverlaySettingforEffect = nextTextLineIdx >= 0;
     specialTextEffectParam = -1;
+    macrosTextLineIdx = -1;
+
     wifi_print_ip = false;
     wifi_print_ip_text = false;
     wifi_print_version = false;
@@ -204,7 +202,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     if (saveEffectBeforeText >= 0 || useSpecialBackColor) {
       loadingFlag = specialTextEffect != saveEffectBeforeText || useSpecialBackColor;  // Восстановленный эффект надо будет перезагрузить, т.к. иначе эффекты с оверлеем будут использовать оставшийся от спецэффекта/спеццвета фон
       saveEffectBeforeText = -1;                                                       // Сбросить сохраненный / спецэффект
-      specialTextEffect = -1;      
+      specialTextEffect = -1;    
       useSpecialBackColor = false;
     }
 
@@ -243,7 +241,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   }
 
   // Нужно сохранять оверлей эффекта до отрисовки часов или бегущей строки поверх эффекта?
-  bool needOverlay  = 
+  bool needOverlay =
        (aMode == MC_CLOCK) ||                                                         // Если включен режим "Часы" (ночные часы)
        (aMode == MC_TEXT) ||                                                          // Если включен режим "Бегущая строка" (show IP address)       
       (!showTextNow && clockOvEn) || 
@@ -266,12 +264,14 @@ void doEffectWithOverlay(uint8_t aMode) {
       // Иначе отрисовать текущий эффект
       processEffect(aMode);
     }
+    needShowScreen = true;
   }
 
   // Смещение бегущей строки
   if (textReady && (showTextNow || aMode == MC_TEXT)) {
     // Сдвинуть позицию отображения бегущей строки
     shiftTextPosition();
+    needShowScreen = true;
   }
 
   // Смещение движущихся часов 
@@ -303,9 +303,10 @@ void doEffectWithOverlay(uint8_t aMode) {
 
   // Пришло время отобразить дату (календарь) в малых часах или температуру / календарь в больших?
   checkCalendarState();
-  
+
   // Если время инициализировали и пришло время его показать - нарисовать часы поверх эффекта
   if (init_time && (((clockOvEn || aMode == MC_CLOCK) && !showTextNow && aMode != MC_TEXT && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE))) {    
+
     overlayDelayed = needOverlay;
     setOverlayColors();
     if (needOverlay) {
@@ -346,10 +347,11 @@ void doEffectWithOverlay(uint8_t aMode) {
             }
           }
         #else
-           drawCalendar(aday, amnth, ayear, dotFlag, XC, CALENDAR_Y);
-           cal_or_temp_processed = true;
+          drawCalendar(aday, amnth, ayear, dotFlag, XC, CALENDAR_Y);
+          cal_or_temp_processed = true;
         #endif
       }
+      needShowScreen = true;
     } 
 
     // Если календарь или температура по условиям не могут быть нарисованы - рисовать часы
@@ -375,10 +377,13 @@ void doEffectWithOverlay(uint8_t aMode) {
           drawTemperature(CLOCK_XC);
         }
       #endif
+      needShowScreen = true;
     }
   }
-  
-  if ((showTextNow || aMode == MC_TEXT) && !isNightClock) {   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
+
+  // Если цикл не "холостой", а была отрисовка эффекта - и пришло время перерисовать текст - сделать это
+  // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
+  if (needShowScreen && (showTextNow || aMode == MC_TEXT) && !isNightClock) {   
     // Нарисовать оверлеем текст бегущей строки
     // Нарисовать текст в текущей позиции
     overlayDelayed = needOverlay;
@@ -392,21 +397,46 @@ void doEffectWithOverlay(uint8_t aMode) {
     runningText();
   }
 
-  FastLEDshow();
+  if (needShowScreen) {
+    #if (MAGIC_2 == 1)
+      // Этот код ничего не делает, но иногда он магическим образом исправляет ситуацию, когда
+      // вывод на матрицу на всех или на некоторых эффектах не идет, мерцает только самый первый диод
+      String tmp; tmp.reserve(50);
+    #endif
+    FastLEDshow();    
+  }
 }
 
-void FastLEDshow() {  
+void FastLEDshow() { 
+  // Если при трансляции отправлять пакеты чаще E131_FRAME_DELAY мс - они забивают сеть до зависания роутера
   #if (USE_E131 == 1)
-  if (workMode == MASTER && (syncMode == PHYSIC || syncMode == LOGIC)) {
-    sendE131Screen();
-    delay(e131_send_delay);
-  }
+    if (abs((long long)(millis() - prevSendTimer)) > E131_FRAME_DELAY) {
+      if (workMode == MASTER && (syncMode == PHYSIC || syncMode == LOGIC)) {
+        sendE131Screen();
+        delay(e131_send_delay);
+      }
+      prevSendTimer = millis();
+    }
   #endif
-  // Если выводить на матрицу чаще 5 мс - она мерцает
-  if (abs((long long)(millis() - prevShowTimer)) > 5) {
+  
+  int16_t dx = abs((long long)(millis() - prevShowTimer)); 
+
+  // +++!!!
+  //if (isAuxActive) {
+  //  DEBUGLN(dx);
+  //}
+
+  #if (MAGIC_1 == 1)
+    // Иногда это помогает в случаях, когда вывод на матрицу на одном или нескольких (всех) эффектах
+    // не идет, мерцает только самый первый диод
+    if (dx >= 5) {
+      FastLED.show();
+    }
+  #else
     FastLED.show();
-    prevShowTimer = millis();
-  }
+  #endif
+
+  prevShowTimer = millis();
 }
 
 void FastLEDsetBrightness(uint8_t value) {
@@ -419,6 +449,7 @@ void FastLEDsetBrightness(uint8_t value) {
 }
 
 void processEffect(uint8_t aMode) {
+  
   // Эффект сменился?  resourcesMode - эффект, который был на предыдущем шаге цикла для которого были выделены ресурсы памяти, aMode - текущий эффект  
   if (resourcesMode != aMode && aMode < MAX_EFFECT) {
     // Освободить ресурсы (в основном динамическое выделение памяти под работу эффекта)    
@@ -426,6 +457,7 @@ void processEffect(uint8_t aMode) {
     resourcesMode = aMode;        
     loadingFlag = true;
   }  
+  
   #if (DEBUG_MEM_EFF == 1)
     bool saveLoadingFlag = loadingFlag;
     int32_t mem_bef, mem_aft, mem_dif;
@@ -472,7 +504,6 @@ void processEffect(uint8_t aMode) {
     case MC_RAIN:                rainRoutine(); break;
     case MC_FIRE2:               fire2Routine(); break;
     case MC_ARROWS:              arrowsRoutine(); break;
-    case MC_WEATHER:             weatherRoutine(); break;
     case MC_TEXT:                runningText(); break;
     case MC_CLOCK:               clockRoutine(); break;
     case MC_DAWN_ALARM:          dawnProcedure(); break;
@@ -481,8 +512,12 @@ void processEffect(uint8_t aMode) {
     case MC_STARS:               starsRoutine(); break;
     case MC_STARS2:              stars2Routine(); break;
     case MC_TRAFFIC:             trafficRoutine(); break;
+
+    #if (USE_ANIMATION == 1)
     case MC_IMAGE:               animationRoutine(); break;
+    case MC_WEATHER:             weatherRoutine(); break;
     case MC_SLIDE:               slideRoutine(); break;
+    #endif
 
     #if (USE_SD == 1)
     case MC_SDCARD:              sdcardRoutine(); break;
@@ -496,22 +531,7 @@ void processEffect(uint8_t aMode) {
   #if (DEBUG_MEM_EFF == 1)
     if (saveLoadingFlag) {
       mem_aft = ESP.getFreeHeap();
-      mem_dif = mem_bef - mem_aft;
-      if (mem_dif != 0) {
-        DEBUG(F("alloc: "));
-        DEBUG(mem_bef);
-        DEBUG(" - ");
-        DEBUG(mem_aft);
-        DEBUG(" --> ");
-        DEBUG(mem_bef - mem_aft);
-        #if defined(ESP8266)
-        DEBUG("  Max: ");
-        DEBUG(ESP.getMaxFreeBlockSize());
-        DEBUG("  Frag: ");
-        DEBUG(ESP.getHeapFragmentation());
-        #endif    
-        DEBUGLN();
-      }
+      printMemoryDiff(mem_bef, mem_aft, F("alloc: "));
     }
   #endif
 }
@@ -560,7 +580,6 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_RAIN:                rainRoutineRelease(); break;
     case MC_FIRE2:               fire2RoutineRelease(); break;
     case MC_ARROWS:              break;
-    case MC_WEATHER:             break;
     case MC_TEXT:                break;
     case MC_CLOCK:               break;
     case MC_DAWN_ALARM:          break;
@@ -569,8 +588,12 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_STARS:               break;
     case MC_STARS2:              stars2RoutineRelease(); break;
     case MC_TRAFFIC:             trafficRoutineRelease(); break;
+
+    #if (USE_ANIMATION == 1)
     case MC_IMAGE:               break;
+    case MC_WEATHER:             break;
     case MC_SLIDE:               slideRoutineRelease(); break;
+    #endif
 
     #if (USE_SD == 1)
     case MC_SDCARD:              sdcardRoutineRelease(); break;
@@ -582,23 +605,8 @@ void releaseEffectResources(uint8_t aMode) {
   }
 
   #if (DEBUG_MEM_EFF == 1)
-  mem_aft = ESP.getFreeHeap();
-  mem_dif = mem_aft - mem_bef;
-  if (mem_dif != 0) {
-    DEBUG(F("free:  "));
-    DEBUG(mem_bef);
-    DEBUG(" - ");
-    DEBUG(mem_aft);
-    DEBUG(" <-- ");
-    DEBUG(mem_aft - mem_bef);
-    #if defined(ESP8266)
-    DEBUG("  Max: ");
-    DEBUG(ESP.getMaxFreeBlockSize());
-    DEBUG("  Frag: ");
-    DEBUG(ESP.getHeapFragmentation());
-    #endif    
-    DEBUGLN();
-  }
+    mem_aft = ESP.getFreeHeap();
+    printMemoryDiff(mem_bef, mem_aft, F("free: "));
   #endif
 }
 
@@ -754,7 +762,7 @@ void setTimersForMode(uint8_t aMode) {
     }
     else
       effectTimer.setInterval(efSpeed);
-  } else if (aMode == MC_CLOCK) {
+  } else if (aMode == MC_CLOCK || aMode == MC_FILL_COLOR) {
       effectTimer.setInterval(250);
   }
 
@@ -785,7 +793,6 @@ void checkIdleState() {
 
   if (!(manualMode || specialMode)) {
     uint32_t ms = millis();
-  //if ((ms - autoplayTimer > autoplayTime) && !(manualMode || e131_wait_command)) {    // таймер смены режима
     if (((ms - autoplayTimer > autoplayTime) // таймер смены режима
            // при окончании игры не начинать ее снова
            || (gameOverFlag && !vREPEAT_PLAY)
@@ -806,11 +813,12 @@ void checkIdleState() {
          (showTextNow && (specialTextEffect >= 0))       // Воспроизводится бегущая строка на фоне указанного эффекта
          #if (USE_SD == 1)
          // Для файла с SD-карты - если указан режим ожидания проигрывания файла до конца, а файл еще не проигрался - не менять эффект
-         || (thisMode == MC_SDCARD && ((vWAIT_PLAY_FINISHED && !play_file_finished) || loadingFlag))
+         // Также если файл проигрался, установлен флаг vREPEAT_PLAY и время смены режима еще не пришло - не менять эффект, продолжать проигрывать ролик
+         || (thisMode == MC_SDCARD && ((vWAIT_PLAY_FINISHED && !play_file_finished) || ((ms - autoplayTimer <= autoplayTime) && play_file_finished && vREPEAT_PLAY) || loadingFlag))
          #endif
       )
       {        
-        // Если бегущая строка или игра не завершены - смены режима не делать
+        // Если бегущая строка или игра не завершены - смены режима не делать        
         ok = false;
       } 
 

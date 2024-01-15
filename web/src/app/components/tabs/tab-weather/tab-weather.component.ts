@@ -13,27 +13,30 @@ import { MatOptionModule } from '@angular/material/core';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {MatRadioModule} from "@angular/material/radio";
 
 @Component({
     selector: 'app-tab-weather',
     templateUrl: './tab-weather.component.html',
     styleUrls: ['./tab-weather.component.scss'],
     standalone: true,
-    imports: [
-        MatFormFieldModule,
-        MatSelectModule,
-        FormsModule,
-        DisableControlDirective,
-        MatOptionModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-    ],
+  imports: [
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    DisableControlDirective,
+    MatOptionModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatRadioModule,
+  ],
 })
 export class TabWeatherComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject();
 
   weather_mode: number = -1;
+  isFarenheit = 0;
 
   codeYandexFormControl = new FormControl(0, [Validators.required]);
   codeOWMFormControl = new FormControl(0, [Validators.required]);
@@ -54,7 +57,7 @@ export class TabWeatherComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'WU|WR|WS|WT';
+          const request = 'WU|WR|WS|WT|TF';
           this.managementService.getKeys(request);
         }
       });
@@ -76,6 +79,9 @@ export class TabWeatherComponent implements OnInit, OnDestroy {
             case 'WT':
               this.updateIntervalFormControl.setValue(this.managementService.state.weather_update);
               break;
+            case 'TF':
+              this.isFarenheit = this.managementService.state.weather_farenheit ? 1 : 0;
+              break;
           }
         }
       });
@@ -91,16 +97,23 @@ export class TabWeatherComponent implements OnInit, OnDestroy {
 
   applyWeather($event: MouseEvent) {
     // @formatter:off
-    const WU = this.managementService.state.weather_type   = this.weather_mode;
-    const WR = this.managementService.state.weather_yandex = Number(this.codeYandexFormControl.value);
-    const WS = this.managementService.state.weather_owm    = Number(this.codeOWMFormControl.value);
-    const WT = this.managementService.state.weather_update = Number(this.updateIntervalFormControl.value);
+    const WU = this.managementService.state.weather_type      = this.weather_mode;
+    const WR = this.managementService.state.weather_yandex    = Number(this.codeYandexFormControl.value);
+    const WS = this.managementService.state.weather_owm       = Number(this.codeOWMFormControl.value);
+    const WT = this.managementService.state.weather_update    = Number(this.updateIntervalFormControl.value);
+    const FT = this.managementService.state.weather_farenheit = this.isFarenheit === 1;
     // @formatter:on
 
-    // $12 4 X;      - использовать получение погоды с погодного сервера 0 - не получать погоду; 1 - Yandex; 2 - OpenWeatherMap
+    // Сохранение настроек погоды - сначала вызываем установку региона '$12 5', затем флаг вкл/выкл '$12 4'
+    // Порядок важен - чтобы минимизировать запросы на обновление погоды с сервера - установка региона не вызывает запрос новых данных,
+    // а вкл/выкл - вызывает запрос обновления погоды. Поэтому - сначала регион, потом - вкл/выкл. В Web это все единым блоком на странице
+
     // $12 5 I С C2; - интервал получения погоды с сервера в минутах (I) и код региона C - Yandex и код региона C2 - OpenWeatherMap
-    this.socketService.sendText(`$12 4 ${WU};`);
     this.socketService.sendText(`$12 5 ${WT} ${WR} ${WS};`);
+    // $12 4 X;      - использовать получение погоды с погодного сервера 0 - не получать погоду; 1 - Yandex; 2 - OpenWeatherMap
+    this.socketService.sendText(`$12 4 ${WU};`);
+    // $12 2 X;      - Температура - градусы Цельсия мли Фаренгейта
+    this.socketService.sendText(`$12 2 ${FT ? 1 : 0};`);
   }
 
   isDisabled(): boolean {
