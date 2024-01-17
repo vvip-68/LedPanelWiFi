@@ -2313,30 +2313,38 @@ void EEPROM_string_write(uint16_t addr, const String& buffer, uint16_t max_len) 
   }
 }
 
-// ---------------------------------------------------------------------------------------------------------
+// ------------------------------------- EEPROM & Text Backup ----------------------------------------------
 
 // Проверка наличия сохраненной резервной копии
 // Возврат: 0 - не найден; 1 - найден в FS микроконтроллера; 2 - найден на SD-карте; 3 - найден в FS и на SD
 uint8_t checkEepromBackup() {
-  File file;
-  String  fileName(F("/eeprom.bin"));
+
   uint8_t existsFS = 0; 
   uint8_t existsSD = 0; 
-  
-  file = LittleFS.open(fileName, "r");
+
+  // Имя файла соответствует версии EEPROM
+  String fileName(F("eeprom_0x")); fileName += IntToHex(EEPROM_OK, 2); fileName += ".hex";  
+
+  // Место хранения на SD и в FS - разное
+  String fullName(FS_BACK_STORAGE);
+  if (!fullName.endsWith("/")) fullName += '/'; 
+  fullName += fileName;
+
+
+  File file = LittleFS.open(fullName, "r");
   if (file) {
-    if (file.size() == EEPROM_MAX) {
-      existsFS = 1;
-    }
+    existsFS = 1;
     file.close();
   }
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
-    file = SD.open(fileName);
+    fullName = SD_BACK_STORAGE;
+    if (!fullName.endsWith("/")) fullName += '/'; 
+    fullName += fileName;
+  
+    file = SD.open(fullName);
     if (file) {
-      if (file.size() == EEPROM_MAX) {
-        existsSD = 2;
-      }
+      existsSD = 2;
       file.close();
     }
   #endif
@@ -2350,112 +2358,178 @@ uint8_t checkEepromBackup() {
 // возврат: true - успех; false - ошибка
 bool saveEepromToFile(const String& pStorage) {
 
-  const uint8_t part_size = 128;
   bool ok = true;
-  uint8_t buf[part_size];
-  size_t len = 0;
-  uint16_t cnt = 0, idx = 0;  
+  size_t buf_size = EEPROM_MAX, len = 0;
   File file;
-  
-  #if defined(ESP32)
-    String fileName(F("/eeprom.bin"));
-  #else
-    String fileName(("eeprom.bin"));
-  #endif
 
+  // Несохраненные в EEPROM переменные принудительно сохранить
   saveSettings();
 
   String storage(pStorage);
+  String message; message.reserve(256);
     
   if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = "FS";
 
-  DEBUG(F("Сохранение файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fileName);
+  uint8_t *buf = (uint8_t*)malloc(buf_size);
+  if (buf == nullptr) {
+    DEBUGLN(F("Недостаточно памяти для сохранения резервной копии настроек"));
+    return false;
+  }
+  memset(buf, 0, buf_size);
 
-  memset(buf, 0, part_size);
+  // Имя файла соответствует версии EEPROM
+  String fileName(F("eeprom_0x")); fileName += IntToHex(EEPROM_OK, 2); fileName += ".hex";  
+  String fullName(storage == "FS" ? FS_BACK_STORAGE : SD_BACK_STORAGE);
+  if (!fullName.endsWith("/")) fullName += '/'; 
+  fullName += fileName;
 
-  String message;
+  String backName(fullName); backName.replace(".hex", ".bak");
+
+  DEBUG(F("Сохранение файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fullName);
 
   if (storage == "FS") {
 
-    // Если файл с таким именем уже есть - удалить (перезапись файла новым)
-    if (LittleFS.exists(fileName)) {
-      ok = LittleFS.remove(fileName);
+    // Если файл с таким именем уже есть - переименовать в файл резервной копии
+    if (LittleFS.exists(fullName)) {
+      ok = LittleFS.rename(fullName, backName);
       if (!ok) {
-        message = F("Ошибка создания файла '"); message += fileName; message += '\'';
-        DEBUGLN(message);
+        DEBUGLN(F("Ошибка создания файла"));
+        free(buf);
         return false;
       }
     }
   
-    file = LittleFS.open(fileName, "w");
+    file = LittleFS.open(fullName, "w");
   }
 
   #if (USE_SD == 1 && FS_AS_SD == 0) 
   if (storage == "SD") {
 
-    // Если файл с таким именем уже есть - удалить (перезапись файла новым)
-    if (SD.exists(fileName)) {
-      ok = SD.remove(fileName);
+    // Если файл с таким именем уже есть - переименовать в файл резервной копии
+    if (SD.exists(fullName)) {
+      ok = SD.rename(fullName, backName);
       if (!ok) {
-        message = F("Ошибка создания файла '"); message += fileName; message += '\'';
-        DEBUGLN(message);
+        DEBUGLN(F("Ошибка создания файла"));
+        free(buf);
         return false;
       }
     }
 
-    file = SD.open(fileName, FILE_WRITE);
+    file = SD.open(fullName, FILE_WRITE);
   }
   #endif
 
   if (!file) {
-    message = F("Ошибка создания файла '"); message += fileName; message += '\'';
-    DEBUGLN(message);
-    return false;
-  }
-
-  while (idx < EEPROM_MAX) {
-    yield();
-    if (cnt >= part_size) {
-      len = file.write(buf, cnt);
-      ok = len == cnt;
-      if (!ok) break;
-      cnt = 0;
-      memset(buf, 0, part_size);
-    }
-    buf[cnt++] = EEPROMread(idx++);
-  }
-
-  // Дописываем остаток
-  if (ok && cnt > 0) {
-    len = file.write(buf, cnt);
-    ok = len == cnt;
-  }
-  
-  if (!ok) {
-    message = F("Ошибка записи в файл '"); message += fileName; message += '\'';
-    DEBUGLN(message);
-    file.close();
-    return false;
-  }          
-  
-  file.close();
-  DEBUGLN(F("Файл сохранен."));
-
-  eeprom_backup = checkEepromBackup();
-
-  // Сделать резервную копию строк текста бегущей строки
-  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
-    char c = getAZIndex(i);
-    String tmp(getTextByIndex(i));
-    DEBUG(F("Сохранение строки [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(tmp); DEBUGLN("'");
-    if (storage == "FS") {
-      saveTextLineFS(c, tmp, true);
+    DEBUGLN(F("Ошибка создания файла"));
+    free(buf);
+    #if (USE_SD == 1 && FS_AS_SD == 0)    
+    if (storage == "SD") {
+      SD.rename(backName, fullName);
     } else {
-      saveTextLineSD(c, tmp, true);
+      LittleFS.rename(backName, fullName);
+    }
+    #else
+      LittleFS.rename(backName, fullName);
+    #endif
+    eeprom_backup = checkEepromBackup();
+    return false;
+  }
+
+  // Скопировать данные из EEPROM в буфер
+  for (uint16_t i = 0; i < EEPROM_MAX; i++) {
+    buf[i] = EEPROMread(i);
+  }
+
+  // Сохранить буфер в файл на диск
+  len = file.write(buf, buf_size);
+  ok = len == buf_size;
+
+  // Сохраняем тексты бегущей строки в формате idx-len-txt-'/0'
+  //   idx - индекc '0'..'9', 'A'..'Z'
+  //   len - длина бегущей строки
+  //   txt - содержимое бегущей строки
+  //   /0  - разделитель cahr(0)
+
+  if (ok) {
+    // Сделать резервную копию строк текста бегущей строки
+    for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
+      
+      yield();
+      
+      char c = getAZIndex(i);
+      String text(getTextByIndex(i));
+  
+      // Буфер должен вмещать строку, + 1 байт - индекс строки + 2 байта - длину строки + 1 байт терминальный символ
+      size_t len_text = text.length(), lenw = 0, lend = len_text + 4;      
+      // Если текущий буфер недостаточен для размещения строки - выделить новый
+      if (lend > buf_size) {
+        free(buf);
+        buf_size = lend;
+        buf = (uint8_t*)malloc(buf_size);
+        if (buf == nullptr) {
+          DEBUGLN(F("Недостаточно памяти для сохранения резервной копии настроек"));
+          ok = false; 
+          break;        
+        }
+      }
+      
+      memset(buf, 0, buf_size);
+      buf[0] = c;
+      if (len_text > 0) {
+        buf[1] = (uint8_t)(len_text & 0xff);
+        buf[2] = (uint8_t)((len_text >> 8) & 0xff);      
+        text.toCharArray(reinterpret_cast<char*>(buf + 3), len);
+      }
+      lenw = file.write(buf, len_text + 4);
+      ok = lenw == len_text + 4;       
+      if (!ok) break;
+      
+      DEBUG(F("Сохранение строки [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(text); DEBUGLN("'");
     }
   }
+
+  file.close();
+
+  if (!ok) {
+    DEBUGLN(F("Ошибка записи в файл"));
+    free(buf);
+
+    // Данные в файл сохранены не полностью - файл поврежден и непригоден к дальнейшему восстановлению - удалить его
+    // Восстановить из сохраненного (переименованного)
+    #if (USE_SD == 1 && FS_AS_SD == 0)
+      if (storage == "SD") {
+        SD.remove(fullName);
+        SD.rename(backName, fullName);
+      } else {
+        LittleFS.remove(fullName);
+        LittleFS.rename(backName, fullName);
+      }
+    #else
+      LittleFS.remove(fullName);
+      LittleFS.rename(backName, fullName);
+    #endif    
+        
+  } else {
+
+    DEBUGLN(F("Файл сохранен."));
+
+    // Удалить файл предыдущего сохранения
+    #if (USE_SD == 1 && FS_AS_SD == 0)
+      if (storage == "SD") {
+        SD.remove(backName);
+      } else {
+        LittleFS.remove(backName);
+      }
+    #else
+      LittleFS.remove(backName);
+    #endif    
+    
+  }
+
+  // Проверить что все ок, файл резервной копии на месте  
+  eeprom_backup = checkEepromBackup();
   
-  return true;
+  return ok;
 }
 
 // Загрузить eeprom из файла
@@ -2464,65 +2538,64 @@ bool saveEepromToFile(const String& pStorage) {
 // возврат: true - успех; false - ошибка
 bool loadEepromFromFile(const String& pStorage) {
 
-  const uint8_t part_size = 128;
   bool ok = true;
-  uint8_t buf[part_size];
-
-  size_t len = 0;
-  uint16_t idx = 0;  
-  File file;
-
-  #if defined(ESP32)
-    String fileName = F("/eeprom.bin");
-  #else
-    String fileName = F("eeprom.bin");
-  #endif
-
+  String message; message.reserve(256);
+  String text; text.reserve(512);
+  
   String storage(pStorage);
   if (USE_SD == 0 || (USE_SD == 1 && FS_AS_SD == 1)) storage = "FS";
   
-  String message;
-  
-  DEBUG(F("Загрузка файла: "));
-  DEBUG(storage);
-  DEBUG(F(":/"));
-  DEBUGLN(fileName);
+  size_t buf_size = EEPROM_MAX, len = 0;
+  File file;
 
-  if (storage == "FS") {
-    file = LittleFS.open(fileName, "r");
-  }
+  // Имя файла соответствует версии EEPROM
+  String fileName(F("eeprom_0x")); fileName += IntToHex(EEPROM_OK, 2); fileName += ".hex";  
+  String fullName(storage == "FS" ? FS_BACK_STORAGE : SD_BACK_STORAGE);
+  if (!fullName.endsWith("/")) fullName += '/'; 
+  fullName += fileName;
+
+  DEBUG(F("Загрузка файла: ")); DEBUG(storage); DEBUG(F(":/")); DEBUGLN(fullName);
 
   #if (USE_SD == 1 && FS_AS_SD == 0) 
   if (storage == "SD") {
-    file = SD.open(fileName, FILE_READ);
+    file = SD.open(fullName, FILE_READ);
+  } else {
+    file = LittleFS.open(fullName, "r");
   }
+  #else
+    file = LittleFS.open(fullName, "r");
   #endif
 
   if (!file) {
-    message = F("Файл '"); message += fileName; message += F("' не найден.");
+    message = F("Файл '"); message += fullName; message += F("' не найден.");
+    DEBUGLN(message);
+    return false;
+  }
+
+  // Выделить память под буфер загрузки
+  uint8_t *buf = (uint8_t*)malloc(buf_size);
+  if (buf == nullptr) {
+    message = F("Недостаточно памяти для загрузки резервной копии настроек"); 
     DEBUGLN(message);
     return false;
   }
   
   clearEEPROM();
   
-  while (idx < EEPROM_MAX) {
-    yield();
-    memset(buf, 0, part_size);
-    len = file.read(buf, part_size);
-    for (uint8_t i=0; i<len; i++) {
-      EEPROMwrite(idx++, buf[i]);
-    }
-  }
-  file.close();
-
-  ok = idx == EEPROM_MAX;
+  memset(buf, 0, buf_size);
+  len = file.read(buf, buf_size);
+  ok = (len == buf_size);
 
   if (!ok) {
-    message = F("Ошибка чтения файла '"); message += fileName; message += '\'';
+    free(buf);
+    message = F("Ошибка чтения файла '"); message += fullName; message += '\'';
     DEBUGLN(message);
     return false;
   }          
+
+  for (uint16_t i = 0; i < len; i++) {
+    EEPROMwrite(i, buf[i]);
+  }
 
   // Записать в 0 текущее значение EEPROM_OK, иначе при несовпадении версии
   // после перезагрузки будут восстановлены значения по-умолчанию
@@ -2531,19 +2604,65 @@ bool loadEepromFromFile(const String& pStorage) {
   saveSettings();
 
   // Загрузить строки из резервной копии
-  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
-    char c = getAZIndex(i);
-    String tmp;
-    if (storage == "FS") {
-      tmp = getTextByIndexFS(i, true);
-    } else {
-      tmp = getTextByIndexSD(i, true);
-    }
-    DEBUG(F("Загружена строка [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(tmp); DEBUGLN("'");
-    saveTextLineFS(c, tmp, false);
-  }
+  // Тексты бегущей строки сохранены в формате idx-len-txt-'/0'
+  //   idx - индекc '0'..'9', 'A'..'Z'
+  //   len - длина бегущей строки
+  //   txt - содержимое бегущей строки
+  //   /0  - разделитель cahr(0)
   
-  return true;
+  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
+
+    yield();    
+    memset(buf, 0, buf_size);
+
+    // Читаем индекс строки и ее длину
+    len = file.read((uint8_t*)buf, 3);
+    if (len != 3) {
+      ok = false; 
+      break;
+    }
+
+    char c = char(buf[0]);
+    size_t len_text = (((buf[2] & 0xff) << 8) | buf[1]) +  1; // длина записанной строки + терминальный символ '\0'
+
+    // Если текущий буфер недостаточен для размещения строки - выделить новый
+    if (len_text > buf_size) {
+      free(buf);
+      buf_size = len_text;
+      buf = (uint8_t*)malloc(buf_size);
+      if (buf == nullptr) {
+        message = F("Недостаточно памяти для сохранения резервной копии настроек"); 
+        DEBUGLN(message);
+        ok = false; 
+        break;        
+      }
+    }
+    
+    memset(buf, '\0', buf_size);     
+    size_t len = file.read((uint8_t*)buf, len_text);
+          
+    if (len != len_text) {
+      ok = false;
+      break;   
+    }
+
+    text = (char*)buf;    
+    saveTextLine(c, text);    
+
+    DEBUG(F("Загружена строка [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(text); DEBUGLN("'");    
+  }
+
+  file.close();
+  free(buf);
+
+  if (!ok) {
+    free(buf);
+    message = F("Ошибка восстановления настроек из резервной копии: '"); message += fullName; message += '\'';
+    DEBUGLN(message);
+    return false;
+  }          
+  
+  return ok;
 }
 
 // ----------------------------------------------------------

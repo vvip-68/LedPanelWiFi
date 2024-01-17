@@ -2035,21 +2035,16 @@ String getTextByAZIndex(char c) {
 
 // получить строку из массива строк текстов бегущей строки по индексу 0..35
 String getTextByIndex(uint8_t idx) {
-  return getTextByIndexFS(idx, false);
-}
-
-// получить строку из массива строк текстов бегущей строки по индексу 0..35
-String getTextByIndexFS(uint8_t idx, bool backup) {
   if (idx >= TEXTS_MAX_COUNT) return "";
 
   // preparedTextIdx - индекс строки, которая находится в preparedText
   // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
-  if (preparedTextIdx == idx && preparedTextStorage == "FS") return preparedText;
+  if (preparedTextIdx == idx) return preparedText;
 
   // Загрузить текст из файловой стистемы микроконтроллера
   char c = getAZIndex(idx);
 
-  String directoryName(backup ? BK_TEXT_STORAGE : FS_TEXT_STORAGE);    
+  String directoryName(FS_TEXT_STORAGE);    
   String fileName(directoryName); fileName += '/'; fileName += c;  
   String text;
   
@@ -2057,7 +2052,7 @@ String getTextByIndexFS(uint8_t idx, bool backup) {
     
     File file = LittleFS.open(fileName, "r");
     if (file) {
-      // считываем содержимое файла ssid
+      // считываем содержимое файла
       char* buf = (char*)malloc(1024);
       memset(buf, '\0', 1024); 
       size_t len = file.read((uint8_t*)buf, 1024);
@@ -2066,7 +2061,6 @@ String getTextByIndexFS(uint8_t idx, bool backup) {
         text = String(buf);
         preparedText = text;
         preparedTextIdx = idx;
-        preparedTextStorage = "FS";
       }
       free(buf); 
     } else {
@@ -2076,63 +2070,9 @@ String getTextByIndexFS(uint8_t idx, bool backup) {
   return text;
 }
 
-// получить строку из массива строк текстов бегущей строки по индексу 0..35
-String getTextByIndexSD(uint8_t idx, bool backup) {
-  if (idx >= TEXTS_MAX_COUNT) return "";
-
-  #if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1)
-
-    return getTextByIndexFS(idx, backup);
-  
-  #else
-
-    // preparedTextIdx - индекс строки, которая находится в preparedText
-    // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
-    if (preparedTextIdx == idx && preparedTextStorage == "SD") return preparedText;
-  
-    // Загрузить текст из файловой стистемы микроконтроллера
-    char c = getAZIndex(idx);
-  
-    String directoryName(SD_TEXT_STORAGE);
-    if (backup) directoryName += ".bkp";
-
-    String fileName(directoryName); fileName += '/'; fileName += c;
-
-    String text;
-
-    if (SD.exists(fileName)) {
-      
-      File file = SD.open(fileName, "r");
-      if (file) {
-        // считываем содержимое файла ssid
-        char* buf = (char*)malloc(1024);
-        memset(buf, '\0', 1024); 
-        size_t len = file.read((uint8_t*)buf, 1024);
-        file.close();
-        if (len > 0) {
-          text = String(buf);
-          preparedText = text;
-          preparedTextIdx = idx;
-          preparedTextStorage = "SD";
-        }
-        free(buf);
-      } else {
-        DEBUG(F("Ошибка чтения строки с индексом '")); DEBUG(c); DEBUGLN('\'');    
-      }    
-    }
-    return text;
-  #endif
-}
-
 void saveTextLine(char index, const String& text) {
-  
-  saveTextLineFS(index, text, false);
-  
-}
 
-void saveTextLineFS(char index, const String& text, bool backup) {
-  
-  String directoryName = backup ? BK_TEXT_STORAGE : FS_TEXT_STORAGE;
+  String directoryName(FS_TEXT_STORAGE);
 
   if (!LittleFS.exists(directoryName)) {
     int8_t num = CountTokens(directoryName, '/');
@@ -2179,56 +2119,6 @@ void saveTextLineFS(char index, const String& text, bool backup) {
   if (!ok) {
     DEBUG(F("Ошибка сохранения строки с индексом '")); DEBUG(index); DEBUGLN('\'');
   } 
-}
-
-void saveTextLineSD(char index, const String& text, bool backup) {
-
-  #if (USE_SD == 0 || USE_SD == 1 && FS_AS_SD == 1)
-  
-    saveTextLineFS(index, text, backup);
-  
-  #else  
-
-    String directoryName = backup ? BK_TEXT_STORAGE : SD_TEXT_STORAGE;
-  
-    bool ok = true;
-    if (!SD.exists(directoryName)) {
-      ok = SD.mkdir(directoryName);
-      if (!ok) {
-        DEBUG(FPSTR(MSG_FOLDER_CREATE_ERROR)); DEBUG(F(" '")); DEBUG(directoryName); DEBUGLN('\'');      
-      }
-    }
-      
-    String fileName(directoryName); fileName += '/'; fileName += index;    
-    
-    File file;
-    
-    // Если файл с таким именем уже есть - удалить (перезапись файла новым)
-    if (SD.exists(fileName)) {
-      ok = SD.remove(fileName);
-    }
-  
-    if (ok) {
-      file = SD.open(fileName, "w");
-      if (file) {
-        size_t len = text.length()+1, lenw = 0;
-        if (len > 1024) len = 1024;
-        char buf[1024];
-        memset(buf, '\0', 1024);
-        text.toCharArray(buf, len);
-        lenw = file.write((uint8_t*)buf, len);
-        ok = lenw == len;       
-        file.close();
-      } else {
-        ok = false;
-      }
-    }
-    
-    if (!ok) {
-      DEBUG(F("Ошибка сохранения строки с индексом '")); DEBUG(index); DEBUGLN('\'');
-    }
-     
-  #endif
 }
 
 // Сканировать массив текстовых строк на наличие событий постоянного отслеживания - макросов {P}

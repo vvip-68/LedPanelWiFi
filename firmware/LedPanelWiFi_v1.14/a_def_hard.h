@@ -565,7 +565,7 @@
 #elif (CONFIG_IDF_TARGET_ESP32S3)
   // ESP32-S3               ->  'ESP32S3 Dev Module'
   #define LED_PIN (14U)         // пин ленты
-  #define PIN_BTN (15U)         // кнопка подключена сюда (PIN --- КНОПКА --- GND)
+  #define PIN_BTN (7U)          // кнопка подключена сюда (PIN --- КНОПКА --- GND)
   #define SRX (16U)             // пин ESP32, который подключен в TX пин (3) модуля DFPlayer
   #define STX (17U)             // пин ESP32, который подключен в RX пин (2) модуля DFPlayer
   #define POWER_PIN (6U)        // G6 управляющий пин вкл/выкл матрицы через MOSFET или реле

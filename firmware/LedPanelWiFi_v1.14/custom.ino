@@ -419,14 +419,14 @@ void FastLEDshow() {
     }
   #endif
   
-  int16_t dx = abs((long long)(millis() - prevShowTimer)); 
-
-  // +++!!!
-  //if (isAuxActive) {
-  //  DEBUGLN(dx);
-  //}
-
   #if (MAGIC_1 == 1)
+    int16_t dx = abs((long long)(millis() - prevShowTimer)); 
+
+    // +++!!!
+    //if (isAuxActive) {
+    //  DEBUGLN(dx);
+    //}
+
     // Иногда это помогает в случаях, когда вывод на матрицу на одном или нескольких (всех) эффектах
     // не идет, мерцает только самый первый диод
     if (dx >= 5) {

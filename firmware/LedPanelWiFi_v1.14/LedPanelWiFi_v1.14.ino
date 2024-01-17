@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0114")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0117")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -624,6 +624,35 @@ void setup() {
 
   DEBUGLN();
 
+  // Инициализация SD-карты
+  #if (USE_SD == 1)
+    InitializeSD();
+  #endif
+
+  // Проверить наличие резервной копии настроек EEPROM в файловой системе MK и/или на SD-карте
+  eeprom_backup = checkEepromBackup();
+  if (eeprom_backup > 0) {
+    // Имя файла соответствует версии EEPROM
+    String fileName(F("eeprom_0x")); fileName += IntToHex(EEPROM_OK, 2); fileName += ".hex";  
+    // Найдено на SD?
+    if ((eeprom_backup & 0x02) > 0) {
+      String fullName(SD_BACK_STORAGE);
+      if (!fullName.endsWith("/")) fullName += '/'; 
+      fullName += fileName;
+      DEBUG(F("Найдены сохраненные настройки: SD:/"));
+      DEBUGLN(fullName);
+    }
+    // Найдено в FS?
+    if ((eeprom_backup & 0x01) > 0) {
+      String fullName(FS_BACK_STORAGE);
+      if (!fullName.endsWith("/")) fullName += '/'; 
+      fullName += fileName;
+      DEBUG(F("Найдены сохраненные настройки: FS:/"));
+      DEBUGLN(fullName);
+    }
+    DEBUGLN();
+  }
+
   if (sMATRIX_TYPE == 2) {
     pWIDTH = mapWIDTH;
     pHEIGHT = mapHEIGHT;
@@ -668,22 +697,6 @@ void setup() {
     putMatrixSegmentType(sMATRIX_TYPE);
   }
   
-  // Инициализация SD-карты
-  #if (USE_SD == 1)
-    InitializeSD();
-  #endif
-
-  // Проверить наличие резервной копии настроек EEPROM в файловой системе MK и/или на SD-карте
-  eeprom_backup = checkEepromBackup();
-  if ((eeprom_backup & 0x02) > 0) {
-    DEBUG(F("Найдены сохраненные настройки: "));
-    DEBUGLN(F("SD://eeprom.bin"));
-  }
-  if ((eeprom_backup & 0x01) > 0) {
-    DEBUG(F("Найдены сохраненные настройки: "));
-    DEBUGLN(F("FS://eeprom.bin"));
-  }
-
   #if (USE_POWER == 1)
     if (vPOWER_PIN >= 0) {
       pinMode(vPOWER_PIN, OUTPUT);
