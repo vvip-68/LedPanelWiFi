@@ -850,23 +850,31 @@ void setup() {
         if (final) {
           if (!error && file) {
             file.close();
+            // Загруженное имя файла передается от сервера. Стандартное имя 'eeprom_0xXX.hex' могло быть переименовано, 
+            // чтобы было понятно от какого устройства бэкап. Например dev_lamp.hex. Под этим же именем оно и загрузилось в корень FS
             String srcFile('/'); srcFile += filename;
+            // Реальное имя файла сохраненных настроек должно быть 'eeprom_0xXX.hex', где XX - значение константы версия EEPROM_OK
+            // и файл с настройками должен быть размещен в папке '/web/assets'.
             String dstFile(FS_BACK_STORAGE); 
             if (!dstFile.endsWith("/")) dstFile += '/'; 
-            dstFile += filename;
+            dstFile += F("eeprom_0x"); dstFile += IntToHex(EEPROM_OK, 2); dstFile += ".hex";  
+            // Если файл со старыми настройками есть в папке назначения - удалить его
             if (LittleFS.exists(dstFile)) LittleFS.remove(dstFile);
+            // Теперь переносим только что загруженный файл в место постоянного размещения и с новым имененм
             error = !LittleFS.rename(srcFile, dstFile);  
-            if (error) {
-              request->send(400, MIMETYPE_HTML, "File save error!");
-              request->client()->close();
-              DEBUGLOG(printf_P, PSTR("файл: '%s'. Ошибка записи.\n"), filename.c_str());
-            } else {
-              request->send(200, MIMETYPE_HTML, "File upload completed!");
-              request->client()->close();
-              DEBUGLOG(printf_P, PSTR("Загрузка выполнена: %i байт за %.2f сек ( %.2f КБ/сек ).\n"), index + len, (millis() - startTimer) / 1000.0, 1.0 * (index + len) / (millis() - startTimer));
-              eeprom_backup = checkEepromBackup();
-              addKeyToChanged("EE");
-            }
+          }
+          if (error) {
+            // Если была ошибка - сообщаем о неудачном завершении операци
+            request->send(400, MIMETYPE_HTML, "File save error!");
+            request->client()->close();
+            DEBUGLOG(printf_P, PSTR("файл: '%s'. Ошибка записи.\n"), filename.c_str());
+          } else {
+            // Если всё прошло ок - сообщаем об успешном завершении операции
+            request->send(200, MIMETYPE_HTML, "File upload completed!");
+            request->client()->close();
+            DEBUGLOG(printf_P, PSTR("Загрузка выполнена: %i байт за %.2f сек ( %.2f КБ/сек ).\n"), index + len, (millis() - startTimer) / 1000.0, 1.0 * (index + len) / (millis() - startTimer));
+            eeprom_backup = checkEepromBackup();
+            addKeyToChanged("EE");
           }
         }
       }
