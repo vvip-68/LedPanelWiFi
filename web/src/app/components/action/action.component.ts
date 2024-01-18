@@ -7,6 +7,7 @@ import {WebsocketService} from '../../services/websocket/websocket.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
+import {Base} from "../base.class";
 
 @Component({
     selector: 'app-action',
@@ -15,7 +16,7 @@ import { NgClass } from '@angular/common';
     standalone: true,
     imports: [NgClass, MatTooltipModule, MatIconModule]
 })
-export class ActionComponent implements OnInit, OnDestroy {
+export class ActionComponent extends Base implements OnInit, OnDestroy {
 
   actionType = ActionType;
 
@@ -39,10 +40,9 @@ export class ActionComponent implements OnInit, OnDestroy {
 
   private _config!: ActionModel;
 
-  private destroy$ = new Subject();
-
   constructor(private socketService: WebsocketService,
               private managementService: ManagementService) {
+    super();
   }
 
   ngOnInit() {
@@ -113,10 +113,5 @@ export class ActionComponent implements OnInit, OnDestroy {
 
   getIndicatorClass(): string {
     return `indicator state_${this.isActive ? 'ON' : 'OFF'}` + (this.managementService.state.e131_mode == 2 && this.managementService.state.e131_streaming === true ? ' streaming' : '');
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 }

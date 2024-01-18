@@ -1,6 +1,7 @@
 import {Injectable, OnDestroy} from '@angular/core';
 import {Subject, Subscription, take, timer} from 'rxjs';
 import {isNullOrUndefined} from '../helper';
+import {Base} from "../../components/base.class";
 
 export enum MessageType {
   INFO,
@@ -10,15 +11,15 @@ export enum MessageType {
 @Injectable({
   providedIn: 'root'
 })
-export class CommonService implements OnDestroy {
+export class CommonService extends Base implements OnDestroy {
 
   public info = '';
   public error = '';
 
   private timer: Subscription | null = null;
-  private destroy$ = new Subject();
 
   constructor() {
+    super();
   }
 
   //* Вывод информационного сообщения или сообщения об ошибке в footer страницы
@@ -51,9 +52,8 @@ export class CommonService implements OnDestroy {
     if (value.length >= number && !allow) $event.preventDefault();
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     if (this.timer) this.timer.unsubscribe();
-    this.destroy$.next(true);
-    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 }

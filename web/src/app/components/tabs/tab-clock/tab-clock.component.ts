@@ -22,6 +22,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {stripComments} from "jsonc-parser";
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-clock',
@@ -45,8 +46,7 @@ import {stripComments} from "jsonc-parser";
         InputRestrictionDirective,
     ],
 })
-export class TabClockComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabClockComponent extends Base implements OnInit, OnDestroy {
 
   public supportWeather: boolean = false;
   public time12h = -1;
@@ -84,6 +84,7 @@ export class TabClockComponent implements OnInit, OnDestroy {
     public L: LanguagesService,
     private httpClient: HttpClient)
   {
+    super();
     this.color_list.push(new ComboBoxItem(this.L.$('Одноцветные'), 0));
     this.color_list.push(new ComboBoxItem(this.L.$('Каждая цифра свой цвет'), 1));
     this.color_list.push(new ComboBoxItem(this.L.$('Часы, точки, минуты'), 2));
@@ -411,11 +412,6 @@ export class TabClockComponent implements OnInit, OnDestroy {
 
     this.socketService.sendText(`$6 1|${server_name}`);
     this.socketService.sendText(`$6 10|${time_zone}`);
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
 }

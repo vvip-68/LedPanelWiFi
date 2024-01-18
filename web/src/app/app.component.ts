@@ -22,6 +22,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipDefaultOptions, MatTooltipModule} from '@angular/material/tooltip';
+import {Base} from "./components/base.class";
 
 export const customTooltipDefaults: MatTooltipDefaultOptions = {
   showDelay: 1000,
@@ -39,7 +40,7 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
       TabEffectsComponent, TabTextsPanelComponent, TabClockComponent, TabAlarmComponent, TabModesComponent, TabDrawComponent, TabGamesComponent, TabSetupComponent
     ]
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent extends Base implements OnInit, OnDestroy {
   private static readonly DARK_THEME_CLASS = 'dark-theme';
 
   get isDarkTheme() {
@@ -67,8 +68,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private freeMemory: number = 0;
 
-  private destroy$ = new Subject();
-
   private colorDialogRef: MatDialogRef<ColorPickerComponent> | null = null;
 
   constructor(@Inject(DOCUMENT) private document: Document,
@@ -76,6 +75,7 @@ export class AppComponent implements OnInit, OnDestroy {
               public managementService: ManagementService,
               public commonService: CommonService,
               public L: LanguagesService) {
+    super();
     this.isDarkTheme = window.localStorage[AppComponent.DARK_THEME_CLASS] === 'true' || false;
 
     this.socketService.isConnected$
@@ -154,11 +154,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onRightMouseClick(e: MouseEvent) {
     e.preventDefault();
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
 }

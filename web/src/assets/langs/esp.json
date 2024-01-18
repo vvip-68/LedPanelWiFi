@@ -493,5 +493,11 @@
   "12/24 формат": "Formato de hora",
   "12H": "12H",
   "24H": "24H",
-  "Градусы": "Temperatura del grado"
+  "Градусы": "Temperatura del grado",
+  "Файл:": "Archivo:",
+  "Загрузить в контроллер": "Cargar en el controlador y restaurar la configuración",
+  "Сохранить в файл": "Descargue y guarde el archivo de configuración",
+  "ОК": "",
+  "Ошибка": "Error",
+  "Upload error": "Error al cargar el archivo en el controlador"
 }

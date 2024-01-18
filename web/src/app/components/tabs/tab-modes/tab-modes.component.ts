@@ -20,6 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import {MatSlideToggleChange, MatSlideToggleModule} from "@angular/material/slide-toggle";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatCheckboxModule} from "@angular/material/checkbox";
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-modes',
@@ -42,8 +43,7 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
     MatCheckboxModule,
   ],
 })
-export class TabModesComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabModesComponent extends Base implements OnInit, OnDestroy {
 
   public mode1_time: string = '00:00';
   public mode1_effect = -3;
@@ -84,6 +84,7 @@ export class TabModesComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -276,11 +277,6 @@ export class TabModesComponent implements OnInit, OnDestroy {
         this.isMode6AuxOn = false;
         break;
     }
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
 }

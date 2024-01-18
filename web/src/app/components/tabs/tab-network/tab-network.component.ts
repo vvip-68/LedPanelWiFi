@@ -11,6 +11,7 @@ import { TabNetworkSsidComponent } from '../tab-network-ssid/tab-network-ssid.co
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-network',
@@ -25,8 +26,7 @@ import { MatTabsModule } from '@angular/material/tabs';
         TabNetworkApComponent,
     ],
 })
-export class TabNetworkComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabNetworkComponent extends Base implements OnInit, OnDestroy {
 
   constructor(
     public socketService: WebsocketService,
@@ -34,6 +34,7 @@ export class TabNetworkComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -43,8 +44,4 @@ export class TabNetworkComponent implements OnInit, OnDestroy {
     return !this.socketService.isConnected;
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

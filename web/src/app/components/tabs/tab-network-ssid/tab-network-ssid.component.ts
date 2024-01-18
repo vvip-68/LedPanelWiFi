@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-network-ssid',
@@ -30,8 +31,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         InputRestrictionDirective,
     ],
 })
-export class TabNetworkSsidComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
 
   hidePassword = true;
 
@@ -47,6 +47,7 @@ export class TabNetworkSsidComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -109,8 +110,4 @@ export class TabNetworkSsidComponent implements OnInit, OnDestroy {
     this.socketService.sendText('$21 2;');
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

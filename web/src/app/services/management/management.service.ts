@@ -10,11 +10,12 @@ import {ComboBoxItem} from "../../models/combo-box.model";
 import {distinctUntilChanged, map} from "rxjs/operators";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {stripComments} from "jsonc-parser";
+import {Base} from "../../components/base.class";
 
 @Injectable({
   providedIn: 'root'
 })
-export class ManagementService implements OnDestroy {
+export class ManagementService extends Base implements OnDestroy {
 
   private checkInterval = 2000;
 
@@ -53,7 +54,6 @@ export class ManagementService implements OnDestroy {
   public matrixColors: Array<string[]> = [];                 // Цвета в массиве рисования
   public tz_map: Map<string, ComboBoxItem[]> = new Map();    // Зоны часового пояса
 
-  private destroy$ = new Subject();
   private stateValues: Map<string, boolean> = new Map();
   private parts: Map<string, string> = new Map();
 
@@ -68,7 +68,7 @@ export class ManagementService implements OnDestroy {
               private wsService: WebsocketService,
               private httpClient: HttpClient,
               private L: LanguagesService) {
-
+    super();
     this.state = new StateModel();
 
     // сообщения о текущем статусе параметров устройства
@@ -686,8 +686,4 @@ export class ManagementService implements OnDestroy {
 
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

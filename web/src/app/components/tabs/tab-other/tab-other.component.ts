@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
@@ -15,28 +15,32 @@ import { MatButtonModule } from '@angular/material/button';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {Base} from "../../base.class";
+import {FileUploaderWrapper} from "../../../services/file.uploader.wrapper";
+import {FileUploadModule} from "ng2-file-upload";
 
 @Component({
     selector: 'app-tab-other',
     templateUrl: './tab-other.component.html',
     styleUrls: ['./tab-other.component.scss'],
     standalone: true,
-    imports: [
-        MatFormFieldModule,
-        MatInputModule,
-        FormsModule,
-        ReactiveFormsModule,
-        DisableControlDirective,
-        MatButtonModule,
-        MatTooltipModule,
-        MatIconModule,
-    ],
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DisableControlDirective,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    FileUploadModule,
+  ],
 })
-export class TabOtherComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabOtherComponent extends Base implements OnInit, OnDestroy {
 
   // @ts-ignore
   @ViewChild('input2') input2: ElementRef;
+  @ViewChild('uploadFileForm') uploadFileForm!: ElementRef;
 
   autoLimitFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 50000)]);
   systemNameFormControl = new FormControl('', [Validators.required]);
@@ -45,13 +49,32 @@ export class TabOtherComponent implements OnInit, OnDestroy {
   fs_allow: boolean = true;
   sd_allow: boolean = false;
   backup_place: number = 0;
+  backup_file: string = '';
 
   constructor(
     public socketService: WebsocketService,
     public managementService: ManagementService,
     public commonService: CommonService,
     public L: LanguagesService,
-    private dialog: MatDialog) {
+    public fileUploaderWrapper: FileUploaderWrapper,
+    private dialog: MatDialog)
+  {
+    super();
+    this.fileUploaderWrapper.complete$.subscribe((result) => {
+      if (result.result === 'success') {
+        // Отправить команду восстановления конфигурации из загруженного файла
+        // $23 2 ST;   - Загрузить EEPROM из файла  ST = 0 - внутр. файл. системы; 1 - на SD-карты
+        this.socketService.sendText('$23 2 0;');
+        this.managementService.text_lines = [];
+      } else if (result.result === 'error') {
+        // Вывести сообщение об ошибке
+        const dialog = this.dialog.open(ConfirmationDialogComponent, {
+          width: '400px',
+          panelClass: 'centralized-dialog-content',
+          data: {title: this.L.$('Ошибка'), message: this.L.$('Upload error'), useCancel: false, okText: this.L.$('OK') }
+        });
+      }
+    })
   }
 
   ngOnInit() {
@@ -60,7 +83,7 @@ export class TabOtherComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'PW|HN|FS|SX|EE';
+          const request = 'PW|HN|FS|SX|EE|BF';
           this.managementService.getKeys(request);
         }
       });
@@ -85,7 +108,9 @@ export class TabOtherComponent implements OnInit, OnDestroy {
             case 'EE': // Наличие сохраненных настроек EEPROM на SD-карте или в файловой системе МК: 0 - нет 1 - есть в FS; 2 - есть на SD; 3 - есть в FS и на SD
               this.backup_place = this.managementService.state.backup_place;
               break;
-
+            case 'BF': // Имя файла сохраненных настроек EEPROM
+              this.backup_file = this.managementService.state.backup_file;
+              break;
           }
         }
       });
@@ -172,8 +197,13 @@ export class TabOtherComponent implements OnInit, OnDestroy {
     this.socketService.sendText('$23 4;');
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
+  onUpload() {
+    this.fileUploaderWrapper.onFileSelect(
+      this.L.$("Загрузить"),
+      this.L.$("Загрузить"),
+      this.uploadFileForm,
+      '/assets/',
+      { confirmationMessage: null, fileNewName: this.backup_file });
   }
+
 }

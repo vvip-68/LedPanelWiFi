@@ -62,6 +62,7 @@ export interface IStateModel {
   fs_allow: boolean;               // FS - Доступность внутренней файловой системы микроконтроллера для хранения файлов: 0 - нет, 1 - да
   sd_allow: boolean;               // SX - Наличие и доступность SD карты в системе: Х = 0 - нат SD карты; 1 - SD карта доступна
   backup_place: number;            // EE - Наличие сохраненных настроек EEPROM на SD-карте или в файловой системе МК: 0 - нет 1 - есть в FS; 2 - есть на SD; 3 - есть в FS и на SD
+  backup_file: string;             // BF - Имя файла сохраненных настроек EEPROM
   mode1_time: string;              // AM1T	- 'HH MM'	час 00..23 и минуты 00..59 включения режима 1, разделенные пробелом
   mode1_effect: number;            // AM1A	- NN	номер эффекта режима 1: -3 - не используется; -2 - выключить матрицу; -1 - ночные часы; 0 - включить случайный с автосменой; 1 - номер режима из списка EFFECT_LIST
   mode2_time: string;              // AM2T	- 'HH MM'	час 00..23 и минуты 00..59 включения режима 2, разделенные пробелом
@@ -223,6 +224,7 @@ export class StateModel implements IStateModel {
   public fs_allow = false;
   public sd_allow = false;
   public backup_place = 0;
+  public backup_file = '';
   public mode1_time = "";
   public mode1_effect = -3;
   public mode2_time = "";
@@ -390,6 +392,7 @@ export class StateModel implements IStateModel {
       case 'FS':   return this.fs_allow;
       case 'SX':   return this.sd_allow;
       case 'EE':   return this.backup_place;
+      case 'BF':   return this.backup_file;
       case 'AM1T': return this.mode1_time;
       case 'AM1A': return this.mode1_effect;
       case 'AM2T': return this.mode2_time;
@@ -547,6 +550,7 @@ export class StateModel implements IStateModel {
       case 'FS':   this.fs_allow = Number(value) === 1;                           break;
       case 'SX':   this.sd_allow = Number(value) === 1;                           break;
       case 'EE':   this.backup_place = Number(value);                             break;
+      case 'BF':   this.backup_file = '' + value;                                 break;
       case 'AM1T': this.mode1_time = '' + value;                                  break;
       case 'AM1A': this.mode1_effect = Number(value);                             break;
       case 'AM2T': this.mode2_time = '' + value;                                  break;

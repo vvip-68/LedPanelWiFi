@@ -14,6 +14,7 @@ import { DisableControlDirective } from '../../../directives/disable-control.dir
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import {MatRadioModule} from "@angular/material/radio";
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-weather',
@@ -32,8 +33,7 @@ import {MatRadioModule} from "@angular/material/radio";
     MatRadioModule,
   ],
 })
-export class TabWeatherComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabWeatherComponent extends Base implements OnInit, OnDestroy {
 
   weather_mode: number = -1;
   isFarenheit = 0;
@@ -49,6 +49,7 @@ export class TabWeatherComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -120,8 +121,4 @@ export class TabWeatherComponent implements OnInit, OnDestroy {
     return !this.socketService.isConnected;
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

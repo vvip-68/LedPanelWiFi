@@ -4,6 +4,7 @@ import {LanguagesService} from '../../services/languages/languages.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { NgClass } from '@angular/common';
+import {Base} from "../base.class";
 
 @Component({
     selector: 'app-plugger',
@@ -16,8 +17,7 @@ import { NgClass } from '@angular/common';
         MatTooltipModule,
     ],
 })
-export class PluggerComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class PluggerComponent extends Base implements OnInit, OnDestroy {
 
   @Input()
   public set type(value: number) {
@@ -39,6 +39,7 @@ export class PluggerComponent implements OnInit, OnDestroy {
   // @formatter:oт
 
   constructor(public L: LanguagesService) {
+    super();
   }
 
   ngOnInit() {
@@ -112,8 +113,4 @@ export class PluggerComponent implements OnInit, OnDestroy {
     return cls;
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

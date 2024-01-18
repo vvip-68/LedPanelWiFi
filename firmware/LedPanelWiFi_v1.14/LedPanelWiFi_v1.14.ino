@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0117")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0118")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -81,9 +81,10 @@
 //       - В настройках оборудования в a_def_hard.h найдите MAGIC_2 установите его значение в 1
 //       - В меню "Интсрументы", "C++ Exceptions" поставьте "Enabled"
 //       - Раскомментируем следующую за этой строкой строку с FASTLED_ALLOW_INTERRUPTS 0 - запрещаем FastLED прерывания, пока она занята отправкой сигнала на матрицу
-//         #define FASTLED_ALLOW_INTERRUPTS 0
 //
-//     Иногда это тоже помогает.  Магия, однако.
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// #define FASTLED_ALLOW_INTERRUPTS 0
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
 // -------------------------------------------------------------------------------------------------------
 //
@@ -798,6 +799,81 @@ void setup() {
     .setCacheControl("public, max-age=3600, must-revalidate");  // 1 hr for caching, then revalidate based on etag/IMS headers
 
   server.onNotFound(handleNotFound);
+
+  // preflight cors check
+  server.on("/", HTTP_OPTIONS, [](AsyncWebServerRequest * request)
+  {
+      AsyncWebServerResponse* response = request->beginResponse(204);
+      response->addHeader("Access-Control-Allow-Methods", "PUT,POST,GET,OPTIONS");
+      response->addHeader("Access-Control-Allow-Headers", "Accept, Content-Type, FileSize");
+      response->addHeader("Access-Control-Allow-Credentials", "false");
+      request->send(response);
+  });
+
+  server.on("/", HTTP_POST, 
+    []([[maybe_unused]] AsyncWebServerRequest * request){ },
+    [](AsyncWebServerRequest * request, String filename, size_t index, uint8_t *data, size_t len, bool final) 
+    {
+      static unsigned long startTimer;
+      static File file;
+      static bool error;
+      
+      if (!index) {
+        error = false;
+        startTimer = millis();
+
+        if (file) file.close();
+        String fileName('/'); fileName += filename;
+        if (LittleFS.exists(fileName)) LittleFS.remove(fileName);
+        file = LittleFS.open(fileName, "w");
+        if (file) {
+          DEBUGLOG(printf_P, PSTR("Создан файл: '%s'\n"), filename.c_str());
+        } else {
+          DEBUGLOG(printf_P, PSTR("Ошибка загрузки файла: '%s'\n"), filename.c_str());
+          error = true;
+        }        
+      }
+
+      if (!error) {
+        DEBUGLOG(printf_P, PSTR("файл: '%s' получено %i байт\tвсего: %i\n"), filename.c_str(), len, index + len);
+        if (file) {
+          size_t wlen = file.write(data, len);
+          error = wlen != len;
+          if (error) {
+            request->send(400, MIMETYPE_HTML, "File save error!");
+            request->client()->close();
+            DEBUGLOG(printf_P, PSTR("файл: '%s'. Ошибка записи.\n"), filename.c_str());
+            file.close();
+          }
+        }
+  
+        if (final) {
+          if (!error && file) {
+            file.close();
+            String srcFile('/'); srcFile += filename;
+            String dstFile(FS_BACK_STORAGE); 
+            if (!dstFile.endsWith("/")) dstFile += '/'; 
+            dstFile += filename;
+            if (LittleFS.exists(dstFile)) LittleFS.remove(dstFile);
+            error = !LittleFS.rename(srcFile, dstFile);  
+            if (error) {
+              request->send(400, MIMETYPE_HTML, "File save error!");
+              request->client()->close();
+              DEBUGLOG(printf_P, PSTR("файл: '%s'. Ошибка записи.\n"), filename.c_str());
+            } else {
+              request->send(200, MIMETYPE_HTML, "File upload completed!");
+              request->client()->close();
+              DEBUGLOG(printf_P, PSTR("Загрузка выполнена: %i байт за %.2f сек ( %.2f КБ/сек ).\n"), index + len, (millis() - startTimer) / 1000.0, 1.0 * (index + len) / (millis() - startTimer));
+              eeprom_backup = checkEepromBackup();
+              addKeyToChanged("EE");
+            }
+          }
+        }
+      }
+    });
+
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+  
   server.begin();
   
   if (spiffs_ok) {

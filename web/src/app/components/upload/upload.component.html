@@ -1,0 +1,28 @@
+<h2 cdkDrag cdkDragBoundary=".app-body" cdkDragHandle cdkDragRootElement=".cdk-overlay-pane" mat-dialog-title>
+  <div class="title" style="width: 100%">{{title}}</div>
+  <button [mat-dialog-close]="false" class="close" type="button">×</button>
+</h2>
+
+<mat-dialog-content style="overflow: hidden; padding: 0 6px 0 0;">
+  <div>
+    <div class="upload-file-container">
+      <fieldset class="ems-fieldset upload-file-fieldset">
+        <div class="input-container">
+          {{L.$("Файл:")}}
+          <div class="input-file">{{uploader.queue[0].file.name}}</div>
+        </div>
+        @if (uploader.isUploading) {
+          <div class="progress">
+            <div [ngStyle]="{ 'width': uploader.progress + '%' }" class="progress-bar" role="progressbar"></div>
+            <div class="progress-text">{{L.$('Загрузка...')}}</div>
+          </div>
+        }
+      </fieldset>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button (click)="uploadFile()" [disabled]="!uploader.getNotUploadedItems().length || uploader.isUploading" color="primary" mat-raised-button>{{actionButton}}</button>
+  <button (click)="closeDialog()" color="primary" mat-raised-button style="margin-right: 0.5em">{{L.$("Отмена")}}</button>
+</mat-dialog-actions>

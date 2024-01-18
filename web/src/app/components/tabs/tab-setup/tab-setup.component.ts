@@ -15,6 +15,7 @@ import { TabMatrixComponent } from '../tab-matrix/tab-matrix.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-setup',
@@ -33,8 +34,7 @@ import { MatTabsModule } from '@angular/material/tabs';
         TabOtherComponent,
     ],
 })
-export class TabSetupComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabSetupComponent extends Base implements OnInit, OnDestroy {
 
   supportWeather: boolean = false;
   supportE131: boolean = false;
@@ -45,6 +45,7 @@ export class TabSetupComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -77,8 +78,4 @@ export class TabSetupComponent implements OnInit, OnDestroy {
     return !this.socketService.isConnected;
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

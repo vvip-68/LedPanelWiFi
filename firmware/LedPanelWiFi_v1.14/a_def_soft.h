@@ -690,11 +690,7 @@ timerMinim weatherTimer(1000 * 60 * SYNC_WEATHER_PERIOD); // Получаем т
 
 // ********************* ДЛЯ ПАРСЕРА КОМАНДНЫХ ПАКЕТОВ *************************
 
-#define    PARSE_AMOUNT  16                 // максимальное количество значений в массиве, который хотим получить
-#define    header '$'                       // стартовый символ управляющей посылки
-#define    divider ' '                      // разделительный символ
-#define    ending ';'                       // завершающий символ
- 
+#define    PARSE_AMOUNT  16                 // максимальное количество значений в массиве, который хотим получить 
 int32_t    intData[PARSE_AMOUNT];           // массив численных значений после парсинга - для WiFi часы время синхронизации может быть отрицательным +
                                             // период синхронизации может быть больше 255 мин - нужен тип int32_t
 
@@ -893,6 +889,8 @@ uint32_t   lastMillisY;
 
 static const char DELIM_LINE[] PROGMEM = "-------------------------------------------";
 
+static const char MIMETYPE_HTML[] PROGMEM = "text/html";
+    
 static const char sE131[]    PROGMEM = "E131";
 static const char sMASTER[]  PROGMEM = "MASTER"; 
 static const char sSLAVE[]   PROGMEM = "SLAVE";

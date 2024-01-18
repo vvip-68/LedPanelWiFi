@@ -16,6 +16,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import {Base} from "../base.class";
 
 export enum ControlType {
   NONE,
@@ -31,7 +32,7 @@ export enum ControlType {
     standalone: true,
     imports: [MatDialogModule, CdkDrag, CdkDragHandle, MatSlideToggleModule, FormsModule, MatTooltipModule, MatSliderModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatButtonModule]
 })
-export class EffectParamsComponent implements OnInit {
+export class EffectParamsComponent extends Base implements OnInit {
 
   controlType = ControlType;
 
@@ -58,13 +59,12 @@ export class EffectParamsComponent implements OnInit {
   private param1Changed$ = new BehaviorSubject(this.model.param1);
   private param2Changed$ = new BehaviorSubject(this.model.param1);
 
-  private destroy$ = new Subject();
-
   constructor(public dialogRef: MatDialogRef<EffectParamsComponent>,
               public socketService: WebsocketService,
               public managementService: ManagementService,
               public L: LanguagesService,
               @Inject(MAT_DIALOG_DATA) private data: any) {
+    super();
     this.model = data.model;
 
     this.tooltip1 = L.$('Контрастность эффекта.');
@@ -255,8 +255,4 @@ export class EffectParamsComponent implements OnInit {
     this.socketService.sendText(`$8 3 ${this.model.id} ${this.model.param2};`);
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

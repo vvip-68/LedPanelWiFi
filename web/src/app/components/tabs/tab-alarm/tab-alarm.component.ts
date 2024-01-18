@@ -18,6 +18,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-alarm',
@@ -39,8 +40,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         MatSliderModule,
     ],
 })
-export class TabAlarmComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabAlarmComponent extends Base implements OnInit, OnDestroy {
 
   public day1_On = false;
   public day2_On = false;
@@ -85,6 +85,7 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -339,8 +340,4 @@ export class TabAlarmComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

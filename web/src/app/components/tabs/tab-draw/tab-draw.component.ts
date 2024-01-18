@@ -24,6 +24,7 @@ import { ColorCircleModule } from 'ngx-color/circle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { ColorPhotoshopModule } from 'ngx-color/photoshop';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-draw',
@@ -46,7 +47,7 @@ import { ColorPhotoshopModule } from 'ngx-color/photoshop';
         MatInputModule,
     ],
 })
-export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
+export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterViewInit {
 
   @ViewChild('canvas_container') canvasContainer!: ElementRef;
   @ViewChild('canvas') canvas!: ElementRef;
@@ -86,14 +87,13 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
   private loadIndex: number = -1;     // индекс загружаемой строки / колонки
   private intervalId: any = undefined;
 
-  private destroy$ = new Subject();
-
   constructor(@Inject(DOCUMENT) private document: Document,
               public socketService: WebsocketService,
               public managementService: ManagementService,
               public commonService: CommonService,
               public L: LanguagesService,
               private dialog: MatDialog) {
+    super();
   }
 
   ngOnInit() {
@@ -551,9 +551,8 @@ export class TabDrawComponent implements OnInit, OnDestroy, AfterViewInit {
 
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.stopLoadImage();
-    this.destroy$.next(true);
-    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 }

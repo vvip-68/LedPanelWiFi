@@ -57,45 +57,67 @@
   </fieldset>
 
   @if (fs_allow || sd_allow) {
-    <fieldset class="app-fieldset other-fieldset">
+    <fieldset class="app-fieldset other-fieldset backup-fieldset">
       <legend>{{ L.$('Резервная копия настроек') }}</legend>
-      <div class="field-container nomargin">
-        <div class="action-button center">
-          @if (fs_allow && (backup_place === 1 || backup_place === 3)) {
-            <button mat-raised-button color="primary"
-                matTooltip="{{L.$('Загрузить с FS')}}"
-                [disabled]="isDisabled()"
-                (click)="loadFrom(0)">
-              <mat-icon matSuffix>publish</mat-icon>
-              <span>{{L.$('FS')}}</span>
-            </button>
-          }
-          @if (sd_allow && (backup_place === 2 || backup_place === 3)) {
-            <button mat-raised-button color="primary"
-                  matTooltip="{{L.$('Загрузить с SD')}}"
-                  [disabled]="isDisabled()"
-                  (click)="loadFrom(1)">
-              <mat-icon matSuffix>publish</mat-icon>
-              <span>{{L.$('SD')}}</span>
-            </button>
-          }
+      <div class="field-container nomargin backup-container">
+        <div class="action-button center backup">
           @if (fs_allow) {
-            <button mat-raised-button color="primary"
+            @if (backup_place === 1 || backup_place === 3) {
+              <button mat-raised-button color="primary" class="backup-btn"
+                  matTooltip="{{L.$('Загрузить с FS')}}"
+                  [disabled]="isDisabled()"
+                  (click)="loadFrom(0)">
+                <mat-icon matSuffix>settings_backup_restore</mat-icon>
+                <span>{{L.$('FS')}}</span>
+              </button>
+            }
+
+            <button mat-raised-button color="primary" class="backup-btn"
                   matTooltip="{{L.$('Сохранить в FS')}}"
                   [disabled]="isDisabled()"
                   (click)="saveTo(0)">
               <mat-icon matSuffix>save</mat-icon>
               <span>{{L.$('FS')}}</span>
             </button>
+
+            <div class="like-btn" matTooltip="{{L.$('Загрузить в контроллер')}}">
+              <label class="btn btn-default mat-button">
+                <mat-icon matSuffix>publish</mat-icon>
+                <span>{{L.$('FS')}}</span>
+                <form #uploadFileForm>
+                  <input name="file" type="file" style="display: none;" ng2FileSelect [uploader]="fileUploaderWrapper.getUploader()"
+                         (onFileSelected)="onUpload()" accept=".hex">
+                </form>
+              </label>
+            </div>
+            @if (backup_place === 1) {
+              <div class="like-btn" matTooltip="{{L.$('Сохранить в файл')}}">
+                <a href="{{'/assets/' + backup_file}}" download>
+                  <label class="btn btn-default mat-button">
+                    <mat-icon matSuffix>file_download</mat-icon>
+                    <span>{{L.$('FS')}}</span>
+                  </label>
+                </a>
+              </div>
+            }
           }
           @if (sd_allow) {
-            <button mat-raised-button color="primary"
-                  matTooltip="{{L.$('Сохранить в SD')}}"
-                  [disabled]="isDisabled()"
-                  (click)="saveTo(1)">
-              <mat-icon matSuffix>save</mat-icon>
-              <span>{{L.$('SD')}}</span>
-            </button>
+            @if (backup_place === 2 || backup_place === 3) {
+              <button mat-raised-button color="primary" class="backup-btn"
+                      matTooltip="{{L.$('Загрузить с SD')}}"
+                      [disabled]="isDisabled()"
+                      (click)="loadFrom(1)">
+                <mat-icon matSuffix>settings_backup_restore</mat-icon>
+                <span>{{L.$('SD')}}</span>
+              </button>
+              <button mat-raised-button color="primary" class="backup-btn"
+                      matTooltip="{{L.$('Сохранить в SD')}}"
+                      [disabled]="isDisabled()"
+                      (click)="saveTo(1)">
+                <mat-icon matSuffix>save</mat-icon>
+                <span>{{L.$('SD')}}</span>
+              </button>
+            }
           }
         </div>
       </div>

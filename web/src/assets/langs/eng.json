@@ -501,5 +501,11 @@
   "12/24 формат": "Time format",
   "12H": "12H",
   "24H": "24H",
-  "Градусы": "Degree temperature"
+  "Градусы": "Degree temperature",
+  "Файл:": "File:",
+  "Загрузить в контроллер": "Upload to controller and restore settings",
+  "Сохранить в файл": "Download and save settings file",
+  "ОК": "",
+  "Ошибка": "Error",
+  "Upload error": "Error while loading file into controller"
 }

@@ -18,6 +18,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgClass } from '@angular/common';
+import {Base} from "../../base.class";
 
 interface LineParameters {
   idx: number,    // Номер линии 1..4
@@ -63,8 +64,7 @@ interface Assignment {
     ],
 })
 
-export class TabWiringComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabWiringComponent extends Base implements OnInit, OnDestroy {
 
   // PN:список        список пинов, разделенный запятыми: SS,MOSI,MISO,SCK,SDA,SCL,TX,RX
   //                  Эти пины в цифровом назначении зависят от выбранного типа платы микроконтроллера
@@ -191,6 +191,8 @@ export class TabWiringComponent implements OnInit, OnDestroy {
     public managementService: ManagementService,
     public commonService: CommonService,
     public L: LanguagesService) {
+      super();
+
       this.button_pin = this.createEmptyPin();
       this.power_pin = this.createEmptyPin();
       this.power_alarm_pin = this.createEmptyPin();
@@ -1242,8 +1244,4 @@ export class TabWiringComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

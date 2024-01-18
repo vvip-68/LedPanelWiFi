@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-synch',
@@ -31,8 +32,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         MatButtonModule,
     ],
 })
-export class TabSynchComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabSynchComponent extends Base implements OnInit, OnDestroy {
 
   @ViewChild('e_mode', {static: true}) mode!: MatSelect;
 
@@ -87,6 +87,7 @@ export class TabSynchComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -199,8 +200,4 @@ export class TabSynchComponent implements OnInit, OnDestroy {
     return !isSlave ||  (this.masterXFormControl.valid && this.masterYFormControl.valid && this.localXFormControl.valid && this.localYFormControl.valid && this.localWFormControl.valid && this.localHFormControl.valid);
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

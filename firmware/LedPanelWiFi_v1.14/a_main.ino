@@ -2624,6 +2624,7 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
   // AU:X        создавать точку доступа 0-нет, 1-да
   // AW:число    битовая маска дней недели будильника b6..b0: b0 - пн .. b7 - вс
   // BE:число    контрастность эффекта
+  // BF:текст    имя файла с резервной копией настроек
   // BR:число    яркость
   // BS:число    задержка повтора нажатия кнопки в играх
   // C1:цвет     цвет режима "монохром" часов оверлея; цвет: 192,96,96 - R,G,B
@@ -4023,6 +4024,17 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     }
     String str("EE:");
     str += eeprom_backup;
+    return str; 
+  }
+
+  // Имя файла резервной копии EEPROM
+  if (key == "BF") {
+    String fileName(F("eeprom_0x")); fileName += IntToHex(EEPROM_OK, 2); fileName += ".hex";  
+    if (shrt) {
+      return fileName;
+    }
+    String str("BF:");
+    str += fileName;
     return str; 
   }
 

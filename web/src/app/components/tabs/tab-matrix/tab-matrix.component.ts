@@ -17,6 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { DisableControlDirective } from '../../../directives/disable-control.directive';
 import { MatRadioModule } from '@angular/material/radio';
 import { NgStyle } from '@angular/common';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-matrix',
@@ -37,12 +38,10 @@ import { NgStyle } from '@angular/common';
         MatButtonModule,
     ],
 })
-export class TabMatrixComponent implements OnInit, OnDestroy {
+export class TabMatrixComponent extends Base implements OnInit, OnDestroy {
 
   @ViewChild('matrixPlugger') private matrixPlugger!: PluggerComponent;
   @ViewChild('totalPlugger') private totalPlugger!: PluggerComponent;
-
-  private destroy$ = new Subject();
 
   index_files: ComboBoxItem[] = [];
   index_file: number = -1;
@@ -68,6 +67,7 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -170,8 +170,4 @@ export class TabMatrixComponent implements OnInit, OnDestroy {
     return !this.socketService.isConnected;
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

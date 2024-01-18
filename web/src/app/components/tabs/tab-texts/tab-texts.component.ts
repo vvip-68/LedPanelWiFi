@@ -24,6 +24,7 @@ import { DisableControlDirective } from '../../../directives/disable-control.dir
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import {Base} from "../../base.class";
 
 export class TextButtonItem {
   constructor(public label: string, public index: number, public type: number, public text: string) {
@@ -52,8 +53,7 @@ export class TextButtonItem {
         MatDatepickerModule,
     ],
 })
-export class TabTextsComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
   @ViewChild('text', {static: true}) text!: ElementRef;
   @ViewChild('dateR', {static: true}) dateR!: ElementRef;
@@ -104,6 +104,8 @@ export class TabTextsComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService,
     private dialog: MatDialog) {
+
+    super();
 
     const str = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < str.length; i++) {
@@ -523,11 +525,6 @@ export class TabTextsComponent implements OnInit, OnDestroy {
 
   setDateApply() {
     this.dateApplied = true;
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
 }

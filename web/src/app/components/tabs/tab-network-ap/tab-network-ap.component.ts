@@ -13,6 +13,7 @@ import { DisableControlDirective } from '../../../directives/disable-control.dir
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-network-ap',
@@ -30,8 +31,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
         MatIconModule,
     ],
 })
-export class TabNetworkApComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabNetworkApComponent extends Base implements OnInit, OnDestroy {
 
   hideAPPassword = true;
   createAccessPoint = false;
@@ -47,6 +47,7 @@ export class TabNetworkApComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -100,8 +101,4 @@ export class TabNetworkApComponent implements OnInit, OnDestroy {
     this.socketService.sendText(`$21 0 ${this.managementService.state.useAP ? '1' : '0'};`);
   }
 
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
-  }
 }

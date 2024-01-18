@@ -1,0 +1,99 @@
+:host h2 {
+  padding: 6px 12px 0 12px;
+  user-select: none;
+  display: flex;
+  flex-direction: row;
+  color: var(--card-text-color);
+
+  div {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  button {
+    font-size: 30px;
+    background-color: transparent;
+    color: inherit;
+    border: none;
+    height: 32px;
+  }
+}
+
+:host .upload-file-container {
+  font-size: 14px;
+  padding-left: 1em;
+  padding-right: 0.5em;
+  width: 400px;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+
+  .upload-file-fieldset {
+    padding-left: 1em;
+    padding-right: 1em;
+    padding-bottom: 1em;
+    display: inline-block;
+    width: 100%;
+    white-space: nowrap;
+    height: 100px;
+    min-height: 100px;
+    border-radius: 5px;
+    border-color: #7b7b7b;
+
+    div.input-file {
+      font-size: 12px;
+      width: 100%;
+      padding-left: 0.5em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid #303235;
+      color: var(--card-text-color);
+    }
+
+    div.input-container {
+      color: var(--card-text-color);
+      margin: 12px 0 0 0;
+    }
+
+    div.progress {
+      margin-top: 0.5em;
+      border: solid 1px #808080;
+      border-radius: 5px;
+      height: 1.25em;
+      position: relative;
+      overflow: hidden;
+
+      .progress-bar {
+        background-color: #3b65c4;
+        border-bottom-left-radius: 4px;
+        border-top-left-radius: 4px;
+        height: 1.13em;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+      }
+      .progress-text {
+        position: absolute;
+        top: 1px;
+        left: 4px;
+        width: 100%;
+        line-height: 1em;
+        text-align: left;
+        z-index: 12;
+      }
+
+    }
+
+    div.spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 68px;
+    }
+  }
+}

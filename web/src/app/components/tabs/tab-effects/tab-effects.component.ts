@@ -22,6 +22,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { BrightnessSliderComponent } from '../../brightness-slider/brightness-slider.component';
 import { ActionComponent } from '../../action/action.component';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-effects',
@@ -48,7 +49,7 @@ import { ActionComponent } from '../../action/action.component';
         CdkDrag,
     ],
 })
-export class TabEffectsComponent implements OnInit, OnDestroy {
+export class TabEffectsComponent extends Base implements OnInit, OnDestroy {
 
   // @ts-ignore
   @ViewChild('input2') input2: ElementRef;
@@ -74,8 +75,6 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
   private e131_group: number = -1;
   private e131_streaming: boolean | undefined = undefined;
 
-  private destroy$ = new Subject();
-
   constructor(
     @Inject(DOCUMENT) private document: Document,
     public socketService: WebsocketService,
@@ -83,6 +82,8 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
+
     function checkRange(val: any, min: number, max: number): boolean {
       let res = false;
       if (typeof val === 'number') {
@@ -359,11 +360,6 @@ export class TabEffectsComponent implements OnInit, OnDestroy {
       str += ' power-on';
     }
     return str;
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
 }

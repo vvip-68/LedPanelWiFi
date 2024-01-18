@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { NgClass } from '@angular/common';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import {Base} from "../../base.class";
 
 @Component({
     selector: 'app-tab-games',
@@ -23,8 +24,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
         MatIconModule,
     ],
 })
-export class TabGamesComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject();
+export class TabGamesComponent extends Base implements OnInit, OnDestroy {
 
   public bright: number = -1;
   public speed: number = -1;
@@ -43,6 +43,7 @@ export class TabGamesComponent implements OnInit, OnDestroy {
     public commonService: CommonService,
     public L: LanguagesService
   ) {
+    super();
   }
 
   ngOnInit() {
@@ -226,11 +227,6 @@ export class TabGamesComponent implements OnInit, OnDestroy {
 
   btnRelease() {
     this.key_code = 0;
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next(true);
-    this.destroy$.complete();
   }
 
   @HostListener('window:keydown', ['$event'])
