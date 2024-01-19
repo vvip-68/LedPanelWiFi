@@ -672,11 +672,11 @@ export class ManagementService extends Base implements OnDestroy {
     const indecies = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < 36; i++) {
       const filePath = `assets/txt/${indecies[i]}`;
-      const headers = new HttpHeaders().set('Cache-Control', 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0').set('Pragma', 'no-cache').set('Expires', 'no-0');
+      const headers = new HttpHeaders().set('Cache-Control', 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0').set('Pragma', 'no-cache').set('Expires', '0');
       this.httpClient.get(filePath, {headers, responseType: 'text'})
         .subscribe({
           next: (text) => {
-            this.text_lines[i] = text;
+            this.text_lines[i] = isNullOrUndefinedOrEmpty(text) ? '' : text.trim();
           },
           error: (error) => {
             // this.wsService.sendText(`$13 2 ${i};`);

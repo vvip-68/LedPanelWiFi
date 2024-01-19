@@ -310,8 +310,7 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
     let text = '';
     switch (this.buttons[i].type) {
       case 0:
-        text = this.L.$('Текст не задан');
-        break;
+        return this.L.$('Текст не задан');
       case 1:
         text = this.L.$('Строка отключена');
         break;
@@ -328,10 +327,8 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
         text = this.L.$('Содержит управляющую последовательность');
         break;
     }
-    if (this.buttons[i].text.length > 0) {
-      text += '\n' + this.buttons[i].text;
-    } else {
-      this.socketService.sendText(`$13 2 ${i};`);
+    if (!isNullOrUndefinedOrEmpty(this.buttons[i].text.trim())) {
+      text += '\n' + this.buttons[i].text.trim();
     }
     return text;
   }
@@ -342,7 +339,7 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
   saveText() {
     // $6 0|текст  - текст бегущей строки "$6 0|X|text" - X - 0..9,A..Z - индекс строки, text - сохраняемый текст
-    const text = replaceAll(this.text.nativeElement.value, '\n', ' ');
+    const text = this.text.nativeElement.value.replace(/\n/g, ' ').replace(/\u0000/g, ' ').trim();
     this.socketService.sendText(`$6 0|${this.buttons[this.text_index].label}|${text}`);
     this.buttons[this.text_index].text = text;
     this.managementService.text_lines[this.text_index] = text;
@@ -350,12 +347,11 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
   showText() {
     // $6 14|текст - текст бегущей строки для немедленного отображения без сохранения
-    const text = replaceAll(this.text.nativeElement.value, '\n', ' ');
+    const text = this.text.nativeElement.value.replace(/\n/g, ' ').replace(/\u0000/g, ' ').trim();
     this.socketService.sendText(`$6 14|${text}`);
   }
 
   clearText() {
-    // $6 14|текст - текст бегущей строки для немедленного отображения без сохранения
     this.text.nativeElement.value = '';
     this.text_edit = '';
   }
