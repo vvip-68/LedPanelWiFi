@@ -671,7 +671,7 @@ export class ManagementService extends Base implements OnDestroy {
 
     const indecies = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < 36; i++) {
-      const filePath = `assets/txt/${indecies[i]}`;
+      const filePath = `assets/txt/${indecies[i]}?nocache=${Date.now()}`;
       const headers = new HttpHeaders().set('Cache-Control', 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0').set('Pragma', 'no-cache').set('Expires', '0');
       this.httpClient.get(filePath, {headers, responseType: 'text'})
         .subscribe({
