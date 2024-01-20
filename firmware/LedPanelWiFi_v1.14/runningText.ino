@@ -129,7 +129,13 @@ void InitializeTexts() {
       yield();
     }
 
-    String text(getTextByIndex(i));
+    String text(loadTextByIndex(i));
+    
+    #if (USE_TEXT_CACHE == 1)
+      // Если разрешено кэширование текстов бегущей строки и длина строки менее предельного размера - 
+      // сохранить в кэш саму строку. Если размер строки - более предельного размера - поместить в строку "флажок" '{^}' указывающий на то, что данную строку нужно брать из файла
+      textLines[i] = text.length() <= TEXT_CACHE_LINE_SIZE ? text : "{^}";
+    #endif
 
     if (text.length() > 0) {
       DEBUG("  "); DEBUG(getAZIndex(i)); DEBUG(": "); DEBUGLN(text);
@@ -2009,7 +2015,6 @@ String getTextByAZIndex(char c) {
   return (idx < 0 || idx >= TEXTS_MAX_COUNT) ? "" : getTextByIndex(idx);
 }
 
-// получить строку из массива строк текстов бегущей строки по индексу 0..35
 String getTextByIndex(uint8_t idx) {
   if (idx >= TEXTS_MAX_COUNT) return "";
 
@@ -2017,12 +2022,30 @@ String getTextByIndex(uint8_t idx) {
   // Если запрошенная по индексу строка совпадает с загруженной - не читать с диска, а вернуть ранее загруженную
   if (preparedTextIdx == idx) return preparedText;
 
+  // Если используется кэширование текстов бегущей строки - вернуть строку из кэша.
+  // Если в кэше вместо строки - признак, что строку нужно брать из файла - '{^}' - загрузить строку из файла
+  #if (USE_TEXT_CACHE == 1)
+    if (textLines[idx] != "{^}") {
+      preparedText = textLines[idx];
+      preparedTextIdx = idx;      
+      return preparedText;
+    }
+  #endif
+  
+  return loadTextByIndex(idx);
+}
+
+// получить строку из массива строк текстов бегущей строки по индексу 0..35
+String loadTextByIndex(uint8_t idx) {
+  if (idx >= TEXTS_MAX_COUNT) return "";
+  
   // Загрузить текст из файловой стистемы микроконтроллера
   char c = getAZIndex(idx);
-
+  
   String directoryName(FS_TEXT_STORAGE);    
   String fileName(directoryName); fileName += '/'; fileName += c;  
   String text;
+
   
   if (LittleFS.exists(fileName)) {
     
@@ -2048,6 +2071,12 @@ String getTextByIndex(uint8_t idx) {
 
 void saveTextLine(char index, const String& text) {
 
+  // Если используется кэш бегущей строки...
+  #if (USE_TEXT_CACHE == 1)
+    // ... если длина текста меньше указанной предельной длины - сохранить ее в кэше, если больше - в кэш положить признак "брать строку из файла"
+    textLines[idx] = text.length() <= TEXT_CACHE_LINE_SIZE ? String(text) : "{^}";
+  #endif
+  
   String directoryName(FS_TEXT_STORAGE);
 
   if (!LittleFS.exists(directoryName)) {

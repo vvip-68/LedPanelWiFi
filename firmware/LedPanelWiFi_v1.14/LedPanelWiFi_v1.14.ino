@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0120")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0121")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -612,6 +612,14 @@ void setup() {
 
   DEBUG((USE_OTA == 1 ? '+' : '-'));
   DEBUGLN(F(" Поддержка OTA"));
+
+  DEBUG((USE_TEXT_CACHE == 1 ? '+' : '-'));
+  DEBUG(F(" Кэш текстов бегущей строки: "));
+  if (USE_TEXT_CACHE == 1) {
+    DEBUG(TEXT_CACHE_LINE_SIZE); DEBUGLN(F(" байт на строку"));
+  } else {
+    DEBUGLN(F(" отключен"));
+  }
 
   DEBUGLN();
 
