@@ -434,15 +434,18 @@ void process() {
       // Выключить питание матрицы
       if (vPOWER_PIN >= 0) {
         if (!isAlarming) {
-          digitalWrite(vPOWER_PIN, vPOWER_OFF);
+          if (line_power_state != vPOWER_OFF) digitalWrite(vPOWER_PIN, vPOWER_OFF);
+          line_power_state = vPOWER_OFF;
         } else {
-          digitalWrite(vPOWER_PIN, vPOWER_ON);
+          if (line_power_state != vPOWER_ON) digitalWrite(vPOWER_PIN, vPOWER_ON);
+          line_power_state = vPOWER_ON;
         }
       }  
     } else {      
       // Включить питание матрицы
       if (vPOWER_PIN >= 0) {
-        digitalWrite(vPOWER_PIN, vPOWER_ON);
+        if (line_power_state != vPOWER_ON) digitalWrite(vPOWER_PIN, vPOWER_ON);
+        line_power_state = vPOWER_ON;
       }
     }
   #endif
@@ -450,9 +453,11 @@ void process() {
   #if (USE_ALARM == 1)
     if (vALARM_PIN >= 0) {
       if (!isAlarmStopped && (isPlayAlarmSound || isAlarming || isRemoteAlarm)) {
-        digitalWrite(vALARM_PIN, vALARM_ON);
+        if (line_alarm_state != vALARM_ON) digitalWrite(vALARM_PIN, vALARM_ON);
+        line_alarm_state = vALARM_ON;
       } else {
-        digitalWrite(vALARM_PIN, vALARM_OFF);
+        if (line_alarm_state != vALARM_OFF) digitalWrite(vALARM_PIN, vALARM_OFF);
+        line_alarm_state = vALARM_OFF;
       }
       // Иногда клиент пропускает сигнал срабатывания будильника или клиент перезагрузился. 
       // Тогда на мастере лампа активного будильника горит, а на клиентах нет. 
@@ -469,9 +474,11 @@ void process() {
   #if (USE_AUX == 1)
     if (vAUX_PIN >= 0) {
       if (isAuxActive || isRemoteAuxActive) {
-        digitalWrite(vAUX_PIN, vAUX_ON);
+        if (line_aux_state != vAUX_ON) digitalWrite(vAUX_PIN, vAUX_ON);
+        line_aux_state = vAUX_ON;
       } else {
-        digitalWrite(vAUX_PIN, vAUX_OFF);
+        if (line_aux_state != vAUX_OFF) digitalWrite(vAUX_PIN, vAUX_OFF);
+        line_aux_state = vAUX_OFF;
       }        
       // Иногда клиент пропускает сигнал включения доп.линии или клиент перезагрузился. 
       // Тогда на мастере лампа активного AUX горит, а на клиентах нет. 

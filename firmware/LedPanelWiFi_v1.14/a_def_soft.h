@@ -867,6 +867,16 @@ uint32_t   needRestartTime = 0;
 unsigned long prevSendTimer = 0;
 unsigned long prevShowTimer = 0;
 
+#if (USE_POWER == 1)
+uint8_t line_power_state = 2;   // Текущее состояние линии управления питанием 0/1 - знАчимые вкл/выкл); 2 - не определено.
+#endif
+#if (USE_ALARM == 1)
+uint8_t line_alarm_state = 2;   // Текущее состояние линии управления alarm 0/1 - знАчимые вкл/выкл); 2 - не определено.
+#endif
+#if (USE_AUX == 1)
+uint8_t line_aux_state = 2;     // Текущее состояние линии управления aux 0/1 - знАчимые вкл/выкл); 2 - не определено.
+#endif
+
 // --------------------- Для работы с JSON -----------------------
 
 #if defined(ESP32)
