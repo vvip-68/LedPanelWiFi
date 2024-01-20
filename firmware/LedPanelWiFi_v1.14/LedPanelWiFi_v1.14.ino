@@ -616,7 +616,7 @@ void setup() {
   DEBUG((USE_TEXT_CACHE == 1 ? '+' : '-'));
   DEBUG(F(" Кэш текстов бегущей строки: "));
   if (USE_TEXT_CACHE == 1) {
-    DEBUG(TEXT_CACHE_LINE_SIZE); DEBUGLN(F(" байт на строку"));
+    DEBUG(TEXT_CACHE_LINE_SIZE); DEBUGLN(F(" символов на строку"));
   } else {
     DEBUGLN(F(" отключен"));
   }

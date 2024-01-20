@@ -83,7 +83,7 @@ export class AppComponent extends Base implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в главном экране
-          const request = 'W|H|PS|LG|VR|HN|FS|SX|CH|CV|WZ|AL|SM|CRLE|UP|FM|PN|MC|MX|MZ|TM';
+          const request = 'W|H|HN|CRLE|PS|LG|VR|FS|SX|CH|CV|WZ|AL|SM|UP|FM|PN|MC|MX|MZ|TM';
           this.managementService.getKeys(request);
         }
       });
