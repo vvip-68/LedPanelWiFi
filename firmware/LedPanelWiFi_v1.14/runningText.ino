@@ -747,7 +747,6 @@ bool prepareNextText(const String& text) {
 // -1 - если показывать нечего
 int8_t getNextLine(int8_t currentIdx) {
   // Если не задана следующая строка - брать следующую из массива в соответствии с правилом
-  // sequenceIdx < 0 - просто брать следующую строку
   // sequenceIdx > 0 - Строка textIndecies содержит последовательность отображения строк, например "#12345ZYX"
   //                   в этом случае sequenceIdx = 1..textIndecies.length() и показывает на символ в строке, содержащий индекс следующей строки к отображению
   //                   Если извлеченный символ - '#' - брать случайную строку из массива
@@ -2069,8 +2068,11 @@ void saveTextLine(char index, const String& text) {
 
   // Если используется кэш бегущей строки...
   #if (USE_TEXT_CACHE == 1)
+    int8_t idx = getTextIndex(index); 
     // ... если длина текста меньше указанной предельной длины - сохранить ее в кэше, если больше - в кэш положить признак "брать строку из файла"
-    textLines[idx] = text.length() <= TEXT_CACHE_LINE_SIZE ? String(text) : "{^}";
+    if (idx >= 0 && idx < TEXTS_MAX_COUNT) {
+      textLines[idx] = text.length() <= TEXT_CACHE_LINE_SIZE ? String(text) : "{^}";
+    }
   #endif
   
   String directoryName(FS_TEXT_STORAGE);
