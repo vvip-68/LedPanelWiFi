@@ -92,10 +92,7 @@ void lightBallsRoutine() {
     BorderWidth = 0;
     USE_SEGMENTS_PAINTBALL = getEffectScaleParamValue2(MC_PAINTBALL);
   }
-  
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
-  
+    
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
 
   // Apply some blurring to whatever's already on the matrix
@@ -193,9 +190,6 @@ void swirlRoutine() {
     BorderWidth = seg_num == 1 ? 0 : 1;
     USE_SEGMENTS_SWIRL = getEffectScaleParamValue2(MC_SWIRL);
   }
-
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
 
@@ -1218,9 +1212,6 @@ void flickerRoutine() {
     hue_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();    
   }
 
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
-
   // uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
   // adjust the intra-frame time values
   hue_speed = map8(255-getEffectSpeedValue(MC_FLICKER), 1, 5);
@@ -1256,7 +1247,6 @@ void starsRoutine() {
     FastLED.clear();  // очистить
   }
 
-  delay(5);  
   fader(STARS_FADE_STEP);
 
   uint8_t spd = getEffectSpeedValue(thisMode);
@@ -1825,9 +1815,6 @@ void pacificaRoutine()
     loadingFlag = false;
   }
 
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
-
   // uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
 
   // Increment the four "color index start" counters, one for each wave layer.
@@ -1934,9 +1921,6 @@ void shadowsRoutine() {
     // modeCode = MC_SHADOWS;
     loadingFlag = false;
   }
-
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
 
   static uint16_t sPseudotime = 0;
   static uint16_t sLastMillis = 0;
@@ -2294,9 +2278,6 @@ void prizmataRoutine() {
     dir_mx = pWIDTH >= pHEIGHT ? 0 : 1;                                 // 0 - квадратные сегменты расположены горизонтально, 1 - вертикально
     // modeCode = MC_PRIZMATA;
   }
-
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
   
   EVERY_N_MILLIS(33) {
      hue++;
@@ -2553,9 +2534,6 @@ void fire2Routine() {
       return;      
     }
   }
-
-  // Если совсем задержки нет - матрица мерцает от постоянного обновления
-  delay(5);
 
   static uint8_t FIRE_BASE = pHEIGHT/6 > 6 ? 6 : pHEIGHT/6+1;
   

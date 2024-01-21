@@ -31,7 +31,6 @@ void doEffectWithOverlay(uint8_t aMode) {
     checkMomentText();
     if (momentTextIdx >= 0 && currentTextLineIdx != momentTextIdx) {
       // В момент смены стоки с ДО на ПОСЛЕ - строка ПОСЛЕ извлеченная из массива содержит признак отключенности - '-' в начале или "{-}" в любом месте
-      // Также строка может содержать другие макросы, которые нужно обработать processMacrosInText()
       // Если передать строку с макросом отключения - processMacrosInText() вернет любую другую строку вместо отключенной
       // Чтобы это не произошло - нужно удалить признак отключенности
       currentTextLineIdx = momentTextIdx;
@@ -42,7 +41,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       if (text.length() > 0 && text[0] == '-') text = text.substring(1);
       
       while (text.indexOf("{-}") >= 0) text.replace("{-}","");
-      currentText = processMacrosInText(text);  
+      currentText = text;
       ignoreTextOverlaySettingforEffect = textOverlayEnabled;
       loadingTextFlag = true;
     }
@@ -763,10 +762,7 @@ void setTimersForMode(uint8_t aMode) {
     if (textScrollSpeed < D_TEXT_SPEED_MIN) set_textScrollSpeed(D_TEXT_SPEED_MIN); // Если textScrollSpeed == 0 - бегущая строка начинает дергаться.
     if (textScrollSpeed > D_TEXT_SPEED_MAX) set_textScrollSpeed(D_TEXT_SPEED_MAX);
   }
-  // Спеднее время цикла loop 25мс. Иногда когда нет другой работы цикл может завершаться за 7-8мс.
-  // Если время таймера сдвига бегущей строки меньше времени цикла - на таких "быстрых" итерациях происходит сдвиг строки быстрее чем в среднем - 
-  // что визуально смотрится как подергивание. Поэтому время сдвига строки ставить не чаще среднего времени цикла   
-  textTimer.setInterval(textScrollSpeed < 25 ? 25 : textScrollSpeed);
+   textTimer.setInterval(textScrollSpeed);
 }
 
 void checkIdleState() {

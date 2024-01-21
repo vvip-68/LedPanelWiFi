@@ -1,4 +1,3 @@
-// --------------------- ДЛЯ РАЗРАБОТЧИКОВ ----------------------
 
 void InitializeTexts() {
 
@@ -210,6 +209,11 @@ void runningText() {
     if (currentText.indexOf("€") >= 0) {
       currentText.replace("€", "¶");
     }
+
+    // Если выводимая строка содержит макросы - обработать их
+    if (currentText.indexOf('{') != -1) {
+      currentText = processMacrosInText(currentText); 
+    }
     
     // Вывод текста оверлея бегущей строки
     textHasDateTime = init_time && (currentText.indexOf("{D") >= 0 || currentText.indexOf("{R") >= 0 || currentText.indexOf("{P") >= 0 || currentText.indexOf("{S") >= 0);  
@@ -228,15 +232,12 @@ void runningText() {
     if (text.charAt(0) == '-') text.setCharAt(0, ' ');
     if (text.indexOf("{-}") != -1) text.replace("{-}", "");
 
-    // Если по какой-то причине в строке еще остались необработанные макросы (такое почему-то иногда случается с макросом установки цвета) -
-    // обработать макросы, чтобы не вышло конфуза. Если в тексте есть фигурная скобка '{', которая не макрос (или ошибка в макросе) - она не будет
-    // извлечена из строки обработкой - ограничить число попыток подготовки макроса двумя попытками
-    int8_t cnt = 0;
-    while (text.indexOf('{') != -1 && cnt < 2) {
-      text = processMacrosInText(text);
-      cnt++;
-      yield();
-    }    
+    // Если в строке еще остались необработанные множественные макросы цвета, если строка содержала дату, 
+    // которую подставили чуть выше - обработать макросы цвета
+    if (text.indexOf('{') != -1) {
+      bool hasMultiColor = checkIsTextMultiColor(text);      
+      if (hasMultiColor) text = processColorMacros(text);
+    }
   }
 
   fillString(text);
@@ -657,7 +658,11 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
   return 0;
 }
 
+
+
 // ------------- СЛУЖЕБНЫЕ ФУНКЦИИ --------------
+
+
 
 // Сдвинуть позицию отображения строки
 void shiftTextPosition() {
@@ -700,6 +705,7 @@ bool prepareNextText(const String& text) {
     
   // Получить очередную строку из массива строк, обработав все макросы кроме дато-зависимых
   // Если макросы, зависимые от даты есть - установить флаг textHasDateTime, макросы оставить в строке
+  // Если есть макросы, зависимые от даты и/или макросы с погодой и это multiColor строка - макросы цвета не обрабатывать, так как после замены макросов дат на значение индексы начала / конца цвета "уплывут"
   // Результат положить в currentText
   // Далее если флаг наличия даты в строке установлен - каждый раз перед отрисовкой выполнять подстановку даты и
   // обработку наступления даты последнего показа и переинициализацию строки
@@ -707,11 +713,9 @@ bool prepareNextText(const String& text) {
 
   offset = pWIDTH;   // перемотка новой строки в правый край
   if (text.length() != 0) {
+  
     syncText = text;
-    if (needProcessMacros) {
-      currentText = processMacrosInText(currentText);
-      needProcessMacros = false;
-    }
+
   } else {
   
     // Если nextIdx >= 0 - значит в предыдущей строке было указано какую строку показывать следующей - показываем ее
@@ -724,9 +728,7 @@ bool prepareNextText(const String& text) {
     if (nextIdx >= 0) {
       if (currentText[0] == '-') currentText[0] = ' ';
       currentText.replace("{-}", "");
-    }
-    
-    currentText = processMacrosInText(currentText);    
+    }    
   }
 
   if (text.length() == 0 && currentTextLineIdx == 0 && currentText[0] == '#') currentText = "";
@@ -966,11 +968,11 @@ String processMacrosInText(const String& text) {
   // Выполнять цикл поиска подходящей к отображению строки
   // Если ни одной строки не найдено - возвратить false
 
-  bool    found = false;
+  bool    found = false, textHasWeather = false;
   uint8_t attempt = 0;
   int16_t idx, idx2;
   int8_t  checkTextId = max(momentTextIdx, currentTextLineIdx);
-
+  
   while (!found && (attempt < TEXTS_MAX_COUNT)) {
     
     // -------------------------------------------------------------    
@@ -983,6 +985,7 @@ String processMacrosInText(const String& text) {
       textLine.replace("{-}", "");
     }
 
+    // Строка пустая или отключена - брать другую строку
     if (textLine.length() == 0 || textLine.charAt(0) == '-' || textLine.indexOf("{-}") >= 0) {
       attempt++;  
       currentTextLineIdx = getNextLine(currentTextLineIdx);
@@ -991,7 +994,8 @@ String processMacrosInText(const String& text) {
     }
 
     // Если в строке содержится макрос, связанный с погодой, но погода еще не получена с сервера - пропускать строку, брать следующую
-    if (!init_weather && (textLine.indexOf("{WS}") >= 0 || textLine.indexOf("{WT}") >= 0)) {
+    textHasWeather = (textLine.indexOf("{WS}") >= 0 || textLine.indexOf("{WT}") >= 0);
+    if (!init_weather && textHasWeather) {
       attempt++;  
       currentTextLineIdx = getNextLine(currentTextLineIdx);
       textLine = (currentTextLineIdx < 0 || currentTextLineIdx >= TEXTS_MAX_COUNT) ? "" : getTextByIndex(currentTextLineIdx);
@@ -1027,7 +1031,7 @@ String processMacrosInText(const String& text) {
     
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       nextTextLineIdx = -1;
     }
     
@@ -1077,7 +1081,7 @@ String processMacrosInText(const String& text) {
 
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       runTextSound = -1;
       runTextSoundRepeat = false;
     }
@@ -1120,7 +1124,7 @@ String processMacrosInText(const String& text) {
 
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       specialTextEffect = -1;
       specialTextEffectParam = -1;
     }
@@ -1167,7 +1171,7 @@ String processMacrosInText(const String& text) {
 
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       textShowTime = -1;
     }
     
@@ -1202,7 +1206,7 @@ String processMacrosInText(const String& text) {
 
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       textShowCount = 1;
     }
     
@@ -1237,7 +1241,7 @@ String processMacrosInText(const String& text) {
 
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       useSpecialBackColor = false;
     }
     
@@ -1304,60 +1308,54 @@ String processMacrosInText(const String& text) {
     // Вызов функции проверки текста на макросы может выполняться в несколько приемов, в каждый вызов могут обрабатываться не все, а только часть макросов
     // Обработанные макросы удаляются и при следующем вызове их уже не будет. Не надо сбрасывфть флаги, если обрабатывается все та же строка
     bool hasMulticolor = checkIsTextMultiColor(text);
-    if (macrosTextLineIdx != checkTextId) {
+    if (checkTextId < 0 || macrosTextLineIdx != checkTextId) {
       textHasMultiColor = hasMulticolor;
       globalTextColor = getGlobalTextColor();
       specialTextColor = globalTextColor;
     }
 
-    // Если строка не содержит даты или не содержит множественного определения цвета
+    // Если строка не содержит даты / погоды или не содержит множественного определения цвета
     // обработать макрос цвета, цвет сохранить в specialTextColor, установить флаг useSpecialTextColor
     // В дальнейшем при отображении строки не нужно каждый раз вычислять цвет и позицию - просто использовать specialTextColor
-
-    // Если строка содержит множественное определение цвета и не содержит даты - подготовить массив цветов,
-    // который будет отображаться для отрисовки строки
     
-    if (textHasMultiColor) {
-      textLine = processColorMacros(textLine);
-    } else { 
-      // Непонятки: сюда должны попадать когда проверка hasMulticolor дает false, однако дебажный вывод строки показывает, 
-      // что на свмом дле строка содержит множественные макросы цвета текста.
-      // В результате обработка как hasMulticolor==false запоминает последний цвет, используемый в строке и вся строка отображается этим цветом.
-      // Поэтому поставлен костыль - даже если считается, что макрос не собержит множественные определения цвета - перепроверить это еще раз.
-      // И если все-таки множественные цвета - парсить строку как MultiColor      
-      hasMulticolor = checkIsTextMultiColor(textLine);
-      if (hasMulticolor) {
-        textHasMultiColor = hasMulticolor;
+    if (textHasMultiColor) {      
+      // Если строка содержит множественное определение цвета и не содержит даты - подготовить массив цветов,
+      // который будет отображаться для отрисовки строки
+      textHasWeather = (textLine.indexOf("{WS}") >= 0 || textLine.indexOf("{WT}") >= 0);
+      if (!(textHasWeather || textHasDateTime)) {
         textLine = processColorMacros(textLine);
-      } else {
-        useSpecialTextColor = false;
-        idx = textLine.indexOf("{C");
-        while (idx >= 0) {
-    
-          // Закрывающая скобка
-          // Если ее нет - ошибка, ничего со строкой не делаем, отдаем как есть
-          idx2 = textLine.indexOf("}", idx);        
-          if (idx2 < 0) break;
-    
-          // Извлечь цвет текста отображения этой бегущей строки
-          String tmp;
-          if (idx2 - idx > 1) {
-            tmp = textLine.substring(idx+2, idx2);
-          }
-          
-          // удаляем макрос
-          textLine.remove(idx, idx2 - idx + 1);
-               
-          // Преобразовать строку в число
-          useSpecialTextColor = true;
-          specialTextColor = (uint32_t)HEXtoInt(tmp);
-          
-          // Есть еще вхождения макроса?
-          idx = textLine.indexOf("{C");  
+      }
+    } else {
+      // Многоцветья нет - возможно есть одиночный макрос цвета (в начале или в конце строки) - который задает цвет всей строки - получить цвет строки
+      useSpecialTextColor = false;
+      idx = textLine.indexOf("{C");
+      while (idx >= 0) {
+  
+        // Закрывающая скобка
+        // Если ее нет - ошибка, ничего со строкой не делаем, отдаем как есть
+        idx2 = textLine.indexOf("}", idx);        
+        if (idx2 < 0) break;
+  
+        // Извлечь цвет текста отображения этой бегущей строки
+        String tmp;
+        if (idx2 - idx > 1) {
+          tmp = textLine.substring(idx+2, idx2);
         }
-      }      
+        
+        // удаляем макрос
+        textLine.remove(idx, idx2 - idx + 1);
+             
+        // Преобразовать строку в число
+        useSpecialTextColor = true;
+        specialTextColor = (uint32_t)HEXtoInt(tmp);
+        
+        // Есть еще вхождения макроса?
+        idx = textLine.indexOf("{C");  
+      }
     }
-    attempt++;
+
+    // На данном этапе должны остаться только макросы даты, и если они есть - макросы многоцветной строки.
+    // Они будут обработаны перед каждым выводом строки текста на матрицу
   }
 
   // Запомнить - макросы какой строки были разобраны
@@ -1749,8 +1747,6 @@ String processDateMacrosInText(const String& text) {
           if (textLine.indexOf("{-}") >= 0) textLine.replace("{-}", "");
           if (textLine.length() == 0) return "";    
 
-          textLine = processMacrosInText(textLine);
-          
           // Строка замены содержит в себе макросы даты? Если да - вычислить всё снова для новой строки                   
           if (textLine.indexOf("{D}") >= 0 || textLine.indexOf("{D:") >= 0 ||textLine.indexOf("{R") >= 0 || textLine.indexOf("{P") >= 0 || textLine.indexOf("{S") >= 0) continue;
 
@@ -2710,7 +2706,7 @@ bool isFirstLineControl() {
       saveTextLine('0', textIndecies);
     }
     // Если второй символ в строке тоже '#' - остальная часть строки нам не нужна - отбрасываем
-    if (textIndecies[1] == '#') {
+    if (textIndecies[1] == '#' && textIndecies.length() > 2) {
       textIndecies = "##";
       saveTextLine('0', textIndecies);
     }
@@ -2721,12 +2717,14 @@ bool isFirstLineControl() {
     // textIndecies[1] == '#' - допускается - значит брать случайную последовательность
     // '0' - НЕ допускается - т.к. строка массива с индексом 0 - и есть управляющая
     textIndecies.toUpperCase();
+    bool hasWrongChars = false;
     for (uint16_t i = 1; i < textIndecies.length(); i++) {
       char c = textIndecies.charAt(i);
       if ((i == 1 && c == '#') || (c >= '1' && c <= '9') || (c >= 'A' && c <= 'Z')) continue;
       textIndecies[i] = ' ';
+      hasWrongChars = true;
     }
-    textIndecies.replace(" ", "");
+    if (hasWrongChars) textIndecies.replace(" ", "");
     if (textIndecies.length() < 2) {
       textIndecies = "##";
       saveTextLine('0', textIndecies);

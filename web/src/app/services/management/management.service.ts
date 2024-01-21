@@ -676,7 +676,7 @@ export class ManagementService extends Base implements OnDestroy {
       this.httpClient.get(filePath, {headers, responseType: 'text'})
         .subscribe({
           next: (text) => {
-            this.text_lines[i] = isNullOrUndefinedOrEmpty(text) ? '' : text.trim();
+            this.text_lines[i] = isNullOrUndefinedOrEmpty(text) ? '' : text.replace(/\u0000/g, ' ').trim();
           },
           error: (error) => {
             // this.wsService.sendText(`$13 2 ${i};`);
