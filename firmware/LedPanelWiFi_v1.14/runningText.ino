@@ -1284,13 +1284,17 @@ String processMacrosInText(const String& text) {
       // Подготовить строку текущего времени HH:mm и заменить все вхождения {D} на эту строку
       int8_t th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
       String s_temperature((th == 0 ? "" : (th > 0 ? "+" : ""))); s_temperature += th;
-      String s_color = "";
+      String s_degree(isFarenheit ? PSTR("°F") : PSTR("°C"));
+      String s_color, s_color2;
 
       if (useTemperatureColor) {
         s_color = "{C" + getTemperatureColor(th) + "}";
+        s_color2 = "{C" + IntToHex(globalTextColor) + "}";
       }
+
+      String s_tmp(s_color); s_tmp += s_temperature; s_tmp +=s_degree; s_tmp += s_color2;
       
-      textLine.replace("{WT}", s_color + s_temperature);
+      textLine.replace("{WT}", s_tmp);
     }
 
     #endif
