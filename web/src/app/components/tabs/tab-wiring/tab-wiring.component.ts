@@ -25,8 +25,9 @@ interface LineParameters {
   pin: Pin,       // Описатель пина подключения
   start: number,  // Начальный индекс сегмента в массиве светодиодов
   length: number, // Длина сегмента
+  rgb: number,    // Порядок цвета
   startControl: FormControl,
-  lengthControl: FormControl
+  lengthControl: FormControl,
 }
 
 interface Pin {
@@ -170,17 +171,22 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
 
   line1StartFormControl = new FormControl(0);
   line1LengthFormControl = new FormControl(1);
+  line1ColorFormControl = new FormControl(0);
   line2StartFormControl = new FormControl(0);
   line2LengthFormControl = new FormControl(1);
+  line2ColorFormControl = new FormControl(0);
   line3StartFormControl = new FormControl(0);
   line3LengthFormControl = new FormControl(1);
+  line3ColorFormControl = new FormControl(0);
   line4StartFormControl = new FormControl(0);
   line4LengthFormControl = new FormControl(1);
+  line4ColorFormControl = new FormControl(0);
 
   numLeds: number = 0;
   button_type_list = new Array<ComboBoxItem>();
   power_type_list = new Array<ComboBoxItem>();
   device_type_list = new Array<ComboBoxItem>();
+  color_order_list = new Array<ComboBoxItem>();
 
   matcher = new AppErrorStateMatcher();
 
@@ -206,10 +212,10 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
       this.sd_mosi_pin = this.createEmptyPin();
       this.sd_clk_pin = this.createEmptyPin();
 
-      this.lines.push( { idx: 1, pin: this.createEmptyPin(), start: 0, length: 0, startControl: this.line1StartFormControl, lengthControl: this.line1LengthFormControl } );
-      this.lines.push( { idx: 2, pin: this.createEmptyPin(), start: 0, length: 0, startControl: this.line2StartFormControl, lengthControl: this.line2LengthFormControl } );
-      this.lines.push( { idx: 3, pin: this.createEmptyPin(), start: 0, length: 0, startControl: this.line3StartFormControl, lengthControl: this.line3LengthFormControl } );
-      this.lines.push( { idx: 4, pin: this.createEmptyPin(), start: 0, length: 0, startControl: this.line4StartFormControl, lengthControl: this.line4LengthFormControl } );
+      this.lines.push( { idx: 1, pin: this.createEmptyPin(), start: 0, length: 0, rgb: 0, startControl: this.line1StartFormControl, lengthControl: this.line1LengthFormControl } );
+      this.lines.push( { idx: 2, pin: this.createEmptyPin(), start: 0, length: 0, rgb: 0, startControl: this.line2StartFormControl, lengthControl: this.line2LengthFormControl } );
+      this.lines.push( { idx: 3, pin: this.createEmptyPin(), start: 0, length: 0, rgb: 0, startControl: this.line3StartFormControl, lengthControl: this.line3LengthFormControl } );
+      this.lines.push( { idx: 4, pin: this.createEmptyPin(), start: 0, length: 0, rgb: 0, startControl: this.line4StartFormControl, lengthControl: this.line4LengthFormControl } );
 
       this.button_type_list.push({value: 0, displayText: this.L.$('Сенсорная')});
       this.button_type_list.push({value: 1, displayText: this.L.$('Тактовая')});
@@ -219,6 +225,13 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
 
       this.device_type_list.push({value: 0, displayText: this.L.$('Труба')});
       this.device_type_list.push({value: 1, displayText: this.L.$('Панель')});
+
+      this.color_order_list.push({value: 0, displayText: this.L.$('GRB')});
+      this.color_order_list.push({value: 1, displayText: this.L.$('RGB')});
+      this.color_order_list.push({value: 2, displayText: this.L.$('RBG')});
+      this.color_order_list.push({value: 3, displayText: this.L.$('GBR')});
+      this.color_order_list.push({value: 4, displayText: this.L.$('BRG')});
+      this.color_order_list.push({value: 5, displayText: this.L.$('BGR')});
   }
 
   ngOnInit() {
@@ -668,6 +681,7 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
       line.pin = this.createEmptyPin();
       line.start = Number(arr[2]);
       line.length = Number(arr[3]);
+      line.rgb = Number(arr[4]);
       line.startControl.setValue(line.start);
       line.lengthControl.setValue(line.length);
       if (gpio >= 0) {
@@ -991,37 +1005,42 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
   applySettings($event: MouseEvent) {
 
     // Матрица
-    // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
-    // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
-    // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
-    // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+    // - $23 6 U1,P1,S1,L1,C1; - подключение матрицы светодиодов линия 1
+    // - $23 7 U2,P2,S2,L2,C2; - подключение матрицы светодиодов линия 2
+    // - $23 8 U3,P3,S3,L3,C3; - подключение матрицы светодиодов линия 3
+    // - $23 9 U4,P4,S4,L4,C4; - подключение матрицы светодиодов линия 4
     //         Ux - 1 - использовать линию, 0 - линия не используется
     //         Px - пин GPIO, на который назначен вывод сигнала на матрицу для линии х
     //         Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
     //         Lx - длина цепочки светодиодов, подключенной к линии x
+    //         Сx - порядок цвета светодиодов, подключенной к линии x
     let pin = this.lines[0].pin.gpio;
     let use = this.lines[0].pin.use && pin >= 0;
     let sta = this.lines[0].start = Number(this.lines[0].startControl.value);
     let len = this.lines[0].length = Number(this.lines[0].lengthControl.value);
-    this.socketService.sendText(`$23 6 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1};`);
+    let rgb = this.lines[0].rgb;
+    this.socketService.sendText(`$23 6 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1} ${rgb};`);
 
     pin = this.lines[1].pin.gpio;
     use = this.lines[1].pin.use && pin >= 0;
     sta = this.lines[1].start = Number(this.lines[1].startControl.value);
     len = this.lines[1].length = Number(this.lines[1].lengthControl.value);
-    this.socketService.sendText(`$23 7 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1};`);
+    rgb = this.lines[1].rgb;
+    this.socketService.sendText(`$23 7 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1} ${rgb};`);
 
     pin = this.lines[2].pin.gpio;
     use = this.lines[2].pin.use && pin >= 0;
     sta = this.lines[2].start = Number(this.lines[2].startControl.value);
     len = this.lines[2].length = Number(this.lines[2].lengthControl.value);
-    this.socketService.sendText(`$23 8 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1};`);
+    rgb = this.lines[2].rgb;
+    this.socketService.sendText(`$23 8 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1} ${rgb};`);
 
     pin = this.lines[3].pin.gpio;
     use = this.lines[3].pin.use && pin >= 0;
     sta = this.lines[3].start = Number(this.lines[3].startControl.value);
     len = this.lines[3].length = Number(this.lines[3].lengthControl.value);
-    this.socketService.sendText(`$23 9 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1};`);
+    rgb = this.lines[3].rgb;
+    this.socketService.sendText(`$23 9 ${use ? 1 : 0} ${use ? pin : -1} ${use ? sta : -1} ${use ? len : -1} ${rgb};`);
 
     // Кнопка
     // - $23 11 X Y; - кнопка
@@ -1244,4 +1263,7 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
     return '';
   }
 
+  setColorOrder(line: number, value: number) {
+    this.lines[line].rgb = value;
+  }
 }

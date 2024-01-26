@@ -192,7 +192,7 @@
         <div class="toggler-label" style="padding-top: 5px">
           <p>{{L.$('Использование матрицы:')}}</p>
         </div>
-        <mat-select [(ngModel)]="device_type" panelClass="app-select-panel" [disableControl]="isDisabled()">
+        <mat-select [(ngModel)]="device_type" class="device_type" panelClass="app-select-panel" [disableControl]="isDisabled()">
           @for (item of this.device_type_list; track item) {
             <mat-option [value]="item.value">
               {{item.displayText}}
@@ -210,7 +210,7 @@
 
     @if (lines.length > 0) {
       <div class="toggler-container led-lines" style="padding-top: 12px">
-        <div class="toggler-label">
+        <div class="line-label">
           <p>{{L.$('Линия 1')}}</p>
         </div>
         <div class="toggler">
@@ -219,11 +219,19 @@
         <div class="toggler-label" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}">
           <p>{{L.$('Пин:')}}</p>
         </div>
-        <mat-select [ngModel]="lines[0].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}"
+        <mat-select [ngModel]="lines[0].pin.gpio" class="pin-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use" [ngClass]="{'error': lines[0].pin.use && lines[0].pin.gpio < 0}"
                     (valueChange)="unassignPin(lines[0].pin.gpio); lines[0].pin = assignPin($event, 'LED 1'); updateRxTxUsage();">
           @for (pin of this.line1_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-select [ngModel]="lines[0].rgb" class="rgb-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[0].pin.use"
+                    (valueChange)="setColorOrder(0, $event)">
+          @for (rgb of this.color_order_list; track rgb) {
+            <mat-option [value]="rgb.value">
+              {{rgb.displayText}}
             </mat-option>
           }
         </mat-select>
@@ -256,7 +264,7 @@
 
     @if (lines.length > 1) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label">
+        <div class="line-label">
           <p>{{L.$('Линия 2')}}</p>
         </div>
         <div class="toggler">
@@ -265,11 +273,19 @@
         <div class="toggler-label" [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}">
           <p>{{L.$('Пин:')}}</p>
         </div>
-        <mat-select [ngModel]="lines[1].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"  [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}"
+        <mat-select [ngModel]="lines[1].pin.gpio" class="pin-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"  [ngClass]="{'error': lines[1].pin.use && lines[1].pin.gpio < 0}"
                     (valueChange)="unassignPin(lines[1].pin.gpio); lines[1].pin = assignPin($event, 'LED 2'); updateRxTxUsage();">
           @for (pin of this.line2_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-select [ngModel]="lines[1].rgb" class="rgb-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[1].pin.use"
+                    (valueChange)="setColorOrder(1, $event)">
+        @for (rgb of this.color_order_list; track rgb) {
+            <mat-option [value]="rgb.value">
+              {{rgb.displayText}}
             </mat-option>
           }
         </mat-select>
@@ -302,7 +318,7 @@
 
     @if (lines.length > 2) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label">
+        <div class="line-label">
           <p>{{L.$('Линия 3')}}</p>
         </div>
         <div class="toggler">
@@ -311,11 +327,19 @@
         <div class="toggler-label" [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}">
           <p>{{L.$('Пин:')}}</p>
         </div>
-        <mat-select [ngModel]="lines[2].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"  [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}"
+        <mat-select [ngModel]="lines[2].pin.gpio" class="pin-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"  [ngClass]="{'error': lines[2].pin.use && lines[2].pin.gpio < 0}"
                     (valueChange)="unassignPin(lines[2].pin.gpio); lines[2].pin = assignPin($event, 'LED 3'); updateRxTxUsage();">
           @for (pin of this.line3_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-select [ngModel]="lines[2].rgb" class="rgb-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"
+                    (valueChange)="setColorOrder(1, $event)">
+        @for (rgb of this.color_order_list; track rgb) {
+            <mat-option [value]="rgb.value">
+              {{rgb.displayText}}
             </mat-option>
           }
         </mat-select>
@@ -348,7 +372,7 @@
 
     @if (lines.length > 3) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label">
+        <div class="line-label">
           <p>{{L.$('Линия 4')}}</p>
         </div>
         <div class="toggler">
@@ -357,11 +381,19 @@
         <div class="toggler-label" [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}">
           <p>{{L.$('Пин:')}}</p>
         </div>
-        <mat-select [ngModel]="lines[3].pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"  [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}"
+        <mat-select [ngModel]="lines[3].pin.gpio" class="pin-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"  [ngClass]="{'error': lines[3].pin.use && lines[3].pin.gpio < 0}"
                     (valueChange)="unassignPin(lines[3].pin.gpio); lines[3].pin = assignPin($event, 'LED 4'); updateRxTxUsage();">
           @for (pin of this.line4_pin_list; track pin) {
             <mat-option [value]="pin.gpio">
               {{pin.name}}
+            </mat-option>
+          }
+        </mat-select>
+        <mat-select [ngModel]="lines[3].rgb" class="rgb-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[3].pin.use"
+                    (valueChange)="setColorOrder(3, $event)">
+        @for (rgb of this.color_order_list; track rgb) {
+            <mat-option [value]="rgb.value">
+              {{rgb.displayText}}
             </mat-option>
           }
         </mat-select>
@@ -400,7 +432,7 @@
 
     @if (supportButton) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label pin-name">
+        <div class="toggler-label pin-name2">
           <p>{{L.$('Пин:')}}</p>
         </div>
         <mat-select [ngModel]="button_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
@@ -433,7 +465,7 @@
 
     @if (supportPower) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label pin-name">
+        <div class="toggler-label pin-name2">
           <p>{{L.$('POWER:')}}</p>
         </div>
         <mat-select [ngModel]="power_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
@@ -459,7 +491,7 @@
 
     @if (supportAlarmPower) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label pin-name">
+        <div class="toggler-label pin-name2">
           <p>{{L.$('ALARM:')}}</p>
         </div>
         <mat-select [ngModel]="power_alarm_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"
@@ -485,7 +517,7 @@
 
     @if (supportAuxPower) {
       <div class="toggler-container led-lines">
-        <div class="toggler-label pin-name">
+        <div class="toggler-label pin-name2">
           <p>{{L.$('AUX:')}}</p>
         </div>
         <mat-select [ngModel]="power_aux_pin.gpio" panelClass="pin-select-panel" [disableControl]="isDisabled()"

@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0121")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0126")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -73,12 +73,20 @@
 //     Если и дальше будут проблемы - пробуйте вариант "Flash frequency" понижать с 80 MHz до 40 MHz
 //     Вероятно с какими-то комбинациями этих настроек контроллер запустится
 //     
-//     Второй момент: польшинство микроконтроллеров нормально работают при установки частоты CPU в 160MHz.
+//     Второй момент: большинство микроконтроллеров нормально работают при установки частоты CPU в 160MHz.
 //     Если на частоте 160MHz не запускается - попробуйте снизить частоту CPU в меню "Интсрументы", "CPU Frequency" до стандартных 80MHz
 //
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 // #define FASTLED_ALLOW_INTERRUPTS 0
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+//     Третий момент: Прошивка достигла некоторого предела, при котором при всех включенных возможностях скетч на некоторых контроллерах ESP32 не умещается в памяти.
+//     Если при компиляции выдвется ошибка - размер скетча превысил размер доступной памяти и составляет (104%) - вам придется
+//     - либо выбирать плату с Большим размером доступной памяти - например 8MB вместо стандартных 4MB
+//     - либо чем-то жертвовать, отключая поддержку того или иного оборудования и/или возможности - например, обновление по воздуху - ОТА 
+//       При отключении возможности обновления по воздуху
+//         1. Установите в настройках скетча USE_OTA = 0
+//         2. В меню "Инструменты", "Partition Scheme" - выберите "No OTA (2MB App / 2MB SPIFFS)"
 //
 // -------------------------------------------------------------------------------------------------------
 //
@@ -503,7 +511,8 @@ void setup() {
         if (led_start + led_count > NUM_LEDS) {
           led_count = NUM_LEDS - led_start;
         }      
-        DEBUG(F("  Линия ")); DEBUG(i); DEBUG(F(" PIN=")); DEBUG(pinName(led_pin)); DEBUG(F(", START=")); DEBUG(led_start); DEBUG(F(", COUNT=")); DEBUGLN(led_count);        
+        int8_t    led_rgb = getLedLineRGB(i);
+        DEBUG(F("  Линия ")); DEBUG(i); DEBUG(F(" PIN=")); DEBUG(pinName(led_pin)); DEBUG(F(", START=")); DEBUG(led_start); DEBUG(F(", COUNT=")); DEBUG(led_count); DEBUG(F(", COLORS=")); DEBUGLN(getColorOrderName(led_rgb));
       }
     }
   } else {

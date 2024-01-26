@@ -144,7 +144,12 @@ void loadSettings() {
   //  243 - Режим по времени "Рассвет" - так же как для режима 1                                             // getAM5effect()                 // putAM5effect(dawn_effect_id)
   // 244,245,246,247 - Код региона OpenWeatherMap для получения погоды (4 байта - uint32_t)                  // getWeatherRegion2()            // putWeatherRegion2(regionID2)
   //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)
-  //**249-279 - не используется
+  
+  //**249-275 - не используется
+  // 276 - порядок цвета для ленты на линии 1
+  // 277 - порядок цвета для ленты на линии 2
+  // 278 - порядок цвета для ленты на линии 3
+  // 279 - порядок цвета для ленты на линии 4
   // 280 - битовая маска b0-b3 - использование каналов вывода на ленту, b6 - DEBUG_SERIAL; b7 - флаг инициализации
   // 281 - пин вывода на ленту линии 1          LED_PIN
   // 282,283 - начальный индекс диодов линии 1 
@@ -558,21 +563,25 @@ void initializeWiring() {
   putLedLinePin(1, LED_PIN);                        // Вывод назначен на LED_PIN
   putLedLineStartIndex(1, 0);                       // Начало вывода на ленту - с 0 индекса светодиодов в массиве  
   putLedLineLength(1, NUM_LEDS);                    // реальное значение будет инициализировано в setup() после того как из настроек будет считан текущий размер матрицы
+  putLedLineRGB(1, 0);                              // цветовой порядок
   
   putLedLineUsage(2, false);                        // Линия 2 - отключена
   putLedLinePin(2, -1);                             // Вывод не назначен ни на один из пинов
   putLedLineStartIndex(2, 0);                       // Индекс начала вывода - N/A   
   putLedLineLength(2, NUM_LEDS);                    // Длина сегмента - N/A
+  putLedLineRGB(2, 0);                              // цветовой порядок
  
   putLedLineUsage(3, false);                        // Линия 3 - отключена
   putLedLinePin(3, -1);                             // Вывод не назначен ни на один из пинов
   putLedLineStartIndex(3, 0);                       // Индекс начала вывода - N/A   
   putLedLineLength(3, NUM_LEDS);                    // Длина сегмента - N/A
+  putLedLineRGB(3, 0);                              // цветовой порядок
   
   putLedLineUsage(4, false);                        // Линия 4 - отключена
   putLedLinePin(4, -1);                             // Вывод не назначен ни на один из пинов
   putLedLineStartIndex(4, 0);                       // Индекс начала вывода - N/A   
   putLedLineLength(4, NUM_LEDS);                    // Длина сегмента - N/A
+  putLedLineRGB(4, 0);                              // цветовой порядок
 
   #if (USE_BUTTON == 1)
     putButtonPin(PIN_BTN);                          // Пин подключения кнопки
@@ -1983,6 +1992,38 @@ void putLedLineStartIndex(uint8_t line, int16_t new_value) {
   if (new_value < 0) new_value = 0;
   if (value != new_value) {
     EEPROM_int_write(index, (uint16_t)new_value);
+  }
+}
+
+// Порядок цвета светодиодов в линии 1..4
+int8_t getLedLineRGB(uint8_t line) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 276; break;                // 0 - GRB
+    case 2: index = 277; break;                // 1 - RGB
+    case 3: index = 278; break;                // 2 - RBG 
+    case 4: index = 279; break;                // 3 - GBR  
+  }                                            // 4 - BRG
+  if (index == 0) return 0;                    // 5 - BGR
+  int8_t value = EEPROMread(index);
+  if (value < 0 || value > 5) value = 0;
+  return value;
+}
+
+// Порядок цвета светодиодов в линии 1..4
+void putLedLineRGB(uint8_t line, int8_t new_value) {
+  uint16_t index = 0;
+  switch (line) {
+    case 1: index = 276; break;                // 0 - GRB
+    case 2: index = 277; break;                // 1 - RGB
+    case 3: index = 278; break;                // 2 - RBG 
+    case 4: index = 279; break;                // 3 - GBR  
+  }                                            // 4 - BRG
+  if (index == 0) return;                      // 5 - BGR
+  int8_t value = EEPROMread(index);
+  if (new_value < 0 || new_value > 5) new_value = COLOR_ORDER;
+  if (value != new_value) {
+    EEPROMwrite(index, new_value);
   }
 }
 

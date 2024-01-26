@@ -905,10 +905,10 @@ void parsing() {
              MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
              LW - ширина окна отображения на локальной матрице
              LH - высота окна отображения на локальной матрице
-        - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
-        - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
-        - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
-        - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+        - $23 6 U1,P1,S1,L1,C1; - подключение матрицы светодиодов линия 1
+        - $23 7 U2,P2,S2,L2,C2; - подключение матрицы светодиодов линия 2
+        - $23 8 U3,P3,S3,L3,C3; - подключение матрицы светодиодов линия 3
+        - $23 9 U4,P4,S4,L4,C4; - подключение матрицы светодиодов линия 4
              Ux - 1 - использовать линию, 0 - линия не используется
              Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
              Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
@@ -2385,10 +2385,10 @@ void parsing() {
     //       MY - логическая координата Y приемника на которого начинается вывод на локальную матрицу
     //       LW - ширина окна отображения на локальной матрице
     //       LH - высота окна отображения на локальной матрице
-    // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
-    // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
-    // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
-    // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+    // - $23 6 U1,P1,S1,L1,C1; - подключение матрицы светодиодов линия 1
+    // - $23 7 U2,P2,S2,L2,C2; - подключение матрицы светодиодов линия 2
+    // - $23 8 U3,P3,S3,L3,C3; - подключение матрицы светодиодов линия 3
+    // - $23 9 U4,P4,S4,L4,C4; - подключение матрицы светодиодов линия 4
     //     Ux - 1 - использовать линию, 0 - линия не используется
     //     Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
     //     Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
@@ -2494,32 +2494,36 @@ void parsing() {
           #endif
           break;
         case 6:
-          // - $23 6 U1,P1,S1,L1; - подключение матрицы светодиодов линия 1
+          // - $23 6 U1,P1,S1,L1,C1; - подключение матрицы светодиодов линия 1
           putLedLineUsage(1, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
           putLedLinePin(1, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
           putLedLineStartIndex(1, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
           putLedLineLength(1, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          putLedLineRGB(1, intData[6]);         // Cx - порядок цвета RGB в ленте, подключеннной к линии x
           break;
         case 7:
-          // - $23 7 U2,P2,S2,L2; - подключение матрицы светодиодов линия 2
+          // - $23 7 U2,P2,S2,L2,C2; - подключение матрицы светодиодов линия 2
           putLedLineUsage(2, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
           putLedLinePin(2, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
           putLedLineStartIndex(2, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
           putLedLineLength(2, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          putLedLineRGB(2, intData[6]);         // Cx - порядок цвета RGB в ленте, подключеннной к линии x
           break;
         case 8:
-          // - $23 8 U3,P3,S3,L3; - подключение матрицы светодиодов линия 3
+          // - $23 8 U3,P3,S3,L3,C3; - подключение матрицы светодиодов линия 3
           putLedLineUsage(3, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
           putLedLinePin(3, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
           putLedLineStartIndex(3, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
           putLedLineLength(3, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          putLedLineRGB(3, intData[6]);         // Cx - порядок цвета RGB в ленте, подключеннной к линии x
           break;
         case 9:
-          // - $23 9 U4,P4,S4,L4; - подключение матрицы светодиодов линия 4
+          // - $23 9 U4,P4,S4,L4,C4; - подключение матрицы светодиодов линия 4
           putLedLineUsage(4, intData[2] == 1);  // Ux - 1 - использовать линию, 0 - линия не используется
           putLedLinePin(4, intData[3]);         // Px - пин GPIO на который назначен вывод сигнала на матрицу для линии х
           putLedLineStartIndex(4, intData[4]);  // Sx - начальный индекс в цепочке светодиодов (в массиве leds) с которого начинается вывод на матрицу с линии x
           putLedLineLength(4, intData[5]);      // Lx - длина цепочки светодиодов, подключенной к линии x
+          putLedLineRGB(4, intData[6]);         // Cx - порядок цвета RGB в ленте, подключеннной к линии x
           break;
         case 10:
           // - $23 10 X; - X - DEVICE_TYPE - 0 - труба, 1 - плоская панель
@@ -4406,14 +4410,15 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     return str;
   }
 
-  // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2306:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка; С - цветовой порядок
   if (key == "2306") {
     uint16_t led_start = getLedLineStartIndex(1);
     uint16_t led_count = getLedLineLength(1);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    String tmp(getLedLineUsage(1) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(1); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
+    int8_t led_rgb = getLedLineRGB(1);
+    String tmp(getLedLineUsage(1) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(1); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count; tmp += ' '; tmp += led_rgb;
     if (shrt) {
       return tmp;
     }
@@ -4422,14 +4427,15 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     return str;
   }
 
-  // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2307:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка; С - цветовой порядок
   if (key == "2307") {
     uint16_t led_start = getLedLineStartIndex(2);
     uint16_t led_count = getLedLineLength(2);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    String tmp(getLedLineUsage(2) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(2); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
+    int8_t led_rgb = getLedLineRGB(2);
+    String tmp(getLedLineUsage(2) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(2); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count; tmp += ' '; tmp += led_rgb;
     if (shrt) {
       return tmp;
     }
@@ -4438,14 +4444,15 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     return str;
   }
 
-  // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2308:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка; С - цветовой порядок
   if (key == "2308") {
     uint16_t led_start = getLedLineStartIndex(3);
     uint16_t led_count = getLedLineLength(3);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    String tmp(getLedLineUsage(3) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(3); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
+    int8_t led_rgb = getLedLineRGB(3);
+    String tmp(getLedLineUsage(3) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(3); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count; tmp += ' '; tmp += led_rgb;
     if (shrt) {
       return tmp;
     }
@@ -4454,14 +4461,15 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     return str;
   }
 
-  // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка
+  // 2309:U P S L Подключние матрицы линии 1; U: 1/0 - вкл/выкл; P - GPIO пин; S - старт индекс; L - длина участка; С - цветовой порядок
   if (key == "2309") {
     uint16_t led_start = getLedLineStartIndex(4);
     uint16_t led_count = getLedLineLength(4);
     if (led_start + led_count > NUM_LEDS) {
       led_count = NUM_LEDS - led_start;
     }
-    String tmp(getLedLineUsage(4) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(4); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count;
+    int8_t led_rgb = getLedLineRGB(4);
+    String tmp(getLedLineUsage(4) ? 1 : 0); tmp += ' '; tmp += getLedLinePin(4); tmp += ' '; tmp += led_start; tmp += ' '; tmp += led_count; tmp += ' '; tmp += led_rgb;
     if (shrt) {
       return tmp;
     }

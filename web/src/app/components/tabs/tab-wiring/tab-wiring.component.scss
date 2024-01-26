@@ -868,8 +868,9 @@
   }
 
   .wiring-fieldset {
-    width: 100%;
-    max-width: 368px;
+    width: 374px;
+    max-width: 374px;
+    min-width: 374px;
     height: fit-content;
     display: table;
     flex-direction: column;
@@ -884,12 +885,17 @@
       justify-content: center;
     }
 
+    ::ng-deep mat-select.mat-mdc-select {
+      width: 178px;
+    }
+
     .toggler-container {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
       align-items: flex-start;
       margin: 0 4px 4px 0;
+      font-size: 11px;
 
       &.spacer {
         border-top: solid 1px var(--card-border-color);
@@ -901,22 +907,28 @@
         justify-content: start;
 
         ::ng-deep mat-select.mat-mdc-select {
-          width: 64px;
+          width: 76px;
           margin: -4px 6px 0 0;
+          &.pin-select {
+            width: 42px;
+          }
+          &.rgb-select {
+            width: 42px;
+          }
           &.error {
             .mat-mdc-select-value {
               color: red;
             }
           }
           &.wide {
-            width: 116px;
+            width: 136px;
             ::ng-deep mat-form-field.mat-mdc-form-field {
               width: 116px;
               margin-left: 8px;
             }
           }
           &.narrow {
-            width: 36px;
+            width: 50px;
             ::ng-deep mat-form-field.mat-mdc-form-field {
               width: 36px;
               margin-left: 8px;
@@ -952,19 +964,29 @@
       }
 
       .toggler {
-        .switch {
-        }
+        scale: 0.8;
+        margin-top: 2px;
+      }
+
+      .line-label {
+        font-size: 12px;
+        margin: 2px 6px 0 0;
+        white-space: nowrap;
+        width: 40px;
       }
 
       .toggler-label {
         font-size: 12px;
         margin: 2px 6px 0 0;
         white-space: nowrap;
+        width: 22px;
 
         &.pin-name {
-          width: 48px;
+          width: 36px;
         }
-
+        &.pin-name2 {
+          width: 64px;
+        }
         &.error {
           color: red;
         }
@@ -978,11 +1000,13 @@
           width: 28px;
         }
         &.info {
+          width: 100%;
           font-size: 10px;
           white-space: break-spaces;
           color: #03afef;
         }
         &.info2 {
+          width: 100%;
           white-space: break-spaces;
         }
       }
