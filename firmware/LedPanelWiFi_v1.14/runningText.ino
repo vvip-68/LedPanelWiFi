@@ -2,8 +2,9 @@
 void InitializeTexts() {
 
   textIndecies = F("##");
-  textWithEvents = "";
-  textsNotEmpty = "";
+  textAllowWeekDays.reserve(7);
+  textWithEvents.reserve(36);
+  textsNotEmpty.reserve(36);
   TEXTS_MAX_COUNT = 0;                    // Пока не проверена файловая система - считать что строк недоступно - 0
     
   if (!LittleFS.exists(FPSTR(FS_TEXT_STORAGE))) {
@@ -140,7 +141,7 @@ void InitializeTexts() {
       DEBUG("  "); DEBUG(getAZIndex(i)); DEBUG(": "); DEBUGLN(text);
     }
 
-    // Проверить строку на наличие макроса события {P}/ Если есть добавить ч строку индексов строк с отслеживаемыми событиями
+    // Проверить строку на наличие макроса события {P}/ Если есть добавить в строку индексов строк с отслеживаемыми событиями
     if (text.indexOf("{P") >= 0) {
       textWithEvents += charIndex;
     }
@@ -232,11 +233,16 @@ void runningText() {
     if (text.charAt(0) == '-') text.setCharAt(0, ' ');
     if (text.indexOf("{-}") != -1) text.replace("{-}", "");
 
-    // Если в строке еще остались необработанные множественные макросы цвета, если строка содержала дату, 
+    // Если в строке еще остались необработанные макросы цвета, если строка содержала дату, 
     // которую подставили чуть выше - обработать макросы цвета
-    if (text.indexOf('{') != -1) {
-      bool hasMultiColor = checkIsTextMultiColor(text);      
-      if (hasMultiColor) text = processColorMacros(text);
+    int16_t idx = text.indexOf("{C");
+    if (idx != -1) {
+      textHasMultiColor = checkIsTextMultiColor(text);     
+      text = processColorMacros(text);      
+      if (!textHasMultiColor) {
+        useSpecialTextColor = true;
+        specialTextColor = idx == 0 ? textColor[0] : textColor[1];
+      }
     }
   }
 
@@ -285,7 +291,7 @@ void fillString(const String& text) {
 
     // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
     if (textHasMultiColor) {
-      if (pos < (MAX_COLORS - 1) && i >= textColorPos[pos+1]) {      
+      if (pos < (MAX_COLORS - 1) && i >= textColorPos[pos + 1]) {      
         pos++;
       }      
       color = pos < MAX_COLORS ? textColor[pos] : globalTextColor;
@@ -1321,42 +1327,25 @@ String processMacrosInText(const String& text) {
     // обработать макрос цвета, цвет сохранить в specialTextColor, установить флаг useSpecialTextColor
     // В дальнейшем при отображении строки не нужно каждый раз вычислять цвет и позицию - просто использовать specialTextColor
     
-    if (textHasMultiColor) {      
-      // Если строка содержит множественное определение цвета и не содержит даты - подготовить массив цветов,
-      // который будет отображаться для отрисовки строки
-      textHasWeather = (textLine.indexOf("{WS}") >= 0 || textLine.indexOf("{WT}") >= 0);
-      if (!(textHasWeather || textHasDateTime)) {
+    textHasWeather = (textLine.indexOf("{WS}") >= 0 || textLine.indexOf("{WT}") >= 0);
+    if (!(textHasWeather || textHasDateTime)) {
+      if (textHasMultiColor) {      
+        // Если строка содержит множественное определение цвета и не содержит даты - подготовить массив цветов,
+        // который будет отображаться для отрисовки строки
         textLine = processColorMacros(textLine);
-      }
-    } else {
-      // Многоцветья нет - возможно есть одиночный макрос цвета (в начале или в конце строки) - который задает цвет всей строки - получить цвет строки
-      useSpecialTextColor = false;
-      idx = textLine.indexOf("{C");
-      while (idx >= 0) {
-  
-        // Закрывающая скобка
-        // Если ее нет - ошибка, ничего со строкой не делаем, отдаем как есть
-        idx2 = textLine.indexOf("}", idx);        
-        if (idx2 < 0) break;
-  
-        // Извлечь цвет текста отображения этой бегущей строки
-        String tmp;
-        if (idx2 - idx > 1) {
-          tmp = textLine.substring(idx+2, idx2);
+      } else {
+        // Многоцветья нет - возможно есть одиночный макрос цвета (в начале или в конце строки) - который задает цвет всей строки - получить цвет строки
+        useSpecialTextColor = false;
+        idx = textLine.indexOf("{C");      
+        idx2 = idx < 0 ? idx : textLine.indexOf("}", idx + 1);
+        if (idx >= 0 && idx2 > 0) {
+          textLine = processColorMacros(textLine);
+          useSpecialTextColor = true;
+          specialTextColor = idx == 0 ? textColor[0] : textColor[1];
         }
-        
-        // удаляем макрос
-        textLine.remove(idx, idx2 - idx + 1);
-             
-        // Преобразовать строку в число
-        useSpecialTextColor = true;
-        specialTextColor = (uint32_t)HEXtoInt(tmp);
-        
-        // Есть еще вхождения макроса?
-        idx = textLine.indexOf("{C");  
       }
     }
-
+    
     // На данном этапе должны остаться только макросы даты, и если они есть - макросы многоцветной строки.
     // Они будут обработаны перед каждым выводом строки текста на матрицу
   }
@@ -1458,14 +1447,15 @@ String processDateMacrosInText(const String& text) {
          - #F - дни недели для которых работает эта строка, когда дата не определена 1-пн..7-вс
                 Если указана точная дата и указан день недели, который не соответствует дате - строка выведена не будет
           
-     "{S01.01.2020#01.01.2020}"
-     "{S01.01.2020 7:00#01.01.2020 19:00}"
-     "{S01.01.**** 7:00#01.01.**** 19:00}"
+     "{S01.01.2020#01.01.2020#12347}"
+     "{S01.01.2020 7:00#01.01.2020 19:00#123}"
+     "{S01.01.**** 7:00#01.01.**** 19:00#567}"
        - где после S указаны даты начала и конца периода доступного для отображения строки.
        Для режима S элементы даты быть заменены звездочкой '*'
        **.10.2020 - весь октябрь 2020 года 
        01.**.**** - каждое первое число месяца
        **.**.2020 - каждый день 2020 года  
+       #1234567 - дни недели пн..вс в которые разрешен показ строки
      ------------------------------------------------------------- 
   */
 
@@ -1856,9 +1846,9 @@ String processDateMacrosInText(const String& text) {
       }
     }
 
-    // "{S01.01.2020#01.01.2020}"
-    // "{S01.01.2020 7:00#01.01.2020 19:00}"
-    // "{S01.01.**** 7:00#01.01.**** 19:00}"
+    // "{S01.01.2020#01.01.2020#1234567}"
+    // "{S01.01.2020 7:00#01.01.2020 19:00#12345}"
+    // "{S01.01.**** 7:00#01.01.**** 19:00#67}"
     idx = textLine.indexOf("{S");
     if (idx >= 0) {
       // Строка с событием проверки текущей даты - выводится только при совпадении текущей даты с указанной (вычисленной по маске)
@@ -1913,6 +1903,7 @@ String unsubstitureDateMacros(const String& txt) {
 String processColorMacros(const String& txt) {
 
   String text(txt);
+  
   // Обнулить массивы позиций цвета и самого цвета
   for (uint8_t i = 0; i < MAX_COLORS; i++) {
     textColorPos[i] = 0;
@@ -2507,12 +2498,13 @@ void checkMomentText() {
 // Если дата не совпадает - текст отображать сегодня нельзя - еще не пришло (или уже прошло) время для этого текста
 bool forThisDate(const String& pText) { 
   /*
-     text - в общем случае - "{S01.01.**** 7:00:00#01.01.**** 19:00:00}" - содержит даты начала и конца, разделенные символом "#"
+     text - в общем случае - "{S01.01.**** 7:00:00#01.01.**** 19:00:00#1234567}" - содержит даты начала и конца, разделенные символом "#"
      Дата как правило имеет формат "ДД.ММ.ГГГГ ЧЧ:MM:СС"; В дате День может быть замене на "**" - текущий день, месяц - "**" - текущий месяц, год - "****" - текущий год или "***+" - следующий год
+     #1234567 в конце макроса - день недели пн..вс в который разрешен показ строкиж Если отсутствует - в любой день
      Примеры:
-       "{S01.01.2020#01.01.2020}"
-       "{S01.01.2020 7:00#01.01.2020 19:00}"
-       "{S01.01.**** 7:00#01.01.**** 19:00:00}"
+       "{S01.01.2020#01.01.2020#1234567}"
+       "{S01.01.2020 7:00#01.01.2020 19:00#12345}"
+       "{S01.01.**** 7:00#01.01.**** 19:00:00#67}"
          - где после S указаны даты начала и конца периода доступного для отображения строки.
          Для режима S элементы даты быть заменены звездочкой '*'
          **.10.2020 - весь октябрь 2020 года 
@@ -2552,13 +2544,18 @@ bool forThisDate(const String& pText) {
       DEBUG(F("Строка: '"));
       DEBUGLN(text + "'");
       */
+      
+      int8_t   wd = weekday();    // day of the week, Sunday is day 0   
+      if (wd == 0) wd = 7;        // Sunday is day 7, Monday is day 1;
+
       time_t now_moment = *now();
       extractMacroSDates(str);
-      ok = (now_moment >= (time_t)textAllowBegin) && (now_moment <= (time_t)textAllowEnd);
+      ok = (now_moment >= (time_t)textAllowBegin) && (now_moment <= (time_t)textAllowEnd) && (textAllowWeekDays.length() == 0 || textAllowWeekDays.indexOf(String(wd)) >= 0);
+      
       /*
-      DEBUGLN("now=" + String(now_moment) + "; start=" + String(textAllowBegin) + "; end=" + String(textAllowEnd));
-      if (ok) DEBUGLN(F("вывод разрешен"));
-      else    DEBUGLN(F("вывод запрещен"));
+      DEBUGLN("now=" + String(now_moment) + "; start=" + String(textAllowBegin) + "; end=" + String(textAllowEnd)+ "; weekdays=" + textAllowWeekDays);
+      if (ok) { DEBUGLN(F("вывод разрешен")); }
+      else    { DEBUGLN(F("вывод запрещен")); }
       DEBUGLN(DELIM_LINE); 
       */
     }
@@ -2572,8 +2569,8 @@ bool forThisDate(const String& pText) {
     // Есть ли еще макрос {S} в строке?
     idx = text.indexOf("{S");
   }
-  
-//  DEBUGLN(DELIM_LINE);
+
+  // DEBUGLN(DELIM_LINE);
 
   return ok;
 }
@@ -2585,23 +2582,34 @@ void extractMacroSDates(const String& text) {
   // Если не указана дата начала интервала - берется дата конца интервала и время ставится в 00:00:00
   // Если не указана дата конца интервала - берется дата начала интервала и время ставится в 23:59:59
   
-  textAllowBegin = 0;        // время начала допустимого интервала отображения unixTime
-  textAllowEnd = 0;          // время конца допустимого интервала отображения unixTime
+  textAllowBegin = 0;                  // время начала допустимого интервала отображения unixTime
+  textAllowEnd = 0;                    // время конца допустимого интервала отображения unixTime
+  textAllowWeekDays = F("1234567");    // время конца допустимого интервала отображения unixTime
 
   if (text.length() == 0) {
     DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
     DEBUGLN(F("Ошибка: макрос {S} не содержит интервала дат"));                 
     return;
   }      
-
   
-  int16_t idx = text.indexOf('#');
+  int16_t idx  = text.indexOf('#');
+  int16_t idx2 = text.indexOf('#', idx + 1);
 
-  bool hasDate1 = idx != 0;  // -1 или больше нуля означает,что '#' либо нет - тогда вся строка - data1, либо больше 0 - есть часть для data1; в строке '#07.01.****' есть data2, нет data1
-  bool hasDate2 = idx > 0;   // Если в строке есть '#' - значит data2 присутствует
+  bool hasDate1 = idx != 0;      // -1 или больше нуля означает,что '#' либо нет - тогда вся строка - data1, либо больше 0 - есть часть для data1; в строке '#07.01.****' есть data2, нет data1
+  bool hasDate2 = idx > 0;       // Если в строке есть '#' - значит data2 присутствует  
+  bool hasWeekDays = idx2 > 0;   // Если в строке есть второй '#' - значит присутствует список дней недели
   
-  String s_date1(idx < 0 ? text : ( idx == 0 ? "" : text.substring(0, idx)));
-  String s_date2(idx >=0 ? text.substring(idx+1) : "");
+  String s_date1(!hasDate1 ? text : ( idx == 0 ? "" : text.substring(0, idx)));
+  String s_date2;
+  
+  if (hasDate2) {
+    if (hasWeekDays) {
+      s_date2 = text.substring(idx + 1, idx2);
+      textAllowWeekDays = text.substring(idx2 + 1);
+    } else {
+      s_date2 = text.substring(idx + 1);
+    }
+  }
 
   // Сформировать ближайшее время события из полученных компонент  
   struct tm tm1, tm2;
@@ -2620,7 +2628,6 @@ void extractMacroSDates(const String& text) {
     tm1.tm_mon = tm2.tm_mon;
     tm1.tm_year = tm2.tm_year;
   }
-
 
   // Если нет конца интервала - брать время 23:59:59 и дату начала интервала 
   if (!hasDate2){
@@ -2649,12 +2656,13 @@ void extractMacroSDates(const String& text) {
   DEBUGLN(DELIM_LINE); 
   DEBUGLN("date1='" + s_date1 + ";");
   DEBUGLN("date2='" + s_date2 + ";");
+  DEBUGLN("wdays='" + textAllowWeekDays + ";");
   DEBUGLN(String(F("Интервал показа: ")) + 
-                 padNum(tm1.tm_day, 2) + "." + padNum(tm1.tm_mon + 1, 2) + "." + padNum(tm_year + 1900, 4) + " " + padNum(tm1.tm_hour, 2) + ":" + padNum(tm1.tm_min, 2) + ":" + padNum(tm1.tm_sec, 2) + " -- " +
-                 padNum(tm2.tm_day, 2) + "." + padNum(tm2.tm_mon + 1, 2) + "." + padNum(tm_year + 1900, 4) + " " + padNum(tm2.tm_hour, 2) + ":" + padNum(tm2.tm_min, 2) + ":" + padNum(tm2.tm_sec, 2));
+                 padNum(tm1.tm_mday, 2) + "." + padNum(tm1.tm_mon + 1, 2) + "." + padNum(tm1.tm_year + 1900, 4) + " " + padNum(tm1.tm_hour, 2) + ":" + padNum(tm1.tm_min, 2) + ":" + padNum(tm1.tm_sec, 2) + " -- " +
+                 padNum(tm2.tm_mday, 2) + "." + padNum(tm2.tm_mon + 1, 2) + "." + padNum(tm2.tm_year + 1900, 4) + " " + padNum(tm2.tm_hour, 2) + ":" + padNum(tm2.tm_min, 2) + ":" + padNum(tm2.tm_sec, 2) + " -- " + textAllowWeekDays);
   DEBUGLN(DELIM_LINE); 
   */
-  
+    
   if (t_event2 < t_event1) {
     DEBUG(F("Строка: '")); DEBUG(text); DEBUGLN("'");
     String str(F("Интервал показа: "));
