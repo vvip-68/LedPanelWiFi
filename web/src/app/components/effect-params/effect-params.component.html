@@ -36,7 +36,7 @@
 
         @if (contrastVisible) {
           <div class="param-row">
-            <div class="param-label param-label-slider" [matTooltip]="tooltip1" matTooltipPosition="below">
+            <div class="param-label param-label-slider" [matTooltip]="tooltipContrast" matTooltipPosition="below">
               <p>{{getContrastTitle()}}</p></div>
             <div class="param-value">
               <mat-slider class="slider" color="primary" min="5" step="5" max="255">
@@ -49,8 +49,8 @@
 
         @if (speedVisible) {
           <div class="param-row">
-            <div class="param-label param-label-slider" [matTooltip]="tooltip2" matTooltipPosition="below">
-              <p>{{getSpeedTitle()}}</p></div>
+            <div class="param-label param-label-slider" [matTooltip]="tooltipSpeed" matTooltipPosition="below">
+              <p>{{speedTitle}}</p></div>
             <div class="param-value">
               <mat-slider class="slider" color="primary" [disabled]="model.speed === 0" min="1" step="1" max="255">
                 <input #sl2 matSliderThumb [(ngModel)]="model.speed" (valueChange)="changeSpeedValue($event)">
@@ -62,8 +62,8 @@
 
         @if (param1Visible) {
           <div class="param-row">
-            <div class="param-label param-label-slider" [matTooltip]="tooltip3" matTooltipPosition="below">
-              <p>{{L.$(model.paramName1)}}</p></div>
+            <div class="param-label param-label-slider" [matTooltip]="tooltipParam1" matTooltipPosition="below">
+              <p>{{L.$(labelParam1)}}</p></div>
             <div class="param-value">
               <mat-slider class="slider" color="primary" [disabled]="model.param1 < 0" min="0" step="1" max="255">
                 <input #sl3 matSliderThumb [(ngModel)]="model.param1" (valueChange)="changeParam1Value($event)">
@@ -75,8 +75,8 @@
 
         @if (param2Visible && param2Control === controlType.SLIDER) {
           <div class="param-row">
-            <div class="param-label param-label-slider" [matTooltip]="tooltip3" matTooltipPosition="below">
-              <p>{{L.$(model.paramName2)}}</p></div>
+            <div class="param-label param-label-slider" [matTooltip]="tooltipParam2" matTooltipPosition="below">
+              <p>{{L.$(labelParam2)}}</p></div>
             <div class="param-value">
               <mat-slider class="slider" color="primary" [disabled]="model.param2 < 0" min="0" step="1" max="255">
                 <input #sl4 matSliderThumb [(ngModel)]="model.param2" (valueChange)="changeParam2SliderValue($event)">
@@ -88,8 +88,8 @@
 
         @if (param2Visible && param2Control === controlType.CHECKBOX) {
           <div class="param-row">
-            <div class="param-label param-label-toggler" [matTooltip]="tooltip3" matTooltipPosition="below">
-              <p>{{L.$(model.paramName2)}}</p></div>
+            <div class="param-label param-label-toggler" [matTooltip]="tooltipParam2" matTooltipPosition="below">
+              <p>{{L.$(labelParam2)}}</p></div>
             <div class="param-value-toggler">
               <mat-slide-toggle color="primary" class="switch" [(ngModel)]="param2Flag"
                                 (toggleChange)="changeParam2ToggleValue()"></mat-slide-toggle>
@@ -99,8 +99,8 @@
 
         @if (param2Visible && param2Control === controlType.COMBOBOX) {
           <div class="param-row">
-            <div class="param-label param-label-select" [matTooltip]="tooltip3" matTooltipPosition="below">
-              <p>{{L.$(model.paramName2)}}</p></div>
+            <div class="param-label param-label-select" [matTooltip]="tooltipParam2" matTooltipPosition="below">
+              <p>{{L.$(labelParam2)}}</p></div>
             <div class="param-value-select">
               <mat-form-field>
                 <mat-select panelClass="material-select-menu"

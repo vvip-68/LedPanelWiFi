@@ -171,16 +171,12 @@ export class TabWiringComponent extends Base implements OnInit, OnDestroy {
 
   line1StartFormControl = new FormControl(0);
   line1LengthFormControl = new FormControl(1);
-  line1ColorFormControl = new FormControl(0);
   line2StartFormControl = new FormControl(0);
   line2LengthFormControl = new FormControl(1);
-  line2ColorFormControl = new FormControl(0);
   line3StartFormControl = new FormControl(0);
   line3LengthFormControl = new FormControl(1);
-  line3ColorFormControl = new FormControl(0);
   line4StartFormControl = new FormControl(0);
   line4LengthFormControl = new FormControl(1);
-  line4ColorFormControl = new FormControl(0);
 
   numLeds: number = 0;
   button_type_list = new Array<ComboBoxItem>();

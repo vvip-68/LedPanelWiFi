@@ -4736,6 +4736,10 @@ String getParam2ForMode(uint8_t mode) {
      //           Маркер типа - список выбора         0,1,2,3,4               0               1       2
      str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Цветной,Монохром");
      break;
+   case MC_BALLS:
+     // Слайдер
+     str += effectScaleParam2[mode];
+     break;
    default:
      str = 'X';
      break;  
@@ -4756,6 +4760,9 @@ String getParam2NameForMode(uint8_t mode) {
    case MC_STARS2:
    case MC_TRAFFIC:
      str = F("Вариант");
+     break;
+   case MC_BALLS:
+     str = F("Хвост");
      break;
    #if (USE_SD == 1)
    case MC_SDCARD:

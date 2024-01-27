@@ -120,7 +120,7 @@
     --text-btn-txt-5: rgba(255, 255, 255, 0.8);       // - 5 - красный - для строки 0 - это управляющая строка
     --text-btn-bgr-6: rgba(232, 204, 32, 0.9);        // - 6 - желтый - текущая редактируемая ячейка
     --text-btn-txt-6: rgba(0, 0, 0, 0.8);             // - 6 - желтый - текущая редактируемая ячейка
-    // @formatter:oN
+    // @formatter:on
   } @else {
     --card-border-color: #8a8a8a;
     --card-background-color: #fdfdfd;
@@ -195,7 +195,7 @@
     --text-btn-txt-5: rgba(255, 255, 255, 0.8);       // - 5 - красный - для строки 0 - это управляющая строка
     --text-btn-bgr-6: rgba(232, 204, 32, 0.9);        // - 6 - желтый - текущая редактируемая ячейка
     --text-btn-txt-6: rgba(0, 0, 0, 0.8);             // - 6 - желтый - текущая редактируемая ячейка
-    // @formatter:oN
+    // @formatter:on
   }
 
   --footer-version: #{darken($toolbar-foreground-color, 15%)};

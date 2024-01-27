@@ -50,7 +50,7 @@
   // и нестабильной работе прошивки на ESP8266. На ESP32 памяти больше - размер буфера можно увеличиватью
 
   static const char EFFECT_LIST[] PROGMEM =
-    "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Шарики,Звездопад,Конфетти," 
+    "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Червячки,Звездопад,Конфетти," 
     "Цветной шум,Облака,Лава,Плазма,Бензин на воде,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," 
     "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," 
     "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Узоры,Рубик,Звёзды,Штора,Трафик,Рассвет"
@@ -348,7 +348,7 @@
   // starting from line 89
   
   static const char EFFECT_LIST[] PROGMEM =
-    "Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Balls,Starfall,Confetti,"
+    "Clock,Lamp,Showfall,Cube,Rainbow,Paintball,Fire,The Matrix,Worms,Starfall,Confetti,"
     "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change,"
     "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid,"
     "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Patterns,Rubic,Stars,"
@@ -643,7 +643,7 @@
   // en las lineas desde 89 
   
   static const char EFFECT_LIST[] PROGMEM =
-    "Reloj,Lámpara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Bolas,Lluvia de estrellas,Confeti,"
+    "Reloj,Lámpara,Nevada,Cubo,Arco iris,Paintball,Fuego,The Matrix,Gusanos,Lluvia de estrellas,Confeti,"
     "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color,"
     "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid,"
     "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Patrones,Rubik,Estrellas,Cortina,Tráfico,"

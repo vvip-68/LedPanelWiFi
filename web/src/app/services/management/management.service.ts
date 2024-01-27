@@ -24,10 +24,10 @@ export class ManagementService extends Base implements OnDestroy {
   // синхронизировав с такой же кодировочной строкой в прошивке
   public effects_code = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-  public effects: Array<IEffectModel> = [];        // Полный список эффeктов, полученный из устройства
+  public effects: Array<IEffectModel> = [];        // Полный список эффектов, полученный из устройства
 
-  public effects_in_use: Array<number> = [];       // Список индексов эффeктов из массива effects, выбранных для использования
-  public effects_not_use: Array<number> = [];      // Список индексов эффeктов из массива effects, НЕ выбранных для использования
+  public effects_in_use: Array<number> = [];       // Список индексов эффектов из массива effects, выбранных для использования
+  public effects_not_use: Array<number> = [];      // Список индексов эффектов из массива effects, НЕ выбранных для использования
 
   public alarm_sounds: Array<ComboBoxItem> = [];
 

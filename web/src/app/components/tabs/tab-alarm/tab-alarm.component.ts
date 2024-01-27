@@ -259,7 +259,7 @@ export class TabAlarmComponent extends Base implements OnInit, OnDestroy {
     // @formatter:off
     const WD = (this.day7_On ? 1 : 0) * 64 | (this.day6_On ? 1 : 0) * 32 | (this.day5_On ? 1 : 0) * 16 |
                (this.day4_On ? 1 : 0) * 8  | (this.day3_On ? 1 : 0) * 4  | (this.day2_On ? 1 : 0) * 2  | (this.day1_On ? 1 : 0);
-    // @formatter:oт
+    // @formatter:on
     let time1 = convertTimeTo24(this.day1_time).replace(':',' ');
     let time2 = convertTimeTo24(this.day2_time).replace(':',' ');
     let time3 = convertTimeTo24(this.day3_time).replace(':',' ');

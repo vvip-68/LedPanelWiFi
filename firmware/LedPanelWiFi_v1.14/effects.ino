@@ -8,6 +8,8 @@ uint16_t XY(uint8_t x, uint8_t y) {
 
 // ---------------------------------------------
 
+uint8_t USE_SEGMENTS = 0;
+
 uint8_t getEffectSpeedValue(int8_t eff) {
   #if (USE_E131 == 1)
   if (workMode == SLAVE && e131_streaming) {
@@ -75,7 +77,6 @@ void snowRoutine() {
 
 // ------------- ПЕЙНТБОЛ -------------
 
-uint8_t USE_SEGMENTS_PAINTBALL = 0;
 uint8_t BorderWidth = 0;
 uint8_t dir_mx, seg_num, seg_size, seg_offset, seg_offset_x, seg_offset_y;
 int16_t idx;
@@ -90,7 +91,7 @@ void lightBallsRoutine() {
     seg_size = dir_mx == 0 ? pHEIGHT : pWIDTH;                           // Размер квадратного сегмента (высота и ширина равны)
     seg_offset = ((dir_mx == 0 ? pWIDTH : pHEIGHT) - seg_size * seg_num) / (seg_num + 1); // смещение от края матрицы и между сегментами    
     BorderWidth = 0;
-    USE_SEGMENTS_PAINTBALL = getEffectScaleParamValue2(MC_PAINTBALL);
+    USE_SEGMENTS = getEffectScaleParamValue2(MC_PAINTBALL);
   }
     
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
@@ -107,7 +108,7 @@ void lightBallsRoutine() {
   uint32_t ms = millis();
 
   uint8_t  cnt = map8(255-getEffectScaleParamValue(MC_PAINTBALL),1,4);  // 1..4 шариков
-  float spd = (map8(255-getEffectSpeedValue(MC_PAINTBALL), 50, 100) / 100.0) / (USE_SEGMENTS_PAINTBALL != 0 ? 1 : (float)seg_num);
+  float spd = (map8(255-getEffectSpeedValue(MC_PAINTBALL), 50, 100) / 100.0) / (USE_SEGMENTS != 0 ? 1 : (float)seg_num);
 
   // Отрисовка режима происходит на максимальной скорости. Значение effectSpeed влияет на параметр BPM функции beatsin8
   // The easiest way to construct this is to multiply a floating point BPM value (e.g. 120.3) by 256, (e.g. resulting in 30796 in this case), and pass that as the 16-bit BPM argument.
@@ -118,7 +119,7 @@ void lightBallsRoutine() {
 
   // Для неквадратных - вычленяем квадратные сегменты, которые равномерно распределяем по ширине / высоте матрицы 
 
-  if (USE_SEGMENTS_PAINTBALL != 0) {
+  if (USE_SEGMENTS != 0) {
     uint8_t  i = beatsin8(m1, 0, seg_size - BorderWidth - 1);
     uint8_t  j = beatsin8(m2, 0, seg_size - BorderWidth - 1);
     uint8_t  k = beatsin8(m3, 0, seg_size - BorderWidth - 1);
@@ -176,8 +177,6 @@ void lightBallsRoutine() {
 
 // ------------- ВОДОВОРОТ -------------
 
-uint8_t USE_SEGMENTS_SWIRL = 0;
-
 void swirlRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
@@ -188,7 +187,7 @@ void swirlRoutine() {
     seg_size = dir_mx == 0 ? pHEIGHT : pWIDTH;                           // Размер квадратного сегмента (высота и ширина равны)
     seg_offset = ((dir_mx == 0 ? pWIDTH : pHEIGHT) - seg_size * seg_num) / (seg_num + 1); // смещение от края матрицы и между сегментами    
     BorderWidth = seg_num == 1 ? 0 : 1;
-    USE_SEGMENTS_SWIRL = getEffectScaleParamValue2(MC_SWIRL);
+    USE_SEGMENTS = getEffectScaleParamValue2(MC_SWIRL);
   }
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
@@ -203,14 +202,14 @@ void swirlRoutine() {
   blur2d(leds, pWIDTH, pHEIGHT, blurAmount);
 
   uint32_t ms = millis();  
-  float spd = (map8(255-getEffectSpeedValue(MC_SWIRL), 50, 100) / 100.0) / (USE_SEGMENTS_SWIRL != 0 ? 1 : (float)seg_num);
+  float spd = (map8(255-getEffectSpeedValue(MC_SWIRL), 50, 100) / 100.0) / (USE_SEGMENTS != 0 ? 1 : (float)seg_num);
 
   // Отрисовка режима происходит на максимальной скорости. Значение effectSpeed влияет на параметр BPM функции beatsin8
   // The easiest way to construct this is to multiply a floating point BPM value (e.g. 120.3) by 256, (e.g. resulting in 30796 in this case), and pass that as the 16-bit BPM argument.
   uint8_t m1 = (41.0 * spd) + 0.51;
   uint8_t m2 = (27.0 * spd) + 0.51;
 
-  if (USE_SEGMENTS_SWIRL != 0) {
+  if (USE_SEGMENTS != 0) {
     // Use two out-of-sync sine waves
     uint8_t  i = beatsin8(m1, 0, seg_size - BorderWidth - 1);
     uint8_t  j = beatsin8(m2, 0, seg_size - BorderWidth - 1);
@@ -456,21 +455,21 @@ void colorsRoutine() {
 // ---------------------------------------- ЦИКЛОН ------------------------------------------
 
 int16_t cycle_x, cycle_y; // могут уходить в минус при смене направления
-uint8_t move_dir, fade_divider, inc_cnt, USE_SEGMENTS_CYCLON;
+uint8_t move_dir, fade_divider, inc_cnt;
 
 void cyclonRoutine() {
   if (loadingFlag) {
     loadingFlag = false;
     // modeCode = MC_CYCLON;
-    USE_SEGMENTS_CYCLON = getEffectScaleParamValue2(MC_CYCLON);
+    USE_SEGMENTS = getEffectScaleParamValue2(MC_CYCLON);
     dir_mx = pWIDTH > pHEIGHT ? 0 : 1;                                                                      // 0 - сегменты расположены горизонтально, 1 - вертикально
     seg_num = dir_mx == 0 ? (pWIDTH / pHEIGHT) : (pHEIGHT / pWIDTH);                                        // вычисляем количество сегментов, умещающихся на матрице, в режиме без сигментов ширина одной полоски будет равна кол-ву сегментов
     seg_size = dir_mx == 0 ? pHEIGHT : pWIDTH;                                                              // Размер квадратного сегмента (высота и ширина равны)
-    seg_offset_y = USE_SEGMENTS_CYCLON == 1 ? (dir_mx == 1 ? pHEIGHT - seg_size * seg_num : 0) / 2 : 0;     // смещение от низа/верха матрицы
-    seg_offset_x = USE_SEGMENTS_CYCLON == 1 ? (dir_mx == 0 ? pWIDTH - seg_size * seg_num : 0) / 2 : 0;      // смещение от левого/правого края матрицы
+    seg_offset_y = USE_SEGMENTS == 1 ? (dir_mx == 1 ? pHEIGHT - seg_size * seg_num : 0) / 2 : 0;            // смещение от низа/верха матрицы
+    seg_offset_x = USE_SEGMENTS == 1 ? (dir_mx == 0 ? pWIDTH - seg_size * seg_num : 0) / 2 : 0;             // смещение от левого/правого края матрицы
     hue = 0;
-    cycle_x = USE_SEGMENTS_CYCLON == 1 ? (seg_offset_x + seg_size - 1) : pWIDTH - 1; // начало - от правого края к левому
-    cycle_y = USE_SEGMENTS_CYCLON == 1 ?  seg_offset_y : 0;
+    cycle_x = USE_SEGMENTS == 1 ? (seg_offset_x + seg_size - 1) : pWIDTH - 1; // начало - от правого края к левому
+    cycle_y = USE_SEGMENTS == 1 ?  seg_offset_y : 0;
     move_dir = 1;
     fade_divider = 0;
     inc_cnt = NUM_LEDS / 312;
@@ -485,7 +484,7 @@ void cyclonRoutine() {
   // Если сегменты не используется - ширина одной полоски - кол-во сегментов
   for (uint8_t i=0; i < seg_num; i++) {  
     for (uint8_t k=0; k < inc_cnt; k++) { 
-      if (USE_SEGMENTS_CYCLON == 1) {
+      if (USE_SEGMENTS == 1) {
         if (cycle_y + k - seg_offset_y >= seg_size) continue;
         idx = dir_mx == 0
            ? getPixelNumber(cycle_x + i * seg_size, cycle_y + k)
@@ -495,7 +494,7 @@ void cyclonRoutine() {
         idx = getPixelNumber(cycle_x + i, cycle_y + k);
       }
       if (idx >= 0 && idx < NUM_LEDS) 
-          leds[idx] = CHSV(hue + k + (USE_SEGMENTS_CYCLON == 1 ? i * 85 : 0), 255, actualBrightness);              
+          leds[idx] = CHSV(hue + k + (USE_SEGMENTS == 1 ? i * 85 : 0), 255, actualBrightness);              
     }
   }  
 
@@ -511,7 +510,7 @@ void cyclonRoutine() {
 
   cycle_y += inc_cnt;
 
-  if (USE_SEGMENTS_CYCLON) {
+  if (USE_SEGMENTS) {
     
     if (cycle_y - seg_offset_y >= seg_size) {
       cycle_y = seg_offset_y;
@@ -948,17 +947,15 @@ void trafficRoutineRelease() {
   if (traficRIndex  != NULL) { free(traficRIndex);  traficRIndex  = NULL; }
 }
 
-// ********************************* ШАРИКИ *********************************
+// ***************************** ШАРИКИ (ЗМЕЙКИ) *****************************
 
-#define BALLS_AMOUNT_MAX 6 // максимальное количество "шариков"
-#define CLEAR_PATH 1       // очищать путь
-#define BALL_TRACK 1       // (0 / 1) - вкл/выкл следы шариков
-#define TRACK_STEP 70      // длина хвоста шарика (чем больше цифра, тем хвост короче)
+#define BALLS_AMOUNT_MAX 8 // максимальное количество "шариков"
 
 int8_t  BALLS_AMOUNT;
 int16_t coord[BALLS_AMOUNT_MAX][2];
 int8_t  vector[BALLS_AMOUNT_MAX][2];
 uint8_t ballColors[BALLS_AMOUNT_MAX];
+uint8_t TRACK_STEP;
 
 void ballsRoutine() {
   if (loadingFlag) {
@@ -967,7 +964,7 @@ void ballsRoutine() {
     FastLED.clear();
     
     // Текущее количество шариков из настроек
-    BALLS_AMOUNT = map8(getEffectScaleParamValue(MC_BALLS),3,6); 
+    BALLS_AMOUNT = map8(getEffectScaleParamValue(MC_BALLS), 3, BALLS_AMOUNT_MAX); 
     
     for (uint8_t j = 0; j < BALLS_AMOUNT; j++) {
       int8_t sign;
@@ -984,12 +981,10 @@ void ballsRoutine() {
   }
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  TRACK_STEP = map8(255 - getEffectScaleParamValue2(MC_BALLS), 10, 255);  
 
-  if (!BALL_TRACK)    // если режим БЕЗ следов шариков
-    FastLED.clear();  // очистить
-  else {              // режим со следами
-    fader(map8(effectBrightness, 4, TRACK_STEP));
-  }
+  // Скорость затухания - косвенно - длина хвоста
+  fader(map8(effectBrightness, 4, TRACK_STEP));
 
   // движение шариков
   for (uint8_t j = 0; j < BALLS_AMOUNT; j++) {
@@ -1007,12 +1002,14 @@ void ballsRoutine() {
       coord[j][0] = (pWIDTH - 1) * 10;
       vector[j][0] = -vector[j][0];
     }
+    
     if (coord[j][1] > (pHEIGHT - 1) * 10) {
       coord[j][1] = (pHEIGHT - 1) * 10;
       vector[j][1] = -vector[j][1];
     }
-    idx = getPixelNumber(coord[j][0] / 10, coord[j][1] / 10);
-    if (idx >= 0) leds[idx] =  CHSV(ballColors[j], 255, effectBrightness);
+    
+    idx = getPixelNumber(coord[j][0] / 10, coord[j][1] / 10);    
+    if (idx >= 0) nblend(leds[idx], CHSV(ballColors[j], 255, effectBrightness), 128);  // Вариант от ZorDog
   }
 }
 
