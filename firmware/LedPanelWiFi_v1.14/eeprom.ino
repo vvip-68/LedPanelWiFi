@@ -35,7 +35,7 @@ void loadSettings() {
   //    5 - использовать синхронизацию времени через NTP                                                     // getUseNtp()                   // putUseNtp(useNtp)
   //    6 - 12/24-часовой формат времени                                                                     // getTime12()                   // putTime12(time_h12) 
   //    7 - градусы Сельсия / Фаренгейта                                                                     // getIsFarenheit()              // putIsFarengeit(isFarenheit)
-  //  **8 - свободно
+  //    8 - шрифт 3х5 - 0 - квадратный, 1 - круглый                                                          // getSmallFontType()            // putSmallFontType(use_round_3x5)
   //    9 - выключать индикатор часов при выключении лампы true - выключать / false - не выключать           // getTurnOffClockOnLampOff()    // putTurnOffClockOnLampOff(needTurnOffClock)
   //   10 - IP[0]                                                                                            // getStaticIP()                 // putStaticIP(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3])
   //   11 - IP[1]                                                                                            // - " -                         // - " -
@@ -98,7 +98,7 @@ void loadSettings() {
   //   92 - группа синхронизации
   //   94 - полная ширина матрицы при использовании карты индексов
   //   95 - полная высота матрицы при использовании карты индексов
-  //**96  - свободно
+  //   96 - Отображение температуры малых часов - битовая карта b0: 0 - не рисовать C/F, 1 - рисовать C/F; b1: 0 - не рисовать заначок градуса; 1 - рисовать значок градуса   // getShowTempProps()  putShowTempProps()
   //   97 - время задержки повтора нажатия кнопки в играх 10..100                                            // getGameButtonSpeed();          // putGameButtonSpeed(val)
   //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
   //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
@@ -205,53 +205,43 @@ void loadSettings() {
   
   if (isInitialized) {    
 
-    mapWIDTH          = getMatrixMapWidth();
-    mapHEIGHT         = getMatrixMapHeight();
+    mapWIDTH              = getMatrixMapWidth();
+    mapHEIGHT             = getMatrixMapHeight();
 
-    sWIDTH            = getMatrixSegmentWidth();
-    sHEIGHT           = getMatrixSegmentHeight();
-    sMATRIX_TYPE      = getMatrixSegmentType();
-    sCONNECTION_ANGLE = getMatrixSegmentAngle();
-    sSTRIP_DIRECTION  = getMatrixSegmentDirection();
+    sWIDTH                = getMatrixSegmentWidth();
+    sHEIGHT               = getMatrixSegmentHeight();
+    sMATRIX_TYPE          = getMatrixSegmentType();
+    sCONNECTION_ANGLE     = getMatrixSegmentAngle();
+    sSTRIP_DIRECTION      = getMatrixSegmentDirection();
 
-    mWIDTH            = getMetaMatrixWidth();
-    mHEIGHT           = getMetaMatrixHeight();
-    mTYPE             = getMetaMatrixType();
-    mANGLE            = getMetaMatrixAngle();
-    mDIRECTION        = getMetaMatrixDirection();
+    mWIDTH                = getMetaMatrixWidth();
+    mHEIGHT               = getMetaMatrixHeight();
+    mTYPE                 = getMetaMatrixType();
+    mANGLE                = getMetaMatrixAngle();
+    mDIRECTION            = getMetaMatrixDirection();
 
     if (sMATRIX_TYPE == 2) {
-      pWIDTH          = mapWIDTH;
-      pHEIGHT         = mapHEIGHT;
+      pWIDTH              = mapWIDTH;
+      pHEIGHT             = mapHEIGHT;
     } else {
-      pWIDTH          = sWIDTH * mWIDTH;
-      pHEIGHT         = sHEIGHT * mHEIGHT;
+      pWIDTH              = sWIDTH * mWIDTH;
+      pHEIGHT             = sHEIGHT * mHEIGHT;
     }
     
-    NUM_LEDS          = pWIDTH * pHEIGHT;
-    maxDim            = max(pWIDTH, pHEIGHT);
-    minDim            = min(pWIDTH, pHEIGHT);
-
-    #if (BIG_FONT == 0)
-      // Шрифт размером 5x8
-      OVERLAY_SIZE = pHEIGHT < 17 ? pWIDTH * pHEIGHT : pWIDTH * 17;
-    #elif (BIG_FONT == 1)
-      // Шрифт размером 10x16
-      OVERLAY_SIZE  =  pWIDTH * 21;                    // высота шрифта 16 + 3 строки диакритич символов над знакоместом и две - под знакоместом
-    #else
-      // Шрифт размером 8x13
-      OVERLAY_SIZE =   pWIDTH * 18;                    // высота шрифта 13 + 3 строки диакритич символов над знакоместом и две - под знакоместом
-    #endif
+    NUM_LEDS              = pWIDTH * pHEIGHT;
+    maxDim                = max(pWIDTH, pHEIGHT);
+    minDim                = min(pWIDTH, pHEIGHT);
     
-    globalBrightness    = getMaxBrightness();
-    isAuxActive         = getAuxLineState(); 
-    auxLineModes        = getAuxLineModes();
+    globalBrightness      = getMaxBrightness();
+    isAuxActive           = getAuxLineState(); 
+    auxLineModes          = getAuxLineModes();
 
-    autoplayTime        = getAutoplayTime();
-    idleTime            = getIdleTime();
+    autoplayTime          = getAutoplayTime();
+    idleTime              = getIdleTime();
 
     useNtp                = getUseNtp();
     time_h12              = getTime12();
+    use_round_3x5         = getSmallFontType() == 1;
     
     clockOverlayEnabled   = getClockOverlayEnabled();
     textOverlayEnabled    = getTextOverlayEnabled();
@@ -286,56 +276,59 @@ void loadSettings() {
  
     // Загрузить параметры эффектов #1, #2
     for (uint8_t i=0; i<MAX_EFFECT; i++) {
-      effectScaleParam[i]  = getScaleForEffect(i); 
-      effectScaleParam2[i] = getScaleForEffect2(i);
-      effectContrast[i]    = getEffectContrast(i);
-      effectSpeed[i]       = getEffectSpeed(i);
+      effectScaleParam[i] = getScaleForEffect(i); 
+      effectScaleParam2[i]= getScaleForEffect2(i);
+      effectContrast[i]   = getEffectContrast(i);
+      effectSpeed[i]      = getEffectSpeed(i);
     }
 
     #if (USE_MP3 == 1)
-      useAlarmSound     = getUseAlarmSound();
-      alarmSound        = getAlarmSound();
-      dawnSound         = getDawnSound();
-      maxAlarmVolume    = getMaxAlarmVolume();
+      useAlarmSound       = getUseAlarmSound();
+      alarmSound          = getAlarmSound();
+      dawnSound           = getDawnSound();
+      maxAlarmVolume      = getMaxAlarmVolume();
     #endif
 
     #if (USE_E131 == 1)
-      workMode          = getSyncWorkMode();
-      syncMode          = getSyncDataMode();
-      syncGroup         = getSyncGroup();;    
+      workMode            = getSyncWorkMode();
+      syncMode            = getSyncDataMode();
+      syncGroup           = getSyncGroup();;    
     #endif
     
-    globalColor         = getGlobalColor();         // цвет лампы, задаваемый пользователем
-    globalClockColor    = getGlobalClockColor();    // цвет часов в режиме MC_COLOR, режим цвета "Монохром"
-    globalTextColor     = getGlobalTextColor();     // цвет часов бегущей строки в режиме цвета "Монохром"
+    globalColor           = getGlobalColor();         // цвет лампы, задаваемый пользователем
+    globalClockColor      = getGlobalClockColor();    // цвет часов в режиме MC_COLOR, режим цвета "Монохром"
+    globalTextColor       = getGlobalTextColor();     // цвет часов бегущей строки в режиме цвета "Монохром"
 
-    useSoftAP = getUseSoftAP();
+    useSoftAP             = getUseSoftAP();
+    
+    AM1_hour              = getAM1hour();
+    AM1_minute            = getAM1minute();
+    AM1_effect_id         = getAM1effect();
+    AM2_hour              = getAM2hour();
+    AM2_minute            = getAM2minute();
+    AM2_effect_id         = getAM2effect();
+    AM3_hour              = getAM3hour();
+    AM3_minute            = getAM3minute();
+    AM3_effect_id         = getAM3effect();
+    AM4_hour              = getAM4hour();
+    AM4_minute            = getAM4minute();
+    AM4_effect_id         = getAM4effect();
+    dawn_effect_id        = getAM5effect();
+    dusk_effect_id        = getAM6effect();
 
-    AM1_hour       = getAM1hour();
-    AM1_minute     = getAM1minute();
-    AM1_effect_id  = getAM1effect();
-    AM2_hour       = getAM2hour();
-    AM2_minute     = getAM2minute();
-    AM2_effect_id  = getAM2effect();
-    AM3_hour       = getAM3hour();
-    AM3_minute     = getAM3minute();
-    AM3_effect_id  = getAM3effect();
-    AM4_hour       = getAM4hour();
-    AM4_minute     = getAM4minute();
-    AM4_effect_id  = getAM4effect();
-    dawn_effect_id = getAM5effect();
-    dusk_effect_id = getAM6effect();
-
-  #if (USE_WEATHER == 1)     
-    useWeather          = getUseWeather();
-    regionID            = getWeatherRegion();
-    regionID2           = getWeatherRegion2();
-    SYNC_WEATHER_PERIOD = getWeatherInterval();
-    useTemperatureColor = getUseTemperatureColor();
-    useTemperatureColorNight = getUseTemperatureColorNight();
-    showWeatherInClock  = getShowWeatherInClock();
-    isFarenheit         = getIsFarenheit();
-  #endif  
+    #if (USE_WEATHER == 1)     
+      useWeather          = getUseWeather();
+      regionID            = getWeatherRegion();
+      regionID2           = getWeatherRegion2();
+      SYNC_WEATHER_PERIOD = getWeatherInterval();
+      useTemperatureColor = getUseTemperatureColor();
+      useTemperatureColorNight = getUseTemperatureColorNight();
+      showWeatherInClock  = getShowWeatherInClock();
+      isFarenheit         = getIsFarenheit();
+      int8_t props        = getShowTempProps();
+      showTempDegree      = (props & 0x02) > 0;    
+      showTempLetter      = (props & 0x01) > 0;
+    #endif  
 
     getStaticIP();
 
@@ -345,10 +338,10 @@ void loadSettings() {
   } else {
 
     for (uint8_t i = 0; i < MAX_EFFECT; i++) {
-      effectScaleParam[i]  = 50;             // среднее значение для параметра. Конкретное значение зависит от эффекта
-      effectScaleParam2[i] = 0;              // второй параметр эффекта по умолчанию равен 0. Конкретное значение зависит от эффекта
-      effectContrast[i]    = 96;             // контраст эффекта
-      effectSpeed[i]       = D_EFFECT_SPEED; // скорость эффекта
+      effectScaleParam[i] = 50;             // среднее значение для параметра. Конкретное значение зависит от эффекта
+      effectScaleParam2[i]= 0;              // второй параметр эффекта по умолчанию равен 0. Конкретное значение зависит от эффекта
+      effectContrast[i]   = 96;             // контраст эффекта
+      effectSpeed[i]      = D_EFFECT_SPEED; // скорость эффекта
     }
 
     putGameButtonSpeed(50);
@@ -395,6 +388,7 @@ void saveDefaults() {
   putClockOverlayEnabled(clockOverlayEnabled);
   putTextOverlayEnabled(textOverlayEnabled);
   putTime12(time_h12);
+  putSmallFontType(use_round_3x5 ? 1 : 0);
 
   putAutoplay(manualMode);
 
@@ -491,15 +485,16 @@ void saveDefaults() {
   putAM5effect(dawn_effect_id);         // Режим по времени "Рассвет" - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
   putAM6effect(dusk_effect_id);         // Режим по времени "Закат"   - действие: -3 - выключено (не используется); -2 - выключить матрицу (черный экран); -1 - огонь, 0 - случайный, 1 и далее - эффект EFFECT_LIST
 
-#if (USE_WEATHER == 1)       
-  putUseWeather(useWeather);
-  putWeatherRegion(regionID);
-  putWeatherRegion2(regionID2);
-  putWeatherInterval(SYNC_WEATHER_PERIOD);
-  putUseTemperatureColor(useTemperatureColor);
-  putShowWeatherInClock(showWeatherInClock);
-  putIsFarenheit(isFarenheit);
-#endif
+  #if (USE_WEATHER == 1)       
+    putUseWeather(useWeather);
+    putWeatherRegion(regionID);
+    putWeatherRegion2(regionID2);
+    putWeatherInterval(SYNC_WEATHER_PERIOD);
+    putUseTemperatureColor(useTemperatureColor);
+    putShowWeatherInClock(showWeatherInClock);
+    putIsFarenheit(isFarenheit);
+    putShowTempProps((showTempDegree ? 0x02 : 0x00) | (showTempLetter ? 0x01 : 0x00));
+  #endif
        
   putStaticIP(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3]);
 
@@ -2281,6 +2276,39 @@ void putTime12(bool time_h12) {
   }
 }
 
+// Тип шрифта отображения малых часов и температуры
+int8_t getSmallFontType() {
+  uint8_t value = EEPROMread(8);               // 0 - квадратный, 1 - круглый
+  return  value;
+}
+
+// Тип шрифта отображения малых часов и температуры
+void putSmallFontType(int8_t type) {
+  if (type != getSmallFontType()) {
+    EEPROMwrite(8, type);                      // 0 - квадратный, 1 - круглый
+  }
+}
+
+// Отображать значок градуса и букву C/F при отображении температуры в малых часах
+int8_t getShowTempProps() {
+  // b0 - отображать букву C/F
+  // b1 - отображать значок градуса
+  uint8_t value = EEPROMread(96); 
+  return  value;
+}
+
+// Отображать значок градуса и букву C/F при отображении температуры в малых часах
+void putShowTempProps(int8_t type) {
+  // b0 - отображать букву C/F
+  // b1 - отображать значок градуса
+  if (type != getShowTempProps()) {
+    EEPROMwrite(96, type);
+  }
+}
+
+
+// ----------------------------------------------------------
+// ----------------------------------------------------------
 // ----------------------------------------------------------
 
 uint8_t EEPROMread(uint16_t addr) {    

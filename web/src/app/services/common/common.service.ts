@@ -29,9 +29,9 @@ export class CommonService extends Base implements OnDestroy {
     this.error = '';
 
     if (type == MessageType.INFO) {
-      this.info = message;
+      this.info = message ?? '';
     } else {
-      this.error = message;
+      this.error = message ?? '';
     }
     let delay = Number(isNullOrUndefined(duration) ? 5000 : duration);
     if (delay < 1000) delay = 1000; else if (delay > 30000) delay = 30000;

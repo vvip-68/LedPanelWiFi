@@ -163,6 +163,9 @@
   }
 
   <div class="footer">
+    <a (click)="debugOnOff()">
+      <div class="hidden-button"></div>
+    </a>
     @if (managementService.state.power && commonService.error.length === 0 && commonService.info.length === 0 && socketService.isConnected && this.selectedTab != 7) {
       <div class="version" (click)="showEffectInformation(2000)">{{managementService.state.version}}</div>
     }

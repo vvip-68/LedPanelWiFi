@@ -173,6 +173,16 @@
     align-items: center;
     height: 25px;
     min-height: 25px;
+    position: relative;
+
+    .hidden-button {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 10px;
+      height: 100%;
+      cursor: default;
+    }
 
     .version {
       color: var(--footer-version) !important;

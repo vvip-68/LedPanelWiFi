@@ -1,5 +1,9 @@
 
 void allocateLeds() {
+  if (leds != nullptr) {
+    freeLeds();
+  }
+
   int32_t freeMemory1 = ESP.getFreeHeap();
   int32_t requireMemory = NUM_LEDS * sizeof(CRGB);
   if (leds == nullptr && freeMemory1 <= requireMemory) {
@@ -481,35 +485,204 @@ void allocateLeds() {
   }
   
   int32_t freeMemory2 = ESP.getFreeHeap();  
-  int32_t freeMemory3 = freeMemory1 - freeMemory2;
-  if (freeMemory3 == 0) restartGuard++;
-  else restartGuard = 0;
-
   printMemoryDiff(freeMemory1, freeMemory2, F("Выделение памяти для LEDS   : "));
 }
 
-void allocateOverlay() {
-  
+void freeLeds() {
+  if (leds == nullptr) return;
   int32_t freeMemory1 = ESP.getFreeHeap();
-  int32_t requireMemory = OVERLAY_SIZE * sizeof(CRGB);
+  delete[] leds;
+  leds = nullptr;
+  int32_t freeMemory2 = ESP.getFreeHeap();
+  printMemoryDiff(freeMemory1, freeMemory2, F("Освобождение памяти для LEDS: "));
+}
+
+// Сохранить область экрана поверх которой будет выведена бегущая строка
+void saveTextOverlay() {
+  // Сохранять только если еще не было сохранения ранее - указатель на буфер оверлея пуст
+  if (overlayText != nullptr) return;
+
+  // Высота блока бегущей строки и позиция вывода по Y с учетом диакритических символов вычислена ранее в вызове calcTextRectangle()  
+  // Y считается от низа матрицы 
+  int16_t overlaySize = (text_overlay_high - text_overlay_low + 1) * pWIDTH;
+  overlayText = new CRGB[overlaySize]; 
+  if (overlayText == nullptr) return;
+
+  // Ширина вывода текста бегущей строки - вся ширина матрицы
+  // Сохранить оверлей в выделенный буфер
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < pWIDTH; i++) {
+    for (uint8_t j = text_overlay_low; j <= text_overlay_high; j++) {
+      int16_t pn = getPixelNumber(i,j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        overlayText[thisLED] = leds[pn];
+      }
+      thisLED++;
+    }
+  }  
+}
+
+// Сохранить область экрана поверх которой будут выведены часы
+void saveClockOverlay() {
   
-  if (overlayLEDs == nullptr && freeMemory1 <= requireMemory) {
-     DEBUG(F("Недостаточно памяти для OVERLAY: нужно "));
-     DEBUG(requireMemory);
-     DEBUG(F(" байт, есть "));
-     DEBUG(freeMemory1);
-     DEBUGLN(F(" байт"));
-     return;
+  // Сохранять только если еще не было сохранения ранее - указатель на буфер оверлея пуст
+  if (overlayClock != nullptr) return;
+
+  // Ширина и Высота блока вывода часов и позиция по X,Y вычислена ранее в вызове calcClockRectangle()  
+  // X считается от левого края, Y считается от низа матрицы 
+
+  int16_t overlaySize = clockW * clockH;
+  overlayClock = new CRGB[overlaySize]; 
+  if (overlayClock == nullptr) return;
+  
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < clockW; i++) {
+    for (uint8_t j = 0; j < clockH; j++) {
+      int16_t pn = getPixelNumber(wrapX(clockX + i), clockY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        overlayClock[thisLED] = leds[pn];
+      }
+      thisLED++;
+    }
+  } 
+
+}
+
+#if (USE_WEATHER == 1)
+
+// Сохранить область экрана поверх которой будет выведена температура
+void saveTemperatureOverlay() {
+  // Сохранять только если еще не было сохранения ранее - указатель на буфер оверлея пуст
+  if (overlayTemperature != nullptr) return;
+
+  // Ширина и Высота блока вывода температуры и позиция по X,Y вычислена ранее в вызове calcTemperatureRectangle()  
+  // X считается от левого края, Y считается от низа матрицы 
+
+  int16_t overlaySize = temperatureW * temperatureH;
+  overlayTemperature = new CRGB[overlaySize]; 
+  if (overlayTemperature == nullptr) return;
+  
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < temperatureW; i++) {
+    for (uint8_t j = 0; j <  temperatureH; j++) {
+      int16_t pn = getPixelNumber(wrapX(temperatureX + i), temperatureY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        overlayTemperature[thisLED] = leds[pn];
+      }
+      thisLED++;
+    }
+  }    
+}
+
+#endif 
+
+// Сохранить область экрана поверх которой будет выведен календарь
+void saveCalendarOverlay() {
+  // Сохранять только если еще не было сохранения ранее - указатель на буфер оверлея пуст
+  if (overlayCalendar != nullptr) return;
+  // Ширина и Высота блока вывода температуры и позиция по X,Y вычислена ранее в вызове calcTemperatureRectangle()  
+  // X считается от левого края, Y считается от низа матрицы 
+
+  int16_t overlaySize = calendarW * calendarH;
+  overlayCalendar = new CRGB[overlaySize]; 
+  if (overlayCalendar == nullptr) return;
+  
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < calendarW; i++) {
+    for (uint8_t j = 0; j < calendarH; j++) {
+      int16_t pn = getPixelNumber(wrapX(calendarX + i), calendarY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        overlayCalendar[thisLED] = leds[pn];
+      }
+      thisLED++;
+    }
+  }    
+}
+
+// Восстановить область экрана поверх которой была выведена бегущая строка
+void restoreTextOverlay() {
+  // Если указатель не указывает на буфер - восстанавливать нечего
+  if (overlayText == nullptr) return;
+
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < pWIDTH; i++) {
+    for (uint8_t j = text_overlay_low; j <= text_overlay_high; j++) {
+      int16_t pn = getPixelNumber(i,j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        leds[pn] = overlayText[thisLED];        
+      }  
+      thisLED++; 
+    }
+  }
+  
+  delete[] overlayText;
+  overlayText = nullptr;
+}
+
+// Восстановить область экрана поверх которой были выведены часы
+void restoreClockOverlay() {
+
+  // Если указатель не указывает на буфер - восстанавливать нечего
+  if (overlayClock == nullptr) return;
+
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < clockW; i++) {
+    for (uint8_t j = 0; j < clockH; j++) {
+      int16_t pn = getPixelNumber(wrapX(clockX + i), clockY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        leds[pn] = overlayClock[thisLED];
+      }  
+      thisLED++; 
+    }
   }
 
-  overlayLEDs = new CRGB[OVERLAY_SIZE]; 
-  int32_t freeMemory2 = ESP.getFreeHeap();
-  printMemoryDiff(freeMemory1, freeMemory2, F("Выделение памяти для OVERLAY: "));
+  delete[] overlayClock;
+  overlayClock = nullptr;
+
+}
+
+// Восстановить область экрана поверх которой была выведена температура
+#if (USE_WEATHER == 1)
+
+void restoreTemperatureOverlay() {
+  // Если указатель не указывает на буфер - восстанавливать нечего
+  if (overlayTemperature == nullptr) return;
+
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < temperatureW; i++) {
+    for (uint8_t j = 0; j < temperatureH; j++) {
+      int16_t pn = getPixelNumber(wrapX(temperatureX + i), temperatureY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        leds[pn] = overlayTemperature[thisLED];
+      }  
+      thisLED++; 
+    }
+  }
   
-  int32_t freeMemory3 = freeMemory1 - freeMemory2;
-  if (freeMemory3 == 0) restartGuard++;
-  else restartGuard = 0;
+  delete[] overlayTemperature;
+  overlayTemperature = nullptr;
+}
+
+#endif
+
+// Восстановить область экрана поверх которой был выведен календарь
+void restoreCalendarOverlay() {
+  // Если указатель не указывает на буфер - восстанавливать нечего
+  if (overlayCalendar == nullptr) return;
+
+  int16_t thisLED = 0;  
+  for (uint8_t i = 0; i < calendarW; i++) {
+    for (uint8_t j = 0; j < calendarH; j++) {
+      int16_t pn = getPixelNumber(wrapX(calendarX + i), calendarY + j);
+      if (pn >= 0 && pn < NUM_LEDS) {
+        leds[pn] = overlayCalendar[thisLED];
+      }  
+      thisLED++; 
+    }
+  }
   
+  delete[] overlayCalendar;
+  overlayCalendar = nullptr;
 }
 
 String getColorOrderName(int8_t rgb_idx) {

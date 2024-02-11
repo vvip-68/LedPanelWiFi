@@ -340,6 +340,32 @@ void fillString(const String& text) {
   
 }
 
+// Вычислить прямоугольник в котором будет выводиться бегущая строка
+void calcTextRectangle() {
+  
+  // Левый нижний угол прямоугольника, высоту и ширину области вывода бегущей строки - ширина на всю матрицу,
+  // высота - размер шрифта, с учетом диакритических символов под и над символом шрифта
+  // с учетом позиции вывода текста по Y, 
+  
+  text_overlay_low  = getTextY(); 
+  text_overlay_high = text_overlay_low + LET_HEIGHT - 1;
+  
+  #if   (BIG_FONT == 0)           // 3x5    + диакритика - 2 строки над и 1 под символом
+  // text_overlay_low -= 1;
+  text_overlay_high += 2;
+  #elif (BIG_FONT == 1)           // 10x16  + диакритика - 3 строки над и 2 под символом
+  //text_overlay_low -= 2;
+  text_overlay_high += 3;
+  #else                           // 8x13   + диакритика - 3 строки над и 2 под символом
+  //text_overlay_low -= 2;
+  text_overlay_high += 3;
+  #endif
+
+  // Скорректировать если вышли за размеры матрицы по высоте
+  while (text_overlay_low < 0) text_overlay_low++;
+  while (text_overlay_high > pHEIGHT - 1) text_overlay_high--;  
+}
+
 uint8_t getTextY() {
   int8_t LH = LET_HEIGHT;
   if (LH > pHEIGHT) LH = pHEIGHT;

@@ -563,7 +563,7 @@ void cyclonRoutine() {
 #define SPARKLES 1        // вылетающие угольки вкл выкл
 
 uint8_t matrixValue[8][16];
-uint8_t *line;
+uint8_t *line = NULL;
 uint8_t pcnt = 0;
 
 //these values are substracetd from the generated values to give a shape to the animation
@@ -742,14 +742,14 @@ void matrixRoutine() {
 
 // **************** ТРАФИК *****************
 
-uint8_t *traficTColors;    // Цвета линий трафика верхней части матрицы
-int16_t *traficTIndex;     // Позиция "головы" дорожки верхней части матрицы
-uint8_t *traficBColors;    // Цвета линий трафика нижней части матрицы
-int16_t *traficBIndex;     // Позиция "головы" дорожки нижней части матрицы
-uint8_t *traficLColors;    // Цвета линий трафика левой части матрицы
-int16_t *traficLIndex;     // Позиция "головы" дорожки левой части матрицы
-uint8_t *traficRColors;    // Цвета линий трафика правой части матрицы
-int16_t *traficRIndex;     // Позиция "головы" дорожки правой части матрицы
+uint8_t *traficTColors = NULL;    // Цвета линий трафика верхней части матрицы
+int16_t *traficTIndex = NULL;     // Позиция "головы" дорожки верхней части матрицы
+uint8_t *traficBColors = NULL;    // Цвета линий трафика нижней части матрицы
+int16_t *traficBIndex = NULL;     // Позиция "головы" дорожки нижней части матрицы
+uint8_t *traficLColors = NULL;    // Цвета линий трафика левой части матрицы
+int16_t *traficLIndex = NULL;     // Позиция "головы" дорожки левой части матрицы
+uint8_t *traficRColors = NULL;    // Цвета линий трафика правой части матрицы
+int16_t *traficRIndex = NULL;     // Позиция "головы" дорожки правой части матрицы
 bool     isColored;
 
 void trafficRoutine() {
@@ -947,26 +947,26 @@ void trafficRoutineRelease() {
   if (traficRIndex  != NULL) { free(traficRIndex);  traficRIndex  = NULL; }
 }
 
-// ***************************** ШАРИКИ (ЗМЕЙКИ) *****************************
+// ***************************** ЧЕРВЯЧКИ ********************************
 
-#define BALLS_AMOUNT_MAX 8 // максимальное количество "шариков"
+#define WORMS_AMOUNT_MAX 8 // максимальное количество "шариков"
 
-int8_t  BALLS_AMOUNT;
-int16_t coord[BALLS_AMOUNT_MAX][2];
-int8_t  vector[BALLS_AMOUNT_MAX][2];
-uint8_t ballColors[BALLS_AMOUNT_MAX];
+int8_t  WORMS_AMOUNT;
+int16_t coord[WORMS_AMOUNT_MAX][2];
+int8_t  vector[WORMS_AMOUNT_MAX][2];
+uint8_t ballColors[WORMS_AMOUNT_MAX];
 uint8_t TRACK_STEP;
 
-void ballsRoutine() {
+void wormsRoutine() {
   if (loadingFlag) {
-    // modeCode = MC_BALLS;
+    // modeCode = MC_WORMS;
     loadingFlag = false;
     FastLED.clear();
     
     // Текущее количество шариков из настроек
-    BALLS_AMOUNT = map8(getEffectScaleParamValue(MC_BALLS), 3, BALLS_AMOUNT_MAX); 
+    WORMS_AMOUNT = map8(getEffectScaleParamValue(MC_WORMS), 3, WORMS_AMOUNT_MAX); 
     
-    for (uint8_t j = 0; j < BALLS_AMOUNT; j++) {
+    for (uint8_t j = 0; j < WORMS_AMOUNT; j++) {
       int8_t sign;
 
       // забиваем случайными данными
@@ -981,13 +981,13 @@ void ballsRoutine() {
   }
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
-  TRACK_STEP = map8(255 - getEffectScaleParamValue2(MC_BALLS), 10, 255);  
+  TRACK_STEP = map8(255 - getEffectScaleParamValue2(MC_WORMS), 10, 255);  
 
   // Скорость затухания - косвенно - длина хвоста
   fader(map8(effectBrightness, 4, TRACK_STEP));
 
   // движение шариков
-  for (uint8_t j = 0; j < BALLS_AMOUNT; j++) {
+  for (uint8_t j = 0; j < WORMS_AMOUNT; j++) {
 
     // движение шариков
     for (uint8_t i = 0; i < 2; i++) {
@@ -1092,9 +1092,9 @@ void sparklesRoutine() {
 
 #define LIGHTERS_AM 100
 
-int8_t  *lightersPos;    // Позиции светляков
-int8_t  *lightersSpeed;  // Скорость движения светляков
-uint8_t *lightersColor;  // Цвета светляков
+int8_t  *lightersPos = NULL;    // Позиции светляков
+int8_t  *lightersSpeed = NULL;  // Скорость движения светляков
+uint8_t *lightersColor = NULL;  // Цвета светляков
     
 void lightersRoutine() {
   
@@ -1323,8 +1323,8 @@ void starsRoutine() {
 #define BACK_BRIGHTNESS 20
 #define STAR_BRIGHTNESS 36
 
-int8_t  *starState;    // 0 - яркость не меняется 1 - яркость увеличивается -1 - яркость уменьшается
-uint8_t *starBright;   // Текущая яркость звезды
+int8_t  *starState = NULL;    // 0 - яркость не меняется 1 - яркость увеличивается -1 - яркость уменьшается
+uint8_t *starBright = NULL;   // Текущая яркость звезды
 
 uint8_t  numStarsWidth;
 uint8_t  numStarsHeight;
@@ -1897,8 +1897,8 @@ void pacifica_add_whitecaps()
 }
 
 // Deepen the blues and greens
-void pacifica_deepen_colors()
-{
+void pacifica_deepen_colors() {
+  
   for( uint16_t i = 0; i < NUM_LEDS; i++) {
     uint8_t px = i % pWIDTH;
     uint8_t py = i / pWIDTH;
@@ -1973,10 +1973,10 @@ void shadowsRoutine() {
 
 uint8_t num_x, num_y, off_x, off_y;
 
-uint8_t *palette_h; // Н in CHSV
-uint8_t *palette_s; // S in CHSV
-uint8_t *block_sta; // Block state: // 0 - появление; 1 - исчезновение; 2 - пауза перед появлением 3 - пауза перед удалением
-uint8_t *block_dur; // время паузы блока
+uint8_t *palette_h = NULL; // Н in CHSV
+uint8_t *palette_s = NULL; // S in CHSV
+uint8_t *block_sta = NULL; // Block state: // 0 - появление; 1 - исчезновение; 2 - пауза перед появлением 3 - пауза перед удалением
+uint8_t *block_dur = NULL; // время паузы блока
 
 void paletteRoutine() {
 
@@ -2127,10 +2127,10 @@ uint32_t gainTimer, fallTimer;
 uint8_t  maxValue;
 bool     fallFlag;
 
-uint32_t *timeLevel;
-uint8_t  *posOffset;       // Массив данных для отображения на матрице
-int16_t  *maxLevel;
-uint8_t  *posLevel_old;
+uint32_t *timeLevel = NULL;
+uint8_t  *posOffset = NULL;       // Массив данных для отображения на матрице
+int16_t  *maxLevel = NULL;
+uint8_t  *posLevel_old = NULL;
 
 uint8_t  st = 0;
     
@@ -2364,8 +2364,8 @@ CRGBPalette16 rain_p( CRGB::Black, rainColor);
 CRGBPalette16 rainClouds_p( CRGB::Black, CRGB(15,24,24), CRGB(9,15,15), CRGB::Black );
 
 uint8_t cloudHeight = pHEIGHT * 0.2 + 1;
-uint8_t *noise3d;
-uint8_t *cloud;
+uint8_t *noise3d = NULL;
+uint8_t *cloud = NULL;
 
 void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool splashes, bool clouds, bool storm) {
   

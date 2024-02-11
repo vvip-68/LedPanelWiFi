@@ -448,8 +448,8 @@ export class ManagementService extends Base implements OnDestroy {
   private processMessage(topic: string, data: string) {
 
     this.wsService.pong();
-
-    const args = JSON.parse(data);
+    let args = { };
+    try { args = JSON.parse(data); } catch (e) { }
 
     console.log(topic, data, args);
 
@@ -460,7 +460,9 @@ export class ManagementService extends Base implements OnDestroy {
       //   "text": "text"           // текст сообщения
       // }
       case WS.ON.ERROR: {
-        this.commonService.timerMessage(MessageType.ERROR, args['text']);
+        // @ts-ignore
+        const str = isNullOrUndefinedOrEmpty(args) || isNullOrUndefinedOrEmpty(args['text']) ? data : args['text'];
+        this.commonService.timerMessage(MessageType.ERROR, str);
         break;
       }
 

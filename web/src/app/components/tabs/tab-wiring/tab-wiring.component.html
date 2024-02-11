@@ -235,7 +235,7 @@
             </mat-option>
           }
         </mat-select>
-        <mat-form-field hintLabel="{{ L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
+        <mat-form-field hintLabel="{{L.$('от 0 до ') + (this.numLeds - 1).toString() }}" floatLabel="always">
           <mat-label>{{ L.$('Нач.') }}</mat-label>
           <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="numLeds-1" (keydown)="commonService.checkLength($event,5)" (keyup)="commonService.checkLength($event, 5)"
                  [formControl]="line1StartFormControl"

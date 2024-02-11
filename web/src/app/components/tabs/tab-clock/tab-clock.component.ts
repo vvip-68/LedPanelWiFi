@@ -50,6 +50,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
 
   public supportWeather: boolean = false;
   public time12h = -1;
+  public small_font_type = -1;
   public clock_use_overlay = false;
   public clock_orientation: number = -1;
   public orient_list: ComboBoxItem[] = [];
@@ -64,6 +65,8 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   public clock_use_ntp = false;
   public clock_tm1627_off = false;
   public clock_scroll_speed = -1;
+  public show_degree = false;
+  public show_letter = false;
 
   public time_area_list: ComboBoxItem[] = [];
   public time_area: string = '';
@@ -103,7 +106,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          let request = 'C12|CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NZ|NS|SC|WC|WN|WZ';
+          let request = 'C12|C35|CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NZ|NS|SC|WC|WN|WV|WZ';
           if (this.managementService.state.supportTM1637) {
             request += '|OF';
           }
@@ -118,6 +121,9 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
           switch (key) {
             case 'C12':
               this.time12h = this.managementService.state.time12h ? 1 : 0;
+              break;
+            case 'C35':
+              this.small_font_type = this.managementService.state.small_font_type;
               break;
             case 'CE':
               this.clock_use_overlay = this.managementService.state.clock_use_overlay;
@@ -181,6 +187,11 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
               break;
             case 'SC':
               this.clock_scroll_speed = this.managementService.state.clock_scroll_speed;
+              break;
+            case 'WV':
+              const props = this.managementService.state.show_temp_props;
+              this.show_degree = (props & 0x02) > 0;
+              this.show_letter = (props & 0x01) > 0;
               break;
             case 'WZ':
               this.supportWeather = this.managementService.state.supportWeather;
@@ -348,6 +359,11 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     this.socketService.sendText(`$19 7 ${this.clock_size};`);
   }
 
+  changeFontType() {
+    // $19 20 X;    - Размер часов X: 0 - автовыбор в звыисимости от размера матрицы (3x5 или 5x7), 1 - малые 3х5, 2 - большие 5x7
+    this.socketService.sendText(`$19 20 ${this.small_font_type};`);
+  }
+
   changeTimeFormat() {
     // $19 19 X;    - X=0 - 24-часовой формат, X=1 - 12-часовой формат
     this.socketService.sendText(`$19 19 ${this.time12h};`);
@@ -368,6 +384,18 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   setTempUseNightColor(checked: boolean) {
     this.clock_temp_color_night = checked;
     this.socketService.sendText(`$12 6 ${checked ? 1 : 0};`);
+  }
+
+  setTempShowDegree(checked: boolean) {
+    this.show_degree = checked;
+    const value = (this.show_degree ? 0x02 : 0x00) | (this.show_letter ? 0x01 : 0x00);
+    this.socketService.sendText(`$12 7 ${value};`);
+  }
+
+  setTempShowLetter(checked: boolean) {
+    this.show_letter = checked;
+    const value = (this.show_degree ? 0x02 : 0x00) | (this.show_letter ? 0x01 : 0x00);
+    this.socketService.sendText(`$12 7 ${value};`);
   }
 
   isValid(): boolean {

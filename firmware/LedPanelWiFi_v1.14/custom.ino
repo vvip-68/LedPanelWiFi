@@ -1,7 +1,6 @@
 
 // ----------------------------------------------------
 
-uint8_t  lastOverlayX, lastOverlayY, lastOverlayW, lastOverlayH;
 uint32_t xxx = millis();
 
 void customRoutine(uint8_t aMode) {
@@ -16,13 +15,6 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool effectReady = aMode == MC_IMAGE || effectTimer.isReady(); // "Анимация" использует собственные "таймеры" для отрисовки - отрисовка без задержек; Здесь таймер опрашивать нельзя - он после опроса сбросится. 
                                                                  //  А должен читаться в эффекте анимации, проверяя не пришло ли время отрисовать эффект фона    
                                                                  
-  // В прошлой итерации часы / текст были наложены с оверлеем?
-  // Если да - восстановить пиксели эффекта сохраненные перед наложением часов / текста
-  if (overlayDelayed && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE) {
-    overlayUnwrap();
-    overlayDelayed = false;
-  }  
-
   // Проверить есть ли активное событие текста? 
   // Если нет - после проверки  momentTextIdx = -1 и momentIdx = -1
   // Если есть - momentTextIdx - индекс текста для вывода в зависимости от ДО или ПОСЛЕ события текущее время; momentIdx - активная позиция в массиве событий moments[] 
@@ -52,7 +44,6 @@ void doEffectWithOverlay(uint8_t aMode) {
   bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
-  bool needShowScreen = false;
   
   String out;
 
@@ -239,6 +230,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     }
   }
 
+
   // Нужно сохранять оверлей эффекта до отрисовки часов или бегущей строки поверх эффекта?
   bool needOverlay =
        (aMode == MC_CLOCK) ||                                                         // Если включен режим "Часы" (ночные часы)
@@ -246,15 +238,22 @@ void doEffectWithOverlay(uint8_t aMode) {
       (!showTextNow && clockOvEn) || 
        (showTextNow && textOvEn);
 
+  bool needShowScreen = false;
+  bool needShowClock = false;
+  bool needShowTemperature = false;
+  bool needShowCalendar = false;
+
   if (effectReady) {
     if (showTextNow) {
       // Если указан другой эффект, поверх которого бежит строка - отобразить его
       if (specialTextEffect >= 0) {
         processEffect(specialTextEffect);
       } else if (useSpecialBackColor) {
-        // Задана отрисовка строки поверх однотонной заливки указанным цветом
+        // Задана отрисовка строки поверх однотонной заливки указанным цветом - не нужно сохранять 
+        // состояние картинки перед выводом часов / бегущей строки - следующая итерация все равно заполнит
+        // все поле указанным цветом
+        needOverlay = false;
         fillAll(specialBackColor);
-        overlayDelayed = false;
       } else {
         // Отобразить текущий эффект, поверх которого будет нарисована строка
         processEffect(aMode);
@@ -273,80 +272,139 @@ void doEffectWithOverlay(uint8_t aMode) {
     needShowScreen = true;
   }
 
-  // Смещение движущихся часов 
-  if (clockReady) {    
+  // Смещение движущихся часов - движется центр отображения, для часов - позиция по разделительным точкам ЧЧ:MM,
+  // для календаря - точка разделения ДД.ММ
+  if (clockReady && debug_hours < 0) {
     CLOCK_MOVE_CNT--;
     if (CLOCK_MOVE_CNT <= 0) {
+      CLOCK_XC--;
       CLOCK_MOVE_CNT = CLOCK_MOVE_DIVIDER;
-      if (showDateInClock && showDateState && !showWeatherState) {
-        CALENDAR_XC--;
-        if (CALENDAR_XC < -CALENDAR_W) {
-         if (vDEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
-           CALENDAR_XC = pWIDTH - CALENDAR_W - 1 ;
-         else
-           CALENDAR_XC = pWIDTH - 1;         
-        }     
-        CLOCK_XC = CALENDAR_XC + (CLOCK_W - CALENDAR_W) / 2;
-      } else {
-        CLOCK_XC--;
-        if (getClockX(CLOCK_XC + CLOCK_LX) < 0) {
-         if (vDEVICE_TYPE == 0 && CLOCK_W < pWIDTH)
-           CLOCK_XC = pWIDTH - CLOCK_W + (CLOCK_ORIENT == 0 ? (c_size == 1 ? 8 : -1) : (c_size == 1 ? 8 : 10));     // Тут непонятно почему + 8; В малых часах есть поправка -9, иначе почему-то часы и календарь не на одном и том же месте
-         else                                                                                                      // отображаются при скроллинге. Но если поправки тут не делать - когда скрываются за левым краем с правого появляются спазццу на 9 пикселей от края  
-           CLOCK_XC = pWIDTH - CLOCK_FX + (CLOCK_ORIENT == 0 ? (c_size == 1 ? 8 : -1) : (c_size == 1 ? 8 : 10));
-        }     
-        CALENDAR_XC = CLOCK_XC + (CALENDAR_W - CLOCK_W) / 2;
-      }
+      
+      // Взять максимальную ширину из блока часов или календаря
+      // Если правый край часов/календаря ушел за левый край матрицы - считать снова с правого края матрицы
+      uint8_t width = max( max( clockW, calendarW), temperatureW );
+      if (CLOCK_XC < 0) {
+        if (vDEVICE_TYPE == 0) {
+          CLOCK_XC = pWIDTH - 1;
+        } else {
+          if (CLOCK_XC + width / 2 < 0) {
+            CLOCK_XC = pWIDTH + width / 2 - 1;
+          }
+        }
+      }           
     }
+  }
+
+  // Смещение движущихся часов - движется центр отображения, для часов - позиция по разделительным точкам ЧЧ:MM,
+  // для календаря - точка разделения ДД.ММ
+  if (debug_hours >= 0 && debug_move != 0) {    
+    CLOCK_XC += debug_move;
+    // Взять максимальную ширину из блока часов или календаря
+    // Если правый край часов/календаря ушел за левый край матрицы - считать снова с правого края матрицы
+    // Если левый край часов/календаря ушел за правый край матрицы - считать снова с нуля
+    uint8_t width = max( max( clockW, calendarW), temperatureW );    
+    if (CLOCK_XC < 0) {
+      if (vDEVICE_TYPE == 0) {
+        CLOCK_XC = pWIDTH - 1;
+      } else {
+        if (CLOCK_XC + width / 2 < 0) {
+          CLOCK_XC = pWIDTH + width / 2 - 1;
+        }
+      }
+    } else          
+    if (CLOCK_XC >= pWIDTH) {
+      if (vDEVICE_TYPE == 0) {
+        CLOCK_XC = 0;
+      } else {
+        if (CLOCK_XC - width / 2 >= pWIDTH) {
+          CLOCK_XC = -(width / 2);
+        }
+      }
+    }           
+    debug_move = 0;
   }
 
   // Пришло время отобразить дату (календарь) в малых часах или температуру / календарь в больших?
   checkCalendarState();
 
+  // Нарисовать отладочный крест - вертикаль - текущая позиция центра смещения, горизонталь - середина эурана
+  if (debug_cross) {
+    uint8_t Y = pHEIGHT / 2;
+    for (int8_t i = 0; i < pWIDTH; i++) {
+      drawPixelXY(i, Y, CRGB::Yellow);      
+    }
+    for (int8_t i = 0; i < pHEIGHT; i++) {
+      drawPixelXY(getClockX(CLOCK_XC), i, CRGB::Yellow);      
+    }    
+  }
+  
   // Если время инициализировали и пришло время его показать - нарисовать часы поверх эффекта
   if (init_time && (((clockOvEn || aMode == MC_CLOCK) && !showTextNow && aMode != MC_TEXT && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE))) {    
 
-    overlayDelayed = needOverlay;
+    // Контрастные цвета часов для отображения поверх эффекта
     setOverlayColors();
-    if (needOverlay) {
-      // Размер календаря по высоте имеет максимальный оверлей, в который входит и бегущая строка и часы с температурой в две строки и сам календарь
-      y_overlay_low  = CALENDAR_Y - 1;
-      y_overlay_high = y_overlay_low + CALENDAR_H;
-      while (y_overlay_low < 0) y_overlay_low++;
-      while (y_overlay_high >= pHEIGHT) y_overlay_high--;
-      overlayWrap();
-    }      
 
-    // Время отрисовки календаря или температуры
+    // Вычислить позиции блоков Часов, Температуры, Календаря, размеры блока под оверлей
+    calcClockPosition();
+    #if (USE_WEATHER == 1)
+    calcTemperaturePosition();
+    #endif
+    calcCalendarPosition();
+
+    // Есть два режима отображения часов / температуры / календаря
+    // 1. Традиционный - часы, температура и календарь отображаюься яединым блоком:
+    //    - Часы в верхней строке при двухстрочном режиме, 
+    //    - Температура в нижней строке  при двухстрочном режиме, 
+    //    - Календарь отображается попеременно с блоком часов / температуры в две строки
+    //    - Если часы вертикальные - часы, температура и календарь отображаются попеременно, если позволяет ширина экрана.
+    //      Если ширина экрана не позволяет (температура шире) - выводятся только вертикальные часы и ЧЧ/MM и календарь ДД/MM попеременно
+    //    Допускается смещение блоков относительно центра экрана - в настройках
+    // 2. Произвольное размещение:
+    //    - Часы, Температура и Календарь отображаются независимо в указанных позициях, задаваемых настройками смещения относительно центра экрана
+    // В обоих режимах центр по вертикали - линия CLOCK_XC может сдвигаться
+    // Сдвиг - в зависимости от режима Панель/Труба
+    //  - Труба  - сдвиг закольцован, как только изображение уходит за левый край матрицы - тут же появляется с правого края
+    //  - Панель - сдвиг выполняется с учетом ширины максимального блока часов / температуры / календаря - после того как точка изображения
+    //    уйдет за левый край матрицы, справа появится только после того, епе правй край макс. широкого блока уйдет за левый край матрицы
+    //
+    // Бегущая строка отображается в двух режимах - обычная и строка информера. Страка информера маркируется макросом {I} в строке
+    // Позиция отображения строки по вертикали и скорость прокрутки задается отдельно для обычных строк и строк информера. 
+    // Возможно задание скорости прокрутки отдельной строки макросом скорости текста внутри нее, тогда общие настройки скорости игнорируются
+    // И обычная строка и строка информера имеют настройки - скрывать ли блок Часов / Температуры / Календаря при показе бегущей строки или
+    // эти сущности отображаются одновременно с бегущей строкой. Такой подход позволяет реализовать режим информера, когда, например,
+    // часы продолжают отображаться, а вместо блока температуры в ее позиции по вертикали пробегает строка информера
+
+    // -----------------------------------------------------------------------------
+    // Время отрисовки календаря или температуры в разметке совместного отображения 
+    // часов / температуры / календаря - разметка "Традиционная"
+    // -----------------------------------------------------------------------------
+    
     bool cal_or_temp_processed = false;
     // В больших часах календарь и температура показываются в той же позиции, что и часы и совпадают по формату - ЧЧ:MM и ДД.MM - одинаковый размер
     // В малых вертикальных часах - нет.
-    int8_t XC = CLOCK_ORIENT == 1 && c_size == 1 ? CALENDAR_XC : CLOCK_XC;
     if (showDateState && (showDateInClock || (!allow_two_row && (init_weather && showWeatherInClock && showWeatherState)))) {
       if (showDateInClock && showDateState && !showWeatherState) {
         // Календарь
-        drawCalendar(aday, amnth, ayear, dotFlag, XC, CALENDAR_Y);
+        needShowCalendar = true;
         cal_or_temp_processed = true;
       } else {
         // Температура, когда чередуется с часами - только при горизонтальной ориентации часов и если она по высоте не входит в отображение ВМЕСТЕ с часами
         #if (USE_WEATHER == 1)       
-          if (init_weather && showWeatherInClock && showDateState && showWeatherState && CLOCK_ORIENT == 0 && !allow_two_row) {
-            CLOCK_WY = CLOCK_Y;
-            drawTemperature(CLOCK_XC);
+          if ((init_weather || debug_hours >= 0) && showWeatherInClock && showDateState && showWeatherState && CLOCK_ORIENT == 0 && !allow_two_row) {
+            needShowTemperature = true;
             cal_or_temp_processed = true;
           } else {   
             // Если показ календаря в часах включен - показать календарь, иначе - вместо календаря снова показать температуру, если она включена
-            if (showDateInClock || !init_weather) {
-              drawCalendar(aday, amnth, ayear, dotFlag, XC, CALENDAR_Y);  
+            if (showDateInClock || !(init_weather || debug_hours >= 0)) {
+              needShowCalendar = true;
               cal_or_temp_processed = true;
             } else if (showWeatherInClock && !allow_two_row) {
-              CLOCK_WY = CLOCK_Y;
-              drawTemperature(CLOCK_XC);  
+              needShowTemperature = true;
               cal_or_temp_processed = true;
             }
           }
         #else
-          drawCalendar(aday, amnth, ayear, dotFlag, XC, CALENDAR_Y);
+          needShowCalendar = true;
           cal_or_temp_processed = true;
         #endif
       }
@@ -356,49 +414,80 @@ void doEffectWithOverlay(uint8_t aMode) {
     // Если календарь или температура по условиям не могут быть нарисованы - рисовать часы
     if (!cal_or_temp_processed) {
 
-      uint8_t CLK_Y = CLOCK_Y;
+      needShowClock = true; 
 
+      // Если это часы с температурой - рисовать температуру (если это доступно)
       #if (USE_WEATHER == 1)       
-        // Если температура отрисовывается вместе с часами - позиция рисования такая же как у двухстрочного календаря
-        bool draw_temp = init_weather && showWeatherInClock && allow_two_row && CLOCK_ORIENT == 0;
-        if (draw_temp) {
-          CLK_Y = CALENDAR_Y + (c_size == 1 ? 6 : 9);
-          while (CLK_Y + (c_size == 1 ? 5 : 7) > pHEIGHT) CLK_Y--;
+        needShowTemperature = (init_weather || debug_hours >= 0) && showWeatherInClock && allow_two_row && CLOCK_ORIENT == 0;
+     
+        // Если отображение в режиме часов с темепературой - пересчитать позиции взаимного размещения часов
+        // и температуры и сдвинуть их относительно друг друга.
+        // По умолчанию расчет позиций календаря и температуры выполнен относительно центра экрана
+        if (needShowClock && needShowTemperature) {
+          // Сдвиг по вертикали - часы в верхний ряд, температуру в нижний
+          int8_t dy = (c_size == 1 ? 5 : 7) / 2 + 1;
+  
+          // Сдвиг по горизонтали - выбираем наиболее широкий блок, центрируем его на экране (относительно позиции CLOCK_XC),
+          // затем полее короткий блок выравниваем по правому краю длинного блока
+          int8_t dx_c = 0, dx_t = 0;
+          if (clockW > temperatureW) {
+            dx_t = (clockW - temperatureW) / 2;
+            while (temperatureX + temperatureW + dx_t < clockX + clockW) dx_t++;
+          } 
+          if (clockW < temperatureW) {
+            dx_c = (temperatureW - clockW) / 2;
+            while (clockX + clockW + dx_c < temperatureX + temperatureW) dx_c++;
+          }           
+          
+          shiftTemperaturePosition(dx_t, -dy); 
+          shiftClockPosition(dx_c, dy);          
         }
       #endif
       
-      drawClock(hrs, mins, dotFlag, CLOCK_XC, CLK_Y);
-
-      #if (USE_WEATHER == 1)       
-        if (draw_temp) {
-          CLOCK_WY = CALENDAR_Y - 1;
-          while (CLOCK_WY < 0) CLOCK_WY++;
-          drawTemperature(CLOCK_XC);
-        }
-      #endif
       needShowScreen = true;
     }
+
+    // Сохранить оверлей - область узора на экране поверх которого будут выведены часы / температура / календарь 
+    if (needOverlay) {
+      if (needShowClock)       saveClockOverlay();          
+      #if (USE_WEATHER == 1)
+      if (needShowTemperature) saveTemperatureOverlay();          
+      #endif  
+      if (needShowCalendar)    saveCalendarOverlay();          
+    }
+    
+    // Нарисовать часы / температура / календарь 
+    if (needShowClock)       drawClock();
+    #if (USE_WEATHER == 1)
+    if (needShowTemperature) drawTemperature();
+    #endif
+    if (needShowCalendar)    drawCalendar();    
   }
 
   // Если цикл не "холостой", а была отрисовка эффекта - и пришло время перерисовать текст - сделать это
   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
   if (needShowScreen && (showTextNow || aMode == MC_TEXT) && !isNightClock) {   
     // Нарисовать оверлеем текст бегущей строки
-    // Нарисовать текст в текущей позиции
-    overlayDelayed = needOverlay;
-    if (needOverlay) {
-      y_overlay_low  = getTextY() - 2;                      // Нижняя строка вывода строки текста -2 строки на подстрочные диакритические символы
-      y_overlay_high = y_overlay_low + LET_HEIGHT + 4;      // Высота букв +3 символа на диакритические надстрочные символы
-      if (y_overlay_low < 0) y_overlay_low = 0;
-      if (y_overlay_high >= pHEIGHT) y_overlay_high = pHEIGHT - 1;
-      overlayWrap();
-    }
-    runningText();
+    calcTextRectangle();                                 // Вычислить позицию и размеры блока под оверлей бегущей строки
+    if (needOverlay) saveTextOverlay();                  // Сохранить оверлей - область узора на экране поверх которого будет выведена бегущая строка
+    runningText();                                       // Нарисовать бегущую строку
   }
 
+  // Вывести на матрицу подготовленное изображение
   if (needShowScreen) {
     FastLEDshow();    
   }
+
+  // Восстановить пиксели эффекта сохраненные перед наложением часов / температуры / календаря / текста бегущей строки - (оверлей)
+  if (needOverlay) {
+    restoreTextOverlay();
+    restoreClockOverlay();
+    #if (USE_WEATHER == 1)
+    restoreTemperatureOverlay();
+    #endif
+    restoreCalendarOverlay();
+  }
+  
 }
 
 void FastLEDshow() { 
@@ -465,7 +554,7 @@ void processEffect(uint8_t aMode) {
     case MC_MATRIX:              matrixRoutine(); break;
     case MC_STARFALL:            starfallRoutine(); break;
     case MC_BALL:                ballRoutine(); break;
-    case MC_BALLS:               ballsRoutine(); break;
+    case MC_WORMS:               wormsRoutine(); break;
     case MC_RAINBOW:             rainbowRoutine(); break;      // rainbowHorizontal(); // rainbowVertical(); // rainbowDiagonal(); // rainbowRotate();
     case MC_FIRE:                fireRoutine(); break;
     case MC_FILL_COLOR:          fillColorProcedure(); break;
@@ -541,7 +630,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_MATRIX:              break;
     case MC_STARFALL:            break;
     case MC_BALL:                break;
-    case MC_BALLS:               break;
+    case MC_WORMS:               break;
     case MC_RAINBOW:             break;
     case MC_FIRE:                fireRoutineRelease(); break;
     case MC_FILL_COLOR:          break;
@@ -752,7 +841,7 @@ void setTimersForMode(uint8_t aMode) {
   }
   if (clockScrollSpeed >= 240) {
     clockTimer.stopTimer();
-    checkClockOrigin();
+    CLOCK_XC = pWIDTH / 2;
   } else {
     clockTimer.setInterval(clockScrollSpeed);
   }

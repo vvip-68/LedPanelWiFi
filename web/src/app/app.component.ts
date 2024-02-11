@@ -156,4 +156,7 @@ export class AppComponent extends Base implements OnInit, OnDestroy {
     e.preventDefault();
   }
 
+  debugOnOff() {
+    this.managementService.state.debug = !this.managementService.state.debug;
+  }
 }

@@ -18,6 +18,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import {Base} from "../../base.class";
 import {FileUploaderWrapper} from "../../../services/file.uploader.wrapper";
 import {FileUploadModule} from "ng2-file-upload";
+import {MatCheckboxModule} from "@angular/material/checkbox";
 
 @Component({
     selector: 'app-tab-other',
@@ -34,6 +35,7 @@ import {FileUploadModule} from "ng2-file-upload";
     MatTooltipModule,
     MatIconModule,
     FileUploadModule,
+    MatCheckboxModule,
   ],
 })
 export class TabOtherComponent extends Base implements OnInit, OnDestroy {
@@ -44,6 +46,15 @@ export class TabOtherComponent extends Base implements OnInit, OnDestroy {
 
   autoLimitFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 50000)]);
   systemNameFormControl = new FormControl('', [Validators.required]);
+
+  hoursFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 23)]);
+  minutesFormControl = new FormControl(0, [Validators.required, rangeValidator(0, 59)]);
+  temperatureFormControl = new FormControl(0, [Validators.required, rangeValidator(-40, 40)]);
+
+  daysFormControl = new FormControl(1, [Validators.required, rangeValidator(1, 31)]);
+  monthFormControl = new FormControl(1, [Validators.required, rangeValidator(1, 12)]);
+  yearFormControl = new FormControl(1900, [Validators.required, rangeValidator(1900, 2100)]);
+
   matcher = new AppErrorStateMatcher();
 
   fs_allow: boolean = true;
@@ -114,6 +125,14 @@ export class TabOtherComponent extends Base implements OnInit, OnDestroy {
           }
         }
       });
+
+    this.hoursFormControl.setValue(this.managementService.state.debug_hour);
+    this.minutesFormControl.setValue(this.managementService.state.debug_minutes);
+    this.temperatureFormControl.setValue(this.managementService.state.debug_temperature);
+
+    this.daysFormControl.setValue(this.managementService.state.debug_day);
+    this.monthFormControl.setValue(this.managementService.state.debug_month);
+    this.yearFormControl.setValue(this.managementService.state.debug_year);
   }
 
   isDisabled(): boolean {
@@ -197,6 +216,38 @@ export class TabOtherComponent extends Base implements OnInit, OnDestroy {
     this.socketService.sendText('$23 4;');
   }
 
+  send() {
+    // $18 1 HH MM TT DD MN YYYY; - Установить указанное время HH:MM и температуру TT, DD.MN.YYYY - День, месяц, год - для отладки позиционирования часов с температурой
+    const HH = this.managementService.state.debug_hour = this.hoursFormControl.value ?? 0;
+    const MM = this.managementService.state.debug_minutes = this.minutesFormControl.value ?? 0;
+    const TT = this.managementService.state.debug_temperature = this.temperatureFormControl.value ?? 0;
+    const DD = this.managementService.state.debug_day = this.daysFormControl.value ?? 0;
+    const MN = this.managementService.state.debug_month = this.monthFormControl.value ?? 0;
+    const YY = this.managementService.state.debug_year = this.yearFormControl.value ?? 0;
+    this.socketService.sendText(`$18 1 ${HH} ${MM} ${TT} ${DD} ${MN} ${YY};`);
+  }
+
+  left() {
+    // $18 3 X; - Сдвиг позиции вывода часов при скроллинге на X колонок
+    this.socketService.sendText(`$18 3 -1;`);
+  }
+
+  right() {
+    // $18 3 X; - Сдвиг позиции вывода часов при скроллинге на X колонок
+    this.socketService.sendText(`$18 3 1;`);
+  }
+
+  reset() {
+    // $18 4; - Сброс позиции вывода часов при скроллинге на X колонок
+    this.socketService.sendText(`$18 4;`);
+  }
+
+  crossOnOf(checked: boolean) {
+    this.managementService.state.debug_cross = checked;
+    // $18 2 X; - $18 2 X; - Вкл/выкл отображение креста
+    this.socketService.sendText(`$18 2 ${checked ? 1 : 0};`);
+  }
+
   onUpload() {
     this.fileUploaderWrapper.onFileSelect(
       this.L.$("Загрузить"),
@@ -204,6 +255,11 @@ export class TabOtherComponent extends Base implements OnInit, OnDestroy {
       this.uploadFileForm,
       '/assets/',
       { confirmationMessage: null, fileNewName: this.backup_file });
+  }
+
+  isDebigValid() {
+    return this.hoursFormControl.valid && this.minutesFormControl.valid && this.temperatureFormControl.valid &&
+           this.daysFormControl.valid && this.monthFormControl.valid && this.yearFormControl.valid;
   }
 
 }

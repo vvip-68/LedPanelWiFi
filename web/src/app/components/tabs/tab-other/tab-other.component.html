@@ -138,4 +138,110 @@
     </div>
   </fieldset>
 
+  @if (managementService.state.debug) {
+    <fieldset class="app-fieldset debug-fieldset">
+      <div class="field-container nomargin">
+        <mat-form-field hintLabel="{{ L.$('от 0 до 23') }}" floatLabel="always">
+          <mat-label>{{ L.$('Час') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="23" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="hoursFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if (hoursFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до 23') }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 0 до 59') }}" floatLabel="always">
+          <mat-label>{{ L.$('Мин') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="0" [max]="59" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="minutesFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if ( minutesFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 0 до 59') }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 40 до +40') }}" floatLabel="always">
+          <mat-label>{{ L.$('Темп. °C') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="-40" [max]="40" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                 [formControl]="temperatureFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if (temperatureFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от -40 до 40') }}
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field hintLabel="{{ L.$('от 1 до 31') }}" floatLabel="always">
+          <mat-label>{{ L.$('День') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="31" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="daysFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if (daysFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до 31') }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1 до 12') }}" floatLabel="always">
+          <mat-label>{{ L.$('Мес.') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1" [max]="12" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                 [formControl]="monthFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if ( monthFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1 до 12') }}
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field hintLabel="{{ L.$('от 1900 до 2100') }}" floatLabel="always">
+          <mat-label>{{ L.$('Год') }}</mat-label>
+          <input matInput required autocomplete="new-password" type="number" class="size" [min]="1900" [max]="2100" (keydown)="commonService.checkLength($event,4)" (keyup)="commonService.checkLength($event, 4)"
+                 [formControl]="yearFormControl"
+                 [disableControl]="isDisabled()"
+                 [errorStateMatcher]="matcher">
+          @if (yearFormControl.hasError('range')) {
+            <mat-error>
+              {{ L.$('от 1900 до 2100') }}
+            </mat-error>
+          }
+        </mat-form-field>
+      </div>
+      <div class="send-button">
+        <div class="arrows">
+          <button mat-raised-button color="primary" class="narrow"
+                  [disabled]="isDisabled()"
+                  (click)="left()">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <button mat-raised-button color="primary" class="narrow"
+                  [disabled]="isDisabled()"
+                  (click)="right()">
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+          <button mat-raised-button color="primary" class="narrow"
+                  [disabled]="isDisabled()"
+                  (click)="reset()">
+            <mat-icon class="rot90">vertical_align_center</mat-icon>
+          </button>
+        </div>
+        <mat-checkbox class="example-margin" [checked]="managementService.state.debug_cross" color="primary" (change)="crossOnOf($event.checked)">
+          {{ L.$('Крест') }}
+        </mat-checkbox>
+        <button mat-raised-button color="primary"
+                [disabled]="isDisabled() || !isDebigValid()"
+                (click)="send()">
+          {{L.$('Отправить')}}
+        </button>
+      </div>
+    </fieldset>
+  }
 </div>

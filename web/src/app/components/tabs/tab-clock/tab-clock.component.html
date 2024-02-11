@@ -98,11 +98,19 @@
             <mat-label>{{ L.$('Размер часов') }}</mat-label>
             <mat-radio-group [(ngModel)]="clock_size" [disableControl]="isDisabled()" (change)="changeClockSize()" color="primary">
               <mat-radio-button [value]="0" class="rb"> {{ L.$('Авто') }}</mat-radio-button>
-              <mat-radio-button [value]="1" class="rb"> {{ L.$('3x5') }}</mat-radio-button>
-              <mat-radio-button [value]="2" class="rb"> {{ L.$('5x7') }}</mat-radio-button>
+              <mat-radio-button [value]="1" class="rb2"> {{ L.$('3x5') }}</mat-radio-button>
+              <mat-radio-button [value]="2" class="rb2"> {{ L.$('5x7') }}</mat-radio-button>
             </mat-radio-group>
           </div>
         }
+
+        <div class="field-container radio-buttons">
+          <mat-label>{{ L.$('Шрифт часов 3x5') }}</mat-label>
+          <mat-radio-group [(ngModel)]="small_font_type" [disableControl]="isDisabled()" (change)="changeFontType()" color="primary">
+            <mat-radio-button [value]="0" class="rb"> {{ L.$('Строгий') }}</mat-radio-button>
+            <mat-radio-button [value]="1" class="rb"> {{ L.$('Круглый') }}</mat-radio-button>
+          </mat-radio-group>
+        </div>
 
         @if (managementService.state.supportTM1637) {
           <div class="spacer"></div>
@@ -135,13 +143,24 @@
 
             <div class="field-container check">
               <mat-label>{{ L.$('Цветная температура') }}</mat-label>
-              <mat-checkbox class="example-margin" [checked]="clock_temp_color_day" color="primary" (change)="setTempUseDayColor($event.checked)">
+              <mat-checkbox [checked]="clock_temp_color_day" color="primary" (change)="setTempUseDayColor($event.checked)">
                 {{ L.$('Днем') }}
               </mat-checkbox>
-              <mat-checkbox class="example-margin" [checked]="clock_temp_color_night" color="primary" (change)="setTempUseNightColor($event.checked)">
+              <mat-checkbox [checked]="clock_temp_color_night" color="primary" (change)="setTempUseNightColor($event.checked)">
                 {{ L.$('Ночью') }}
               </mat-checkbox>
             </div>
+
+            <div class="field-container check">
+              <mat-label>{{ L.$('Отображать') }}</mat-label>
+              <mat-checkbox [checked]="show_degree" color="primary" (change)="setTempShowDegree($event.checked)">
+                {{ L.$('Градус') }}
+              </mat-checkbox>
+              <mat-checkbox [checked]="show_letter" color="primary" (change)="setTempShowLetter($event.checked)">
+                {{ L.$('C/F') }}
+              </mat-checkbox>
+            </div>
+
           </div>
         }
 

@@ -4,25 +4,27 @@ static uint16_t x;
 static uint16_t y;
 static uint16_t z;
 
-uint16_t speed = 20; // speed is set dynamically once we've started up
-uint16_t scale = 30; // scale is set dynamically once we've started up
-uint8_t  *noise;
+uint16_t speed = 20;        // speed is set dynamically once we've started up
+uint16_t scale = 30;        // scale is set dynamically once we've started up
+uint8_t  *noise = nullptr;
 
 CRGBPalette16 currentPalette( PartyColors_p );
 uint8_t colorLoop = 1;
 uint8_t ihue = 0;
 
 void madnessNoise() {
+  
   if (loadingFlag) {
     // modeCode = MC_NOISE_MADNESS;
     loadingFlag = false;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
     }        
   }
+  
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
   scale = map8(getEffectScaleParamValue(MC_NOISE_MADNESS),0,100);
   fillnoise8();
@@ -32,6 +34,7 @@ void madnessNoise() {
       drawPixelXY(i, j, thisColor);
     }
   }
+  
   ihue += 1;
 }
 
@@ -40,7 +43,7 @@ void rainbowNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_RAINBOW;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -57,7 +60,7 @@ void rainbowStripeNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_RAINBOW_STRIP;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -75,7 +78,7 @@ void zebraNoise() {
     // modeCode = MC_NOISE_ZEBRA;
     // 'black out' all 16 palette entries...
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -97,7 +100,7 @@ void forestNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_FOREST;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -114,7 +117,7 @@ void oceanNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_OCEAN;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -131,7 +134,7 @@ void plasmaNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_PLASMA;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -148,7 +151,7 @@ void cloudNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_CLOUD;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -165,7 +168,7 @@ void lavaNoise() {
     loadingFlag = false;
     // modeCode = MC_NOISE_LAVA;
     createNoise();
-    if (noise == NULL) {
+    if (noise == nullptr) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       setRandomMode();
       return;      
@@ -245,9 +248,9 @@ void fillnoise8() {
 }
 
 void createNoise() {
-  if (noise == NULL) { 
+  if (noise == nullptr) { 
     noise = new uint8_t[maxDim * maxDim]; 
-    if (noise == NULL) {
+    if (noise == nullptr) {
       DEBUGLN(F("createNoise() - недостаточно памяти для эффекта"));
       setRandomMode();
     }
@@ -255,8 +258,8 @@ void createNoise() {
 }
 
 void releaseNoise() {
-  if (noise != NULL) { 
+  if (noise != nullptr) { 
     delete[] noise; 
-    noise = NULL; 
+    noise = nullptr; 
   }  
 }

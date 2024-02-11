@@ -31,8 +31,10 @@
       --slider-label-width: 152px;
       --label-width: 160px;
       --check-label-width: 138px;
+      --check-label-inner-width: 50px;
       --radio-label-width: 138px;
-      --radio-label-label-width: 19px;
+      --radio-label-label-width-narrow: 14px;
+      --radio-label-label-width: 35px;
       --date-field-width: 164px;
       --date-label-width: 100px;
 
@@ -138,6 +140,10 @@
 
           mat-checkbox {
             margin: 0 12px 0 0;
+
+            ::ng-deep .mdc-label {
+              width: var(--check-label-inner-width) !important;
+            }
           }
         }
 
@@ -175,10 +181,23 @@
             width: var(--radio-label-width) !important;
           }
 
-          ::ng-deep .mdc-radio + label {
-            margin-right: 13px;
-            padding-left: 0;
-            width: var(--radio-label-label-width)
+          .mat-mdc-radio-button {
+            ::ng-deep .mdc-radio + label {
+              margin-right: 13px;
+              padding-left: 0;
+            }
+          }
+
+          .mat-mdc-radio-button.rb {
+            ::ng-deep .mdc-radio + label {
+              width: var(--radio-label-label-width)
+            }
+          }
+
+          .mat-mdc-radio-button.rb2 {
+            ::ng-deep .mdc-radio + label {
+              width: var(--radio-label-label-width-narrow)
+            }
           }
         }
 

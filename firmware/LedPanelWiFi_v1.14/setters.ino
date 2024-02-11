@@ -216,6 +216,16 @@ void set_IsFarenheit(bool value) {
   addKeyToChanged("TF");
 }
 
+// WV - нужно ли показывать знак градуса и C/F при отображении температуры в малых часах
+void set_ShowTempProps(int8_t value) {
+  int8_t old = (showTempDegree ? 0x02 : 0x00) | (showTempLetter ? 0x01 : 0x00);
+  if (old == value) return;
+  putShowTempProps(value);  
+  showTempDegree = (value & 0x02) > 0;
+  showTempLetter = (value & 0x01) > 0;
+  addKeyToChanged("WV");
+}
+
 #endif
 
 // EF thisMode
@@ -438,6 +448,15 @@ void set_Time12(bool value) {
   putTime12(value);
   time_h12 = value;
   addKeyToChanged("C12");
+}
+
+// C35 - тип шрифта 3x5 - 0 - квадратный; 1 - скругленный
+void set_SmallFontType(int8_t value) {
+  int8_t old = use_round_3x5 ? 1 : 0;
+  if (old == value) return;
+  putSmallFontType(value);
+  use_round_3x5 = value == 1;
+  addKeyToChanged("C35");
 }
 
 // CE clockOverlayEnabled

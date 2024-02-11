@@ -1,4 +1,6 @@
 import {ComboBoxItem} from "./combo-box.model";
+import {FormControl, Validators} from "@angular/forms";
+import {rangeValidator} from "../services/helper";
 
 export interface IStateModel {
   version: string;                 // VR - Версия прошивки
@@ -158,7 +160,17 @@ export interface IStateModel {
   hw_tx:number;                    // TX      - UART TX
   hw_rx:number;                    // RX      - UART RX
   time12h: boolean;                // C12:X             X = 0 24H; X=1 12H
+  small_font_type: number;         // C35:X             X = 0 квадратный; X=1 скругленный шрифт 3х5
   weather_farenheit: boolean;      // TF:X              X = 0 Celsius; X=1 Fahrenheit
+  show_temp_props: number;         // WV:x              X - битовая карта b0 -  показ в температуре C/F; b1 - показ значка градуса
+  debug: boolean;
+  debug_hour: number;
+  debug_minutes: number;
+  debug_temperature: number;
+  debug_day: number;
+  debug_month: number;
+  debug_year: number;
+  debug_cross: boolean;
 }
 
 export class StateModel implements IStateModel {
@@ -312,9 +324,27 @@ export class StateModel implements IStateModel {
   public hw_tx = -1;
   public hw_rx = -1;
   public time12h = false;
+  public small_font_type = 0;
   public weather_farenheit = false;
+  public show_temp_props = 0;
+  public debug = false;
+  public debug_hour = 0;
+  public debug_minutes = 0;
+  public debug_temperature = 0;
+  public debug_day = 0;
+  public debug_month = 0;
+  public debug_year = 0;
+  public debug_cross = false;
 
   constructor() {
+    const date= new Date();
+    this.debug_hour = date.getHours();
+    this.debug_minutes = date.getMinutes();
+    this.debug_temperature = 0;
+    this.debug_day = date.getDate();
+    this.debug_month = date.getMonth() + 1;
+    this.debug_year = date.getFullYear();
+    this.debug_cross = false;
   }
 
   setValue(key: string, value: any): any {
@@ -449,7 +479,9 @@ export class StateModel implements IStateModel {
       case 'ELW':  return this.sync_local_w;
       case 'ELH':  return this.sync_local_h;
       case 'TF':   return this.weather_farenheit;
+      case 'WV':   return this.show_temp_props;
       case 'C12':  return this.time12h;
+      case 'C35':  return this.small_font_type;
 
       case 'MC':   return this.controller;
       case '2306': return this.led_line_1;
@@ -601,7 +633,9 @@ export class StateModel implements IStateModel {
       case 'TY':   this.text_edit = '' + value;                                   break;
       case 'C2':   this.text_color = '' + value;                                  break;
       case 'TF':   this.weather_farenheit = Number(value) === 1;                  break;
+      case 'WV':   this.show_temp_props = Number(value);                          break;
       case 'C12':  this.time12h = Number(value) === 1;                            break;
+      case 'C35':  this.small_font_type = Number(value);                          break;
 
       case 'EMX':  this.sync_master_x = Number(value);                            break;
       case 'EMY':  this.sync_master_y = Number(value);                            break;

@@ -499,7 +499,7 @@ void processCommandPacket(e131_packet_t *packet) {
       clockScrollSpeed = packet->property_values[4];
       if (clockScrollSpeed >= 240) {
         clockTimer.stopTimer();
-        checkClockOrigin();
+        CLOCK_XC = pWIDTH / 2 + 1;
       } else {
         clockTimer.setInterval(clockScrollSpeed);
       }
