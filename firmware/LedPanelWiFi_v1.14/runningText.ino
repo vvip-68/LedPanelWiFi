@@ -724,7 +724,10 @@ void ResetRunningTextFlags() {
 
   #if (USE_MP3 == 1) 
   runTextSound = -1;                  // Нет звука, сопровождающего строку
+  playingTextSound = -1;
   runTextSoundRepeat = false;         // Нет повторения звука (однократное воспроизведение)
+  runTextSoundFirst = true;
+  runTextSoundTime = millis();  
   #endif
 }
 

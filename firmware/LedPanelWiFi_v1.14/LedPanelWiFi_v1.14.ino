@@ -1035,6 +1035,10 @@ void loop() {
 
   ws.cleanupClients();
 
+  #if (USE_MP3 == 1)
+  dfPlayer.loop();
+  #endif
+
   process();
 }
 

@@ -55,7 +55,7 @@ void doEffectWithOverlay(uint8_t aMode) {
 
     // Обработать следующую строку для отображения, установить параметры;
     // Если нет строк к отображению - продолжать отображать оверлей часов
-
+    
     if (prepareNextText(currentText)) {
       moment_active = momentTextIdx >= 0;      
       fullTextFlag = false;
@@ -95,28 +95,8 @@ void doEffectWithOverlay(uint8_t aMode) {
       doc.clear();
       
       SendWeb(out, TOPIC_TXT);
-
-      #if (USE_MP3 == 1)
-      if (runTextSound >= 0) {
-        if (isDfPlayerOk && noteSoundsCount > 0) {
-          dfPlayer.stop();                                     Delay(GUARD_DELAY);
-          dfPlayer.setVolume(constrain(maxAlarmVolume,1,30));  Delay(GUARD_DELAY);
-          dfPlayer.playFolderTrack(3, runTextSound);           Delay(GUARD_DELAY);
-        } else {
-          runTextSound = -1;
-          runTextSoundRepeat = false;
-        }
-      }        
-      #endif      
     }
-
-    // Если указано, что строка должна отображаться на фоне конкретного эффекта - его надо инициализировать    
-    if (specialTextEffect >= 0) {
-      saveEffectBeforeText = thisMode;   // сохранить текущий эффект
-      setTimersForMode(specialTextEffect);
-      // Если заказанный эффект не тот же, что сейчас воспроизводится или если эффект имеет вариант - выполнить инициализацию эффекта
-      loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >= 0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
-    }
+    
   } else
 
   // Если строка отображается, но флаг разрешения сняли - прекратить отображение
@@ -200,16 +180,19 @@ void doEffectWithOverlay(uint8_t aMode) {
     // После остановки отображения текста на фоне эффекта, установить таймер текущего эффекта
     setTimersForMode(thisMode);
     
-    // Если к показы задана следующая строка - установить время показа предыдущей в 0, чтобы
+    // Если к показу задана следующая строка - установить время показа предыдущей в 0, чтобы
     // следующая строка начала показываться немедленно, иначе - запомнить время окончания показа строки,
     // от которого отсчитывается когда начинать следующий показ
     textLastTime = nextTextLineIdx >= 0 ? 0 : millis();
 
     #if (USE_MP3 == 1)
       // Если воспроизводился звук указанный для строки - остановить его
-      if (runTextSound >= 0) {
+      if (playingTextSound >= 0 || runTextSound >= 0) {
         runTextSound = -1;
+        playingTextSound = -1;
         runTextSoundRepeat = false;
+        runTextSoundFirst = true;
+        runTextSoundTime = millis();
         dfPlayer.stop(); Delay(GUARD_DELAY);
       }
     #endif
@@ -245,8 +228,34 @@ void doEffectWithOverlay(uint8_t aMode) {
 
   if (effectReady) {
     if (showTextNow) {
+      
+      #if (USE_MP3 == 1)
+        if (runTextSound >= 0 && playingTextSound != runTextSound) {
+          if (isDfPlayerOk && noteSoundsCount > 0) {            
+            if ((runTextSoundFirst || runTextSoundRepeat) && millis() - runTextSoundTime > 1000) { 
+              playingTextSound = runTextSound;
+              runTextSoundFirst = false;
+              dfPlayer.stop();                                     Delay(GUARD_DELAY);
+              dfPlayer.setVolume(constrain(maxAlarmVolume,1,30));  Delay(GUARD_DELAY);
+              dfPlayer.playFolderTrack(3, runTextSound);           Delay(GUARD_DELAY);
+            }
+          } else {
+            runTextSound = -1;
+            playingTextSound = -1;
+            runTextSoundFirst = true;
+            runTextSoundRepeat = false;
+            runTextSoundTime = millis();
+          }
+        }        
+      #endif      
+
       // Если указан другой эффект, поверх которого бежит строка - отобразить его
       if (specialTextEffect >= 0) {
+        if (currentTimerEffectId != specialTextEffect) {
+          // Если заказанный эффект не тот же, что сейчас воспроизводится или если эффект имеет вариант - выполнить инициализацию эффекта
+          setTimersForMode(specialTextEffect);
+          loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >= 0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
+        }        
         processEffect(specialTextEffect);
       } else if (useSpecialBackColor) {
         // Задана отрисовка строки поверх однотонной заливки указанным цветом - не нужно сохранять 
@@ -834,6 +843,8 @@ void setTimersForMode(uint8_t aMode) {
       effectTimer.setInterval(250);
   }
 
+  currentTimerEffectId = aMode;
+  
   if (!e131_wait_command) {
     set_clockScrollSpeed(getClockScrollSpeed());
     if (clockScrollSpeed < D_CLOCK_SPEED_MIN) set_clockScrollSpeed(D_CLOCK_SPEED_MIN); // Если clockScrollSpeed == 0 - бегущая строка начинает дергаться.
@@ -851,7 +862,8 @@ void setTimersForMode(uint8_t aMode) {
     if (textScrollSpeed < D_TEXT_SPEED_MIN) set_textScrollSpeed(D_TEXT_SPEED_MIN); // Если textScrollSpeed == 0 - бегущая строка начинает дергаться.
     if (textScrollSpeed > D_TEXT_SPEED_MAX) set_textScrollSpeed(D_TEXT_SPEED_MAX);
   }
-   textTimer.setInterval(textScrollSpeed);
+  
+  textTimer.setInterval(textScrollSpeed);
 }
 
 void checkIdleState() {

@@ -283,14 +283,30 @@ public:
   
   static void OnPlayFinished([[maybe_unused]] DfMp3& mp3, [[maybe_unused]] DfMp3_PlaySources source, uint16_t track)
   {
-    DEBUG(F("Трек завершен #"));
-    DEBUGLN(track);  
+    DEBUG(F("Трек завершен #")); DEBUGLN(track);      
     if (!(isAlarming || isPlayAlarmSound) && soundFolder == 0 && soundFile == 0 && runTextSound <= 0) {
       dfPlayer.stop(); Delay(GUARD_DELAY);
-    } else
+    }
     // Перезапустить звук, если установлен его повтор
-    if (runTextSound > 0 && runTextSoundRepeat) {
-      dfPlayer.playFolderTrack(3, runTextSound); Delay(GUARD_DELAY);
+    if (runTextSound >= 0 && runTextSoundRepeat) {
+
+      // Вот тут просто так перезапустить звук не удается - плеер просто игнорирует 
+      // команды перезапуска и повторного воспроизведения звука не наблюдаетмя :(
+      
+      // dfPlayer.setVolume(constrain(maxAlarmVolume,1,30));  Delay(GUARD_DELAY);
+      // dfPlayer.playFolderTrack(3, runTextSound);           Delay(GUARD_DELAY);
+      // playingTextSound = runTextSound;
+
+      // Поэтому просто сбрасываем Id текущего играющего звука playingTextSound
+      // Сам Id звука который нужно играть - в runTextSound остается нетронутым,
+      // Флаг повтора воспроизведения runTextSoundRepeat также остается нетронутым 
+      // Также устанавливаем время когда закончил воспроизводиться звук.
+      // По-видимому если попытаться включить воспроизведение не выдержав некоторой hgfeps - плеер проигнорирует команду
+      // Перезапуск звука дожен произойти в основном цикле в custom.ino, когда таймаут пройдет, обнаружит флаг необходимости повтора runTextSoundRepeat
+      // и что текущий играемый звук playingTextSound == -1 не совпадает со звуком, который нужно играть runTextSound - запустится команда старта воспроизведения
+      
+      playingTextSound = -1;
+      runTextSoundTime = millis();
     }    
   }
   
