@@ -123,14 +123,16 @@
 #define MC_STARS2               41
 #define MC_TRAFFIC              42
 #define MC_DAWN_ALARM           43
+#define MC_PRIZMATA2            44
+#define MC_FIREWORKS            45
+#define MC_SHADOWS2             46
 
-#define MC_IMAGE                44
-#define MC_WEATHER              45
-#define MC_SLIDE                46
+#define MC_IMAGE                47
+#define MC_WEATHER              48
+#define MC_SLIDE                49
+#define MC_SDCARD               51
 
-#define MC_SDCARD               47
-
-#define MAX_EFFECT_SUPPORT      48         // Количество эффектов, максимально поддерживаемых прошивкой (служит для выделения памяти под массивы параметров) 
+#define MAX_EFFECT_SUPPORT      52         // Количество эффектов, максимально поддерживаемых прошивкой (служит для выделения памяти под массивы параметров) 
 
 uint8_t MAX_EFFECT = 0;                    // Количество эффектов, реально определенных в прошивке с учетом ключей компиляции
 

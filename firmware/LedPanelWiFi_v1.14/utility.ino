@@ -187,6 +187,7 @@ void drawPixelXY(int8_t x, int8_t y, CRGB color) {
   if (thisPixel >= 0) leds[thisPixel] = color;
 }
 
+/*
 void drawPixelXYF(float x, float y, CRGB color) {
   if (leds == nullptr) return;
   // extract the fractional parts and derive their inverses
@@ -309,6 +310,7 @@ void drawCircleF(float x0, float y0, float radius, CRGB color) {
     --y;
   }
 }
+*/
 
 // получить номер пикселя в ленте по координатам
 int16_t getPixelNumber(int8_t x, int8_t y) {

@@ -1004,8 +1004,10 @@ String processMacrosInText(const String& text) {
 
   bool    found = false, textHasWeather = false;
   uint8_t attempt = 0;
-  int16_t idx, idx2;
-  int8_t  checkTextId = max(momentTextIdx, currentTextLineIdx);
+  int16_t idx, idx2; 
+  
+  int8_t  checkTextId = max(momentTextIdx, currentTextLineIdx);  
+  if (checkTextId < 0) checkTextId = macrosTextLineIdx;
   
   while (!found && (attempt < TEXTS_MAX_COUNT)) {
     
@@ -1380,6 +1382,7 @@ String processMacrosInText(const String& text) {
   }
 
   // Запомнить - макросы какой строки были разобраны
+  if (checkTextId < 0) checkTextId = 99;
   macrosTextLineIdx = checkTextId;
 
   return found ? textLine : "";

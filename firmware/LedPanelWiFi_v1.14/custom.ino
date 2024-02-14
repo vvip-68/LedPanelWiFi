@@ -1,8 +1,6 @@
 
 // ----------------------------------------------------
 
-uint32_t xxx = millis();
-
 void customRoutine(uint8_t aMode) {
   doEffectWithOverlay(aMode);
 }
@@ -95,6 +93,18 @@ void doEffectWithOverlay(uint8_t aMode) {
       doc.clear();
       
       SendWeb(out, TOPIC_TXT);
+
+      #if (USE_MP3 == 1)
+        // Если воспроизводился звук указанный для строки - остановить его
+        if (playingTextSound >= 0 || runTextSound >= 0) {
+          dfPlayer.stop(); Delay(GUARD_DELAY);
+        }
+        runTextSound = -1;
+        playingTextSound = -1;
+        runTextSoundRepeat = false;
+        runTextSoundFirst = true;
+        runTextSoundTime = millis();
+      #endif      
     }
     
   } else
@@ -188,13 +198,13 @@ void doEffectWithOverlay(uint8_t aMode) {
     #if (USE_MP3 == 1)
       // Если воспроизводился звук указанный для строки - остановить его
       if (playingTextSound >= 0 || runTextSound >= 0) {
-        runTextSound = -1;
-        playingTextSound = -1;
-        runTextSoundRepeat = false;
-        runTextSoundFirst = true;
-        runTextSoundTime = millis();
         dfPlayer.stop(); Delay(GUARD_DELAY);
       }
+      runTextSound = -1;
+      playingTextSound = -1;
+      runTextSoundRepeat = false;
+      runTextSoundFirst = true;
+      runTextSoundTime = 0;
     #endif
     
     doc.clear();
@@ -212,7 +222,6 @@ void doEffectWithOverlay(uint8_t aMode) {
       return;
     }
   }
-
 
   // Нужно сохранять оверлей эффекта до отрисовки часов или бегущей строки поверх эффекта?
   bool needOverlay =
@@ -232,12 +241,12 @@ void doEffectWithOverlay(uint8_t aMode) {
       #if (USE_MP3 == 1)
         if (runTextSound >= 0 && playingTextSound != runTextSound) {
           if (isDfPlayerOk && noteSoundsCount > 0) {            
-            if ((runTextSoundFirst || runTextSoundRepeat) && millis() - runTextSoundTime > 1000) { 
+            if (runTextSoundFirst && (millis() - runTextSoundTime > 100)) { 
               playingTextSound = runTextSound;
               runTextSoundFirst = false;
-              dfPlayer.stop();                                     Delay(GUARD_DELAY);
               dfPlayer.setVolume(constrain(maxAlarmVolume,1,30));  Delay(GUARD_DELAY);
               dfPlayer.playFolderTrack(3, runTextSound);           Delay(GUARD_DELAY);
+              runTextSoundTime = millis();
             }
           } else {
             runTextSound = -1;
@@ -246,7 +255,7 @@ void doEffectWithOverlay(uint8_t aMode) {
             runTextSoundRepeat = false;
             runTextSoundTime = millis();
           }
-        }        
+        }
       #endif      
 
       // Если указан другой эффект, поверх которого бежит строка - отобразить его
@@ -560,6 +569,7 @@ void processEffect(uint8_t aMode) {
     case MC_FLICKER:             flickerRoutine(); break;
     case MC_PACIFICA:            pacificaRoutine(); break;
     case MC_SHADOWS:             shadowsRoutine(); break;
+    case MC_SHADOWS2:            shadows2Routine(); break;
     case MC_MATRIX:              matrixRoutine(); break;
     case MC_STARFALL:            starfallRoutine(); break;
     case MC_BALL:                ballRoutine(); break;
@@ -578,6 +588,7 @@ void processEffect(uint8_t aMode) {
     case MC_MUNCH:               munchRoutine(); break;
     case MC_ANALYZER:            analyzerRoutine(); break;
     case MC_PRIZMATA:            prizmataRoutine(); break;
+    case MC_PRIZMATA2:           prizmata2Routine(); break;
     case MC_RAIN:                rainRoutine(); break;
     case MC_FIRE2:               fire2Routine(); break;
     case MC_ARROWS:              arrowsRoutine(); break;
@@ -589,6 +600,7 @@ void processEffect(uint8_t aMode) {
     case MC_STARS:               starsRoutine(); break;
     case MC_STARS2:              stars2Routine(); break;
     case MC_TRAFFIC:             trafficRoutine(); break;
+    case MC_FIREWORKS:           fireworksRoutine(); break;
 
     #if (USE_ANIMATION == 1)
     case MC_IMAGE:               animationRoutine(); break;
@@ -636,6 +648,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_FLICKER:             break;
     case MC_PACIFICA:            break;
     case MC_SHADOWS:             break;
+    case MC_SHADOWS2:            break;
     case MC_MATRIX:              break;
     case MC_STARFALL:            break;
     case MC_BALL:                break;
@@ -654,6 +667,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_MUNCH:               break;
     case MC_ANALYZER:            analyzerRoutineRelease(); break;
     case MC_PRIZMATA:            break;
+    case MC_PRIZMATA2:           break;
     case MC_RAIN:                rainRoutineRelease(); break;
     case MC_FIRE2:               fire2RoutineRelease(); break;
     case MC_ARROWS:              break;
@@ -665,6 +679,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_STARS:               break;
     case MC_STARS2:              stars2RoutineRelease(); break;
     case MC_TRAFFIC:             trafficRoutineRelease(); break;
+    case MC_FIREWORKS:           fireworksRoutineRelease(); break;
 
     #if (USE_ANIMATION == 1)
     case MC_IMAGE:               break;
@@ -817,6 +832,15 @@ void setTimersForMode(uint8_t aMode) {
       } else
       if (aMode == MC_RAINBOW) {
         effectTimer.setInterval(map8(efSpeed,1,128));
+      } else
+      if (aMode == MC_PRIZMATA2) {
+        effectTimer.setInterval(map8(efSpeed,1,24));
+      } else
+      if (aMode == MC_SHADOWS2) {
+        effectTimer.setInterval(map8(efSpeed,1,24));
+      } else
+      if (aMode == MC_FIREWORKS) {
+        effectTimer.setInterval(map8(efSpeed,10,40));
       } else
       if (aMode == MC_CYCLON) {
         effectTimer.setInterval(map8(efSpeed,1,50));

@@ -53,7 +53,7 @@
     "Часы,Лампа,Снегопад,Кубик,Радуга,Пейнтбол,Огонь,The Matrix,Червячки,Звездопад,Конфетти," 
     "Цветной шум,Облака,Лава,Плазма,Бензин на воде,Павлин,Зебра,Шумящий лес,Морской прибой,Смена цвета," 
     "Светлячки,Водоворот,Циклон,Мерцание,Северное сияние,Тени,Лабиринт,Змейка,Тетрис,Арканоид," 
-    "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Узоры,Рубик,Звёзды,Штора,Трафик,Рассвет"
+    "Палитра,Спектрум,Синусы,Вышиванка,Дождь,Камин,Стрелки,Узоры,Рубик,Звёзды,Штора,Трафик,Рассвет,Поток,Фейерверк,Тени 2"
 
   // Эффекты Анимации, Погоды, Слайды и SD-карта могут быть отключены условиями USE_ANIMATION = 0 и USE_SD = 0
   // Список эффектов передается в WebUI позиционно: эффект "Часы" имеют ID=0, эффект "SD-карта" имеет ID=47 (см. определение в a_def_soft.h)
@@ -352,7 +352,7 @@
     "Color noise,Clouds,Lava,Plasma,Iridescent,Peacock,Zebra,Noisy forest,Sea surf,Color change,"
     "Fireflies,Whirlpool,Cyclone,Flicker,Northern lights,Shadows,Maze,Snake,Tetris,Arkanoid,"
     "Palette,Spectrum,Sinuses,Embroidery,Rain,Fireplace,Arrows,Patterns,Rubic,Stars,"
-    "Curtain,Traffic,Dawn"
+    "Curtain,Traffic,Dawn,Stream,Fireworks,Shadows 2"
     
   #if (USE_ANIMATION == 1)
     ",Animation,Weather,Slides"
@@ -647,7 +647,7 @@
     "Ruido de color,Nubes,Lava,Plasma,Arco iris,Pavo real,Cebra,Bosque ruidoso,Surf,Cambio de color,"
     "Luciérnagas,Remolino,Ciclón,Parpadeo,Luces del Norte,Sombras,Laberinto,Serpiente,Tetris,Arkanoid,"
     "Paleta,Espectro,Senos,Vyshyvanka,Lluvia,Chimenea,Flechas,Patrones,Rubik,Estrellas,Cortina,Tráfico,"
-    "Amanecer"
+    "Amanecer,Corriente,Fuegos art,Sombras 2"
   
   #if (USE_ANIMATION == 1)
     ",Animación,Clima,Diapositivas"

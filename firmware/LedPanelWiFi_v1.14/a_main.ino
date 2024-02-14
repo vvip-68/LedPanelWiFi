@@ -1777,6 +1777,11 @@ void parsing() {
           // При получении параметра 2 эффекта "Анимация" -  вид - надо переинициализировать эффект
           // Если установлена анимация - "случайная" - продолжаем показывать тот что был
           loadingFlag = effectScaleParam2[tmp_eff] != 0;
+        } else
+        if (thisMode == tmp_eff && tmp_eff == MC_FIREWORKS) {
+          // При получении параметра 2 эффекта "Фейерврк" -  вид - надо переинициализировать эффект
+          // Если установлена анимация - "случайная" - продолжаем показывать тот что был
+          loadingFlag = effectScaleParam2[tmp_eff] != 0;
         } 
         #if (USE_SD == 1)
         else
@@ -4718,6 +4723,15 @@ String getParamNameForMode(uint8_t mode) {
    case MC_FILL_COLOR:
      str = F("Насыщенность");
      break;
+   case MC_PRIZMATA2:
+     str = F("Изменчивость");
+     break;
+   case MC_FIREWORKS:
+     str = F("Затухание");
+     break;
+   case MC_SHADOWS2:
+     str = F("Изменчивость");
+     break;
    case MC_CLOCK:
      str = F("Цвет часов");
      break;
@@ -4804,6 +4818,10 @@ String getParam2ForMode(uint8_t mode) {
      // Слайдер
      str += effectScaleParam2[mode];
      break;
+   case MC_FIREWORKS:
+     // Слайдер
+     str += effectScaleParam2[mode];
+     break;
    default:
      str = 'X';
      break;  
@@ -4840,6 +4858,9 @@ String getParam2NameForMode(uint8_t mode) {
    case MC_SWIRL:
    case MC_CYCLON:
      str = F("Сегменты");
+     break;
+   case MC_FIREWORKS:
+     str = F("Плотность");
      break;
    default:
      str = 'X';
@@ -4978,6 +4999,7 @@ void resetModesExt() {
 }
 
 void setEffect(uint8_t eff) {
+
   resetModes();
   if (eff >= MAX_EFFECT && eff < SPECIAL_EFFECTS_START) {
     return;

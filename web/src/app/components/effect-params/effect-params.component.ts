@@ -85,7 +85,7 @@ export class EffectParamsComponent extends Base implements OnInit {
     {id:  5, name: 'Пейнтбол',        label1: 'Плотность',     label2: 'Сегменты', tooltip1: 'ef_05_tt_1', tooltip2: 'ef_SG_tt_2'},
     {id:  6, name: 'Огонь',           label1: 'Цвет',          label2: '',         tooltip1: 'ef_06_tt_1', tooltip2: ''          },
     {id:  7, name: 'The Matrix',      label1: 'Плотность',     label2: '',         tooltip1: 'ef_07_tt_1', tooltip2: ''          },
-    {id:  8, name: 'Шарики',          label1: 'Количество',    label2: 'Хвост',    tooltip1: 'ef_08_tt_1', tooltip2: 'ef_08_tt_2'},
+    {id:  8, name: 'Червячки',        label1: 'Количество',    label2: 'Хвост',    tooltip1: 'ef_08_tt_1', tooltip2: 'ef_08_tt_2'},
     {id:  9, name: 'Звездопад',       label1: 'Плотность',     label2: '',         tooltip1: 'ef_09_tt_1', tooltip2: ''          },
     {id: 10, name: 'Конфетти',        label1: 'Плотность',     label2: '',         tooltip1: 'ef_10_tt_1', tooltip2: ''          },
     {id: 11, name: 'Цветной шум',     label1: 'Размер пятна',  label2: '',         tooltip1: 'ef_NZ_tt_1', tooltip2: ''          },
@@ -121,10 +121,13 @@ export class EffectParamsComponent extends Base implements OnInit {
     {id: 41, name: 'Штора',           label1: 'Цвет',          label2: 'Вариант',  tooltip1: 'ef_41_tt_1', tooltip2: 'ef_41_tt_2'},
     {id: 42, name: 'Трафик',          label1: 'Плотность',     label2: 'Цвета',    tooltip1: 'ef_42_tt_1', tooltip2: 'ef_42_tt_2'},
     {id: 43, name: 'Рассвет',         label1: '',              label2: '',         tooltip1: '',           tooltip2: ''          },
-    {id: 44, name: 'Анимация',        label1: '',              label2: 'Анимация', tooltip1: '',           tooltip2: 'ef_44_tt_2'},
-    {id: 45, name: 'Погода',          label1: '',              label2: '',         tooltip1: '',           tooltip2: ''          },
-    {id: 46, name: 'Слайды',          label1: 'Слайд',         label2: '',         tooltip1: 'ef_46_tt_1', tooltip2: ''          },
-    {id: 47, name: 'SD-Карта',        label1: '',              label2: 'Ролик',    tooltip1: '',           tooltip2: 'ef_47_tt_2'},
+    {id: 44, name: 'Поток',           label1: 'Изменчивость',  label2: '',         tooltip1: '',           tooltip2: ''          },
+    {id: 45, name: 'Фейерверк',       label1: 'Затухание',     label2: 'Плотность',tooltip1: 'ef_45_tt_1', tooltip2: 'ef_45_tt_2'},
+    {id: 46, name: 'Тени 2',          label1: 'Изменчивость',  label2: '',         tooltip1: 'ef_46_tt_1', tooltip2: ''          },
+    {id: 47, name: 'Анимация',        label1: '',              label2: 'Анимация', tooltip1: '',           tooltip2: 'ef_AN_tt_2'},
+    {id: 48, name: 'Погода',          label1: 'Дыхание',       label2: '',         tooltip1: 'ef_WT_tt_1', tooltip2: ''          },
+    {id: 49, name: 'Слайды',          label1: 'Слайд',         label2: '',         tooltip1: 'ef_SL_tt_1', tooltip2: ''          },
+    {id: 50, name: 'SD-Карта',        label1: '',              label2: 'Ролик',    tooltip1: '',           tooltip2: 'ef_SD_tt_2'},
   ];
   //@formatter:on
 
@@ -142,7 +145,7 @@ export class EffectParamsComponent extends Base implements OnInit {
       case 20: this.tooltipSpeed = L.$('Скорость смены цвета.'); break;                  // Смена цвета
       case 24: this.tooltipSpeed = L.$('ef_24_tt_1'); break;                             // Мерцание
       case 31: this.tooltipSpeed = L.$('ef_31_tt_1'); break;                             // Палитра
-      case 45: this.tooltipSpeed = L.$('ef_45_tt_1'); break;                             // Погода
+      case 47: this.tooltipSpeed = L.$('ef_45_tt_1'); break;                             // Погода
       default: this.tooltipSpeed = L.$('Скорость воспроизведения эффекта.'); break;      // Все остальные эффекты
     }
 
@@ -151,7 +154,7 @@ export class EffectParamsComponent extends Base implements OnInit {
       case  1: this.speedTitle = L.$('Цвет'); break;                                    // Лампа
       case 24: this.speedTitle = L.$('Динамика'); break;                                // Мерцание
       case 31: this.speedTitle = L.$('Динамика'); break;                                // Палитра
-      case 45: this.speedTitle = L.$('Дыхание'); break;                                 // Погода
+      case 47: this.speedTitle = L.$('Дыхание'); break;                                 // Погода
       default: this.speedTitle = L.$('Скорость'); break;                                // Все остальные эффекты
     }
 

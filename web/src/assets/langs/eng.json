@@ -552,13 +552,18 @@
   "ef_41_tt_2": "Variant of start drawing",
   "ef_42_tt_1": "Density of effect field filling",
   "ef_42_tt_2": "Effect display variant",
-  "ef_44_tt_2": "Choose animation for displaying",
-  "ef_45_tt_1": "Speed of breath weather picture fading",
-  "ef_46_tt_1": "Choose picture for displaying",
-  "ef_47_tt_2": "Choose film for displaying",
+  "ef_44_tt_2": "Tail length - speed of fading",
+  "ef_45_tt_1": "Firework lights fadeout",
+  "ef_45_tt_2": "Density of firework",
+  "ef_46_tt_1": "Shadows pattern variations",
+  "ef_AN_tt_2": "Choose animation for display",
+  "ef_WT_tt_1": "Speed of breath weather picture fading",
+  "ef_SL_tt_1": "Choose picture for display",
+  "ef_SD_tt_2": "Choose film for displaying",
   "Шрифт часов 3x5": "Clock 3x5 font",
   "Строгий": "Strong",
   "Круглый": "Rounded",
   "Отображать": "Show",
-  "Градус": "Degree"
+  "Градус": "Degree",
+  "Изменчивость": "Variability"
 }

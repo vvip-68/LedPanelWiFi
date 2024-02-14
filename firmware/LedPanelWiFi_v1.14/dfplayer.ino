@@ -305,7 +305,10 @@ public:
       // Перезапуск звука дожен произойти в основном цикле в custom.ino, когда таймаут пройдет, обнаружит флаг необходимости повтора runTextSoundRepeat
       // и что текущий играемый звук playingTextSound == -1 не совпадает со звуком, который нужно играть runTextSound - запустится команда старта воспроизведения
       
-      playingTextSound = -1;
+      //if (millis() - runTextSoundTime > 1000) {
+        playingTextSound = -1;  
+        runTextSoundFirst = true;
+      //}
       runTextSoundTime = millis();
     }    
   }
