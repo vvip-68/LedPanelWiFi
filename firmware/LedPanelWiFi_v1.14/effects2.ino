@@ -68,8 +68,8 @@ void processStreamRoutine(uint8_t aType) {
   }
 
   uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
-  uint8_t sinbpm = map8(getEffectScaleParamValue(thisMode),1,242);
-  
+  uint8_t sinbpm = thisMode == MC_PRIZMATA2 ? map8(getEffectScaleParamValue(thisMode),1,242) : map8(getEffectScaleParamValue(thisMode),1,212);
+    
   EVERY_N_SECONDS(12) { chooseNextPalette(aType); }
   EVERY_N_MILLISECONDS(10) { nblendPaletteTowardPalette( gCurrentGradientPalette, gTargetGradientPalette, 12); }
 
@@ -415,7 +415,7 @@ void fireworksRoutine() {
     FastLED.clear();  // очистить
   }
 
-  fadeToBlackBy(leds, NUM_LEDS, map8(getEffectScaleParamValue(MC_FIREWORKS), 10, 128));
+  fadeToBlackBy(leds, NUM_LEDS, map8(getEffectScaleParamValue(MC_FIREWORKS), 10, 192));
 
   for (uint8_t i = 0; i < the_figCount; i++ ) {
 
