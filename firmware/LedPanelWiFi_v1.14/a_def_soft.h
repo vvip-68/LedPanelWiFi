@@ -130,9 +130,9 @@
 #define MC_IMAGE                47
 #define MC_WEATHER              48
 #define MC_SLIDE                49
-#define MC_SDCARD               51
+#define MC_SDCARD               50
 
-#define MAX_EFFECT_SUPPORT      52         // Количество эффектов, максимально поддерживаемых прошивкой (служит для выделения памяти под массивы параметров) 
+#define MAX_EFFECT_SUPPORT      51         // Количество эффектов, максимально поддерживаемых прошивкой (служит для выделения памяти под массивы параметров) 
 
 uint8_t MAX_EFFECT = 0;                    // Количество эффектов, реально определенных в прошивке с учетом ключей компиляции
 
@@ -785,11 +785,11 @@ uint8_t    minDim   = min(pWIDTH, pHEIGHT);
 String     mapFiles[MAX_MAP_FILES];              // Список имен файлов карт индексов, найденных в корне файловой системы
 uint8_t    mapListLen = 0;
 
-CRGB       *leds = nullptr;                      // обращение к светодиодам матрицы через этот массив
-CRGB       *overlayClock = nullptr;              // буфер оверлея часов
-CRGB       *overlayCalendar = nullptr;           // буфер оверлея календаря
-CRGB       *overlayTemperature = nullptr;        // буфер оверлея температуры
-CRGB       *overlayText = nullptr;               // буфер оверлея текста
+struct CRGB *leds = nullptr;                     // обращение к светодиодам матрицы через этот массив
+struct CRGB *overlayClock = nullptr;             // буфер оверлея часов
+struct CRGB *overlayCalendar = nullptr;          // буфер оверлея календаря
+struct CRGB *overlayTemperature = nullptr;       // буфер оверлея температуры
+struct CRGB *overlayText = nullptr;              // буфер оверлея текста
 
 #define    TRUE_RANDOM
 
@@ -876,6 +876,7 @@ bool       showTempLetter = false;            // Температура шриф
 
 uint8_t    calendarW, calendarH;              // Ширина и высота блока отображения календаря (зависит от текущей даты из за разной ширины цифр текушей даты)
 int8_t     calendarX, calendarY;              // Левый нижний угол блока текущего отображения календаря
+int8_t     calendarX_DT_pos;
 int8_t     calendarX_D10_pos,   calendarX_D01_pos;
 int8_t     calendarX_M10_pos,   calendarX_M01_pos;    
 int8_t     calendarX_Y1000_pos, calendarX_Y0100_pos;    

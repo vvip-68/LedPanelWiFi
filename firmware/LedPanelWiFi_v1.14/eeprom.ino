@@ -419,7 +419,7 @@ void saveDefaults() {
   }
 
   // Специальные настройки отдельных эффектов
-  putClockScrollSpeed(250);  
+    
   putEffectTextOverlayUsage(MC_CLOCK, false); 
   putEffectTextOverlayUsage(MC_MAZE, false);
   putEffectTextOverlayUsage(MC_SNAKE, false);
@@ -428,6 +428,9 @@ void saveDefaults() {
   putEffectTextOverlayUsage(MC_WEATHER, false);
   putEffectTextOverlayUsage(MC_IMAGE, false);
   putEffectTextOverlayUsage(MC_SLIDE, false);
+  putEffectTextOverlayUsage(MC_PRIZMATA2, false);
+  putEffectTextOverlayUsage(MC_SHADOWS2, false);
+
   putEffectClockOverlayUsage(MC_CLOCK, false);
   putEffectClockOverlayUsage(MC_MAZE, false);
   putEffectClockOverlayUsage(MC_SNAKE, false);
@@ -436,6 +439,8 @@ void saveDefaults() {
   putEffectClockOverlayUsage(MC_WEATHER, false);
   putEffectClockOverlayUsage(MC_IMAGE, false);
   putEffectClockOverlayUsage(MC_SLIDE, false);
+  putEffectClockOverlayUsage(MC_PRIZMATA2, false);
+  putEffectClockOverlayUsage(MC_SHADOWS2, false);
 
   putClockScrollSpeed(250);
   putTextScrollSpeed(186);

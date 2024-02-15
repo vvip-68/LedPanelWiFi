@@ -4724,13 +4724,11 @@ String getParamNameForMode(uint8_t mode) {
      str = F("Насыщенность");
      break;
    case MC_PRIZMATA2:
+   case MC_SHADOWS2:
      str = F("Изменчивость");
      break;
    case MC_FIREWORKS:
      str = F("Затухание");
-     break;
-   case MC_SHADOWS2:
-     str = F("Изменчивость");
      break;
    case MC_CLOCK:
      str = F("Цвет часов");
@@ -4815,10 +4813,9 @@ String getParam2ForMode(uint8_t mode) {
      str = String(sFL); str += effectScaleParam2[mode]; str += F(">Случайный выбор,Цветной,Монохром");
      break;
    case MC_WORMS:
-     // Слайдер
-     str += effectScaleParam2[mode];
-     break;
    case MC_FIREWORKS:
+   case MC_PRIZMATA2:
+   case MC_SHADOWS2:
      // Слайдер
      str += effectScaleParam2[mode];
      break;
@@ -4861,6 +4858,9 @@ String getParam2NameForMode(uint8_t mode) {
      break;
    case MC_FIREWORKS:
      str = F("Плотность");
+     break;
+   case MC_PRIZMATA2:
+     str = F("Интервал");
      break;
    default:
      str = 'X';

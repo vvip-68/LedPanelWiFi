@@ -300,7 +300,10 @@ void doEffectWithOverlay(uint8_t aMode) {
       
       // Взять максимальную ширину из блока часов или календаря
       // Если правый край часов/календаря ушел за левый край матрицы - считать снова с правого края матрицы
-      uint8_t width = max( max( clockW, calendarW), temperatureW );
+      uint8_t width = max( clockW, calendarW);
+      #if (USE_WEATHER == 1)
+      if (useWeather > 0 && init_weather && weather_ok) width = max(width, temperatureW);
+      #endif
       if (CLOCK_XC < 0) {
         if (vDEVICE_TYPE == 0) {
           CLOCK_XC = pWIDTH - 1;
@@ -320,7 +323,10 @@ void doEffectWithOverlay(uint8_t aMode) {
     // Взять максимальную ширину из блока часов или календаря
     // Если правый край часов/календаря ушел за левый край матрицы - считать снова с правого края матрицы
     // Если левый край часов/календаря ушел за правый край матрицы - считать снова с нуля
-    uint8_t width = max( max( clockW, calendarW), temperatureW );    
+    uint8_t width = max(clockW, calendarW);    
+    #if (USE_WEATHER ==1)
+    if (useWeather > 0 && init_weather && weather_ok) width = max(width, temperatureW);    
+    #endif
     if (CLOCK_XC < 0) {
       if (vDEVICE_TYPE == 0) {
         CLOCK_XC = pWIDTH - 1;
@@ -648,7 +654,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_FLICKER:             break;
     case MC_PACIFICA:            break;
     case MC_SHADOWS:             break;
-    case MC_SHADOWS2:            break;
+    case MC_SHADOWS2:            shadows2RoutineRelease(); break;
     case MC_MATRIX:              break;
     case MC_STARFALL:            break;
     case MC_BALL:                break;
@@ -667,7 +673,7 @@ void releaseEffectResources(uint8_t aMode) {
     case MC_MUNCH:               break;
     case MC_ANALYZER:            analyzerRoutineRelease(); break;
     case MC_PRIZMATA:            break;
-    case MC_PRIZMATA2:           break;
+    case MC_PRIZMATA2:           prizmata2RoutineRelease(); break;
     case MC_RAIN:                rainRoutineRelease(); break;
     case MC_FIRE2:               fire2RoutineRelease(); break;
     case MC_ARROWS:              break;

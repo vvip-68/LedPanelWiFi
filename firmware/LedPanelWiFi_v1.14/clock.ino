@@ -657,6 +657,7 @@ void calcCalendarPosition() {
   uint8_t d4 =  pYear % 10;
   
   calendarY = getCalendarY();
+  calendarX_DT_pos = CLOCK_XC;
   
   // Позиция цифр по ВЕРТИКАЛИ
   // Вертикальный календарь - в два ряда по 4 цифры для матриц >= 23 колонки - ДД.MM/ГГГГ
@@ -814,6 +815,7 @@ void shiftCalendarPosition(int8_t dx, int8_t dy) {
     calendarX_Y0010_pos += dx;
     calendarX_Y0100_pos += dx;
     calendarX_Y1000_pos += dx;
+    calendarX_DT_pos += dx;
   }
 
   if (dy != 0) {
@@ -1139,8 +1141,8 @@ void drawCalendar() {
 
     // Разделительная точка между числом и месяцем
     if (dotFlag) {
-      drawPixelXY(getClockX(CLOCK_XC), calendarY_D01_pos + 1, clockLED[2]);
-      drawPixelXY(getClockX(CLOCK_XC), calendarY_D01_pos,     clockLED[2]);
+      drawPixelXY(getClockX(calendarX_DT_pos), calendarY_D01_pos + 1, clockLED[2]);
+      drawPixelXY(getClockX(calendarX_DT_pos), calendarY_D01_pos,     clockLED[2]);
     }
     
   } else {
@@ -1155,8 +1157,8 @@ void drawCalendar() {
 
       // Разделительная точка
       if (dotFlag) {
-        drawPixelXY(getClockX(CLOCK_XC - 1), calendarY_D10_pos - 1, clockLED[2]);
-        drawPixelXY(getClockX(CLOCK_XC + 1), calendarY_D10_pos - 1, clockLED[2]);
+        drawPixelXY(getClockX(calendarX_DT_pos - 1), calendarY_D10_pos - 1, clockLED[2]);
+        drawPixelXY(getClockX(calendarX_DT_pos + 1), calendarY_D10_pos - 1, clockLED[2]);
       }
       
     } else {
@@ -1175,8 +1177,8 @@ void drawCalendar() {
       
       // Разделительная точка
       if (dotFlag) {
-        drawPixelXY(getClockX(CLOCK_XC), calendarY_D10_pos,     clockLED[2]);
-        drawPixelXY(getClockX(CLOCK_XC), calendarY_D10_pos + 1, clockLED[2]);
+        drawPixelXY(getClockX(calendarX_DT_pos), calendarY_D10_pos,     clockLED[2]);
+        drawPixelXY(getClockX(calendarX_DT_pos), calendarY_D10_pos + 1, clockLED[2]);
       }
     }
   }

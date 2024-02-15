@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0127")
+#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0215")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -1235,7 +1235,7 @@ void connectToNetwork() {
  */
 void ntpGotTimeCB(){
 
-  // Флаг - время получено
+  // Флаг - время получено; Если время фактически получено, но отключено использование времени - считать что и не получали
   init_time = useNtp;
 
   // Пересчитать / скорректировать время срабатывания будильников
