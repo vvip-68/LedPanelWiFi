@@ -401,33 +401,35 @@ bool     useNtp = true;                     // Использовать синх
 bool     init_weather = false;              // Флаг: true - погода получена; false - погода не получена / не актуальна
 
 #if (USE_WEATHER == 1)
-#define TRY_GET_WEATHER_CNT 2               // 2 fjgsnrb получить погоду. Если не удалось - отложить до следующего интервала
-uint8_t  useWeather = 1;                    // Использовать получение текущей погоды с погодного сервера 0 - не использовать; 1 - Yandex; 2 - OpenWeatherMap
-uint32_t regionID = WEATHER_REGION_YDX;     // Код региона по Yandex
-uint32_t regionID2 = WEATHER_REGION_OWTH;   // Код региона по OpenWeatherMap
-String   skyColor;                          // Рекомендованный цвет фона погоды
-String   weather;                           // Состояние - "Ясно", "Облачно", "Дождь" и т.д.
-String   dayTime;                           // "Темное время суток" / "Светлое время суток"
-bool     isNight;                           // день / ночь
-bool     isFarenheit;                       // true - в Фаренгейтах, false - в Цельсиях
-int8_t   temperature;                       // Текущая температура 
-int16_t  weather_code;                      // код погодных условий для OpenWeatherMap
+  #define TRY_GET_WEATHER_CNT 2               // 2 попытки получить погоду. Если не удалось - отложить до следующего интервала
+  uint8_t  useWeather = 1;                    // Использовать получение текущей погоды с погодного сервера 0 - не использовать; 1 - Yandex; 2 - OpenWeatherMap
+  uint32_t regionID = WEATHER_REGION_YDX;     // Код региона по Yandex
+  uint32_t regionID2 = WEATHER_REGION_OWTH;   // Код региона по OpenWeatherMap
+  String   skyColor;                          // Рекомендованный цвет фона погоды
+  String   weather;                           // Состояние - "Ясно", "Облачно", "Дождь" и т.д.
+  String   dayTime;                           // "Темное время суток" / "Светлое время суток"
+  bool     isNight;                           // день / ночь
+  bool     isFarenheit;                       // true - в Фаренгейтах, false - в Цельсиях
+  int8_t   temperature;                       // Текущая температура 
+  int16_t  weather_code;                      // код погодных условий для OpenWeatherMap
 
-String   icon;                              // код иконки, содержит зашифрованный статус погодных условий 
-uint32_t weather_t = 0;                     // Время, прошедшее с запроса данных с сервера погоды (таймаут)
-uint8_t  weather_cnt = 0;                   // Счетчик попыток получить данные от сервера
-uint32_t weather_time;                      // Время последнего получения погоды;
-uint8_t  weatherActualityDuration = 2;      // Какой период времени в часах после получения погоды считать ее актуальной (на случай, если сервер перестал отвечать)
-uint16_t SYNC_WEATHER_PERIOD = 15;          // Период обновления информации о текущей погоде в минутах по умолчанию
-uint8_t  refresh_weather = true;            // Флаг: пришло время очередного получения погоды с сервера
-bool     getWeatherInProgress = false;      // Запрос погоды сервера в процессе выполнения
-bool     weather_ok = true;                 // Погода получена
+  String   icon;                              // код иконки, содержит зашифрованный статус погодных условий 
+  uint32_t weather_t = 0;                     // Время, прошедшее с запроса данных с сервера погоды (таймаут)
+  uint8_t  weather_cnt = 0;                   // Счетчик попыток получить данные от сервера
+  uint32_t weather_time;                      // Время последнего получения погоды;
+  uint8_t  weatherActualityDuration = 2;      // Какой период времени в часах после получения погоды считать ее актуальной (на случай, если сервер перестал отвечать)
+  uint16_t SYNC_WEATHER_PERIOD = 15;          // Период обновления информации о текущей погоде в минутах по умолчанию
+  uint8_t  refresh_weather = true;            // Флаг: пришло время очередного получения погоды с сервера
+  bool     getWeatherInProgress = false;      // Запрос погоды сервера в процессе выполнения
+  bool     weather_ok = true;                 // Погода получена
 
-// API-идентификатор сервиса получения погоды - смотрите раздел Wiki - Настройка получения информации о погоде
-// https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-получения-информации-о-погоде
-#ifndef  WEATHER_API_KEY
-#define  WEATHER_API_KEY F("6a4ba421859c9f4166697758b68d889b")
-#endif
+  // API-идентификатор сервиса получения погоды - смотрите раздел Wiki - Настройка получения информации о погоде
+  // https://github.com/vvip-68/LedPanelWiFi/wiki/Настройка-получения-информации-о-погоде
+  #ifndef  WEATHER_API_KEY
+    // Ключ доступа к информации о погоде с сервиса OpenWeatherMap (зарегистрируйтесь на сервере https://openweathermap.org/api и получите свой ключ!)
+    #define  WEATHER_API_KEY F("6a4ba421859c9f4166697758b68d889b")
+  #endif
+
 #endif
 
 bool     useTemperatureColor = true;        // Для дневных часов: true - выводить температуру специальным цветом, в зависимости от значения температуры; 0 - не использовать градации цвета

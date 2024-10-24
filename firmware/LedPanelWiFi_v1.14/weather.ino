@@ -1,6 +1,15 @@
 
 #if (USE_WEATHER == 1)     
 
+  #if defined(ESP32)
+    #include <HTTPClient.h>
+    #include <WiFiClientSecure.h>
+  #else    
+    #include <ESP8266HTTPClient.h>
+    #include <WiFiClient.h>
+  //#include <WiFiClientSecureBearSSL.h>
+  #endif
+
 bool getWeather() {
   
   // Yandex.ru:          https://yandex.ru/time/sync.json?geo=62
@@ -18,57 +27,85 @@ bool getWeather() {
 
   String payload;
   String status(25);
-
-  WiFiClient *w_client = new WiFiClient; 
-
   String regId(useWeather == 1 ? regionID : regionID2);
+
+  #if defined(ESP32)
+    WiFiClientSecure *w_client = new WiFiClientSecure; 
+    // Ignore SSL certificate validation
+    w_client->setInsecure();
+  #else
+    //std::unique_ptr<BearSSL::WiFiClientSecure>w_client(new BearSSL::WiFiClientSecure());
+    //w_client->setInsecure();
+    WiFiClient *w_client = new WiFiClient;
+  #endif
 
   if (w_client) 
   {
-
     {
-      HTTPClient http;
+      HTTPClient https;
 
-      //String request = "http://www.http2https.com/https://yandex.ru/time/sync.json?geo=62";
-      //String request = "http://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b";
+      //String request = "https://yandex.ru/time/sync.json?geo=62";
+      //String request = "https://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b";
 
       String request(150);
 
-      if (useWeather == 1) {
-        request  = F("http://www.http2https.com/https://yandex.ru/time/sync.json?geo="); request += String(regionID); 
-        request += F("&lang="); request += WTR_LANG_YA; 
-      } else if (useWeather == 2) {    
-        request  = F("http://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
-        request += F("&units=metric&lang="); request += WTR_LANG_OWM;
-        request += F("&appid="); request += WEATHER_API_KEY;
-      }  
+      #if defined(ESP32)
+        // В ESP32 достаточно памяти, чтобы работал https протокол - используем его
+        if (useWeather == 1) {
+          request  = F("https://yandex.ru/time/sync.json?geo="); request += String(regionID); 
+          request += F("&lang="); request += WTR_LANG_YA; 
+        } else if (useWeather == 2) {    
+          request  = F("https://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
+          request += F("&units=metric&lang="); request += WTR_LANG_OWM;
+          request += F("&appid="); request += WEATHER_API_KEY;
+        }  
+        String protocol = F("HTTPS");
+      #else
+        // В ESP8266 недостаточно памяти, соединение по https протоколу завершается ошибкой подключения к серверу - используем получение погоды по http
+        if (useWeather == 1) {
+          // С 28.07.2024 Яндекс перестал отдавать погоду по HTTP, перенаправляет на HTTPS запрос, но мы его обработать не можем :(
+          // Получение погоды с YANDEX.Погода - увы, больше не работает
+          request  = F("http://yandex.ru/time/sync.json?geo="); request += String(regionID); 
+          request += F("&lang="); request += WTR_LANG_YA; 
+        } else if (useWeather == 2) {    
+          request  = F("http://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
+          request += F("&units=metric&lang="); request += WTR_LANG_OWM;
+          request += F("&appid="); request += WEATHER_API_KEY;
+        }  
+        String protocol = F("HTTP");
+      #endif
 
-      if (http.begin(*w_client, request.c_str())) {
+      if (https.begin(*w_client, request.c_str())) {
+        DEBUGLOG(printf,"[%s] GET...\n", protocol.c_str());
         // start connection and send HTTP header
-        int httpCode = http.GET();
+        int httpCode = https.GET();
         // httpCode will be negative on error
         if (httpCode > 0) {
           // HTTP header has been send and Server response header has been handled
+          DEBUGLOG(printf, "[%s] GET... code: %d\n", protocol.c_str(), httpCode);
           // file found at server
           if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-            payload = http.getString();
+            payload = https.getString();
           } else {
             error = true;
             status = F("unexpected answer");    // http.errorToString(httpCode)
+            DEBUGLOG(printf, "[%s] GET... failed, error: %s\n", protocol.c_str(), https.errorToString(httpCode).c_str());
           }
         } else {
           error = true;
           status = F("connection error");
+          DEBUGLOG(printf, "[%s] Unable to connect, error: %s\n", protocol.c_str(), https.errorToString(httpCode).c_str());
         }
 
-        http.end();
+        https.end();
       } else {
         error = true;
         status = F("connection error");
+        DEBUGLOG(printf, "[%s] Unable to connect", protocol);
       }
     }
 
-    w_client->stop();    
+    w_client->stop();   
     delete w_client;
 
   } else {

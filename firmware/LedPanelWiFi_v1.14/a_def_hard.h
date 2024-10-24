@@ -20,10 +20,6 @@
                               // Файл a_def_pass.h в комплект не входит, нужно создать, скопировать туда указанные строки
                               // Пример содержимого файла можно взять из архива public.zip
 
-// Ключ доступа к информации о погоде с сервиса OpenWeatherMap (зарегистрируйтесь на сервере https://openweathermap.org/api и получите свой ключ!)
-
-#define WEATHER_API_KEY F("6a4ba421859c9f4166697758b68d889b")  
-
 #define INITIALIZE_TEXTS 1    /* Заполнить память текстов бегущей строки текстом из примеров при первичной загрузке прошивки или при смене значения EEPROM_OK, когда */
                               // все настройки сбрасываются в значения по-умолчанию
 #define TEXT_SHIFT 1          /* На сколько колонок сдвигать бегущую строку за один раз. По умолчанию - на одну колонку */
@@ -642,19 +638,11 @@
 #if defined(ESP8266)
   #include <ESP8266WiFi.h>
   #include <ESP8266mDNS.h>
-  #if (USE_WEATHER == 1)
-    #include <ESP8266HTTPClient.h>
-    #include <WiFiClientSecureBearSSL.h>
-  #endif
 #endif
 
 #if defined(ESP32)
   #include <WiFi.h>
   #include <ESPmDNS.h>
-  #if (USE_WEATHER == 1)
-    #include <HTTPClient.h>
-    #include <WiFiClientSecure.h>
-  #endif
 #endif
 
 #include <ESPAsyncWebServer.h>   // Библиотека асинхронного Web-сервера

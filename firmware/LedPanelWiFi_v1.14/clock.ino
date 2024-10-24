@@ -837,6 +837,7 @@ void drawClock() {
   if (!(allowVertical || allowHorizontal)) return;
 
   bool debug = debug_hours >= 0 && debug_mins >= 0;
+
   if (debug) {
     hrs = debug_hours; mins = debug_mins; 
   }
@@ -853,7 +854,7 @@ void drawClock() {
   uint8_t m01 = mins % 10;
 
   if (c_size == 1) {
-    
+
     // Малые часы (горизонтальные и вертикальные)
     if (use_round_3x5) {
       if (show_clockH10_zero) drawDigit3x5_s(h10, getClockX(clockX_H10_pos), clockY_H10_pos, clockLED[0]);    
@@ -878,7 +879,7 @@ void drawClock() {
         drawPixelXY(getClockX(clockX_dot_pos), clockY + 5, clockLED[2]);
       }
     }
-    
+
   } else {
 
     // Большие часы (горизонтальные и вертикальные)
@@ -909,9 +910,10 @@ void drawClock() {
           drawPixelXY(getClockX(clockX_dot_pos + i), clockY + 7, clockLED[2]);        
         }
       }
-    }    
-    
+    }  
+      
   }
+
 
   // Рисовать границы прямоугольника области часов
   if (debug) {
