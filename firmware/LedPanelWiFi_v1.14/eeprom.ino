@@ -2412,7 +2412,7 @@ uint8_t checkEepromBackup() {
   }
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
-    fullName = SD_BACK_STORAGE;
+    fullName = String(SD_BACK_STORAGE);
     if (!fullName.endsWith("/")) fullName += '/'; 
     fullName += fileName;
   

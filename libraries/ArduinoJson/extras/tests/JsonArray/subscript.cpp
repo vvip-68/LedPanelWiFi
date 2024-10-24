@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -135,7 +135,7 @@ TEST_CASE("JsonArray::operator[]") {
 
 #ifdef HAS_VARIABLE_LENGTH_ARRAY
   SECTION("set(VLA)") {
-    int i = 16;
+    size_t i = 16;
     char vla[i];
     strcpy(vla, "world");
 
@@ -146,7 +146,7 @@ TEST_CASE("JsonArray::operator[]") {
   }
 
   SECTION("operator=(VLA)") {
-    int i = 16;
+    size_t i = 16;
     char vla[i];
     strcpy(vla, "world");
 

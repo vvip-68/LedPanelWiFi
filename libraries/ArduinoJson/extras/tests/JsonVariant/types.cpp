@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -17,9 +17,9 @@ void checkValue(T expected) {
 }
 
 template <typename T>
-void checkReference(T &expected) {
+void checkReference(T& expected) {
   JsonVariant variant = expected;
-  REQUIRE(expected == variant.as<T &>());
+  REQUIRE(expected == variant.as<T&>());
 }
 
 template <typename T>
@@ -46,10 +46,10 @@ TEST_CASE("JsonVariant set()/get()") {
 #endif
 
   SECTION("Null") {
-    checkValue<const char *>(NULL);
+    checkValue<const char*>(NULL);
   }
   SECTION("const char*") {
-    checkValue<const char *>("hello");
+    checkValue<const char*>("hello");
   }
   SECTION("std::string") {
     checkValue<std::string>("hello");
@@ -139,6 +139,13 @@ TEST_CASE("JsonVariant set()/get()") {
 TEST_CASE("volatile") {
   DynamicJsonDocument doc(4096);
   JsonVariant variant = doc.to<JsonVariant>();
+
+  SECTION("volatile bool") {  // issue #2029
+    volatile bool f = true;
+    variant.set(f);
+    CHECK(variant.is<bool>() == true);
+    CHECK(variant.as<bool>() == true);
+  }
 
   SECTION("volatile int") {
     volatile int f = 42;

@@ -1,9 +1,11 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
+
+#include <sstream>
 
 #define SHOULD_WORK(expression) REQUIRE(DeserializationError::Ok == expression);
 #define SHOULD_FAIL(expression) \

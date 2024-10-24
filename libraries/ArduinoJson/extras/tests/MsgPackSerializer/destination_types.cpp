@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -9,7 +9,7 @@ TEST_CASE("serialize MsgPack to various destination types") {
   DynamicJsonDocument doc(4096);
   JsonObject object = doc.to<JsonObject>();
   object["hello"] = "world";
-  const char *expected_result = "\x81\xA5hello\xA5world";
+  const char* expected_result = "\x81\xA5hello\xA5world";
   const size_t expected_length = 13;
 
   SECTION("std::string") {

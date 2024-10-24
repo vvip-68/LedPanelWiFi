@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #define ARDUINOJSON_DECODE_UNICODE 1
@@ -60,9 +60,8 @@ TEST_CASE("\\u0000") {
   CHECK(result[4] == 'z');
   CHECK(result[5] == 0);
 
-  // ArduinoJson strings doesn't store string length, so the following returns 2
-  // instead of 5 (issue #1646)
-  CHECK(doc.as<std::string>().size() == 2);
+  CHECK(doc.as<JsonString>().size() == 5);
+  CHECK(doc.as<std::string>().size() == 5);
 }
 
 TEST_CASE("Truncated JSON string") {
@@ -97,12 +96,37 @@ TEST_CASE("Not enough room to save the key") {
   DynamicJsonDocument doc(JSON_OBJECT_SIZE(1) + 8);
 
   SECTION("Quoted string") {
+    REQUIRE(deserializeJson(doc, "{\"example\":1}") ==
+            DeserializationError::Ok);
     REQUIRE(deserializeJson(doc, "{\"accuracy\":1}") ==
             DeserializationError::NoMemory);
+    REQUIRE(deserializeJson(doc, "{\"hello\":1,\"world\"}") ==
+            DeserializationError::NoMemory);  // fails in the second string
   }
 
   SECTION("Non-quoted string") {
+    REQUIRE(deserializeJson(doc, "{example:1}") == DeserializationError::Ok);
     REQUIRE(deserializeJson(doc, "{accuracy:1}") ==
             DeserializationError::NoMemory);
+    REQUIRE(deserializeJson(doc, "{hello:1,world}") ==
+            DeserializationError::NoMemory);  // fails in the second string
+  }
+}
+
+TEST_CASE("Empty memory pool") {
+  // NOLINTNEXTLINE(clang-analyzer-optin.portability.UnixAPI)
+  DynamicJsonDocument doc(0);
+
+  SECTION("Input is const char*") {
+    REQUIRE(deserializeJson(doc, "\"hello\"") ==
+            DeserializationError::NoMemory);
+    REQUIRE(deserializeJson(doc, "\"\"") == DeserializationError::NoMemory);
+  }
+
+  SECTION("Input is const char*") {
+    char hello[] = "\"hello\"";
+    REQUIRE(deserializeJson(doc, hello) == DeserializationError::Ok);
+    char empty[] = "\"hello\"";
+    REQUIRE(deserializeJson(doc, empty) == DeserializationError::Ok);
   }
 }

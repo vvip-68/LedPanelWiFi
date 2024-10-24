@@ -829,7 +829,7 @@ void setTimersForMode(uint8_t aMode) {
         aMode == MC_SHADOWS || aMode == MC_PRIZMATA || aMode == MC_FIRE2 ||
         aMode == MC_WEATHER || aMode == MC_ARKANOID || aMode == MC_TETRIS || 
         aMode == MC_PATTERNS || aMode == MC_STARS || aMode == MC_STARS2 || aMode == MC_IMAGE || aMode == MC_SLIDE ||
-        aMode == MC_RAINBOW || aMode == MC_CYCLON
+        aMode == MC_RAINBOW || aMode == MC_CYCLON || aMode == MC_PRIZMATA2 || aMode == MC_SHADOWS2 || aMode == MC_FIREWORKS
         ) {      
       if (aMode == MC_PATTERNS) {
          uint8_t variant = map8(getEffectScaleParamValue(MC_PATTERNS),0,4);

@@ -1,41 +1,38 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
 #include <stdlib.h>  // malloc, free
 #include <catch.hpp>
 #include <sstream>
-
-using ARDUINOJSON_NAMESPACE::addPadding;
-using ARDUINOJSON_NAMESPACE::move;
+#include <utility>
 
 class SpyingAllocator {
  public:
-  SpyingAllocator(const SpyingAllocator& src) : _log(src._log) {}
-  SpyingAllocator(std::ostream& log) : _log(log) {}
+  SpyingAllocator(const SpyingAllocator& src) : log_(src.log_) {}
+  SpyingAllocator(std::ostream& log) : log_(log) {}
+  SpyingAllocator& operator=(const SpyingAllocator& src) = delete;
 
   void* allocate(size_t n) {
-    _log << "A" << n;
+    log_ << "A" << n;
     return malloc(n);
   }
   void deallocate(void* p) {
-    _log << "F";
+    log_ << "F";
     free(p);
   }
 
  private:
-  SpyingAllocator& operator=(const SpyingAllocator& src);
-
-  std::ostream& _log;
+  std::ostream& log_;
 };
 
 class ControllableAllocator {
  public:
-  ControllableAllocator() : _enabled(true) {}
+  ControllableAllocator() : enabled_(true) {}
 
   void* allocate(size_t n) {
-    return _enabled ? malloc(n) : 0;
+    return enabled_ ? malloc(n) : 0;
   }
 
   void deallocate(void* p) {
@@ -43,11 +40,11 @@ class ControllableAllocator {
   }
 
   void disable() {
-    _enabled = false;
+    enabled_ = false;
   }
 
  private:
-  bool _enabled;
+  bool enabled_;
 };
 
 TEST_CASE("BasicJsonDocument") {
@@ -72,13 +69,12 @@ TEST_CASE("BasicJsonDocument") {
     REQUIRE(log.str() == "A4096A4096FF");
   }
 
-#if ARDUINOJSON_HAS_RVALUE_REFERENCES
   SECTION("Move construct") {
     {
       BasicJsonDocument<SpyingAllocator> doc1(4096, log);
       doc1.set(std::string("The size of this string is 32!!"));
 
-      BasicJsonDocument<SpyingAllocator> doc2(move(doc1));
+      BasicJsonDocument<SpyingAllocator> doc2(std::move(doc1));
 
       REQUIRE(doc2.as<std::string>() == "The size of this string is 32!!");
       REQUIRE(doc1.as<std::string>() == "null");
@@ -87,9 +83,8 @@ TEST_CASE("BasicJsonDocument") {
     }
     REQUIRE(log.str() == "A4096F");
   }
-#endif
 
-  SECTION("Copy assign") {
+  SECTION("Copy assign larger") {
     {
       BasicJsonDocument<SpyingAllocator> doc1(4096, log);
       doc1.set(std::string("The size of this string is 32!!"));
@@ -104,14 +99,43 @@ TEST_CASE("BasicJsonDocument") {
     REQUIRE(log.str() == "A4096A8FA4096FF");
   }
 
-#if ARDUINOJSON_HAS_RVALUE_REFERENCES
+  SECTION("Copy assign smaller") {
+    {
+      BasicJsonDocument<SpyingAllocator> doc1(1024, log);
+      doc1.set(std::string("The size of this string is 32!!"));
+      BasicJsonDocument<SpyingAllocator> doc2(4096, log);
+
+      doc2 = doc1;
+
+      REQUIRE(doc1.as<std::string>() == "The size of this string is 32!!");
+      REQUIRE(doc2.as<std::string>() == "The size of this string is 32!!");
+      REQUIRE(doc2.capacity() == 1024);
+    }
+    REQUIRE(log.str() == "A1024A4096FA1024FF");
+  }
+
+  SECTION("Copy assign same size") {
+    {
+      BasicJsonDocument<SpyingAllocator> doc1(1024, log);
+      doc1.set(std::string("The size of this string is 32!!"));
+      BasicJsonDocument<SpyingAllocator> doc2(1024, log);
+
+      doc2 = doc1;
+
+      REQUIRE(doc1.as<std::string>() == "The size of this string is 32!!");
+      REQUIRE(doc2.as<std::string>() == "The size of this string is 32!!");
+      REQUIRE(doc2.capacity() == 1024);
+    }
+    REQUIRE(log.str() == "A1024A1024FF");
+  }
+
   SECTION("Move assign") {
     {
       BasicJsonDocument<SpyingAllocator> doc1(4096, log);
       doc1.set(std::string("The size of this string is 32!!"));
       BasicJsonDocument<SpyingAllocator> doc2(8, log);
 
-      doc2 = move(doc1);
+      doc2 = std::move(doc1);
 
       REQUIRE(doc2.as<std::string>() == "The size of this string is 32!!");
       REQUIRE(doc1.as<std::string>() == "null");
@@ -120,7 +144,6 @@ TEST_CASE("BasicJsonDocument") {
     }
     REQUIRE(log.str() == "A4096A8FF");
   }
-#endif
 
   SECTION("garbageCollect()") {
     BasicJsonDocument<ControllableAllocator> doc(4096);

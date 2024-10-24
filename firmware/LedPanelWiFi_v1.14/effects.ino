@@ -2582,6 +2582,7 @@ void fire2RoutineRelease() {
 }
 
 // ************************** СТРЕЛКИ *************************
+
 int8_t   arrow_x[4], arrow_y[4], stop_x[4], stop_y[4];
 uint8_t  arrow_direction;            // 0x01 - слева направо; 0x02 - снизу вверх; 0х04 - справа налево; 0х08 - сверху вниз
 uint8_t  arrow_mode, arrow_mode_orig;// 0 - по очереди все варианты

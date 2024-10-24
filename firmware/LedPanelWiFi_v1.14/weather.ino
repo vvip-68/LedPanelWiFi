@@ -4,7 +4,7 @@
 bool getWeather() {
   
   // Yandex.ru:          https://yandex.ru/time/sync.json?geo=62
-  // OpenWeatherMap.com: http://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b
+  // OpenWeatherMap.com: https://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b
 
   // Пока включена отладка позиционирования часов - запросы на температуру не выполнять
   if (debug_hours >= 0 && debug_mins >= 0) return true;
@@ -14,113 +14,132 @@ bool getWeather() {
   DEBUGLN();
   DEBUGLN(F("Запрос текущей погоды"));
 
-  // Объект для работы с удалёнными хостами - соединение с сервером погоды
-  WiFiClient w_client;                        
+  bool   error = false;
 
-  if (useWeather == 1) {
-    if (!w_client.connect("yandex.com",443)) return false;                 // Устанавливаем соединение с указанным хостом (Порт 443 для https)
-    // Отправляем запрос
-    String wtr_lang(WTR_LANG_YA);
-    String str(F("GET /time/sync.json?geo=")); str += regionID; str += F("&lang="); str += wtr_lang; str += F(" HTTP/1.1\r\nHost: yandex.com\r\n\r\n");
-    w_client.println(str); 
-  } else if (useWeather == 2) {
-    if (!w_client.connect("api.openweathermap.org",80)) return false;      // Устанавливаем соединение с указанным хостом (Порт 80 для http)
-    // Отправляем запрос    
-    String wtr_lang(WTR_LANG_OWM);
-    String wtr_api_key(WEATHER_API_KEY);
-    String str(F("GET /data/2.5/weather?id=")); str += regionID2; str += F("&units=metric&lang="); str += wtr_lang; str += F("&appid="); str += wtr_api_key; str += F(" HTTP/1.1\r\nHost: api.openweathermap.org\r\n\r\n");
-    w_client.println(str);     
-  }  
+  String payload;
+  String status(25);
 
-  doc.clear();
-  doc["act"] = FPSTR(sWEATHER);
-  doc["region"] = useWeather == 1 ? regionID : regionID2;
-  
-  // Проверяем статус запроса
-  char status[32] = {0};
-  w_client.readBytesUntil('\r', status, sizeof(status));
-  
-  // It should be "HTTP/1.0 200 OK" or "HTTP/1.1 200 OK"
-  if (strcmp(status + 9, "200 OK") != 0) {
-    DEBUG(F("Ошибка сервера погоды: "));
-    DEBUGLN(status);
-    
-    doc["result"] = F("ERROR");
-    doc["status"] = status;
-    
-    String out;
-    serializeJson(doc, out);      
-    doc.clear();
-    
-    SendWeb(out, TOPIC_WTR);
-
-    w_client.stop();
-    return false;
-  } 
-
-  // Пропускаем заголовки                                                                
-  char endOfHeaders[] = "\r\n\r\n";                                         // Системные заголовки ответа сервера отделяются от остального содержимого двойным переводом строки
-  if (!w_client.find(endOfHeaders)) {                                       // Отбрасываем системные заголовки ответа сервера
-    DEBUGLN(F("Нераспознанный ответ сервера погоды"));                      // Если ответ сервера не содержит системных заголовков, значит что-то пошло не так
-
-    doc["result"] = F("ERROR");
-    doc["status"] = F("unexpected answer");
-    
-    String out;
-    serializeJson(doc, out);      
-    doc.clear();
-
-    SendWeb(out, TOPIC_WTR);
-
-    w_client.stop();
-    return false;                                                           // и пора прекращать всё это дело
-  }
+  WiFiClient *w_client = new WiFiClient; 
 
   String regId(useWeather == 1 ? regionID : regionID2);
 
-  // Нам не нужно доставать все данные из ответа. Задаем фильтр - это существенно уменьшит размер требуемой памяти 
-  StaticJsonDocument<200> filter;
-  
-  if (useWeather == 1) {
-    // Yandex
-    filter["clocks"][regId]["weather"]["temp"] = true;  // Достаём температуру - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> temp
-    filter["clocks"][regId]["skyColor"] = true;         // Рекомендованный цвет фона
-    filter["clocks"][regId]["isNight"] = true;
-    filter["clocks"][regId]["weather"]["icon"] = true;  // Достаём иконку - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> icon
-    filter["clocks"][regId]["name"] = true;             // Город
-    filter["clocks"][regId]["sunrise"] = true;          // Время рассвета
-    filter["clocks"][regId]["sunset"] = true;           // Время заката
+  if (w_client) 
+  {
+
+    {
+      HTTPClient http;
+
+      //String request = "http://www.http2https.com/https://yandex.ru/time/sync.json?geo=62";
+      //String request = "http://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b";
+
+      String request(150);
+
+      if (useWeather == 1) {
+        request  = F("http://www.http2https.com/https://yandex.ru/time/sync.json?geo="); request += String(regionID); 
+        request += F("&lang="); request += WTR_LANG_YA; 
+      } else if (useWeather == 2) {    
+        request  = F("http://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
+        request += F("&units=metric&lang="); request += WTR_LANG_OWM;
+        request += F("&appid="); request += WEATHER_API_KEY;
+      }  
+
+      if (http.begin(*w_client, request.c_str())) {
+        // start connection and send HTTP header
+        int httpCode = http.GET();
+        // httpCode will be negative on error
+        if (httpCode > 0) {
+          // HTTP header has been send and Server response header has been handled
+          // file found at server
+          if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+            payload = http.getString();
+          } else {
+            error = true;
+            status = F("unexpected answer");    // http.errorToString(httpCode)
+          }
+        } else {
+          error = true;
+          status = F("connection error");
+        }
+
+        http.end();
+      } else {
+        error = true;
+        status = F("connection error");
+      }
+    }
+
+    w_client->stop();    
+    delete w_client;
+
   } else {
-    // OpenWeatherMap
-    filter["main"]["temp"] = true;                      // Температура -> main -> temp
-    filter["weather"][0]["icon"] = true;                // Достаём иконку -> weather[0] -> icon
-    filter["name"] = true;                              // Город
-    filter["weather"][0]["description"] = true;         // Строка погодных условий на языке, указаном в запросе
-    filter["weather"][0]["id"] = true;                  // Уточненный код погодных условий
-    filter["sys"]["sunrise"] = true;                    // Время рассвета
-    filter["sys"]["sunset"] = true;                     // Время заката    
+    status = F("connection error");
+    error = true;
   }
-  
-  // Parse JSON object
-  doc.clear();
-  DeserializationError error = deserializeJson(doc, w_client, DeserializationOption::Filter(filter));
-  w_client.stop();
 
   if (error) {
-    DEBUG(F("JSON не разобран: "));
-    DEBUGLN(error.c_str());
-
-    doc.clear();
-    doc["result"] = F("ERROR");
-    doc["status"] = F("json error");
+    DEBUG(F("Ошибка сервера погоды: "));
+    DEBUGLN(status);
     
+    doc.clear();
+    doc["act"] = FPSTR(sWEATHER);
+    doc["region"] = regId;
+    doc["result"] = F("ERROR");
+    doc["status"] = status;
+
     String out;
     serializeJson(doc, out);      
     doc.clear();
-
-    SendWeb(out, TOPIC_WTR);
     
+    SendWeb(out, TOPIC_WTR);
+
     return false;
+  } 
+
+
+  // Нам не нужно доставать все данные из ответа. Задаем фильтр - это существенно уменьшит размер требуемой памяти 
+  {
+    StaticJsonDocument<200> filter;
+    
+    if (useWeather == 1) {
+      // Yandex
+      filter["clocks"][regId]["weather"]["temp"] = true;  // Достаём температуру - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> temp
+      filter["clocks"][regId]["skyColor"] = true;         // Рекомендованный цвет фона
+      filter["clocks"][regId]["isNight"] = true;
+      filter["clocks"][regId]["weather"]["icon"] = true;  // Достаём иконку - Четвёртый уровень вложенности пары ключ/значение clocks -> значение RegionID -> weather -> icon
+      filter["clocks"][regId]["name"] = true;             // Город
+      filter["clocks"][regId]["sunrise"] = true;          // Время рассвета
+      filter["clocks"][regId]["sunset"] = true;           // Время заката
+    } else {
+      // OpenWeatherMap
+      filter["main"]["temp"] = true;                      // Температура -> main -> temp
+      filter["weather"][0]["icon"] = true;                // Достаём иконку -> weather[0] -> icon
+      filter["name"] = true;                              // Город
+      filter["weather"][0]["description"] = true;         // Строка погодных условий на языке, указаном в запросе
+      filter["weather"][0]["id"] = true;                  // Уточненный код погодных условий
+      filter["sys"]["sunrise"] = true;                    // Время рассвета
+      filter["sys"]["sunset"] = true;                     // Время заката    
+    }
+    
+    // Parse JSON object
+    doc.clear();
+    DeserializationError jsn_error = deserializeJson(doc, payload, DeserializationOption::Filter(filter));
+
+    if (jsn_error) {
+      DEBUG(F("JSON не разобран: "));
+      DEBUGLN(jsn_error.c_str());
+
+      doc.clear();
+      doc["result"] = F("ERROR");
+      doc["status"] = F("json error");
+      
+      String out;
+      serializeJson(doc, out);      
+      doc.clear();
+
+      SendWeb(out, TOPIC_WTR);
+      
+      return false;
+    }
   }
   
   String town, sunrise, sunset;

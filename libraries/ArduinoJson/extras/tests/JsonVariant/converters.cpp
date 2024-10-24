@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -74,37 +74,37 @@ TEST_CASE("Custom converter with overloading") {
 
 class Complex {
  public:
-  explicit Complex(double r, double i) : _real(r), _imag(i) {}
+  explicit Complex(double r, double i) : real_(r), imag_(i) {}
 
   double real() const {
-    return _real;
+    return real_;
   }
 
   double imag() const {
-    return _imag;
+    return imag_;
   }
 
  private:
-  double _real, _imag;
+  double real_, imag_;
 };
 
-namespace ARDUINOJSON_NAMESPACE {
+namespace ArduinoJson {
 template <>
 struct Converter<Complex> {
-  static void toJson(const Complex& src, VariantRef dst) {
+  static void toJson(const Complex& src, JsonVariant dst) {
     dst["real"] = src.real();
     dst["imag"] = src.imag();
   }
 
-  static Complex fromJson(VariantConstRef src) {
+  static Complex fromJson(JsonVariantConst src) {
     return Complex(src["real"], src["imag"]);
   }
 
-  static bool checkJson(VariantConstRef src) {
+  static bool checkJson(JsonVariantConst src) {
     return src["real"].is<double>() && src["imag"].is<double>();
   }
 };
-}  // namespace ARDUINOJSON_NAMESPACE
+}  // namespace ArduinoJson
 
 TEST_CASE("Custom converter with specialization") {
   DynamicJsonDocument doc(4096);
@@ -139,4 +139,40 @@ TEST_CASE("Custom converter with specialization") {
     REQUIRE(doc["value"]["real"] == 19);
     REQUIRE(doc["value"]["imag"] == 3);
   }
+}
+
+TEST_CASE("ConverterNeedsWriteableRef") {
+  using namespace ArduinoJson::detail;
+  CHECK(ConverterNeedsWriteableRef<int>::value == false);
+  CHECK(ConverterNeedsWriteableRef<float>::value == false);
+  CHECK(ConverterNeedsWriteableRef<JsonVariant>::value == true);
+  CHECK(ConverterNeedsWriteableRef<JsonVariantConst>::value == false);
+  CHECK(ConverterNeedsWriteableRef<JsonObject>::value == true);
+  CHECK(ConverterNeedsWriteableRef<JsonObjectConst>::value == false);
+  CHECK(ConverterNeedsWriteableRef<JsonArray>::value == true);
+  CHECK(ConverterNeedsWriteableRef<JsonArrayConst>::value == false);
+}
+
+namespace ArduinoJson {
+void convertToJson(char c, JsonVariant var) {
+  char buf[] = {c, 0};
+  var.set(buf);
+}
+
+void convertFromJson(JsonVariantConst src, char& dst) {
+  auto p = src.as<const char*>();
+  dst = p ? p[0] : 0;
+}
+}  // namespace ArduinoJson
+
+TEST_CASE("Convert char to string") {  // issue #1922
+  StaticJsonDocument<64> doc;
+  doc.set('a');
+  REQUIRE(doc.as<std::string>() == "a");
+}
+
+TEST_CASE("Convert string to char") {  // issue #1963
+  StaticJsonDocument<64> doc;
+  doc.set("a");
+  REQUIRE(doc.as<char>() == 'a');
 }

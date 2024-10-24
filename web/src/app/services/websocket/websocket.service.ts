@@ -64,7 +64,7 @@ export class WebsocketService extends Base implements IWebsocketService, OnDestr
 
   private url = `ws://${this.host}/ws`;
 
-  private pingInterval = 5000;
+  private pingInterval = 30000;
   private reconnectInterval = 5000;
   private last_ping_time: number = Date.now();
   private sentPing = false;

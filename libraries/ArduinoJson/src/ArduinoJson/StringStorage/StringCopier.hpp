@@ -1,66 +1,72 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Memory/MemoryPool.hpp>
 
-namespace ARDUINOJSON_NAMESPACE {
+ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
 class StringCopier {
  public:
-  StringCopier(MemoryPool& pool) : _pool(&pool) {}
+  StringCopier(MemoryPool* pool) : pool_(pool) {}
 
   void startString() {
-    _pool->getFreeZone(&_ptr, &_capacity);
-    _size = 0;
+    pool_->getFreeZone(&ptr_, &capacity_);
+    size_ = 0;
+    if (capacity_ == 0)
+      pool_->markAsOverflowed();
   }
 
-  const char* save() {
-    ARDUINOJSON_ASSERT(_ptr);
-    return _pool->saveStringFromFreeZone(_size);
+  JsonString save() {
+    ARDUINOJSON_ASSERT(ptr_);
+    ARDUINOJSON_ASSERT(size_ < capacity_);  // needs room for the terminator
+    return JsonString(pool_->saveStringFromFreeZone(size_), size_,
+                      JsonString::Copied);
   }
 
   void append(const char* s) {
-    while (*s) append(*s++);
+    while (*s)
+      append(*s++);
   }
 
   void append(const char* s, size_t n) {
-    while (n-- > 0) append(*s++);
+    while (n-- > 0)
+      append(*s++);
   }
 
   void append(char c) {
-    if (!_ptr)
-      return;
-
-    if (_size >= _capacity) {
-      _ptr = 0;
-      _pool->markAsOverflowed();
-      return;
-    }
-
-    _ptr[_size++] = c;
+    if (size_ + 1 < capacity_)
+      ptr_[size_++] = c;
+    else
+      pool_->markAsOverflowed();
   }
 
-  bool isValid() {
-    return _ptr != 0;
+  bool isValid() const {
+    return !pool_->overflowed();
   }
 
-  const char* c_str() {
-    return _ptr;
+  size_t size() const {
+    return size_;
   }
 
-  typedef storage_policies::store_by_copy storage_policy;
+  JsonString str() const {
+    ARDUINOJSON_ASSERT(ptr_);
+    ARDUINOJSON_ASSERT(size_ < capacity_);
+    ptr_[size_] = 0;
+    return JsonString(ptr_, size_, JsonString::Copied);
+  }
 
  private:
-  MemoryPool* _pool;
+  MemoryPool* pool_;
 
   // These fields aren't initialized by the constructor but startString()
   //
   // NOLINTNEXTLINE(clang-analyzer-optin.cplusplus.UninitializedObject)
-  char* _ptr;
+  char* ptr_;
   // NOLINTNEXTLINE(clang-analyzer-optin.cplusplus.UninitializedObject)
-  size_t _size, _capacity;
+  size_t size_, capacity_;
 };
-}  // namespace ARDUINOJSON_NAMESPACE
+
+ARDUINOJSON_END_PRIVATE_NAMESPACE

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright Benoit Blanchon 2014-2021
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -8,8 +8,9 @@
 
 #include <stdlib.h>  // malloc, free
 
-namespace ARDUINOJSON_NAMESPACE {
+ARDUINOJSON_BEGIN_PUBLIC_NAMESPACE
 
+// The allocator of DynamicJsonDocument.
 struct DefaultAllocator {
   void* allocate(size_t size) {
     return malloc(size);
@@ -24,6 +25,8 @@ struct DefaultAllocator {
   }
 };
 
+// A JsonDocument with a memory pool in the heap.
+// https://arduinojson.org/v6/api/dynamicjsondocument/
 typedef BasicJsonDocument<DefaultAllocator> DynamicJsonDocument;
 
-}  // namespace ARDUINOJSON_NAMESPACE
+ARDUINOJSON_END_PUBLIC_NAMESPACE
