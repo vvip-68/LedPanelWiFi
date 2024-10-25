@@ -260,7 +260,7 @@ bool getWeather() {
     // Для срабатывания триггера на изменение значений
     set_temperature(temperature);
     
-  } else {
+  } else if (useWeather == 2) {
   /*
    OpenWeatherMap: {"coord":{"lon":92.79,"lat":56.01},
                     "weather":[{"id":620,"main":"Snow","description":"light shower snow","icon":"13n"}],
@@ -277,7 +277,8 @@ bool getWeather() {
                     "cod":200
                    }
   */
-    temperature  = doc["main"]["temp"].as<int8_t>();                      // Температура -> main -> temp
+    float tmp    = doc["main"]["temp"].as<float>();
+    temperature  = int(round(tmp));                                       // Температура -> main -> temp
     icon         = doc["weather"][0]["icon"].as<String>();                // Достаём иконку -> weather[0] -> icon
     isNight      = icon.endsWith("n");                                    // Иконка вида "XXn" - ночная "XXd" - дневная
     town         = doc["name"].as<String>();                              // Город
