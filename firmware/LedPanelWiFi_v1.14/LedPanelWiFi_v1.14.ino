@@ -684,7 +684,9 @@ void setup() {
 
   // Настраиваем снхронизацию времени
   TimeProcessor::getInstance().setcustomntp(getNtpServer().c_str());
-  applyTimeZone(TZONE);
+  String tZone = getTimeZone();
+  if (tZone.length() == 0) tZone = String(TZONE);
+  applyTimeZone(tZone);
   // Назначаем коллбэк на событие синхронизации времени
   TimeProcessor::getInstance().attach_callback(ntpGotTimeCB);
   useNtp ? TimeProcessor::getInstance().enable() : TimeProcessor::getInstance().disable();
