@@ -840,13 +840,13 @@ void setTimersForMode(uint8_t aMode) {
         effectTimer.setInterval(map8(efSpeed,1,128));
       } else
       if (aMode == MC_PRIZMATA2) {
-        effectTimer.setInterval(map8(efSpeed,1,24));
+        effectTimer.setInterval(map8(efSpeed,1,40));
       } else
       if (aMode == MC_SHADOWS2) {
-        effectTimer.setInterval(map8(efSpeed,1,24));
+        effectTimer.setInterval(map8(efSpeed,1,40));
       } else
       if (aMode == MC_FIREWORKS) {
-        effectTimer.setInterval(map8(efSpeed,10,40));
+        effectTimer.setInterval(map8(efSpeed,10,64));
       } else
       if (aMode == MC_CYCLON) {
         effectTimer.setInterval(map8(efSpeed,1,50));

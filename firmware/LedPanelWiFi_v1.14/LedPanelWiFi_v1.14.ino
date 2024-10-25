@@ -19,7 +19,7 @@
 // Также микроконтроллер ESP32 представлен на рынке другими наиболее распространенными вариациями ESP32 S2 / S2-mini / S3 / S3-mini / С3 / C3-mini и некоторыми другими
 // Эти микроконтроллеры отличаются от WROOM-32/WROVER-32 назначением и доступностью пинов, которые не совпадают с платами на базе ESP32 DevKit
 // Назначение пинов для перечисленных типов плат бралось отсюда:
-// ESP32         рекомендовано  https://github.com/espressif/arduino-esp32/blob/master/variants/esp32/pins_arduino.h            ESP32 Dev Module, ESP32-WROOM-DA Module, ESP32 Wrover Module   https://aliexpress.ru/item/32836372640.html,  
+// ESP32         рекомендовано  https://github.com/espressif/arduino-esp32/blob/master/variants/esp32/pins_arduino.h            ESP32 Dev Module, ESP32-WROOM-DA Module, ESP32 Wrover Module   https://aliexpress.ru/item/1005004605399313.html, https://aliexpress.ru/item/32836372640.html
 // ESP32-S2                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s2/pins_arduino.h          ESP32S2 Dev Module                                             https://aliexpress.ru/item/1005007011310161.html
 // ESP32-S2-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s2_mini/pins_arduino.h    LOLIN S2 Mini                                                  https://aliexpress.ru/item/1005004609106349.html
 // ESP32-S3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s3/pins_arduino.h          ESP32S3 Dev Module                                             https://aliexpress.ru/item/1005005046708221.html
