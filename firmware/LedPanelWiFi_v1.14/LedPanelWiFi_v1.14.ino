@@ -19,16 +19,15 @@
 // Также микроконтроллер ESP32 представлен на рынке другими наиболее распространенными вариациями ESP32 S2 / S2-mini / S3 / S3-mini / С3 / C3-mini и некоторыми другими
 // Эти микроконтроллеры отличаются от WROOM-32/WROVER-32 назначением и доступностью пинов, которые не совпадают с платами на базе ESP32 DevKit
 // Назначение пинов для перечисленных типов плат бралось отсюда:
-// ESP32         рекомендовано  https://github.com/espressif/arduino-esp32/blob/master/variants/esp32/pins_arduino.h            ESP32 Dev Module, ESP32-WROOM-DA Module, ESP32 Wrover Module   https://aliexpress.ru/item/32864722159.html,     https://aliexpress.ru/item/32836372640.html,  
-// ESP32-S2                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s2/pins_arduino.h          ESP32S2 Dev Module                                             https://aliexpress.ru/item/1005002247116977.html
-// ESP32-S2-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s2_mini/pins_arduino.h    LOLIN S2 Mini                                                  https://aliexpress.ru/item/1005004691697002.html
-// ESP32-S3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s3/pins_arduino.h          ESP32S3 Dev Module                                             https://aliexpress.ru/item/1005005383895711.html
-// ESP32-S3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s3_mini/pins_arduino.h    LOLIN S3 Mini                                                  https://aliexpress.ru/item/1005005449219195.html
-// ESP32-C3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32c3/pins_arduino.h          ESP32С3 Dev Module                                             https://aliexpress.ru/item/1005005653439200.html
-// ESP32-C3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_c3_mini/pins_arduino.h    LOLIN С3 Mini                                                  https://aliexpress.ru/item/1005006109082351.html
+// ESP32         рекомендовано  https://github.com/espressif/arduino-esp32/blob/master/variants/esp32/pins_arduino.h            ESP32 Dev Module, ESP32-WROOM-DA Module, ESP32 Wrover Module   https://aliexpress.ru/item/32836372640.html,  
+// ESP32-S2                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s2/pins_arduino.h          ESP32S2 Dev Module                                             https://aliexpress.ru/item/1005007011310161.html
+// ESP32-S2-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s2_mini/pins_arduino.h    LOLIN S2 Mini                                                  https://aliexpress.ru/item/1005004609106349.html
+// ESP32-S3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32s3/pins_arduino.h          ESP32S3 Dev Module                                             https://aliexpress.ru/item/1005005046708221.html
+// ESP32-S3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_s3_mini/pins_arduino.h    LOLIN S3 Mini                                                  https://aliexpress.ru/item/1005006646247867.html
+// ESP32-C3                     https://github.com/espressif/arduino-esp32/blob/master/variants/esp32c3/pins_arduino.h          ESP32С3 Dev Module                                             https://aliexpress.ru/item/1005007008042876.html
+// ESP32-C3-mini                https://github.com/espressif/arduino-esp32/blob/master/variants/lolin_c3_mini/pins_arduino.h    LOLIN С3 Mini                                                  https://aliexpress.ru/item/1005004740051202.html
 //
 // Проверена и рекомендлвано к использованию ESP32-плата из первой строчки таблицы выше
-// https://aliexpress.ru/item/32959541446.html
 // https://aliexpress.ru/item/32836372640.html
 //
 // Для остальных плат возможно потребуется перепроверка назначения пинов с выяснением какие комбинации работают, а какие нет.
@@ -60,6 +59,9 @@
 //   Если включена поддержка всех возможностий и компилятор ругается на недостаток памяти - придется отказаться от
 //   возможности обновления "по воздуху" (OTA, Over The Air) и выбрать вариант распределения памяти устройства "Partition scheme: No OTA (2MB APP/2MB SPIFFS)";
 //
+//   Для плат ESP32 S2, S3 ядро системы может занимать очень много памяти и не помещаться в отведенные 1.2MB под приложение
+//   Для решения этой проблемы читай заметку ниже.
+//
 // // -------------------------------------------------------------------------------------------------------
 //
 // Настройки ArduinoIDE 
@@ -77,7 +79,7 @@
 //
 //     Третий момент: Прошивка достигла некоторого предела, при котором при всех включенных возможностях скетч на некоторых контроллерах ESP32 не умещается в памяти.
 //     Если при компиляции выдвется ошибка - размер скетча превысил размер доступной памяти и составляет (104%) - вам придется
-//     - либо выбирать плату с Большим размером доступной памяти - например 8MB вместо стандартных 4MB
+//     - либо выбирать плату с Большим размером доступной памяти - например 8MB вместо стандартных 4MB с соответствующей разметкой разделов - вроде 8M with spiffs (3MB App/1.5MB SPIFFS)
 //     - либо чем-то жертвовать, отключая поддержку того или иного оборудования и/или возможности - например, обновление по воздуху - ОТА 
 //       При отключении возможности обновления по воздуху
 //         1. Установите в настройках скетча USE_OTA = 0
@@ -120,7 +122,7 @@
 //
 // *** ArduinoJSON
 //
-// Обмен сообщениями с MQTT сервером, получение сведений о погоде с серверов погоды используют JSON формат сообщения
+// Получение сведений о погоде с серверов погоды используют JSON формат сообщения
 // Скетч использует библиотеку ArduinoJSON последней из "шестых" версий - 6.21.5.
 // По заявлению разработчика библиотеки ArduinoJSON версии 6.x оптимизированы для минимизации использования памяти, 
 // в то время как более новые версии 7.х имеют расширенный функционал и ориентированы на удобство использования 
@@ -179,14 +181,13 @@
 //
 // *** Web-интерфейс
 //
-// Библиотеку ESPAsyncWebServer владельцам IPhone следует обязательно устанавливать из папки проекта. 
+// Библиотеку ESPAsyncWebServer следует обязательно устанавливать из папки проекта. 
 // В ней в файле WebResponses.cpp в строчках 538, 569 закомментарено добавление заголовка addHeader("Content-Disposition", buf)
 // Точнее перенесено в область if() else - для download=true.
-// Почему-то наличие этого заголовка в айфонах не открывает запрошенную страничку в браузере, а предлагает сохранить
+// Почему-то наличие этого заголовка в IPhone не открывает запрошенную страничку в браузере, а предлагает сохранить
 // загружаемый файл intex.html.gz на диск как обычный download-файл.
-//
-// Сама библиотека с хотфиксами взята отсюда: https://github.com/vortigont/ESPAsyncWebServer/tree/hotfixes
-// Но в ней нет переноса addHeader("Content-Disposition", buf) что описано выше
+// Также при установке библиотеки из других источников (репозитория Arduino) возможны постоянные разрывы соединения по WebSocket 
+// и Web-страница постоянно будет "отваливаться" с сообщением "соединение потеряно"
 //
 // Прошивка требует компиляции с выделением места под файловую систему LittleFS, в которой хранятся в файлах некоторые настроки,
 // файлы резервного копирования, файл карты индексов адресации светодиодов матрицы, файлы Web-интерфейса, а также файлы картинок, 
@@ -195,9 +196,12 @@
 // Для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства выберите вариант:
 //   Для микроконтроллеров ESP8266 с 4МБ флэш-памяти рекомендуется вариант "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
 //   Для микроконтроллеров ESP32   с 4МБ флэш-памяти рекомендуется вариант "Partition scheme: Default 4MB with spiff(1.2MB APP/1.5MB SPIFFS)"; 
+// Также см. выше рекомендации по выбору / изменению разметки файловой ситстемы для различных типов микроконтроллеров
 //
 // После того, как прошивка будет загружена в микроконтроллер - не забудьте загрузить файлы из подпапки data в файловую систему микроконтроллера
 // https://github.com/vvip-68/LedPanelWiFi/wiki/Загрузка-данных-в-файловую-систему-МК
+//
+// Плагины к IDE 1.8.19 и 2.3.3 находятся в папке проекта tools/LittleFS_Uploader - читай файл readme в папке - инструкция по установке и использованию
 //
 // --------------------------------------------------------
 //
@@ -207,7 +211,7 @@
 // Если на SD-shield подать напряжение, не соответствующее его характеристикам - файлы с SD карты также будут не видны.
 // При использовании "матрешки" из Wemos d1 mini и соотвествующего ей Shield SD-card рекомендается распаивать ОБА пина питания - и +5В и +3.3В 
 //
-// Рекомендуемый к использованию шилд SD-карты: https://aliexpress.ru/item/32578362865.html
+// Рекомендуемый к использованию шилд SD-карты: https://aliexpress.ru/item/32718621622.html
 // Он удобно устанавливается "матрешкой" на платы микроконтроллеров
 //   ESP8266 - Wemos d1 mini       - https://aliexpress.ru/item/32630518881.html
 //   ESP32   - Wemos d1 mini esp32 - https://aliexpress.ru/item/32858054775.html
@@ -240,6 +244,8 @@
 //     esp32.menu.PartitionScheme.default_1_4MB.build.partitions=default_1_4MB
 //     esp32.menu.PartitionScheme.default_1_4MB.upload.maximum_size=1441792
 // - Скопировать файл default_1_4MB.csv в папку C:\Users\[ИМЯ пользователя]\AppData\Local\Arduino15\packages\esp32\hardware\esp32\2.0.14\tools\partitions
+// - В Arduino IDE 2.x в меню "Инструменты" не появится новый вариант PartitionScheme, пока мы не удалим скешированную папку приложения, для этого 
+//   необходимо удалить папку C:\Users\[ИМЯ пользователя]\AppData\Roaming\arduino-ide\
 // - Перезапустить Arduino и выбрать в настройка размер памяти 4M with spiffs (1.408MB APP/1.152MB SPIFFS)
 // Сам CSV-файл разметки находится в проекте, в папке Wiki/OTA/mikewap83 - default_1_4MB.zip
 //
@@ -889,8 +895,7 @@ void setup() {
   #if (USE_OTA == 1)
     ArduinoOTA.setHostname(host_name.c_str());
    
-    // Заливка скетча по сетевому порту в ArduinoIDE 2.2.1 запрашивает пароль и пустой пароль не принимает.
-    // На текущий момент для Arduino IDE 2.x плагинов для загрузки файловой системы на ESP32 - не существует (на ESP8266 есть)
+    // Заливка скетча по сетевому порту в ArduinoIDE 2.3.3 запрашивает пароль и пустой пароль не принимает.
     // Заливка скетча по сетевому порту в ArduinoIDE 1.8.19 пароль не обязателен - можно закомментировать. Если указан - спросит
     // Однако при наличии установленного пароля не выполняется загрузка файловой системы - пароль не спрашивает, просто говорит что ошибка аутентификации.
     // Без установленного пароля загрузка файловой системы плагинами 'ESP32 LittleFS Data Upload' / 'ESP8266 LittleFS Data Upload' загружается успешно
@@ -1224,7 +1229,7 @@ void connectToNetwork() {
 
 /**
  * @brief NTP time adjustment callback
- * функция выызывается при синхронизации системного времени по NTP
+ * функция вызывается при синхронизации системного времени по NTP
  * 
  */
 void ntpGotTimeCB(){

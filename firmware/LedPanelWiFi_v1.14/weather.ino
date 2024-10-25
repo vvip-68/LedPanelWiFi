@@ -11,9 +11,6 @@
   #endif
 
 bool getWeather() {
-  
-  // Yandex.ru:          https://yandex.ru/time/sync.json?geo=62
-  // OpenWeatherMap.com: https://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b
 
   // Пока включена отладка позиционирования часов - запросы на температуру не выполнять
   if (debug_hours >= 0 && debug_mins >= 0) return true;
@@ -44,33 +41,60 @@ bool getWeather() {
     {
       HTTPClient https;
 
-      //String request = "https://yandex.ru/time/sync.json?geo=62";
+      //String request = "https://yandex.com/time/sync.json?geo=62";
       //String request = "https://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b";
+
+      //String request = "http://194.58.103.72/http2https.php?https://yandex.com/time/sync.json?geo=62&lang=ru";
+      //String request = "http://api.openweathermap.org/data/2.5/weather?id=1502026&lang=ru&units=metric&appid=6a4ba421859c9f4166697758b68d889b";
+      //String request = "http://api.weatherbit.io/v2.0/current?city_id=1502026&key=4b3b38ff98a14fbeb01b6dd5bc409c9b&lang=ru"
+      //String request = "http://api.open-meteo.com/v1/forecast?latitude=56.010563&longitude=92.852572&current=temperature_2m,weather_code&daily=sunrise,sunset&timeformat=unixtime&forecast_days=1"
+
+      /*
+        Скрипт шлюза http2https от Сотнег. Спасибо, добрый человек!
+        <?
+          $url = $_SERVER['QUERY_STRING'];
+          $url_check1 = 'https://api.weather.yandex.ru/'; // этот домен разрешён
+
+          if (strncasecmp($url, $url_check1, strlen($url_check1)) == 0)
+            {
+              $ch = curl_init($url);
+              curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+              curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+              curl_setopt($ch, CURLOPT_HEADER, false);
+              $html = curl_exec($ch);
+              curl_close($ch);
+              echo $html;
+            }
+            else echo 'nope';
+        ?>
+      */
 
       String request(150);
 
       #if defined(ESP32)
         // В ESP32 достаточно памяти, чтобы работал https протокол - используем его
         if (useWeather == 1) {
-          request  = F("https://yandex.ru/time/sync.json?geo="); request += String(regionID); 
+          request  = F("https://yandex.com/time/sync.json?geo="); request += String(regionID); 
           request += F("&lang="); request += WTR_LANG_YA; 
         } else if (useWeather == 2) {    
           request  = F("https://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
           request += F("&units=metric&lang="); request += WTR_LANG_OWM;
-          request += F("&appid="); request += WEATHER_API_KEY;
+          request += F("&appid="); request += OWM_WEATHER_API_KEY;
         }  
         String protocol = F("HTTPS");
       #else
         // В ESP8266 недостаточно памяти, соединение по https протоколу завершается ошибкой подключения к серверу - используем получение погоды по http
         if (useWeather == 1) {
           // С 28.07.2024 Яндекс перестал отдавать погоду по HTTP, перенаправляет на HTTPS запрос, но мы его обработать не можем :(
-          // Получение погоды с YANDEX.Погода - увы, больше не работает
-          request  = F("http://yandex.ru/time/sync.json?geo="); request += String(regionID); 
+          // Добрый человек Сотнег поделился скриптом для шлюза http2https 
+          // Добрый человек Zordog, предоставил доступ к своему серверу, на который установил скрипит http2https от Сотнег
+          // Погода от Яндекс по http снова работает!
+          request  = F("http://194.58.103.72/http2https.php?https://yandex.com/time/sync.json?geo="); request += String(regionID); 
           request += F("&lang="); request += WTR_LANG_YA; 
         } else if (useWeather == 2) {    
           request  = F("http://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
           request += F("&units=metric&lang="); request += WTR_LANG_OWM;
-          request += F("&appid="); request += WEATHER_API_KEY;
+          request += F("&appid="); request += OWM_WEATHER_API_KEY;
         }  
         String protocol = F("HTTP");
       #endif
@@ -86,6 +110,7 @@ bool getWeather() {
           // file found at server
           if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
             payload = https.getString();
+            DEBUGLN(payload);
           } else {
             error = true;
             status = F("unexpected answer");    // http.errorToString(httpCode)
@@ -285,7 +310,7 @@ bool getWeather() {
   }
   
   if (!weather_ok) {
-    DEBUG(F("JSON не содержит данных о погоде"));  
+    DEBUGLN(F("JSON не содержит данных о погоде"));  
     doc["result"] = F("ERROR");
     doc["status"] = F("no data");
 
@@ -331,7 +356,6 @@ bool getWeather() {
     { DEBUG(F("Цвет неба: '")); DEBUG(skyColor); DEBUGLN("'"); }
   else
     { DEBUG(F("Код погоды: ")); DEBUGLN(weather_code); }
-  DEBUG(F("Сейчас: "));
   DEBUGLN(dayTime);
   DEBUG(F("Рассвет: "));
   DEBUGLN(sunrise);
@@ -394,10 +418,7 @@ void decodeWeather(){
   bool hasNight = icon.endsWith("-n");
   String ico(icon);
   
-  if (hasDay)
-    dayTime = F("Светлое время суток");  // Сейчас день
-  else if (hasNight)           
-    dayTime = F("Темное время суток");   // Сейчас ночь
+  dayTime = isNight ? F("Темное время суток") : F("Светлое время суток");
 
   if (hasDay || hasNight) {
     ico = icon.substring(0, icon.length() - 2);
@@ -427,10 +448,7 @@ void decodeWeather2(){
   bool hasDay   = icon.endsWith("d");
   bool hasNight = icon.endsWith("n");
   
-  if (hasDay)
-    dayTime = F("Светлое время суток");  // Сейчас день
-  else if (hasNight)           
-    dayTime = F("Темное время суток");   // Сейчас ночь
+  dayTime = isNight ? F("Темное время суток") : F("Светлое время суток");
 
   // Расшифровка погоды при указании в запросе "&lang=ru" сразу возвращается на нужном языке и нет
   // надобности расшифровывать код. Если почему-то расшифровка оказалась пуста - создать ее из кода погодных условия.
