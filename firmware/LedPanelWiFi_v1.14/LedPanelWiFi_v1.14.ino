@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14с.2024.0901")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2024.2610")
 
 // -------------------------------------------------------------------------------------------------------
 //
@@ -47,7 +47,7 @@
 //     - для выделения места под файловую систему в меню "Инструменты" Arduino IDE в настройке распределения памяти устройства
 //       для стандарного контроллера с 4МБ флэш-памяти памяти на борту устройства выберите вариант: "Flash Size: 4MB(FS:2MB OTA:~1019KB)"
 //
-// Для ядра ESP32 v2.0.14
+// Для ядра ESP32 v2.0.14 / 2.0.16
 //   тип микроконтроллера в меню "Инструменты -> Плата" 
 //     - для большинства контроллеров выбирать "ESP32 Dev Module" 
 //     - для разновидностей ESP32S2 выбирать "ESP32S2 Dev Module" или соответствующее плате значение, содержащее 'S2' 
@@ -301,7 +301,6 @@ void setup() {
   
   DEBUGLN();
   DEBUGLN(FIRMWARE_VER);
-  DEBUG(F("CRC: "));
   
   DEBUG(F("Контроллер: "));
   DEBUGLN(MCUTypeEx());

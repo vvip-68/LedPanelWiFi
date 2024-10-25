@@ -282,10 +282,10 @@ void process() {
       /*
       // Отладка: информация о полученном E1.31 пакете
       Serial.printf("Universe %u / %u Channels | Packet#: %u / Errors: %u\n",
-                CURRENT_UNIVERSE,                            // The Universe for this packet
+                CURRENT_UNIVERSE,                             // The Universe for this packet
                 htons(e131_packet->property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
-                e131->stats.num_packets,                     // Packet counter
-                e131->stats.packet_errors);                  // Packet error counter
+                e131->stats.num_packets,                      // Packet counter
+                e131->stats.packet_errors);                   // Packet error counter
       */     
            
       /*
