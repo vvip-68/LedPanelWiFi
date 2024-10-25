@@ -110,7 +110,7 @@ bool getWeather() {
           // file found at server
           if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
             payload = https.getString();
-            DEBUGLN(payload);
+            // DEBUGLN(payload);
           } else {
             error = true;
             status = F("unexpected answer");    // http.errorToString(httpCode)
