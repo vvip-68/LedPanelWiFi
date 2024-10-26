@@ -1721,6 +1721,22 @@ String processDateMacrosInText(const String& text) {
         t_event = mktime(&tm);
 
         /*
+        // Отладка - установка текущего времени для макросв {R}
+        struct tm tmStruct;
+        memset(&tmStruct, 0, sizeof(tmStruct));
+
+        // 31.12.2024 22:59:15
+        tmStruct.tm_hour = 22;
+        tmStruct.tm_min = 59;
+        tmStruct.tm_sec = 45;
+        tmStruct.tm_mday = 31;
+        tmStruct.tm_mon = 12 - 1;
+        tmStruct.tm_year = 2024 - 1900;
+
+        t_now = mktime(&tmStruct);
+        */
+
+        /*
         DEBUGLN(DELIM_LINE);
         DEBUGLN("Исходная R-дата: '" + str + "'");
         
@@ -1800,6 +1816,7 @@ String processDateMacrosInText(const String& text) {
         // Будем следовать методике расчета гугля - если осталось более 7 дней - пишем на 1 больше
         // Если осталось менее 7 целых дней - там уже начнут выводиться часы. При выводе часов не округляем количество дней в большую сторону
         if (restDays > 7) restDays++; 
+        if ((restDays > 0 || restHours > 0 || restMinutes > 0) && restMinutes < 59 && restSeconds > 30) restMinutes++;
         
         String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0) { 
@@ -1808,6 +1825,8 @@ String processDateMacrosInText(const String& text) {
           tmp += restMinutes; tmp += WriteMinutes(restMinutes); 
         } else if (restDays == 0 && restHours > 0 && restMinutes > 0) { 
           tmp += restHours; tmp += WriteHours(restHours); tmp += ' '; tmp += restMinutes; tmp += WriteMinutes(restMinutes); 
+        } else if (restDays == 0 && restHours > 0 && restMinutes == 0) { 
+          tmp += restHours; tmp += WriteHours(restHours); 
         } else if (restDays > 0 && restDays <= 7 && restHours > 0) { 
           //  0..29 минут - прибавлять час, потом не надо
           // Чтобы в 22:10 посалось 'До Нового года 7 дней 2 часа', a в 22:40 - 'До Нового года 7 дней 1 час'
@@ -1861,17 +1880,29 @@ String processDateMacrosInText(const String& text) {
         // Если осталось меньше-равно 7 дней - отображать дни и часы
         // Если осталось больше 7 дней - отображать дни
         
+        // Когда, реально, скажем, осталось 22 дня и 2 часа - гугль на вопрос "Сколько осталось до ..." пишет не 22, а 23
+        // Будем следовать методике расчета гугля - если осталось более 7 дней - пишем на 1 больше
+        // Если осталось менее 7 целых дней - там уже начнут выводиться часы. При выводе часов не округляем количество дней в большую сторону
+        if (restDays > 7) restDays++; 
+        if ((restDays > 0 || restHours > 0 || restMinutes > 0) && restMinutes < 59 && restSeconds > 30) restMinutes++;
+        
         String tmp;
-        if (restDays == 0 && restHours == 0 && restMinutes == 0)
-          { tmp += restSeconds; tmp += WriteSeconds(restSeconds); }
-        else if (restDays == 0 && restHours == 0 && restMinutes > 0)
-          { tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
-        else if (restDays == 0 && restHours > 0 && restMinutes > 0)
-          { tmp += restHours; tmp += WriteHours(restHours); tmp += ' '; tmp += restMinutes; tmp += WriteMinutes(restMinutes); }
-        else if (restDays > 0 && restDays <= 7 && restHours > 0)
-          { tmp += restDays; tmp += WriteDays(restDays); tmp += ' '; tmp += restHours; tmp += WriteHours(restHours); }
-        else  
-          { tmp += restDays; tmp += WriteDays(restDays); }
+        if (restDays == 0 && restHours == 0 && restMinutes == 0) { 
+          tmp += restSeconds; tmp += WriteSeconds(restSeconds); 
+        } else if (restDays == 0 && restHours == 0 && restMinutes > 0){ 
+          tmp += restMinutes; tmp += WriteMinutes(restMinutes); 
+        } else if (restDays == 0 && restHours > 0 && restMinutes > 0) { 
+          tmp += restHours; tmp += WriteHours(restHours); tmp += ' '; tmp += restMinutes; tmp += WriteMinutes(restMinutes); 
+        } else if (restDays == 0 && restHours > 0 && restMinutes == 0) { 
+          tmp += restHours; tmp += WriteHours(restHours); 
+        } else if (restDays > 0 && restDays <= 7 && restHours > 0) { 
+          //  0..29 минут - прибавлять час, потом не надо
+          // Чтобы в 22:10 посалось 'До Нового года 7 дней 2 часа', a в 22:40 - 'До Нового года 7 дней 1 час'
+          if (restHours < 23 && restMinutes > 30) restHours++; 
+          tmp += restDays; tmp += WriteDays(restDays); tmp += ' '; tmp += restHours; tmp += WriteHours(restHours); 
+        } else { 
+          tmp += restDays; tmp += WriteDays(restDays); 
+        }
           
         String tl_str(textLine.substring(0, insertPoint)); tl_str += tmp; tl_str += textLine.substring(insertPoint);         
         textLine = tl_str;
