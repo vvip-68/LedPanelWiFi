@@ -105,7 +105,7 @@ export function makeid(length: number) {
 export function validateCharacters(message: string): ValidatorFn {
   return formControl => {
     const obj = formControl.value;
-    const regExp = /^[a-zA-Z0-9.+!@#$%^&*()_-]+$/;
+    const regExp = /^[\s\w?<>.,\\/|+=:;№'"`~!@#$%^&*(){}\[\]_-]+$/;
     return !regExp.test(formControl.value) && obj.length > 0 ? { ['invalidChars']: message } : null;
   };
 }
