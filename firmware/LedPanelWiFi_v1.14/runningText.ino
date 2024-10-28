@@ -813,7 +813,7 @@ int8_t getNextLine(int8_t currentIdx) {
         // textIndecies == "##", sequenceIdx всегда 1; textIndecies.charAt(1) == '#';
         while (!found && att < cnt) {
           att++;
-          uint8_t idx = random8(0, cnt - 1);
+          uint8_t idx = random8(1, cnt);
           char c_idx = textsNotEmpty[idx];
           int8_t t_idx = getTextIndex(c_idx);
           if (t_idx < 0) continue;
@@ -830,7 +830,7 @@ int8_t getNextLine(int8_t currentIdx) {
             found = true;
             nextLineIdx = t_idx;
             break;
-          }        
+          }      
         }      
       } else {
         // Последовательное отображение строк как указано в последовательности в textIndecies - '#12345'
@@ -1720,21 +1720,21 @@ String processDateMacrosInText(const String& text) {
         ParseDateTime(str, &tm);
         t_event = mktime(&tm);
 
-        /*
         // Отладка - установка текущего времени для макросв {R}
-        struct tm tmStruct;
-        memset(&tmStruct, 0, sizeof(tmStruct));
+        bool debug = debug_hours >= 0 && debug_mins >= 0;
+        if (debug) {
+          struct tm tmStruct;
+          memset(&tmStruct, 0, sizeof(tmStruct));
 
-        // 31.12.2024 22:59:15
-        tmStruct.tm_hour = 22;
-        tmStruct.tm_min = 59;
-        tmStruct.tm_sec = 45;
-        tmStruct.tm_mday = 31;
-        tmStruct.tm_mon = 12 - 1;
-        tmStruct.tm_year = 2024 - 1900;
+          tmStruct.tm_hour = debug_hours;
+          tmStruct.tm_min = debug_mins;
+          tmStruct.tm_sec = 30;
+          tmStruct.tm_mday = debug_days;
+          tmStruct.tm_mon = debug_month - 1;
+          tmStruct.tm_year = debug_year - 1900;
 
-        t_now = mktime(&tmStruct);
-        */
+          t_now = mktime(&tmStruct);
+        }
 
         /*
         DEBUGLN(DELIM_LINE);
@@ -1816,7 +1816,14 @@ String processDateMacrosInText(const String& text) {
         // Будем следовать методике расчета гугля - если осталось более 7 дней - пишем на 1 больше
         // Если осталось менее 7 целых дней - там уже начнут выводиться часы. При выводе часов не округляем количество дней в большую сторону
         if (restDays > 7) restDays++; 
-        if ((restDays > 0 || restHours > 0 || restMinutes > 0) && restMinutes < 59 && restSeconds > 30) restMinutes++;
+
+        // Остаток выводить по отображаемому времени. Даже если реальное время 22:59:59 - то есть "1 час 0 минут [1 сек]" - 
+        // на экране отображается 22:59 без секунд, а значит выводить "1 час 1 минута"
+        if (!(restDays == 0 && restHours == 0 && restMinutes == 0) && restSeconds != 0) {
+          restMinutes++;
+          if (restMinutes == 60) { restMinutes = 0; restHours++;}
+          if (restHours == 24) {restHours = 0; restDays++;}
+        }
         
         String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0) { 
@@ -1884,7 +1891,14 @@ String processDateMacrosInText(const String& text) {
         // Будем следовать методике расчета гугля - если осталось более 7 дней - пишем на 1 больше
         // Если осталось менее 7 целых дней - там уже начнут выводиться часы. При выводе часов не округляем количество дней в большую сторону
         if (restDays > 7) restDays++; 
-        if ((restDays > 0 || restHours > 0 || restMinutes > 0) && restMinutes < 59 && restSeconds > 30) restMinutes++;
+
+        // Остаток выводить по отображаемому времени. Даже если реальное время 22:59:59 - то есть "1 час 0 минут [1 сек]" - 
+        // на экране отображается 22:59 без секунд, а значит выводить "1 час 1 минута"
+        if (!(restDays == 0 && restHours == 0 && restMinutes == 0) && restSeconds != 0) {
+          restMinutes++;
+          if (restMinutes == 60) { restMinutes = 0; restHours++;}
+          if (restHours == 24) {restHours = 0; restDays++;}
+        }
         
         String tmp;
         if (restDays == 0 && restHours == 0 && restMinutes == 0) { 

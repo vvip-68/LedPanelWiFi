@@ -33,7 +33,8 @@
 
 7. Удаляется сжатый файл MI.*.woff2.gz
    
-8. В папке assets/images удаляются все файлы кроме esp32.png, nodemcu.png и wemos.png
+8. В папке assets/images удаляются все несжатые файлы кроме esp32.png, nodemcu.png и wemos.png
+                         удаляются сжатые файлыesp32.png.gz, nodemcu.png.gz и wemos.png.gz			
    В папке assets/langs удаляются несжатые файлы lang.*, оставляя только сжатые lang.*.gz,
    где 'lang' - сигнатура языка перевода: 'rus', 'eng' и т.д.   
 

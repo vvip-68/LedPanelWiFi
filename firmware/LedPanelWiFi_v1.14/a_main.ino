@@ -25,7 +25,7 @@ String getStateValue(const String& key, int8_t effect, bool small = false);
 void process() {  
 
   // Время прохода одного цикла  
-  //uint32_t duration = millis() - last_ms;  
+  //uint32_t duration = millis() - last_ms;
   //DEBUG(F("duration="));
   //DEBUGLN(duration);
   last_ms = millis();
@@ -212,7 +212,6 @@ void process() {
           if (init_weather && weather_cnt >= TRY_GET_WEATHER_CNT) {
             DEBUGLN(F("Не удалось установить соединение с сервером погоды."));  
             refresh_weather = false;
-            init_weather = false;
             
             doc.clear();
             doc["act"]    = String(sWEATHER);
@@ -237,7 +236,7 @@ void process() {
           getWeather();
           if (weather_cnt >= TRY_GET_WEATHER_CNT) {
             if (!init_weather) {
-              // Если погода еще не была инициализирована - следующий запрос брать по меньщему из 5 минут или SYNC_WEATHER_PERIOD
+              // Если погода еще не была инициализирована - следующий запрос брать по меньшему из 5 минут или SYNC_WEATHER_PERIOD
               weatherTimer.setInterval(1000 * 60 * min((uint16_t)5, SYNC_WEATHER_PERIOD));
             }
           }        
@@ -247,7 +246,7 @@ void process() {
   } 
 
   #if (USE_WEATHER == 1)  
-    // Если погода не смогла обновиться дважды за период обновления погоды + 30сек "запаса" - считать погоду неинициализированной и не отображать погоду в часах
+    // Если погода не смогла обновиться за TRY_GET_WEATHER_CNT попыток за период обновления погоды + 30сек "запаса" - считать погоду неинициализированной и не отображать погоду в часах
     if (useWeather > 0 && init_weather && (millis() - weather_time > weatherActualityDuration * 3600L * 1000L)) {
       init_weather = false;
       refresh_weather = true;

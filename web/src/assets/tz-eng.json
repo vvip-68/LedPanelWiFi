@@ -1708,63 +1708,63 @@
     "value": "426_GMT0"
   },
   {
-    "label": "Etc/GMT-0",
+    "label": "Etc/GMT+0",
     "value": "427_GMT0"
   },
   {
-    "label": "Etc/GMT-1",
+    "label": "Etc/GMT+1",
     "value": "428_<+01>-1"
   },
   {
-    "label": "Etc/GMT-2",
+    "label": "Etc/GMT+2",
     "value": "429_<+02>-2"
   },
   {
-    "label": "Etc/GMT-3",
+    "label": "Etc/GMT+3",
     "value": "430_<+03>-3"
   },
   {
-    "label": "Etc/GMT-4",
+    "label": "Etc/GMT+4",
     "value": "431_<+04>-4"
   },
   {
-    "label": "Etc/GMT-5",
+    "label": "Etc/GMT+5",
     "value": "432_<+05>-5"
   },
   {
-    "label": "Etc/GMT-6",
+    "label": "Etc/GMT+6",
     "value": "433_<+06>-6"
   },
   {
-    "label": "Etc/GMT-7",
+    "label": "Etc/GMT+7",
     "value": "434_<+07>-7"
   },
   {
-    "label": "Etc/GMT-8",
+    "label": "Etc/GMT+8",
     "value": "435_<+08>-8"
   },
   {
-    "label": "Etc/GMT-9",
+    "label": "Etc/GMT+9",
     "value": "436_<+09>-9"
   },
   {
-    "label": "Etc/GMT-10",
+    "label": "Etc/GMT+10",
     "value": "437_<+10>-10"
   },
   {
-    "label": "Etc/GMT-11",
+    "label": "Etc/GMT+11",
     "value": "438_<+11>-11"
   },
   {
-    "label": "Etc/GMT-12",
+    "label": "Etc/GMT+12",
     "value": "439_<+12>-12"
   },
   {
-    "label": "Etc/GMT-13",
+    "label": "Etc/GMT+13",
     "value": "440_<+13>-13"
   },
   {
-    "label": "Etc/GMT-14",
+    "label": "Etc/GMT+14",
     "value": "441_<+14>-14"
   },
   {
@@ -1772,55 +1772,55 @@
     "value": "442_GMT0"
   },
   {
-    "label": "Etc/GMT+0",
+    "label": "Etc/GMT-0",
     "value": "443_GMT0"
   },
   {
-    "label": "Etc/GMT+1",
+    "label": "Etc/GMT-1",
     "value": "444_<-01>1"
   },
   {
-    "label": "Etc/GMT+2",
+    "label": "Etc/GMT-2",
     "value": "445_<-02>2"
   },
   {
-    "label": "Etc/GMT+3",
+    "label": "Etc/GMT-3",
     "value": "446_<-03>3"
   },
   {
-    "label": "Etc/GMT+4",
+    "label": "Etc/GMT-4",
     "value": "447_<-04>4"
   },
   {
-    "label": "Etc/GMT+5",
+    "label": "Etc/GMT-5",
     "value": "448_<-05>5"
   },
   {
-    "label": "Etc/GMT+6",
+    "label": "Etc/GMT-6",
     "value": "449_<-06>6"
   },
   {
-    "label": "Etc/GMT+7",
+    "label": "Etc/GMT-7",
     "value": "450_<-07>7"
   },
   {
-    "label": "Etc/GMT+8",
+    "label": "Etc/GMT-8",
     "value": "451_<-08>8"
   },
   {
-    "label": "Etc/GMT+9",
+    "label": "Etc/GMT-9",
     "value": "452_<-09>9"
   },
   {
-    "label": "Etc/GMT+10",
+    "label": "Etc/GMT-10",
     "value": "453_<-10>10"
   },
   {
-    "label": "Etc/GMT+11",
+    "label": "Etc/GMT-11",
     "value": "454_<-11>11"
   },
   {
-    "label": "Etc/GMT+12",
+    "label": "Etc/GMT-12",
     "value": "455_<-12>12"
   },
   {
