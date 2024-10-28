@@ -1325,7 +1325,7 @@ String processMacrosInText(const String& text) {
       String s_color, s_color2;
 
       if (useTemperatureColor) {
-        s_color = "{C" + getTemperatureColor(th) + "}";
+        s_color = "{C#" + IntToHex(getTemperatureColor(th)) + "}";
         s_color2 = "{C" + IntToHex(globalTextColor) + "}";
       }
 

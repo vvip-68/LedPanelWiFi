@@ -943,7 +943,7 @@ void drawTemperature() {
   if (isNightClock) 
     color = useTemperatureColorNight ? (th < -3 ? nightClockBrightness : (th > 3 ? nightClockBrightness << 16 : nightClockBrightness << 16 | nightClockBrightness << 8 | nightClockBrightness)) : getNightClockColorByIndex(nightClockColor);
   else
-    color = useTemperatureColor ? CRGB(HEXtoInt(getTemperatureColor(th))) : clockLED[0]; 
+    color = useTemperatureColor ? CRGB(getTemperatureColor(th)) : clockLED[0]; 
 
   if (c_size == 1) {
 
