@@ -537,6 +537,7 @@ void FastLEDsetBrightness(uint8_t value) {
     commandSetCurrentBrightness(value);
   }
   #endif
+  addKeyToChanged("BR");
   FastLED.setBrightness(value);
 }
 
