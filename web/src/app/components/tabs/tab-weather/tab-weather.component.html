@@ -45,7 +45,7 @@
     <div class="field-container">
       <mat-form-field [hintLabel]="L.$('интервал обновления данных о погоде')" floatLabel="always">
         <mat-label>{{ L.$('Интервал обновления') }}</mat-label>
-        <input matInput autocomplete="new-password" type="number" [min]="15" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+        <input matInput autocomplete="new-password" type="number" [min]="30" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
                [formControl]="updateIntervalFormControl"
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
@@ -57,7 +57,7 @@
         }
         @if (updateIntervalFormControl.hasError('range') && !updateIntervalFormControl.hasError('required')) {
           <mat-error>
-            {{ L.$('от 15 до 240 минут') }}
+            {{ L.$('от 30 до 240 минут') }}
           </mat-error>
         }
       </mat-form-field>

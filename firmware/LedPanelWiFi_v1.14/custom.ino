@@ -881,11 +881,11 @@ void setTimersForMode(uint8_t aMode) {
     if (clockScrollSpeed < D_CLOCK_SPEED_MIN) set_clockScrollSpeed(D_CLOCK_SPEED_MIN); // Если clockScrollSpeed == 0 - бегущая строка начинает дергаться.
     if (clockScrollSpeed > D_CLOCK_SPEED_MAX) set_clockScrollSpeed(D_CLOCK_SPEED_MAX);
   }
-  if (clockScrollSpeed >= 240) {
+  if (clockScrollSpeed > 254) {
     clockTimer.stopTimer();
     CLOCK_XC = pWIDTH / 2;
   } else {
-    clockTimer.setInterval(clockScrollSpeed);
+    clockTimer.setInterval(clockScrollSpeed * 4); // Самая медленная скорость - 253*4 - примерно раз в секунду
   }
 
   if (!e131_wait_command) {

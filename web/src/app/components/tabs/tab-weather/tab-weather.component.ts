@@ -40,7 +40,7 @@ export class TabWeatherComponent extends Base implements OnInit, OnDestroy {
 
   codeYandexFormControl = new FormControl(0, [Validators.required]);
   codeOWMFormControl = new FormControl(0, [Validators.required]);
-  updateIntervalFormControl = new FormControl(0, [Validators.required, rangeValidator(15, 240)]);
+  updateIntervalFormControl = new FormControl(0, [Validators.required, rangeValidator(30, 240)]);
   matcher = new AppErrorStateMatcher();
 
   constructor(

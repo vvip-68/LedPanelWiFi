@@ -148,7 +148,7 @@
   "минут": "minutes",
   "от 5 до 255 секунд": "from 5 to 255 seconds",
   "от 0 до 255 минут": "from 0 to 255 minutes",
-  "от 15 до 240 минут": "from 15 to 240 minutes",
+  "от 30 до 240 минут": "from 30 to 240 minutes",
   "точ.": "led",
   "сег.": "seg.",
   "возврат в авторежим выключен": "autochange mode is OFF",

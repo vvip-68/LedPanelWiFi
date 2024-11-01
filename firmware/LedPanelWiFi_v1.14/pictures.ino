@@ -402,7 +402,7 @@ void slideRoutine() {
   // Ползунок "Скорость" регулирует скорость перемещения картинки слайда по матрице, если размер слайда меньше размера матрицы
   // Если ползунок в крайнем левом положении - картинка не движется, стоит по центру матрицы.
   uint8_t moveDelay = getEffectSpeedValue(thisMode);
-  if (moveDelay > 240) {
+  if (moveDelay > 252) {
     pic_offset_x = (pWIDTH - pictureWidth) / 2;
     pic_offset_y = (pHEIGHT - pictureHeight) / 2; 
     dir_x = 0;

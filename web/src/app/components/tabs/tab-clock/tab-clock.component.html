@@ -51,7 +51,7 @@
                         [displayWith]="formatLabel"
                         min="0" step="1" max="255">
               <input #sl matSliderThumb [value]="clock_scroll_speed" (valueChange)="speedChanged($event)">
-              <p>{{ toNumber(sl.value) <= 15 ? L.$('Выкл') : sl.value.toString() }}</p>
+              <p>{{ toNumber(sl.value) < 1 ? L.$('Выкл') : sl.value.toString() }}</p>
             </mat-slider>
           </div>
         }

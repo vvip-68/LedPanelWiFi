@@ -442,7 +442,7 @@ void saveDefaults() {
   putEffectClockOverlayUsage(MC_PRIZMATA2, false);
   putEffectClockOverlayUsage(MC_SHADOWS2, false);
 
-  putClockScrollSpeed(250);
+  putClockScrollSpeed(255);
   putTextScrollSpeed(186);
   
   putScaleForEffect(MC_FIRE, 0);            // Огонь красного цвета

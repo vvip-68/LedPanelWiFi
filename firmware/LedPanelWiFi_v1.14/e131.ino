@@ -495,9 +495,9 @@ void processCommandPacket(e131_packet_t *packet) {
       break;      
 
     case CMD_CLOCKSPEED:
-      // Скорость прокрутки текста
+      // Скорость прокрутки часов
       clockScrollSpeed = packet->property_values[4];
-      if (clockScrollSpeed >= 240) {
+      if (clockScrollSpeed > 254) {
         clockTimer.stopTimer();
         CLOCK_XC = pWIDTH / 2 + 1;
       } else {

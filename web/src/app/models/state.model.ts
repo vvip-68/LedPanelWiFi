@@ -277,7 +277,7 @@ export class StateModel implements IStateModel {
   public clock_ntp_server = 'ru.pool.ntp.org';
   public clock_time_zone = '';
   public clock_tm1627_off = true;
-  public clock_scroll_speed = 242;
+  public clock_scroll_speed = 255;
   public text_color_mode = 0;
   public text_use_overlay = false;
   public text_interval = 600;
