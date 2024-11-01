@@ -665,7 +665,7 @@ void calcCalendarPosition() {
   if (c_size == 1) {
     
     // Шрифт 3x5 + 1 разделительная строка
-    calendarY_D10_pos = calendarY_D01_pos = calendarY_M10_pos = calendarY_M01_pos = calendarY + 6;
+    calendarY_D10_pos = calendarY_D01_pos = calendarY_M10_pos = calendarY_M01_pos = allow_two_row ? calendarY + 6 : calendarY;
     calendarY_Y1000_pos = calendarY_Y0100_pos = calendarY_Y0010_pos = calendarY_Y0001_pos = calendarY;
     
   } else {
@@ -674,13 +674,13 @@ void calcCalendarPosition() {
     if (pWIDTH >= 23) {
       
       // Влазят все 4 цифры года
-      calendarY_D10_pos = calendarY_D01_pos = calendarY_M10_pos = calendarY_M01_pos = calendarY + 8;
+      calendarY_D10_pos = calendarY_D01_pos = calendarY_M10_pos = calendarY_M01_pos = allow_two_row ? calendarY + 8 : calendarY;
       calendarY_Y1000_pos = calendarY_Y0100_pos = calendarY_Y0010_pos = calendarY_Y0001_pos = calendarY;      
       
     } else {
       
       // Влязят только день в верхней строке, месяц - в нижней
-      calendarY_D10_pos = calendarY_D01_pos = calendarY + 8;
+      calendarY_D10_pos = calendarY_D01_pos = allow_two_row ? calendarY + 8 : calendarY;
       calendarY_M10_pos = calendarY_M01_pos = calendarY;      
       
     }
@@ -1116,6 +1116,7 @@ void drawCalendar() {
       drawDigit3x5_s(d01, getClockX(calendarX_D01_pos), calendarY_D01_pos, clockLED[0]);
       drawDigit3x5_s(m10, getClockX(calendarX_M10_pos), calendarY_M10_pos, clockLED[1]);
       drawDigit3x5_s(m01, getClockX(calendarX_M01_pos), calendarY_M01_pos, clockLED[1]);
+
       // Нижний ряд - ГГГГ  
       if (allow_two_row) {
         drawDigit3x5_s(d1, getClockX(calendarX_Y1000_pos), calendarY_Y1000_pos, clockLED[3]);    
@@ -1131,6 +1132,7 @@ void drawCalendar() {
       drawDigit3x5(d01, getClockX(calendarX_D01_pos), calendarY_D01_pos, clockLED[0]);
       drawDigit3x5(m10, getClockX(calendarX_M10_pos), calendarY_M10_pos, clockLED[1]);
       drawDigit3x5(m01, getClockX(calendarX_M01_pos), calendarY_M01_pos, clockLED[1]);
+
       // Нижний ряд - ГГГГ  
       if (allow_two_row) {
         drawDigit3x5(d1, getClockX(calendarX_Y1000_pos), calendarY_Y1000_pos, clockLED[3]);    
@@ -1167,15 +1169,19 @@ void drawCalendar() {
       
       // Ширина матрицы позволяет рисовать день и месяц ДД.MM вверху, год ГГГГ внизу
       
+      // Верхий ряд - ДД.MM
       drawDigit5x7(d10, getClockX(calendarX_D10_pos), calendarY_D10_pos, clockLED[0]);
       drawDigit5x7(d01, getClockX(calendarX_D01_pos), calendarY_D01_pos, clockLED[0]);
       drawDigit5x7(m10, getClockX(calendarX_M10_pos), calendarY_M10_pos, clockLED[1]);
       drawDigit5x7(m01, getClockX(calendarX_M01_pos), calendarY_M01_pos, clockLED[1]);
 
-      drawDigit5x7(d1, getClockX(calendarX_Y1000_pos), calendarY_Y1000_pos, clockLED[3]);
-      drawDigit5x7(d2, getClockX(calendarX_Y0100_pos), calendarY_Y0100_pos, clockLED[3]);
-      drawDigit5x7(d3, getClockX(calendarX_Y0010_pos), calendarY_Y0010_pos, clockLED[4]);
-      drawDigit5x7(d4, getClockX(calendarX_Y0001_pos), calendarY_Y0001_pos, clockLED[4]);      
+      // Нижний ряд - ГГГГ 
+      if (allow_two_row) { 
+        drawDigit5x7(d1, getClockX(calendarX_Y1000_pos), calendarY_Y1000_pos, clockLED[3]);
+        drawDigit5x7(d2, getClockX(calendarX_Y0100_pos), calendarY_Y0100_pos, clockLED[3]);
+        drawDigit5x7(d3, getClockX(calendarX_Y0010_pos), calendarY_Y0010_pos, clockLED[4]);
+        drawDigit5x7(d4, getClockX(calendarX_Y0001_pos), calendarY_Y0001_pos, clockLED[4]);      
+      }
       
       // Разделительная точка
       if (dotFlag) {
