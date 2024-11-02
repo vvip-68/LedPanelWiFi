@@ -39,7 +39,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   }
 
   // Оверлей нужен для всех эффектов, иначе при малой скорости эффекта и большой скорости часов поверх эффекта буквы-цифры "смазываются"
-  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && (!isNightClock || isNightClock && textIndecies.length() > 0) && thisMode < MAX_EFFECT;
+  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && (!isNightClock || (isNightClock && textIndecies.length() > 0)) && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
   
@@ -880,8 +880,8 @@ void setTimersForMode(uint8_t aMode) {
   
   if (!e131_wait_command) {
     set_clockScrollSpeed(getClockScrollSpeed());
-    if (clockScrollSpeed < D_CLOCK_SPEED_MIN) set_clockScrollSpeed(D_CLOCK_SPEED_MIN); // Если clockScrollSpeed == 0 - бегущая строка начинает дергаться.
-    if (clockScrollSpeed > D_CLOCK_SPEED_MAX) set_clockScrollSpeed(D_CLOCK_SPEED_MAX);
+    if (clockScrollSpeed <= D_CLOCK_SPEED_MIN) set_clockScrollSpeed(D_CLOCK_SPEED_MIN); // Если clockScrollSpeed == 0 - бегущая строка начинает дергаться.
+    if (clockScrollSpeed >= D_CLOCK_SPEED_MAX) set_clockScrollSpeed(D_CLOCK_SPEED_MAX);
   }
   if (clockScrollSpeed > 254) {
     clockTimer.stopTimer();
@@ -892,8 +892,8 @@ void setTimersForMode(uint8_t aMode) {
 
   if (!e131_wait_command) {
     set_textScrollSpeed(getTextScrollSpeed());
-    if (textScrollSpeed < D_TEXT_SPEED_MIN) set_textScrollSpeed(D_TEXT_SPEED_MIN); // Если textScrollSpeed == 0 - бегущая строка начинает дергаться.
-    if (textScrollSpeed > D_TEXT_SPEED_MAX) set_textScrollSpeed(D_TEXT_SPEED_MAX);
+    if (textScrollSpeed <= D_TEXT_SPEED_MIN) set_textScrollSpeed(D_TEXT_SPEED_MIN); // Если textScrollSpeed == 0 - бегущая строка начинает дергаться.
+    if (textScrollSpeed >= D_TEXT_SPEED_MAX) set_textScrollSpeed(D_TEXT_SPEED_MAX);
   }
   
   textTimer.setInterval(textScrollSpeed);

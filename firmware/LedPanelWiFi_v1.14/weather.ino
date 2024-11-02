@@ -126,7 +126,7 @@ bool getWeather() {
       } else {
         error = true;
         status = F("connection error");
-        DEBUGLOG(printf, "[%s] Unable to connect", protocol);
+        DEBUGLOG(printf, "[%s] Unable to connect", protocol.c_str());
       }
     }
 
@@ -415,6 +415,7 @@ bool getWeather() {
 */
 
 void decodeWeather(){  
+
   bool hasDay   = icon.endsWith("-d");
   bool hasNight = icon.endsWith("-n");
   String ico(icon);
@@ -446,8 +447,6 @@ void decodeWeather(){
 }
 
 void decodeWeather2(){  
-  bool hasDay   = icon.endsWith("d");
-  bool hasNight = icon.endsWith("n");
   
   dayTime = isNight ? F("Темное время суток") : F("Светлое время суток");
 
