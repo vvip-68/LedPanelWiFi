@@ -94,7 +94,7 @@
             {{L.$('Очистить')}}
           </button>
           <div [matTooltip]="getPreviewButtonTooltip()">
-            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabledByIncomeStream() || text.value.length == 0 || this.managementService.state.isNightClockRunnung() || this.managementService.state.isDrawingActive()">
+            <button mat-raised-button color="primary" (click)="showText()" [disabled]="isDisabledByIncomeStream() || text.value.length == 0 || this.managementService.state.isDrawingActive()">
               {{L.$('Просмотр')}}
             </button>
           </div>

@@ -148,7 +148,7 @@ void InitializeTexts() {
     
     // Для строки с индексом 0 проверить - является ли она управляющей
     if (i == 0) {     
-      textIndecies = text;
+      textIndecies = getTextIndeciesLine(text);
       if (!isFirstLineControl()) textIndecies = "";
     }    
     buf[i] = getTextStateChar(i, text);
@@ -170,6 +170,18 @@ void InitializeTexts() {
   ResetRunningTextFlags();
   
   sequenceIdx = isFirstLineControl() ? 1 : -1;
+}
+
+String getTextIndeciesLine(const String& str) {
+  int brk_pos = str.indexOf('\n');
+  if (brk_pos < 0) return isNightClock ? "" : str;
+  
+  String s_out = isNightClock ? str.substring(brk_pos) : str.substring(0, brk_pos); 
+  s_out.replace('\r', ' ');
+  s_out.replace('\n', ' ');
+  s_out.trim();
+
+  return s_out.charAt(0) == '#' ? s_out : "";
 }
 
 char getTextStateChar(uint8_t i, const String& text) {
@@ -289,17 +301,23 @@ void fillString(const String& text) {
   
   while (true) {
 
-    // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
-    if (textHasMultiColor) {
-      if (pos < (MAX_COLORS - 1) && i >= textColorPos[pos + 1]) {      
-        pos++;
-      }      
-      color = pos < MAX_COLORS ? textColor[pos] : globalTextColor;
+
+    // Для режима ночной бегущей строки - все цвета игнорировать, рисовать цветом ночных часов
+    if (isNightClock) {
+      color = getNightClockColorByIndex(nightClockColor); 
     } else {
-      // 0 - монохром: 1 - радуга; 2 -  каждая буква свой цвет
-      color = COLOR_TEXT_MODE;
-      if (color == 0 || color > 2) {
-        color = useSpecialTextColor ? specialTextColor : globalTextColor;  
+      // Если строка - многоцветная (содержит несколько макросов определения цвета) - определить каким цветом выводится текущая буква строки
+      if (textHasMultiColor) {
+        if (pos < (MAX_COLORS - 1) && i >= textColorPos[pos + 1]) {      
+          pos++;
+        }      
+        color = pos < MAX_COLORS ? textColor[pos] : globalTextColor;
+      } else {
+        // 0 - монохром: 1 - радуга; 2 -  каждая буква свой цвет
+        color = COLOR_TEXT_MODE;
+        if (color == 0 || color > 2) {
+          color = useSpecialTextColor ? specialTextColor : globalTextColor;  
+        }
       }
     }
 
@@ -329,8 +347,7 @@ void fillString(const String& text) {
 
   }
   fullTextFlag = false;
-
-
+  
   // Строка убежала?
   if (offset < -j * (LET_WIDTH + SPACE)) {
     offset = pWIDTH + 3;
@@ -781,6 +798,15 @@ bool prepareNextText(const String& text) {
 // Получить индекс строки для отображения
 // -1 - если показывать нечего
 int8_t getNextLine(int8_t currentIdx) {
+        
+  #if (USE_TEXT_CACHE == 1)
+    // Если разрешено кэширование текстов бегущей строки и длина строки менее предельного размера - 
+    // сохранить в кэш саму строку. Если размер строки - более предельного размера - поместить в строку "флажок" '{^}' указывающий на то, что данную строку нужно брать из файла
+    textIndecies = getTextIndeciesLine(textLines[0]);
+  #else
+    textIndecies = getTextIndeciesLine(loadTextByIndex(0));
+  #endif
+  
   // Если не задана следующая строка - брать следующую из массива в соответствии с правилом
   // sequenceIdx > 0 - Строка textIndecies содержит последовательность отображения строк, например "#12345ZYX"
   //                   в этом случае sequenceIdx = 1..textIndecies.length() и показывает на символ в строке, содержащий индекс следующей строки к отображению
@@ -807,10 +833,10 @@ int8_t getNextLine(int8_t currentIdx) {
     }
     int8_t att = 0;
     cnt = textsNotEmpty.length();
-    if (cnt > 0) {
+    if (textIndecies.length() > 0 && cnt > 0) {
       char c = textIndecies.charAt(sequenceIdx);
       if (c == '#') {
-        // textIndecies == "##", sequenceIdx всегда 1; textIndecies.charAt(1) == '#';
+        // textIndecies -> "##", sequenceIdx всегда 1; textIndecies.charAt(1) == '#';
         while (!found && att < cnt) {
           att++;
           uint8_t idx = random8(1, cnt);
@@ -2782,6 +2808,8 @@ bool isFirstLineControl() {
 
   // По умолчанию - строка 0 - обычная строка для отображения, а не управляющая
   // textIndecies - строка с индексом '0'
+  // Строка может состоять из двух строк, строки разделены символом '\n'. Первая строка  - управление для дневного режима, вторая - для ночного.
+  // Нсли строка для ночного режима пустая - бегущая строка ночью выключена
   // Если textIndecies начинается с '#'  - это строка содержит последовательность индексов строк в каком порядке их отображать. Индексы - 0..9,A..Z
   // Если textIndecies начинается с '##' - это управляющая строка, показывающая, что строки отображать в случайном порядке
   
@@ -2805,7 +2833,7 @@ bool isFirstLineControl() {
 
   if (isControlLine) {
     // Допускаются только 1..9,A-Z в верхнем регистре, остальные удалить; 
-    // textIndecies[1] == '#' - допускается - значит брать случайную последовательность
+    // textIndecies[1] -> '#' - допускается - значит брать случайную последовательность
     // '0' - НЕ допускается - т.к. строка массива с индексом 0 - и есть управляющая
     textIndecies.toUpperCase();
     bool hasWrongChars = false;

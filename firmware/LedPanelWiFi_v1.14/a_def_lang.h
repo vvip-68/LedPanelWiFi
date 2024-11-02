@@ -270,7 +270,7 @@
   
   #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
-  static const char textLine_1[] PROGMEM = "Всё будет хорошо!";
+  static const char textLine_1[] PROGMEM = "{D} {WT}";
   static const char textLine_2[] PROGMEM = "До {C#00D0FF}Нового года {C#FFFFFF}осталось {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}";
   static const char textLine_3[] PROGMEM = "До {C#0019FF}Нового года{C#FFFFFF} {P01.01.****#4}";
   static const char textLine_4[] PROGMEM = "С {C#00D0FF}Новым {C#0BFF00}{D:yyyy} {C#FFFFFF}годом!{S01.01.****#31.01.**** 23:59:59}{E21}";

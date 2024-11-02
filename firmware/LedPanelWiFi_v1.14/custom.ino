@@ -39,7 +39,7 @@ void doEffectWithOverlay(uint8_t aMode) {
   }
 
   // Оверлей нужен для всех эффектов, иначе при малой скорости эффекта и большой скорости часов поверх эффекта буквы-цифры "смазываются"
-  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && !isNightClock && thisMode < MAX_EFFECT;
+  bool textOvEn  = ((textOverlayEnabled && (getEffectTextOverlayUsage(aMode))) || ignoreTextOverlaySettingforEffect) && !isTurnedOff && (!isNightClock || isNightClock && textIndecies.length() > 0) && thisMode < MAX_EFFECT;
   bool clockOvEn = clockOverlayEnabled && getEffectClockOverlayUsage(aMode) && thisMode != MC_CLOCK && thisMode != MC_DRAW && thisMode != MC_LOADIMAGE;
   bool needStopText = false;
   
@@ -259,22 +259,24 @@ void doEffectWithOverlay(uint8_t aMode) {
       #endif      
 
       // Если указан другой эффект, поверх которого бежит строка - отобразить его
-      if (specialTextEffect >= 0) {
-        if (currentTimerEffectId != specialTextEffect) {
-          // Если заказанный эффект не тот же, что сейчас воспроизводится или если эффект имеет вариант - выполнить инициализацию эффекта
-          setTimersForMode(specialTextEffect);
-          loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >= 0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
-        }        
-        processEffect(specialTextEffect);
-      } else if (useSpecialBackColor) {
-        // Задана отрисовка строки поверх однотонной заливки указанным цветом - не нужно сохранять 
-        // состояние картинки перед выводом часов / бегущей строки - следующая итерация все равно заполнит
-        // все поле указанным цветом
-        needOverlay = false;
-        fillAll(specialBackColor);
-      } else {
-        // Отобразить текущий эффект, поверх которого будет нарисована строка
-        processEffect(aMode);
+      if (!isNightClock) {
+        if (specialTextEffect >= 0) {
+          if (currentTimerEffectId != specialTextEffect) {
+            // Если заказанный эффект не тот же, что сейчас воспроизводится или если эффект имеет вариант - выполнить инициализацию эффекта
+            setTimersForMode(specialTextEffect);
+            loadingFlag = (specialTextEffect != saveEffectBeforeText) || (specialTextEffectParam >= 0 && getParam2ForMode(specialTextEffect).charAt(0) != 'X');
+          }        
+          processEffect(specialTextEffect);
+        } else if (useSpecialBackColor) {
+          // Задана отрисовка строки поверх однотонной заливки указанным цветом - не нужно сохранять 
+          // состояние картинки перед выводом часов / бегущей строки - следующая итерация все равно заполнит
+          // все поле указанным цветом
+          needOverlay = false;
+          fillAll(specialBackColor);
+        } else {
+          // Отобразить текущий эффект, поверх которого будет нарисована строка
+          processEffect(aMode);
+        }
       }
     } else {
       // Иначе отрисовать текущий эффект
@@ -490,7 +492,7 @@ void doEffectWithOverlay(uint8_t aMode) {
 
   // Если цикл не "холостой", а была отрисовка эффекта - и пришло время перерисовать текст - сделать это
   // MC_CLOCK - ночные/дневные часы; MC_TEXT - показ IP адреса - всё на черном фоне
-  if (needShowScreen && (showTextNow || aMode == MC_TEXT) && !isNightClock) {   
+  if (needShowScreen && (showTextNow || aMode == MC_TEXT)) {   
     // Нарисовать оверлеем текст бегущей строки
     calcTextRectangle();                                 // Вычислить позицию и размеры блока под оверлей бегущей строки
     if (needOverlay) saveTextOverlay();                  // Сохранить оверлей - область узора на экране поверх которого будет выведена бегущая строка

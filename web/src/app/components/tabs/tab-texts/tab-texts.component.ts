@@ -339,7 +339,7 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
   saveText() {
     // $6 0|текст  - текст бегущей строки "$6 0|X|text" - X - 0..9,A..Z - индекс строки, text - сохраняемый текст
-    const text = this.text.nativeElement.value.replace(/\n/g, ' ').replace(/\u0000/g, ' ').trim();
+    const text = this.text_index === 0 ? this.text.nativeElement.value : this.text.nativeElement.value.replace(/\n/g, ' ').replace(/\u0000/g, ' ').trim();
     this.socketService.sendText(`$6 0|${this.buttons[this.text_index].label}|${text}`);
     this.buttons[this.text_index].text = text;
     this.managementService.text_lines[this.text_index] = text;

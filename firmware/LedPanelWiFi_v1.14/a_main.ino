@@ -1331,18 +1331,17 @@ void parsing() {
               char c = str.charAt(0);
               str = str.substring(2);
               str.replace('\r', ' ');
-              str.replace('\n', ' ');
               str.trim();              
               tmp_eff = getTextIndex(c); // c: '0'..'9','A'..'Z' -> 0..35
-              if (tmp_eff == 0) {                
-                 textIndecies = str;
-                 if (!isFirstLineControl())  {
-                   textIndecies.clear();
-                   sequenceIdx = -1;
-                   saveTextLine(c, str);
-                 } else {
-                   saveTextLine(c, textIndecies);
-                 }                 
+              if (tmp_eff == 0) {
+                textIndecies = getTextIndeciesLine(str);
+                if (!isFirstLineControl())  {
+                  textIndecies.clear();
+                  sequenceIdx = -1;
+                  saveTextLine(c, str);
+                } else {
+                  saveTextLine(c, str);
+                }                 
               } else if (tmp_eff > 0) {
                 saveTextLine(c, str);
               }
