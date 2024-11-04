@@ -2854,7 +2854,6 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
 
   // Контрольная сумма списка картинок с внутренней файловой системы
   if (key == "CRF0") {
-    String tmp(getStoredImages("FS", pWIDTH, pHEIGHT));
     uint16_t len = tmp.length(); 
     char buf[len + 1];
     strcpy(buf, tmp.c_str()); 
@@ -2862,7 +2861,6 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     if (shrt) {
       return String(crc);
     }
-    String str("CRF0:");
     str += crc;
     return str; 
   }

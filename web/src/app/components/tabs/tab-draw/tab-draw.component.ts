@@ -226,7 +226,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
     // текущего выбранного хранилища
     setTimeout(() => {
       this.managementService.getKeys(`CRF${this.storage}`);
-    }, 1000);
+    }, 500);
   }
 
   isDisabled(): boolean {

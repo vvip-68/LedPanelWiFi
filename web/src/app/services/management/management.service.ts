@@ -415,10 +415,37 @@ export class ManagementService extends Base implements OnDestroy {
           break;
         }
 
+        case 'CRF0':
+        case 'CRF1':
+          // CRF0 - CRC списка файлов сохраненных картинок в файловой системе микроконтроллера
+          // CRF1 - CRC списка файлов сохраненных картинок в папке SD-карты
+          const crc = window.localStorage[key];
+          const list = window.localStorage[key == 'CRF0' ? 'FL0' : 'FL1'];
+          if (isNullOrUndefinedOrEmpty(list) || isNullOrUndefinedOrEmpty(crc) || crc !== args) {
+            // ... если нет или не совпадает - запросить список эффектов у устройства
+            window.localStorage[key] = args;
+            this.getKeys(key == 'CRF0' ? 'FL0' : 'FL1');
+            return;
+          } else {
+            let idx = 0;
+            const parts = clearBraces(list).split(',');
+            this.picture_list = [];
+            for (const part of parts) {
+              if (!isNullOrUndefinedOrEmpty(part)) {
+                this.picture_list.push(new ComboBoxItem(part, idx++));
+              }
+            }
+            this.picture_list = this.sortComboBoxItems(this.picture_list);
+            this.picture_list$.next(this.picture_list);
+            this.stateKey$.next(key == 'CRF0' ? 'FL0' : 'FL1');
+          }
+          break;
+
         case 'FL':
         case 'FL0':
         case 'FL1':{
           let idx = 0;
+          window.localStorage[key] = args;
           const parts = clearBraces(args).split(',');
           this.picture_list = [];
           for (const part of parts) {
