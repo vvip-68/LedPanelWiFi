@@ -2862,6 +2862,7 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
     if (shrt) {
       return String(crc);
     }
+    String str("CRF0:");
     str += crc;
     return str; 
   }
