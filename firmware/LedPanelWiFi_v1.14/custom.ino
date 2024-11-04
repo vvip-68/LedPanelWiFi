@@ -268,10 +268,6 @@ void doEffectWithOverlay(uint8_t aMode) {
           }        
           processEffect(specialTextEffect);
         } else if (useSpecialBackColor) {
-          // Задана отрисовка строки поверх однотонной заливки указанным цветом - не нужно сохранять 
-          // состояние картинки перед выводом часов / бегущей строки - следующая итерация все равно заполнит
-          // все поле указанным цветом
-          needOverlay = false;
           fillAll(specialBackColor);
         } else {
           // Отобразить текущий эффект, поверх которого будет нарисована строка
