@@ -279,7 +279,7 @@
   static const char textLine_7[] PROGMEM = "{C#FF000F}Крибле! {C#000001}Крабле!! {C#00FF00}Бумс!!!{E24}";
   static const char textLine_8[] PROGMEM = "Крепитесь, люди - скоро {C#FF0300}лето!{S01.01.****#10.04.****}";
   static const char textLine_9[] PROGMEM = "Это {C#0081FF}\"ж-ж-ж\"{C#FFFFFF} - неспроста!";
-  static const char textLine_A[] PROGMEM = "{C#000001}Раз! Два!! Три!!! {C#33C309}Ёлочка,{B#000000}{C#000001} гори!!!";
+  static const char textLine_A[] PROGMEM = "{C#000001}Раз! Два!! Три!!! {C#33C309}Ёлочка,{B#000000}{C#000001} гори!!!{C#FFFFFF}";
   static const char textLine_B[] PROGMEM = "Дело было вечером, делать было нечего...";
   static const char textLine_C[] PROGMEM = "С наступающим Новым {C#00C911}{D:yyy+}{C#FFFFFF} годом!{S01.12.****#31.12.****}";
   static const char textLine_D[] PROGMEM = "Это нужно обдумать...";
@@ -869,7 +869,7 @@
   static const char textLine_7[] PROGMEM = "{C#FF000F}¡Habracadabra! {C#00FF00}¡¡¡Bum!!!{E24}";
   static const char textLine_8[] PROGMEM = "Prepárense, gente, se acerca {C#FF0300}el verano!{S01.01.****#10.04.****}";
   static const char textLine_9[] PROGMEM = "¿Que {C#0081FF}pasa{C#FFFFFF} Hombre?";
-  static const char textLine_A[] PROGMEM = "{C#000001}¡Uno! ¡¡Dos!! Tres!!! {C#33C309}Tira,{B#000000}{C#000001} ¡¡¡Otra vez!!!";
+  static const char textLine_A[] PROGMEM = "{C#000001}¡Uno! ¡¡Dos!! Tres!!! {C#33C309}Tira,{B#000000}{C#000001} ¡¡¡Otra vez!!!{C#FFFFFF}";
   static const char textLine_B[] PROGMEM = "Esa linia no tiene nada...";
   static const char textLine_C[] PROGMEM = "¡Que bonito!";
   static const char textLine_D[] PROGMEM = "Hola, hola caracola...";
