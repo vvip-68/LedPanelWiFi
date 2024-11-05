@@ -233,7 +233,7 @@ bool checkWebDirectory() {
     return false;
   }
   
-  DEBUGLN(F("Cпискок файлов web-интерфейса:"));  
+  DEBUGLN(F("Cписок файлов web-интерфейса:"));  
 
   String dir_name(directoryName);
   int16_t p = dir_name.lastIndexOf("/");
