@@ -212,8 +212,8 @@ export class ManagementService extends Base implements OnDestroy {
 
       switch (cmd.toUpperCase()) {
 
-        // Язык из прошивки - 'RUS', 'ENG' или что в прошивке еще определено.
-        // Встроенные языки - 'RUS', 'ENG' изначально присутствуют в прошивке в сервисе languageService,
+        // Язык из прошивки - 'RUS', 'ENG', 'ESP', 'LAT' или что в прошивке еще определено.
+        // Встроенные языки - 'RUS', 'ENG', 'ESP', 'LAT' изначально присутствуют в прошивке в сервисе languageService,
         // Дополнительные языки могут быть загружены из assets/langs в json файлах с именем файла, соответствующим запрошенному языку,
         // например 'ger.json', 'fra.json' и т.д.
         case 'LG':

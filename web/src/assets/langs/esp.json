@@ -152,7 +152,8 @@
   "сег.": "seg.",
   "возврат в авторежим выключен": "volver al modo automático desactivado",
   "в авторежим через": "activar el modo automático a través de",
-  "[[ 0-выкл ]]": "[ 0-off ]",
+  "[ 0-выкл ]": "[ 0-off ]",
+  "[0 - выключено]": "[0 - off]",
   "Настройки погоды": "Configuración meteorológica",
   "Сервер погоды": "Servidor meteorológico",
   "Yandex Weather": "Yandex Weather",
@@ -182,6 +183,13 @@
   "Save SDFS": "ya existe una copia de seguridad de la configuración. ¿Reemplazar con una nueva versión?",
   "Перезагрузка устройства": "Reiniciar el dispositivo",
   "Перезагрузить": "Volver a cargar",
+  "Режимы по времени": "Modos de tiempo",
+  "Режим 1": "Modo 1",
+  "Режим 2": "Modo 2",
+  "Режим 3": "Modo 3",
+  "Режим 4": "Modo 4",
+  "Нет действия": "Sin acción",
+  "Демо режим": "Modo demo",
   "Будильники": "Despertadores",
   "Настройки звука": "Ajustes de sonido",
   "Эффект рассвета": "Efecto amanecer",
@@ -564,5 +572,6 @@
   "Круглый": "Redondo",
   "Отображать": "Mostrar",
   "Градус": "Grado",
-  "Изменчивость": "Variabilidad"
+  "Изменчивость": "Variabilidad",
+  "Справка": "Ayuda"
 }

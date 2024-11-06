@@ -927,6 +927,299 @@
   static const char WTR_LANG_OWM[]                   = "es";      // OpenWeatherMap = 2 - [código de idioma alfabético-ru,en,de,fr, it y así sucesivamente. Si el idioma no sabe - devuelve tanto para en
   
 #endif
+
+// ============================================== LAT ============================================== 
+
+#if (LANG == 'LAT')
+  #define UI F("LAT")
+  // Web saskarnei nodoto efektu saraksts un secība. 
+  // Efektu nosaukumu secībai sarakstā jāsakrīt ar a_def_soft.h failā definēto efektu sarakstu
+  // rindās, kas sākas ar 89. Šis saraksts tiek nodots tīmekļa klientam, kuram ir nepieciešams buferis. Bufera lielums ir MAX_BUFFER_SIZE
+  // Ja dotā virkne (UTF-8, divi baiti uz katru rakstzīmi) neiekļaujas buferī - efekti netiks pārsūtīti uz tīmekļa saskarni, efektu joslas nebūs redzamas,
+  // pārlūkprogrammas žurnālos parādīsies rinda
+  // {"e": "stt","d": "{\"LE\":null}"}
+  // json='{"LE":null}'
+  // Šādā gadījumā ir vai nu jāsaīsina efektu nosaukumi, vai arī jāpalielina bufera lielums. Taču, palielinot bufera lielumu, var rasties atmiņas trūkums
+  // un nestabilu programmaparatūras darbību ESP8266. ESP32 ir vairāk atmiņas - bufera lielumu var palielināt.
+
+  static const char EFFECT_LIST[] PROGMEM =
+  "Pulkstenis,Lampas,Sniegputenis,Kubs,Varavīksne,Peintbols,Ugunsgrēks,The Matrix,Tārpi,Zvaigžņu kritums,Confetti," 
+  "Krāsu troksnis,Mākoņi,Lava,Plazma,Benzīns ūdenī,Pāvs,Zebra,Skaļš mežs,Jūras sērfošana,Krāsu maiņa," 
+  "Ugunspuķes,Virpulis,Ciklons,Mirgošana,Ziemeļblāzma,Ēnas,Labirints,Čūska,Tetris,Arkanoids," 
+  "Palete,Spektrs,Sinusas,Vyshhyvanka,Lietus,Kamīns,Strēlītes,Raksti,Rubiks,Zvaigznes,Aizkars,Satiksme,Rītausma,Plūsma,Uguņošana,Svītras"
+
+  // Animācijas, laikapstākļu, diapozitīvu un SD kartes efektus var atspējot ar nosacījumiem USE_ANIMATION = 0 un USE_SD = 0
+  // Efektu saraksts WebUI tiek nodots pozicionāli: efektam “Clock” ir ID=0, efektam “SD-card” ir ID=47 (skatīt definīciju a_def_soft.h)
+  // Ja tas ir iespējots WebUI pusē, ID (precīzāk, efekta pozīcija sarakstā) tiek nodots kontrolierim. 
+  // Lai, atslēdzot, piemēram, “Animācija”, “Laikapstākļi”, “Slaidi”, netiktu veikta nobīde - trūkstošo efektu numerācija tiek nodota kā tukša virkne
+  // Tad, iegūstot sarakstu, WebUI izlaidīs tukšos efektus, bet pozīcijas paliks pareizas, un efektam “SD karte” būs ID=47, nevis 44.
+  #if (USE_ANIMATION == 1)
+  ",Animācija,Laikapstākļi,Slaidi"
+  #else 
+  ",,,"
+  #endif
+  #if (USE_SD == 1) 
+  ",SD-karte"
+  #else 
+  ","
+  #endif
+  ; // <-- šis semikolslēdzis noslēdz operatoru static const char EFFECT_LIST[] PROGMEM =
+
+  // ****************** ALARMU UZSTĀDĪŠANA ********************
+  #if (USE_MP3 == 1)
+  // SD kartē MP3 atskaņotājā (DFPlayer) saknē ir trīs mapes - “01”, “02” un “03”.
+  // Mapē “01” ir MP3 faili ar skaņām, kas tiek atskaņotas, kad notiek modinātājs
+  // Mapē “02” ir MP3 faili ar skaņām, kas tiek atskaņotas, kad notiek saullēkts
+  // Mapē “03” ir MP3 faili ar skaņām, kas atskaņotas {A} makro skrejvirkne
+  // DFPlayer nav iespējas nolasīt failu nosaukumus, bet tikai iegūt mapē esošo failu skaitu.
+  // Komanda atskaņot audio nozīmē - atskaņot failu ar indeksu (numuru) N no mapes M
+  // Failu numurus nosaka SD kartes failu piešķiršanas tabula (FAT), un tie tiek ģenerēti tādā secībā, kādā faili tiek ierakstīti tukšajā zibatmiņas diskā
+  // Tādējādi mapē ierakstītais fails pirmais saņem numuru 1, otrais - 2 un tā tālāk, un tas nav atkarīgs no failu nosaukumiem.
+  // Šajos masīvos ir programmā parādīto skaņu nosaukumi tādā secībā, kas atbilst mapēs ierakstīto failu numerācijai.
+  //
+  // Lai izveidotu pareizu skaņu failu secību, pārdēvējiet tos datorā pagaidu mapē, lai tie būtu šādi
+  // piemēram, dodiet tiem tikai ciparu nosaukumus, piemēram, 001.mp3, 002.mp3 utt. vai 
+  // piešķirt esošajam nosaukumam ciparu prefiksu, piemēram, 01_birds.mpr, 02_thunder.mp3 un tā tālāk.
+  // Failiem mapē jābūt sakārtotiem nosaukumu secībā.
+  // Pēc tam tīrā microSD kartē izveidojiet mapi, kurā tiks ievietoti skaņu faili, un nokopējiet tos uz
+  // sakārtotu sarakstu.
+  // Skaņu saraksts viedtālruņa lietojumprogrammas kombo lodziņā “Trauksmes signāla skaņa”
+  static const char ALARM_SOUND_LIST[] PROGMEM = 
+  "One Step Over,In the Death Car,Trompete sauс,Bāka,Mister Sandman,Zārks,Banana Phone,Carol of the Bells";
+  // Skaņu saraksts izvēles rūtiņai “Rītausmas skaņa” viedtālruņa lietotnē. 
+  static const char DAWN_SOUND_LIST[] PROGMEM =
+  "Putni,Vētra,Sērfot,Lietus,Straume,Mantra,La Petite Fille De La Mer";
+  // Skaņu saraksts {A} makro skrejvirkne
+  static const char NOTIFY_SOUND_LIST[] PROGMEM = 
+  "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board,"
+  "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal,"
+  "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3";
+  #endif
+
+  // Animācijas nosaukumu saraksts. Animācijas ir definētas failā 'animation.ino'.
+  #define LANG_IMAGE_LIST_DEF
+  static const char LANG_IMAGE_LIST[] PROGMEM = 
+  "Sirds,Mario,Laikapstākļi";
+
+  // Modeļu nosaukumu saraksts
+  static const char LANG_PATTERNS_LIST[] PROGMEM = 
+  "Zigzags,Notis,Rombs,Sirds,Ziemassvētku eglīte,Šūna,Smaidiņš,Zigzaga,Svītras,Viļņi,Svari,Aizkars,Tīkls,Sniegpārsla,Kvadrātiņi,Grieķija,Apļi,Rulete,"
+  "Raksts 1,Raksts 2,Raksts 3,Raksts 4,Raksts 5,Raksts 6,Raksts 7,Raksts 8,Raksts 9,Raksts 10,Raksts 11,Raksts 12,Raksts 13,Raksts 14";
+
+  // Laika apstākļi no Yandex
+  static const char Y_CODE_01[] PROGMEM = "daļēji mākoņains, neliels lietus"; // cloudy, light rain
+  static const char Y_CODE_02[] PROGMEM = "daļēji mākoņains, neliels sniegs"; // cloudy, light snow
+  static const char Y_CODE_03[] PROGMEM = "daļēji mākoņains, neliels sniegs un lietus"; // cloudy, wet snow
+  static const char Y_CODE_04[] PROGMEM = "daļēji mākoņains"; // partly cloudy
+  static const char Y_CODE_05[] PROGMEM = "daļēji mākoņains, lietus"; // partly cloudy, rain
+  static const char Y_CODE_06[] PROGMEM = "daļēji mākoņains, sniegs"; // partly cloudy, show
+  static const char Y_CODE_07[] PROGMEM = "daļēji mākoņains, sniegs un lietus"; // partly cloudy, wet snow
+  static const char Y_CODE_08[] PROGMEM = "putenis"; // snowstorm
+  static const char Y_CODE_09[] PROGMEM = "migla"; // fog
+  static const char Y_CODE_10[] PROGMEM = "apmācies"; // overcast
+  static const char Y_CODE_11[] PROGMEM = "apmācies, brīžiem līst"; // overcast, light rain 
+  static const char Y_CODE_12[] PROGMEM = "apmācies, brīžiem sniegs"; // overcast, light snow
+  static const char Y_CODE_13[] PROGMEM = "apmācies, brīžiem sniegs un lietus"; // overcast, wet snow 
+  static const char Y_CODE_14[] PROGMEM = "apmācies, lietus"; // overcast, rain
+  static const char Y_CODE_15[] PROGMEM = "apmācies, sniegs un lietus"; // overcast, wet snow
+  static const char Y_CODE_16[] PROGMEM = "apmācies, sniegs"; // overcast, show
+  static const char Y_CODE_17[] PROGMEM = "apmācies, lietus un pērkona negaiss"; // overcast, thunderstorm withrain
+  static const char Y_CODE_18[] PROGMEM = "skaidrs"; // clear
+
+  // Laika apstākļi no OpenWeatherMap
+  static const char W_CODE_200[] PROGMEM = "Pērkona negaiss, neliels lietus"; // thunderstorm with light rain
+  static const char W_CODE_201[] PROGMEM = "Lietus ar pērkona negaisu"; // thunderstorm with rain
+  static const char W_CODE_202[] PROGMEM = "Pērkona negaiss, spēcīgas lietusgāzes"; // thunderstorm with heavy rain
+  static const char W_CODE_210[] PROGMEM = "Neliels pērkona negaiss"; // light thunderstorm
+  static const char W_CODE_211[] PROGMEM = "Pērkona negaiss"; // thunderstorm
+  static const char W_CODE_212[] PROGMEM = "Spēcīgs pērkona negaiss"; // heavy thunderstorm
+  static const char W_CODE_221[] PROGMEM = "Periodisks pērkona negaiss"; // ragged thunderstorm
+  static const char W_CODE_230[] PROGMEM = "Pērkona negaiss, neliels smidzinošs lietus"; // thunderstorm with light drizzle
+  static const char W_CODE_231[] PROGMEM = "Pērkona negaiss un smidzinošs lietus"; // thunderstorm with drizzle
+  static const char W_CODE_232[] PROGMEM = "Pērkona negaiss ar spēcīgu lietu"; // thunderstorm with heavy drizzle
+  static const char W_CODE_300[] PROGMEM = "Neliels lietus"; // light intensity drizzle
+  static const char W_CODE_301[] PROGMEM = "Smidzinošs lietus"; // drizzle
+  static const char W_CODE_302[] PROGMEM = "Spēcīgs smidzinošs lietus"; // heavy intensity drizzle
+  static const char W_CODE_310[] PROGMEM = "Neliels smidzinošs lietus"; // light intensity drizzle rain
+  static const char W_CODE_311[] PROGMEM = "Smidzinošs lietus"; // drizzle rain
+  static const char W_CODE_312[] PROGMEM = "Spēcīgs lietus"; // heavy intensity drizzle rain
+  static const char W_CODE_313[] PROGMEM = "Spēcīgs lietus, lietus un smidzinošs lietus"; // shower rain and drizzle
+  static const char W_CODE_314[] PROGMEM = "Spēcīga lietusgāze, lietus un smidzinošs lietus"; // heavy shower rain and drizzle
+  static const char W_CODE_321[] PROGMEM = "Smidzinošs lietus"; // shower drizzle 
+  static const char W_CODE_500[] PROGMEM = "Neliels lietus"; // light rain
+  static const char W_CODE_501[] PROGMEM = "Mērens lietus"; // moderate rain
+  static const char W_CODE_502[] PROGMEM = "Spēcīgs lietus"; // heavy intensity rain
+  static const char W_CODE_503[] PROGMEM = "Spēcīgs lietus"; // very heavy rain
+  static const char W_CODE_504[] PROGMEM = "Lietusgāze"; // extreme rain
+  static const char W_CODE_511[] PROGMEM = "Krusa"; // freezing rain
+  static const char W_CODE_520[] PROGMEM = "Neliels lietus"; // light intensity shower rain
+  static const char W_CODE_521[] PROGMEM = "Smidzinošs lietus"; // shower rain
+  static const char W_CODE_522[] PROGMEM = "Spēcīgs lietus"; // heavy intensity shower rain
+  static const char W_CODE_531[] PROGMEM = "Brīžiem līst"; // ragged shower rain
+  static const char W_CODE_600[] PROGMEM = "Neliels sniegs"; // light snow
+  static const char W_CODE_601[] PROGMEM = "Sniegs"; // Snow
+  static const char W_CODE_602[] PROGMEM = "Sniegputenis"; // Heavy snow
+  static const char W_CODE_611[] PROGMEM = "Slapjš"; // Sleet
+  static const char W_CODE_612[] PROGMEM = "Viegls sniegs"; // Light shower sleet
+  static const char W_CODE_613[] PROGMEM = "Lietusgāze, sniegs"; // Shower sleet
+  static const char W_CODE_615[] PROGMEM = "Slapjš sniegs"; // Light rain and snow
+  static const char W_CODE_616[] PROGMEM = "Lietus ar sniegu"; // Rain and snow
+  static const char W_CODE_620[] PROGMEM = "Neliels sniegputenis"; // Light shower snow
+  static const char W_CODE_621[] PROGMEM = "Sniegputenis"; // Shower snow
+  static const char W_CODE_622[] PROGMEM = "Spēcīgs sniegputenis"; // Heavy shower snow
+  static const char W_CODE_701[] PROGMEM = "Migla"; // mist
+  static const char W_CODE_711[] PROGMEM = "Dūmaka"; // Smoke
+  static const char W_CODE_721[] PROGMEM = "Neliela migla"; // Haze
+  static const char W_CODE_731[] PROGMEM = "Putekļu virpuļi"; // sand/ dust whirls
+  static const char W_CODE_741[] PROGMEM = "Migla"; // fog
+  static const char W_CODE_751[] PROGMEM = "Smilšu virpuļi"; // sand
+  static const char W_CODE_761[] PROGMEM = "Putekļu virpuļi"; // dust
+  static const char W_CODE_762[] PROGMEM = "Vulkāniskie pelni"; // volcanic ash
+  static const char W_CODE_771[] PROGMEM = "Brāzmains vējš"; // squalls
+  static const char W_CODE_781[] PROGMEM = "Tornado"; // tornado
+  static const char W_CODE_800[] PROGMEM = "Skaidras debesis"; // clear sky
+  static const char W_CODE_801[] PROGMEM = "Neliels mākoņainums"; // few clouds: 11-25%
+  static const char W_CODE_802[] PROGMEM = "Daļēji mākoņains"; // scattered clouds: 25-50%
+  static const char W_CODE_803[] PROGMEM = "Daļēji mākoņains"; // broken clouds: 51-84%
+  static const char W_CODE_804[] PROGMEM = "Apmācies"; // overcast clouds: 85-100%
+
+  // Datuma izvades konstantes atzīmētājā
+
+  static const char SMonth_01[] PROGMEM = "janvāra";
+  static const char SMonth_02[] PROGMEM = "februāra";
+  static const char SMonth_03[] PROGMEM = "marta";
+  static const char SMonth_04[] PROGMEM = "aprīļa";
+  static const char SMonth_05[] PROGMEM = "maija";
+  static const char SMonth_06[] PROGMEM = "jūnija";
+  static const char SMonth_07[] PROGMEM = "jūlija";
+  static const char SMonth_08[] PROGMEM = "augusta";
+  static const char SMonth_09[] PROGMEM = "septembra";
+  static const char SMonth_10[] PROGMEM = "oktobra";
+  static const char SMonth_11[] PROGMEM = "novembra";
+  static const char SMonth_12[] PROGMEM = "decembra";
+
+  static const char SMnth_01[] PROGMEM = "jan";
+  static const char SMnth_02[] PROGMEM = "feb";
+  static const char SMnth_03[] PROGMEM = "mar";
+  static const char SMnth_04[] PROGMEM = "apr";
+  static const char SMnth_05[] PROGMEM = "maj";
+  static const char SMnth_06[] PROGMEM = "jūn";
+  static const char SMnth_07[] PROGMEM = "jūl";
+  static const char SMnth_08[] PROGMEM = "aug";
+  static const char SMnth_09[] PROGMEM = "sep";
+  static const char SMnth_10[] PROGMEM = "okt";
+  static const char SMnth_11[] PROGMEM = "nov";
+  static const char SMnth_12[] PROGMEM = "dec";
+
+  static const char SDayFull_1[] PROGMEM = "pirmdiena";
+  static const char SDayFull_2[] PROGMEM = "otrdiena";
+  static const char SDayFull_3[] PROGMEM = "trešdiena";
+  static const char SDayFull_4[] PROGMEM = "ceturtdiena";
+  static const char SDayFull_5[] PROGMEM = "piektdiena";
+  static const char SDayFull_6[] PROGMEM = "sestdiena";
+  static const char SDayFull_7[] PROGMEM = "svētdiena";
+
+  static const char SDayShort_1[] PROGMEM = "pir";
+  static const char SDayShort_2[] PROGMEM = "otr";
+  static const char SDayShort_3[] PROGMEM = "tre";
+  static const char SDayShort_4[] PROGMEM = "cet";
+  static const char SDayShort_5[] PROGMEM = "pie";
+  static const char SDayShort_6[] PROGMEM = "ses";
+  static const char SDayShort_7[] PROGMEM = "sv";
+  static const char SDayShrt_1[] PROGMEM = "pr";
+  static const char SDayShrt_2[] PROGMEM = "ot";
+  static const char SDayShrt_3[] PROGMEM = "tr";
+  static const char SDayShrt_4[] PROGMEM = "ct";
+  static const char SDayShrt_5[] PROGMEM = "pk";
+  static const char SDayShrt_6[] PROGMEM = "ss";
+  static const char SDayShrt_7[] PROGMEM = "sv";
+
+  static const char SDayForm_1[] PROGMEM = " dienas"; // Atstarpe sākumā ir obligāta
+  static const char SDayForm_2[] PROGMEM = " diena";
+  static const char SDayForm_3[] PROGMEM = " dienas";
+
+  static const char SHourForm_1[] PROGMEM = " stunda"; // Atstarpe sākumā ir obligāta
+  static const char SHourForm_2[] PROGMEM = " stundas";
+  static const char SHourForm_3[] PROGMEM = " stundas";
+
+  static const char SMinuteForm_1[] PROGMEM = " minūtes"; // Atstarpe sākumā ir obligāta
+  static const char SMinuteForm_2[] PROGMEM = " minūte";
+  static const char SMinuteForm_3[] PROGMEM = " minūtes";
+
+  static const char SSecondForm_1[] PROGMEM = " sekundes"; // Atstarpe sākumā ir obligāta
+  static const char SSecondForm_2[] PROGMEM = " sekunde";
+  static const char SSecondForm_3[] PROGMEM = " sekundes";
+
+  // Veicamās rindas, kas tiks aizpildīta ar šīm vērtībām, kad a_def_hard.h (62. rindā) ir iestatīts karodziņš INITIALIZE_TEXTS == 1, piemēri
+  // inicializācijas posmā, pirmo reizi palaižot programmaparatūru mikrokontrolierī.
+  // Šajos piemēros ir sniegtas dažas iespējas, kā izmantot makroautomātiskos kodus ķeksīša programmā.
+  #if (INITIALIZE_TEXTS == 1)
+  static const char textLine_0[] PROGMEM = "##";
+  static const char textLine_1[] PROGMEM = "Viss būs kārtībā!";
+  static const char textLine_2[] PROGMEM = "Līdz {C#00D0FF}Jaunajam gadam {C#FFFFFF} atlicis {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}";
+  static const char textLine_3[] PROGMEM = "Līdz {C#0019FF}Jaunajam gadam{C#FFFFFF} {P01.01.****#4}";
+  static const char textLine_4[] PROGMEM = "Laimīgu {C#00D0FF}Jauno {C#0BFF00}{D:yyyy} {C#FFFFFF}gadu!{S01.01.****#31.01.**** 23:59:59}{E21}";
+  static const char textLine_5[] PROGMEM = "{C#10FF00}Rīgā {C#FFFFFF}{WS} {WT}";
+  static const char textLine_6[] PROGMEM = "Show must go on!{C#000002}";
+  static const char textLine_7[] PROGMEM = "{C#FF000F}Krible! {C#000001}Krable!! {C#00FF00}Bums!!!{E24}";
+  static const char textLine_8[] PROGMEM = "Sagatavojieties, cilvēki {C#FF0300}tuvojas vasara!{S01.01.****#10.04.****}";
+  static const char textLine_9[] PROGMEM = "";
+  static const char textLine_A[] PROGMEM = "";
+  static const char textLine_B[] PROGMEM = "";
+  static const char textLine_C[] PROGMEM = "Laimīgu Jauno {C#00C911}{D:yyy+}{C#FFFFFF} gadu!{S01.12.****#31.12.****}";
+  static const char textLine_D[] PROGMEM = "";
+  static const char textLine_E[] PROGMEM = "";
+  static const char textLine_F[] PROGMEM = "{C#10FF00}Rīgā {C#FFFFFF}{WS} {WT}";
+  static const char textLine_G[] PROGMEM = "";
+  static const char textLine_H[] PROGMEM = "Šodien {D:d MMMM yyyy} gadi, {D:dddd}";
+  static const char textLine_I[] PROGMEM = "";
+  static const char textLine_J[] PROGMEM = "";
+  static const char textLine_K[] PROGMEM = "Priecīgus Ziemassvētkus!{S07.01.****}";
+  static const char textLine_L[] PROGMEM = "";
+  static const char textLine_M[] PROGMEM = "Šodien {D:dddd dd MMMM}, uz ielas {WS}, {WT}";
+  static const char textLine_N[] PROGMEM = "Priecīgus svētkus, kaimiņi!";
+  static const char textLine_O[] PROGMEM = "Neesiet garlaicīgi!";
+  static const char textLine_P[] PROGMEM = "";
+  static const char textLine_Q[] PROGMEM = "";
+  static const char textLine_R[] PROGMEM = "";
+  static const char textLine_S[] PROGMEM = "";
+  static const char textLine_T[] PROGMEM = "";
+  static const char textLine_U[] PROGMEM = "";
+  static const char textLine_V[] PROGMEM = "";
+  static const char textLine_W[] PROGMEM = "";
+  static const char textLine_X[] PROGMEM = "";
+  static const char textLine_Y[] PROGMEM = "Pacelieties {P7:30#Z#60#60#12345}!";
+  static const char textLine_Z[] PROGMEM = "Labrīt!";
+  #endif
+  // Darbības rezultātu virknes un daži citi ziņojumi, ko pārraida
+  // no programmaparatūras uz tīmekļa lietojumprogrammu, lai parādītu
+  static const char MSG_FILE_DELETED[] PROGMEM = "Izdzēsts fails";
+  static const char MSG_FILE_DELETE_ERROR[] PROGMEM = "Failu dzēšanas kļūda";
+  static const char MSG_FILE_SAVED[] PROGMEM = "Faili ir saglabāti";
+  static const char MSG_FILE_SAVE_ERROR[] PROGMEM = "Kļūda, rakstot failā";
+  static const char MSG_FILE_CREATE_ERROR[] PROGMEM = "Faila izveides kļūda";
+  static const char MSG_FOLDER_CREATE_ERROR[] PROGMEM = "Kļūda, izveidojot glabāšanas mapi";
+  static const char MSG_FILE_LOADED[] PROGMEM = "Augšupielādētais fails";
+  static const char MSG_FILE_LOAD_ERROR[] PROGMEM = "Failu nolasīšanas kļūda";
+  static const char MSG_FILE_NOT_FOUND[] PROGMEM = "Faili nav atrasti";
+  static const char MSG_FOLDER_NOT_FOUND[] PROGMEM = "Mapes nav atrastas";
+  static const char MSG_BACKUP_SAVE_ERROR[] PROGMEM = "Neizdevās dublēt iestatījumu rezerves kopiju";
+  static const char MSG_BACKUP_SAVE_OK[] PROGMEM = "Iestatījumu dublēšana";
+  static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM = "Neizdevās ielādēt iestatījumu rezerves kopiju";
+  static const char MSG_BACKUP_LOAD_OK[] PROGMEM = "Iestatījumu atjaunošana no dublējuma";
+  static const char MSG_OP_SUCCESS[] PROGMEM = "Saglabāti iestatījumi";
+
+  static const char MODE_NIGHT_CLOCK[] PROGMEM = "Nakts pulksteņi";
+  static const char MODE_CLOCK[] PROGMEM = "Pulkstenis";
+  static const char MODE_RUNNING_TEXT[] PROGMEM = "Skrejošā līnija";
+  static const char MODE_LOAD_PICTURE[] PROGMEM = "Attēlu augšupielāde";
+  static const char MODE_DRAW[] PROGMEM = "Zīmēšana";
+  static const char MODE_DAWN[] PROGMEM = "Rītausma";
+
+  static const char WTR_LANG_YA[] = "lv"; // Яндекс.Погода - tikai šķiet, ka saprot. "ru" и "en"
+  static const char WTR_LANG_OWM[] = "lv"; // OpenWeatherMap = 2-[ valodas kods - ru,en,de,fr,it n tā tālāk. Ja valoda nezina - atgriežas kā par en
+#endif
+
 // ================================================================================================= 
 
 #ifndef UI

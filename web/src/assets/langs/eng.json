@@ -153,7 +153,8 @@
   "сег.": "seg.",
   "возврат в авторежим выключен": "autochange mode is OFF",
   "в авторежим через": "autochange mode in",
-  "[ 0-выкл ]": "[ 0-turn off ]",
+  "[ 0-выкл ]": "[ 0-off ]",
+  "[0 - выключено]": "[0 - off]",
   "Настройки погоды": "Weather settings",
   "Сервер погоды": "Weather server",
   "Yandex Weather": "",
@@ -570,5 +571,6 @@
   "Круглый": "Rounded",
   "Отображать": "Show",
   "Градус": "Degree",
-  "Изменчивость": "Variability"
+  "Изменчивость": "Variability",
+  "Справка": "Help"
 }
