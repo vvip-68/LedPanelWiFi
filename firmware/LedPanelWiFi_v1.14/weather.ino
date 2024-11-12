@@ -324,12 +324,10 @@ bool getWeather() {
     return false;
   }
 
-  if (weather.length() == 0) {  
-    if (useWeather == 1)
-      decodeWeather();        // Yandex
-    else  
-      decodeWeather2();       // OpenWeatherMap
-  }
+  if (useWeather == 1)
+    decodeWeather();        // Yandex
+  else  
+    decodeWeather2();       // OpenWeatherMap
   
   weather_time = millis();  // запомнить время получения погоды с сервера
   init_weather = true;      // Флаг - погода получена
@@ -455,10 +453,6 @@ void decodeWeather2(){
   // OpenWeatherMap не отдает погоду на латышском. Вместо него - на английском
   // Для латышского языка включаем принудительное перекодирование
 
-  #if (LANG != 'LAT')
-  if (weather.length() > 0) return;
-  #endif
-  
   // https://openweathermap.org/weather-conditions#How-to-get-icon-URL
   switch (weather_code) {
     case 200: set_weather(W_CODE_200); break;                     // thunderstorm with light rain
