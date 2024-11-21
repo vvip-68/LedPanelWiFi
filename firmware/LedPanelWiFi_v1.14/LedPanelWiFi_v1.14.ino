@@ -1095,7 +1095,7 @@ void startWiFi(uint32_t waitTime) {
       DEBUG('.');
       DEBUG(IP_STA[3]);                  
     } else {
-      WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
+      //WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
       DEBUG(F(" -> DCHP "));
     }
 
@@ -1137,7 +1137,11 @@ void startWiFi(uint32_t waitTime) {
           // Подключение установлено
           DEBUGLN();
           DEBUG(F("WiFi подключен. IP адрес: "));
-          DEBUGLN(WiFi.localIP());
+          DEBUG(WiFi.localIP());
+          DEBUG(F(", MAC: "));
+          DEBUG(WiFi.macAddress());
+          DEBUG(F(", hostname: "));
+          DEBUGLN(WiFi.getHostname());
           if (mdns.begin(host_name)) {
             DEBUGLN(F("MDNS - запущен"));
           } else {
