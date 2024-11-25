@@ -938,7 +938,7 @@ void checkIdleState() {
       }
     }
   } else {
-    if (idleTimer.isReady()) {      // таймер холостого режима. Если время наступило - включить автосмену режимов 
+    if (idleTimer.isReady() && !isTurnedOff) {      // таймер холостого режима. Если время наступило - включить автосмену режимов 
       DEBUGLN(F("Автоматический режим включен по таймеру бездействия."));
       e131_wait_command = false;
       setManualModeTo(false);      
