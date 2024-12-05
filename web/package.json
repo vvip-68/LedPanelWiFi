@@ -9,15 +9,15 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.13",
+    "@angular/animations": "^19.0.3",
     "@angular/cdk": "^18.2.14",
-    "@angular/common": "^18.2.13",
-    "@angular/compiler": "^18.2.13",
-    "@angular/core": "^18.2.13",
-    "@angular/forms": "^18.2.13",
+    "@angular/common": "^19.0.3",
+    "@angular/compiler": "^19.0.3",
+    "@angular/core": "^19.0.3",
+    "@angular/forms": "^19.0.3",
     "@angular/material": "^18.2.14",
-    "@angular/platform-browser": "^18.2.13",
-    "@angular/platform-browser-dynamic": "^18.2.13",
+    "@angular/platform-browser": "^19.0.3",
+    "@angular/platform-browser-dynamic": "^19.0.3",
     "@ctrl/tinycolor": "^4.0.2",
     "jsonc-parser": "3.2.0",
     "ng2-file-upload": "^5.0.0",
@@ -25,12 +25,12 @@
     "ngx-mat-timepicker": "^17.0.1",
     "rxjs": "~7.8.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.14.10"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^18.2.12",
-    "@angular/cli": "~18.2.12",
-    "@angular/compiler-cli": "^18.2.13",
+    "@angular/build": "^19.0.3",
+    "@angular/cli": "~19.0.3",
+    "@angular/compiler-cli": "^19.0.3",
     "gzipper": "^7.2.0",
     "typescript": "~5.5.4"
   }
