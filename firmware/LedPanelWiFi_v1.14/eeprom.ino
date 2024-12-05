@@ -673,8 +673,8 @@ uint8_t getMatrixSegmentWidth() {
 }
 
 void putMatrixSegmentHeight(uint8_t height) {
-  if (height == 0 && height > 128) height = 16;
-  if (height > 0 && height <= 128 && height != getMatrixSegmentHeight()) {
+  if (height == 0 || height > 128) height = 16;
+  if (height != getMatrixSegmentHeight()) {
     EEPROMwrite(81, height);
   }  
 }
@@ -721,7 +721,7 @@ uint8_t getMatrixSegmentDirection() {
 }
 
 void putMetaMatrixWidth(uint8_t width) {
-  if (width == 0 && width > 15) width = 1;
+  if (width == 0 || width > 15) width = 1;
   if (width != getMetaMatrixWidth()) {
     EEPROMwrite(85, width);
   }  
@@ -733,7 +733,7 @@ uint8_t getMetaMatrixWidth() {
 }
 
 void putMetaMatrixHeight(uint8_t height) {
-  if (height == 0 && height > 15) height = 1;
+  if (height == 0 || height > 15) height = 1;
   if (height != getMetaMatrixHeight()) {
     EEPROMwrite(86, height);
   }  

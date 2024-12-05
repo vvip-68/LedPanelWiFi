@@ -964,14 +964,8 @@ void drawTemperature() {
         drawPixelXY(getClockX(temperatureX_CF_pos + 1), temperatureY + 2, color);              
       } else {
         // буква C
-        if (use_round_3x5) {
-          for(uint8_t i = 1; i < 3; i++) {
-            drawPixelXY(getClockX(temperatureX_CF_pos), temperatureY + i, color);      
-          }
-        } else {
-          for(uint8_t i = 0; i < 4; i++) {
-            drawPixelXY(getClockX(temperatureX_CF_pos), temperatureY + i, color);      
-          }
+        for(uint8_t i = 1; i < 3; i++) {
+          drawPixelXY(getClockX(temperatureX_CF_pos), temperatureY + i, color);      
         }
         drawPixelXY(getClockX(temperatureX_CF_pos + 1), temperatureY, color);      
         drawPixelXY(getClockX(temperatureX_CF_pos + 2), temperatureY, color);      

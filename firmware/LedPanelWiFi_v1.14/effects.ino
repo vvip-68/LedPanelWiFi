@@ -2520,11 +2520,10 @@ void rainRoutineRelease() {
 
 void fire2Routine() {
   if (loadingFlag) {
-    bool err = false;
     loadingFlag = false;
     //modeCode = MC_FIRE2;
     if (noise3d == NULL) { noise3d = (uint8_t*)malloc(pWIDTH * pHEIGHT); }
-    if (noise3d == NULL || err) {
+    if (noise3d == NULL) {
       // Если недостаточно памяти под эффект - перейти к другому эффекту;
       fire2RoutineRelease();
       setRandomMode();

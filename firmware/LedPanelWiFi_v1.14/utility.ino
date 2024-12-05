@@ -113,15 +113,13 @@ void displayScore(uint16_t score) {
       score_width = str_len * 3 + (str_len - 1) - num_one * 2;   // кол-во цифр 3x5 плюс пробелы между цифрами минус коррекция ширины '1'
     }
     
-    if (score_size == 0) {
-      // Позиция начала вывода счета на матрицу
-      X = (pWIDTH - score_width) / 2;
-      Y = pHEIGHT / 2 - 3;
-      for (uint8_t i=0; i<str.length(); i++) {
-        c = str[i];
-        drawDigit3x5((c - '0'), X, Y, GLOBAL_COLOR_2);
-        if (c == '1') X += 2; else X += 4; 
-      }
+    // Позиция начала вывода счета на матрицу
+    X = (pWIDTH - score_width) / 2;
+    Y = pHEIGHT / 2 - 3;
+    for (uint8_t i=0; i<str.length(); i++) {
+      c = str[i];
+      drawDigit3x5((c - '0'), X, Y, GLOBAL_COLOR_2);
+      if (c == '1') X += 2; else X += 4; 
     }
   }
 }

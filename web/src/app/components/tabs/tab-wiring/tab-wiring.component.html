@@ -336,7 +336,7 @@
           }
         </mat-select>
         <mat-select [ngModel]="lines[2].rgb" class="rgb-select" panelClass="pin-select-panel" [disableControl]="isDisabled() || !lines[2].pin.use"
-                    (valueChange)="setColorOrder(1, $event)">
+                    (valueChange)="setColorOrder(2, $event)">
         @for (rgb of this.color_order_list; track rgb) {
             <mat-option [value]="rgb.value">
               {{rgb.displayText}}

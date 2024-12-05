@@ -269,7 +269,7 @@ void set_thisMode(int8_t value) {
 void set_GameButtonSpeed(uint8_t spd) {
   if (spd < 10) spd = 10;
   if (spd > 100) spd = 100;
-  bool old_value = getGameButtonSpeed();
+  uint8_t old_value = getGameButtonSpeed();
   if (old_value != spd) {
     putGameButtonSpeed(spd);
     addKeyToChanged("BS");

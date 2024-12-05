@@ -865,7 +865,7 @@ void weatherRoutine() {
     // Нарисовать '+' или '-' если температура не 0
     // Горизонтальная черта - общая для '-' и '+'
     if (th != 0) {
-      uint8_t dy = big_font ? 2 : 0;
+      uint8_t dy = big_font ? 2 : 1;
       temp_x -= 4;
       for(uint8_t i = 0; i < 3; i++) {
         drawPixelXY(getClockX(temp_x + i), temp_y + 1 + dy, color);      
