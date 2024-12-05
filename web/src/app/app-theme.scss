@@ -9,8 +9,8 @@
   $background: map.get($theme, background);
   $foreground: map.get($theme, foreground);
 
-  $background-color: mat.get-color-from-palette($background, background);
-  $foreground-color: mat.get-color-from-palette($foreground, text);
+  $background-color: mat.m2-get-color-from-palette($background, background);
+  $foreground-color: mat.m2-get-color-from-palette($foreground, text);
   @if $isDark {
     --app-background-color: #{darken($background-color, 10%)};
     --app-foreground-color: #{darken($foreground-color, 10%)};
@@ -19,8 +19,8 @@
     --app-foreground-color: #{$foreground-color};
   }
 
-  $toolbar-background-color: mat.get-color-from-palette($primary, 800);
-  $toolbar-foreground-color: mat.get-color-from-palette($primary, '800-contrast');
+  $toolbar-background-color: mat.m2-get-color-from-palette($primary, 800);
+  $toolbar-foreground-color: mat.m2-get-color-from-palette($primary, '800-contrast');
   @if $isDark {
     --toolbar-background-color: #393939;
   } @else {
