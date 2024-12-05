@@ -8,7 +8,7 @@ import {LanguagesService} from '../languages/languages.service';
 import {WebsocketService, WS} from '../websocket/websocket.service';
 import {ComboBoxItem} from "../../models/combo-box.model";
 import {distinctUntilChanged, map} from "rxjs/operators";
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import {stripComments} from "jsonc-parser";
 import {Base} from "../../components/base.class";
 

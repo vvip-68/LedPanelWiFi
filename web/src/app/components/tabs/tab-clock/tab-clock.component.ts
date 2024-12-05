@@ -20,7 +20,7 @@ import { DisableControlDirective } from '../../../directives/disable-control.dir
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {HttpClient, HttpHeaders} from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import {stripComments} from "jsonc-parser";
 import {Base} from "../../base.class";
 
