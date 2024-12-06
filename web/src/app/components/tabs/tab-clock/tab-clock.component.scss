@@ -15,12 +15,18 @@
     flex-wrap: wrap;
     justify-content: center;
 
+    .time-advanced {
+      display: flex;
+      flex-direction: column;
+    }
+
     .clock-fieldset {
       width: 380px;
       min-width: 380px;
       max-width: 380px;
       align-items: center;
       margin: 12px 3px;
+      flex: 1;
 
       display: flex;
       flex-direction: column;
@@ -136,10 +142,12 @@
 
           mat-label {
             width: var(--check-label-width) !important;
+            min-width: var(--check-label-width) !important;
           }
 
           mat-checkbox {
             margin: 0 12px 0 0;
+            border: none !important;
 
             ::ng-deep .mdc-label {
               width: var(--check-label-inner-width) !important;
@@ -318,13 +326,36 @@
             padding-left: calc(var(--label-width) + 4px);
 
             .mat-mdc-select-arrow-wrapper {
-              position: relative;
-              top: 3px;
+              transform: none !important;
             }
           }
 
           &.select {
             width: var(--field-width);
+          }
+        }
+      }
+
+      &.time {
+        min-height: 264px;
+      }
+
+      &.advanced {
+        .dot {
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+
+          .toggler-container {
+            width: fit-content;
+            padding: 0;
+            margin: 0 12px 0 0;
+            justify-content: flex-start;
+
+            .toggler-label {
+              margin: 3px 7px;
+
+            }
           }
         }
       }

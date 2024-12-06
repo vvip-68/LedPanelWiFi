@@ -1,10 +1,10 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, debounceTime, takeUntil} from 'rxjs';
 import {ComboBoxItem} from '../../models/combo-box.model';
 import {EffectModel} from '../../models/effect.model';
-import {isNullOrUndefined, isNullOrUndefinedOrEmpty} from '../../services/helper';
+import {isNullOrUndefined} from '../../services/helper';
 import {LanguagesService} from '../../services/languages/languages.service';
 import {ManagementService} from '../../services/management/management.service';
 import {WebsocketService} from '../../services/websocket/websocket.service';

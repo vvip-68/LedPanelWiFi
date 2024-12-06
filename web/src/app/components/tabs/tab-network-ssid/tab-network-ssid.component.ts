@@ -1,35 +1,37 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {debounceTime, Subject, takeUntil} from 'rxjs';
+import {debounceTime, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
-import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import {FormControl, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {AppErrorStateMatcher, ipV4Validator, isNullOrUndefinedOrEmpty, lengthValidator, validateCharacters} from "../../../services/helper";
 import {distinctUntilChanged} from "rxjs/operators";
-import { InputRestrictionDirective } from '../../../directives/input-restrict.directive';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { DisableControlDirective } from '../../../directives/disable-control.directive';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import {InputRestrictionDirective} from '../../../directives/input-restrict.directive';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {DisableControlDirective} from '../../../directives/disable-control.directive';
+import {MatInputModule} from '@angular/material/input';
+import {MatFormFieldModule} from '@angular/material/form-field';
 import {Base} from "../../base.class";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
-    selector: 'app-tab-network-ssid',
-    templateUrl: './tab-network-ssid.component.html',
-    styleUrls: ['./tab-network-ssid.component.scss'],
-    standalone: true,
-    imports: [
-        MatFormFieldModule,
-        MatInputModule,
-        FormsModule,
-        ReactiveFormsModule,
-        DisableControlDirective,
-        MatButtonModule,
-        MatIconModule,
-        InputRestrictionDirective,
-    ],
+  selector: 'app-tab-network-ssid',
+  templateUrl: './tab-network-ssid.component.html',
+  styleUrls: ['./tab-network-ssid.component.scss'],
+  standalone: true,
+  imports: [
+    MatFormFieldModule,
+    MatInputModule,
+    FormsModule,
+    ReactiveFormsModule,
+    DisableControlDirective,
+    MatButtonModule,
+    MatIconModule,
+    InputRestrictionDirective,
+    MatCheckbox,
+  ],
 })
 export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
 
@@ -38,6 +40,7 @@ export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
   ssidFormControl = new FormControl('', [Validators.required]);
   passwordFormControl = new FormControl('', [Validators.required, lengthValidator(8, 64), validateCharacters(this.L.$('Недопустимые символы'))]);
   ipAddressFormControl = new FormControl('', [ipV4Validator()]);
+  useDhcpFormControl = new FormControl(false);
 
   matcher = new AppErrorStateMatcher();
 
@@ -56,7 +59,7 @@ export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), distinctUntilChanged(), debounceTime(1000))
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
-          const request = 'NW|NX|IP';
+          const request = 'NW|NX|IP|IPC|DH';
           this.managementService.getKeys(request);
         }
       });
@@ -75,6 +78,9 @@ export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
             case 'IP':
               this.ipAddressFormControl.setValue(this.managementService.state.ip);
               break;
+            case 'DH':
+              this.useDhcpFormControl.setValue(this.managementService.state.useDHCP);
+              break;
           }
         }
       });
@@ -92,6 +98,7 @@ export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
     this.managementService.state.ssid = this.ssidFormControl.value as string;
     this.managementService.state.password = this.passwordFormControl.value as string;
     this.managementService.state.ip = this.ipAddressFormControl.value as string;
+    this.managementService.state.useDHCP = this.useDhcpFormControl.value as boolean;
 
     // $6 2|ssid_name - имя сети
     // $6 3|ssid_pwd  - пароль к сети
@@ -105,6 +112,9 @@ export class TabNetworkSsidComponent extends Base implements OnInit, OnDestroy {
       const parts = this.managementService.state.ip.split('.');
       this.socketService.sendText(`$21 1 ${parts[0]} ${parts[1]} ${parts[2]} ${parts[3]};`);
     }
+
+    // $21 3 X; - Использовать DHCP X=0|1
+    this.socketService.sendText(`$21 3 ${this.managementService.state.useDHCP ? 1 : 0};`);
 
     // $21 2; Выполнить переподключение к сети WiFi
     this.socketService.sendText('$21 2;');

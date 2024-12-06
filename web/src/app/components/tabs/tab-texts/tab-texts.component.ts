@@ -1,5 +1,5 @@
 import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, debounceTime, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
@@ -25,6 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {Base} from "../../base.class";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 export class TextButtonItem {
   constructor(public label: string, public index: number, public type: number, public text: string) {
@@ -36,22 +37,23 @@ export class TextButtonItem {
     templateUrl: './tab-texts.component.html',
     styleUrls: ['./tab-texts.component.scss'],
     standalone: true,
-    imports: [
-        MatSlideToggleModule,
-        FormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        DisableControlDirective,
-        MatButtonModule,
-        MatRadioModule,
-        MatSliderModule,
-        MatTooltipModule,
-        NgClass,
-        MatIconModule,
-        MatMenuModule,
-        MatDatepickerModule,
-    ],
+  imports: [
+    MatSlideToggleModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    DisableControlDirective,
+    MatButtonModule,
+    MatRadioModule,
+    MatSliderModule,
+    MatTooltipModule,
+    NgClass,
+    MatIconModule,
+    MatMenuModule,
+    MatDatepickerModule,
+    MatCheckbox,
+  ],
 })
 export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
@@ -98,6 +100,9 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
   private e131_mode: number = -1;
   private e131_streaming: boolean | undefined = undefined;
 
+  public show_degree = false;
+  public show_letter = false;
+
   constructor(
     public socketService: WebsocketService,
     public managementService: ManagementService,
@@ -134,7 +139,7 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          const request = 'CT|TE|TI|ST|TS|C2|MX|WZ|E1|E4';
+          const request = 'CT|TE|TI|ST|TS|C2|MX|WZ|E1|E4|WW';
           this.managementService.getKeys(request);
         }
       });
@@ -199,6 +204,11 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
               break;
             case 'WZ':
               this.supportWeather = this.managementService.state.supportWeather;
+              break;
+            case 'WW':
+              const props = this.managementService.state.show_temp_text_props;
+              this.show_degree = (props & 0x02) > 0;
+              this.show_letter = (props & 0x01) > 0;
               break;
             case 'E1':
               this.e131_mode = this.managementService.state.e131_mode;
@@ -521,6 +531,20 @@ export class TabTextsComponent extends Base implements OnInit, OnDestroy {
 
   setDateApply() {
     this.dateApplied = true;
+  }
+
+  setTempShowDegree(checked: boolean) {
+    this.show_degree = checked;
+    const value = (this.show_degree ? 0x02 : 0x00) | (this.show_letter ? 0x01 : 0x00);
+    this.socketService.sendText(`$13 3 ${value};`);
+    this.managementService.state.show_temp_text_props = value;
+  }
+
+  setTempShowLetter(checked: boolean) {
+    this.show_letter = checked;
+    const value = (this.show_degree ? 0x02 : 0x00) | (this.show_letter ? 0x01 : 0x00);
+    this.socketService.sendText(`$13 3 ${value};`);
+    this.managementService.state.show_temp_text_props = value;
   }
 
 }

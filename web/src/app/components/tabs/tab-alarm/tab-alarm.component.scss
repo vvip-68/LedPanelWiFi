@@ -161,8 +161,7 @@
             padding-left: calc(var(--label-width) + 4px);
 
             .mat-mdc-select-arrow-wrapper {
-              position: relative;
-              top: 3px;
+              transform: none !important;
             }
           }
 

@@ -1,5 +1,5 @@
 import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Subject, takeUntil} from 'rxjs';
+import {takeUntil} from 'rxjs';
 import {ActionModel, ActionType} from '../../models/action.model';
 import {isNullOrUndefinedOrEmpty} from '../../services/helper';
 import {ManagementService} from '../../services/management/management.service';

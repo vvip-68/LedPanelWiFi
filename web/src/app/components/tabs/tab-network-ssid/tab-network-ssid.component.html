@@ -49,9 +49,9 @@
     </div>
 
     <div class="field-container">
-      <mat-form-field hintLabel="{{ L.$('IP адрес устройства') }}" floatLabel="always">
+      <mat-form-field hintLabel="{{ L.$('IP адрес устройства') }}" floatLabel="always" class="ip">
         <mat-label>{{ L.$('IP адрес') }}</mat-label>
-        <input matInput #inputIpAddress restrict inputType="ipv4" autocomplete="new-password"
+        <input matInput restrict inputType="ipv4" autocomplete="new-password"
                [formControl]="ipAddressFormControl"
                [disableControl]="isDisabled()"
                [errorStateMatcher]="matcher">
@@ -61,6 +61,18 @@
           </mat-error>
         }
       </mat-form-field>
+
+      <div class="checkbox-field">
+        <mat-checkbox [formControl]="useDhcpFormControl" labelPosition="after" class="dhcp-checkbox">
+          DCHP
+        </mat-checkbox>
+      </div>
+
+    </div>
+
+    <div class="field-container ipc">
+      <span class="ipc-title">{{ L.$('Текущий IP адрес устройства') }}</span>
+      <span class="ipc-value">{{this.managementService.state.ipc}}</span>
     </div>
 
     <div class="field-container">

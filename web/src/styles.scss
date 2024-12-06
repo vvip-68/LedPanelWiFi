@@ -5,12 +5,14 @@
 
 // Plus imports for other components in your app.
 @use './app/app-theme';
+@use './styles/general';
 
 // Include the common styles for Angular Material. We include this here so that you only
 // have to load a single css file for Angular Material in your app.
 // Be sure that you only ever include this mixin once!
 // @include mat.all-component-typographies();
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 // Define the palettes for your theme using the Material Design palettes available in palette.scss
 // (imported above). For each palette, you can optionally specify a default, lighter, and darker
@@ -48,7 +50,8 @@ $dark-theme: mat.m2-define-dark-theme((
 :root {
   //@include mat.all-component-themes($light-theme);
 
-  @include mat.core-theme($light-theme);
+  @include mat.elevation-classes();
+  @include mat.app-background();
   @include mat.button-theme($light-theme);
   @include mat.toolbar-theme($light-theme);
   @include mat.tooltip-theme($light-theme);
@@ -68,7 +71,8 @@ $dark-theme: mat.m2-define-dark-theme((
 .dark-theme {
   //@include mat.all-component-colors($dark-theme);
 
-  @include mat.core-color($dark-theme);
+  @include mat.elevation-classes();
+  @include mat.app-background();
   @include mat.button-color($dark-theme);
   @include mat.toolbar-color($dark-theme);
   @include mat.tooltip-color($dark-theme);
@@ -84,5 +88,3 @@ $dark-theme: mat.m2-define-dark-theme((
   // --- Application styles
   @include app-theme.theme($dark-theme, true);
 }
-
-@import './styles/general';

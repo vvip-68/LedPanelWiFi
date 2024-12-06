@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatDialogRef} from '@angular/material/dialog';
 import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { ColorPickerComponent } from './components/color-picker/color-picker.component';
 import { CommonService, MessageType } from './services/common/common.service';

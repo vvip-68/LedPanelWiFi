@@ -11,11 +11,11 @@ import { NgClass } from '@angular/common';
 import {CdkDrag} from "@angular/cdk/drag-drop";
 
 @Component({
-    selector: 'app-effect',
-    templateUrl: './effect.component.html',
-    styleUrls: ['./effect.component.scss'],
-    standalone: true,
-  imports: [NgClass, MatIconModule, MatTooltipModule, CdkDrag]
+  selector: 'app-effect',
+  templateUrl: './effect.component.html',
+  styleUrls: ['./effect.component.scss'],
+  standalone: true,
+  imports: [NgClass, MatIconModule, MatTooltipModule]
 })
 export class EffectComponent implements OnInit {
 

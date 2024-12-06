@@ -1,12 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { debounceTime, Subject, takeUntil } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs';
 import { CommonService } from '../../../services/common/common.service';
 import { LanguagesService } from '../../../services/languages/languages.service';
 import { ManagementService } from '../../../services/management/management.service';
 import { WebsocketService } from '../../../services/websocket/websocket.service';
 import { AppErrorStateMatcher, isNullOrUndefined, isNullOrUndefinedOrEmpty, rangeValidator } from "../../../services/helper";
 import { distinctUntilChanged} from "rxjs/operators";
-import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ComboBoxItem } from "../../../models/combo-box.model";
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -17,7 +17,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { NgClass } from '@angular/common';
+import {NgClass, NgOptimizedImage} from '@angular/common';
 import {Base} from "../../base.class";
 
 interface LineParameters {
@@ -49,20 +49,29 @@ interface Assignment {
     templateUrl: './tab-wiring.component.html',
     styleUrls: ['./tab-wiring.component.scss'],
     standalone: true,
-    imports: [
-        MatTooltipModule,
-        MatIconModule,
-        NgClass,
-        MatSlideToggleModule,
-        FormsModule,
-        MatSelectModule,
-        DisableControlDirective,
-        MatOptionModule,
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-    ],
+  imports: [
+    MatTooltipModule,
+    MatIconModule,
+    NgClass,
+    MatSlideToggleModule,
+    FormsModule,
+    MatSelectModule,
+    DisableControlDirective,
+    MatOptionModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+    NgOptimizedImage,
+  ],
 })
 
 export class TabWiringComponent extends Base implements OnInit, OnDestroy {

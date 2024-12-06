@@ -1,7 +1,7 @@
 import { DOCUMENT, NgClass } from '@angular/common';
 import {Component, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { MatSlideToggleChange, MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {debounceTime, Subject, takeUntil} from 'rxjs';
+import {debounceTime, takeUntil} from 'rxjs';
 import {ActionModel, ActionType} from '../../../models/action.model';
 import {CommonService, MessageType} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
@@ -11,7 +11,6 @@ import {distinctUntilChanged} from "rxjs/operators";
 import {AppErrorStateMatcher, isNullOrUndefined, isNullOrUndefinedOrEmpty, rangeValidator} from "../../../services/helper";
 import { FormControl, Validators, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { CdkDragDrop, moveItemInArray, transferArrayItem, CdkDropListGroup, CdkDropList, CdkDrag } from "@angular/cdk/drag-drop";
-import {IEffectModel} from "../../../models/effect.model";
 import { EffectComponent } from '../../effect/effect.component';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';

@@ -242,14 +242,13 @@
               position: relative;
               padding-left: calc(var(--label-width) + 4px);
 
+              .mat-mdc-select-arrow-wrapper {
+                transform: none !important;
+              }
+
               .mat-mdc-select-value {
                 font-size: 13px;
                 margin: 2px 0 0 0;
-              }
-
-              .mat-mdc-select-arrow-wrapper {
-                position: relative;
-                top: 6px;
               }
             }
           }

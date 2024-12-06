@@ -212,6 +212,20 @@
           </mat-date-range-picker>
         </button>
       </div>
+
+      @if (supportWeather) {
+        <div class="macros-ts">
+          <div class="field-container check">
+            <mat-label>{{ L.$('Отображать в макросе \{WT}:') }}</mat-label>
+            <mat-checkbox [checked]="show_degree" color="primary" (change)="setTempShowDegree($event.checked)">
+              {{ L.$('Градус') }}
+            </mat-checkbox>
+            <mat-checkbox [checked]="show_letter" color="primary" (change)="setTempShowLetter($event.checked)">
+              {{ L.$('C/F') }}
+            </mat-checkbox>
+          </div>
+        </div>
+      }
     </fieldset>
 
     <mat-menu #menuDateFormat="matMenu">

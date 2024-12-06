@@ -31,6 +31,8 @@
       --slider-label-width: 234px;
       --daytime-width: 286px;
       --label-width: 116px;
+      --check-label-width: 138px;
+      --check-label-inner-width: 50px;
 
       .letter {
         display: flex !important;
@@ -89,6 +91,44 @@
         width: var(--field-width);
         font-size: 12px;
         white-space: nowrap;
+
+        &.check {
+          width: 360px;
+          min-width: 360px;
+          max-width: 360px;
+
+          border-top: solid 1px var(--card-border-color);
+          padding : 12px 0 0 0;
+          display: flex;
+          flex-direction: row;
+
+          mat-label {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-right: 6px;
+            color: var(--field-label-color);
+            width: auto; // var(--check-label-width) !important;
+          }
+
+          mat-checkbox {
+            margin: 0 12px 0 0;
+            border: none !important;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+
+            &:last-of-type {
+              margin: 0 0 0 0;
+            }
+
+            ::ng-deep .mdc-label {
+              width: var(--check-label-inner-width) !important;
+            }
+
+          }
+
+        }
 
         &.interval {
           width: var(--interval-field-width);

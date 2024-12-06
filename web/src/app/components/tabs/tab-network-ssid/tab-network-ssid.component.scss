@@ -19,6 +19,7 @@
     margin: 12px 0 12px 0;
 
     --field-width: 320px;
+    --field-ip-width: 220px;
     --label-width: 100px;
 
     .toggler-container {
@@ -45,6 +46,20 @@
       position: relative;
       padding: 0 12px;
 
+      &.ipc {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        font-size: 11px;
+        color: var(--card-active-color);
+        margin-top: 12px;
+        margin-bottom: 15px;
+
+        .ipc-title {
+          margin-right: 10px;
+        }
+      }
+
       .action-button {
         width: var(--field-width);
         display: flex;
@@ -53,6 +68,10 @@
 
       ::ng-deep mat-form-field {
         width: var(--field-width);
+
+        &.ip {
+          width: var(--field-ip-width);
+        }
 
         .mdc-floating-label {
           background-color: var(--app-background-color);
@@ -68,7 +87,13 @@
           width: 24px;
           height: 24px;
           padding: 0;
+          top: -16px;
         }
+      }
+
+      .checkbox-field {
+        width: 90px;
+        margin: -9px 0 0 10px;
       }
     }
   }

@@ -1,5 +1,5 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, debounceTime, takeUntil} from 'rxjs';
 import {WebsocketService} from '../../services/websocket/websocket.service';
 import { MatSliderModule } from '@angular/material/slider';
 import {Base} from "../base.class";

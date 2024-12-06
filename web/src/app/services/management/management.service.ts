@@ -1,5 +1,5 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import {BehaviorSubject, debounceTime, Subject, takeUntil, timer} from 'rxjs';
+import {BehaviorSubject, debounceTime, takeUntil, timer} from 'rxjs';
 import {EffectModel, IEffectModel} from '../../models/effect.model';
 import {StateModel} from '../../models/state.model';
 import {CommonService, MessageType} from '../common/common.service';
@@ -7,9 +7,8 @@ import {clearBraces, isNullOrUndefined, isNullOrUndefinedOrEmpty} from '../helpe
 import {LanguagesService} from '../languages/languages.service';
 import {WebsocketService, WS} from '../websocket/websocket.service';
 import {ComboBoxItem} from "../../models/combo-box.model";
-import {distinctUntilChanged, map} from "rxjs/operators";
+import {distinctUntilChanged} from "rxjs/operators";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import {stripComments} from "jsonc-parser";
 import {Base} from "../../components/base.class";
 
 @Injectable({

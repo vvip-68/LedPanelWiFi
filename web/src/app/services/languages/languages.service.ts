@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {Injectable, OnDestroy, OnInit} from '@angular/core';
 import {stripComments} from 'jsonc-parser';
 import {map} from 'rxjs/operators';
-import {isNullOrUndefined, isNullOrUndefinedOrEmpty} from '../helper';
+import {isNullOrUndefinedOrEmpty} from '../helper';
 
 @Injectable({
   providedIn: 'root'

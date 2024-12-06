@@ -6,7 +6,6 @@ import {isNullOrUndefined, isNullOrUndefinedOrEmpty} from "../services/helper";
     standalone: true
 })
 export class InputRestrictionDirective {
-  public className = 'InputRestrictionDirective';
 
   @Input() inputType: string = "";
   @Input() regExp: string = "";

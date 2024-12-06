@@ -73,7 +73,13 @@
           position: relative;
 
           .mat-mdc-select-arrow-wrapper {
-            transform: none;
+            position: relative;
+            transform: none !important;
+            top: 2px;
+
+            .mat-mdc-select-arrow {
+              color: var(--field-input-color) !important;
+            }
           }
         }
       }

@@ -1,11 +1,10 @@
 import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {debounceTime, fromEvent, interval, Observable, Subject, Subscription, takeUntil} from 'rxjs';
+import {debounceTime, fromEvent, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';
 import {WebsocketService} from '../../../services/websocket/websocket.service';
-import {MatDialog, MatDialogRef} from "@angular/material/dialog";
-import {ColorPickerComponent} from "../../color-picker/color-picker.component";
+import {MatDialog} from "@angular/material/dialog";
 import { DOCUMENT, NgClass } from "@angular/common";
 import {distinctUntilChanged} from "rxjs/operators";
 import {HSLA, HSVA, RGBA} from "ngx-color";

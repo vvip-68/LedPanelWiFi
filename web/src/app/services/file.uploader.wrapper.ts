@@ -1,5 +1,5 @@
-import {ElementRef, EventEmitter, Injectable, Output} from '@angular/core';
-import {MatDialog, MatDialogRef} from '@angular/material/dialog';
+import {ElementRef, Injectable} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
 import {FileUploader} from 'ng2-file-upload';
 import {UploadFileComponent} from "../components/upload/upload.component";
 import {ConfirmationDialogComponent} from "../components/confirmation-dialog/confirmation-dialog.component";

@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, debounceTime, Subject, takeUntil} from 'rxjs';
+import {BehaviorSubject, debounceTime, takeUntil} from 'rxjs';
 import {CommonService} from '../../../services/common/common.service';
 import {LanguagesService} from '../../../services/languages/languages.service';
 import {ManagementService} from '../../../services/management/management.service';

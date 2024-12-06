@@ -1,6 +1,5 @@
 import {Component, Inject, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import {Subject} from 'rxjs';
 import {LanguagesService} from "../../services/languages/languages.service";
 import { MatButtonModule } from '@angular/material/button';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
@@ -29,7 +28,7 @@ export class ConfirmationDialogComponent extends Base implements OnInit, OnDestr
   ngOnInit() {
     this.title = this.data.title;
     this.message = this.data.message.replace(/\n/gi, '<br>');
-    this.cancelVisible = typeof this.data.useCancel === 'undefined' || this.data.useCancel !== false;
+    this.cancelVisible = typeof this.data.useCancel === 'undefined' || this.data.useCancel;
     this.okText = this.data.okText ?? this.L.$('Да');
     this.cancelText = this.data.cancelText ?? this.L.$('Отмена');
   }

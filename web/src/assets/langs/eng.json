@@ -93,8 +93,9 @@
   "Пароль": "Password",
   "Длина пароля от 8 до 64 символов!": "Length of password must be 8..64 chars!",
   "Длина пароля от 8 до 16 символов!": "Length of password must be 8..16 chars!",
-  "IP адрес": "IP address",
-  "IP адрес устройства": "enter IP address of device",
+  "IP адрес": "Static IP",
+  "IP адрес устройства": "Enter static IP",
+  "Текущий IP адрес устройства": "The current IP of the device",
   "Неверный IP адрес": "Incorrect IP address",
   "Применить": "Apply",
   "Да": "Yes",
@@ -572,5 +573,11 @@
   "Отображать": "Show",
   "Градус": "Degree",
   "Изменчивость": "Variability",
-  "Справка": "Help"
+  "Справка": "Help",
+  "Отображать в макросе {WT}:": "Show in macro {WT}:",
+  "Расширенные настройки": "Advanced settings",
+  "Смещение по X": "Shift X",
+  "Смещение по Y": "Shift Y",
+  "Ширина точки:":  "Dot width",
+  "Отступ у точки":  "Spaced dot"
 }

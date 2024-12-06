@@ -1,6 +1,4 @@
 import {ComboBoxItem} from "./combo-box.model";
-import {FormControl, Validators} from "@angular/forms";
-import {rangeValidator} from "../services/helper";
 
 export interface IStateModel {
   version: string;                 // VR - Версия прошивки
@@ -34,7 +32,9 @@ export interface IStateModel {
   freeMemory: number;              // FM - остаток свободной памяти в байтах
   ssid: string;                    // NW - ssid - имя сети
   password: string;                // NX - пароль подключения к сети
-  ip: string;                      // IP - IP адрес устройства
+  ip: string;                      // IP - IP адрес устройства, заданный в настройках для статического IP
+  ipc: string;                     // IPC- Текущий IP адрес устройства
+  useDHCP: boolean;                // DH - использовать DHCP
   apName: string;                  // AN - имя точки доступа
   apPass: string;                  // AB - пароль подключения к точке доступа
   useAP: boolean;                  // AU - создавать точку доступа даже при подключении к сети
@@ -106,6 +106,10 @@ export interface IStateModel {
   clock_time_zone: string;         // NZ	- NZ:текст - правило часовой зоны
   clock_tm1627_off: boolean;       // OF	- OF:X - выключать часы вместе с лампой 0-нет, 1-да
   clock_scroll_speed: number;      // SC	- SC:число - скорость смещения часов оверлея
+  clock_dot_width: number;         // CD  - CD:число - ширина точки в больших часах 2 или 1
+  clock_dot_space: number;         // CS  - CS:X - наличие пробела между разделительной точкой больших часов и окружающими цифрами 0-нет, 1-да
+  clock_offset_x: number;          // OX  - OX:число - смещение часов ао оси X
+  clock_offset_y: number;          // OY  - OX:число - смещение часов ао оси Y
   text_color_mode: number;         // CT  - CT:X - режим цвета текстовой строки: 0 - монохром, 1 - радуга, 2 - каждая буква своим цветом
   text_use_overlay: boolean;       // TE  - TE:X - оверлей текста бегущей строки вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать бегущую строку в эффектах)
   text_interval: number;           // TI  - TI:число - интервал отображения текста бегущей строки
@@ -162,7 +166,8 @@ export interface IStateModel {
   time12h: boolean;                // C12:X             X = 0 24H; X=1 12H
   small_font_type: number;         // C35:X             X = 0 квадратный; X=1 скругленный шрифт 3х5
   weather_farenheit: boolean;      // TF:X              X = 0 Celsius; X=1 Fahrenheit
-  show_temp_props: number;         // WV:x              X - битовая карта b0 -  показ в температуре C/F; b1 - показ значка градуса
+  show_temp_props: number;         // WV:x              X - битовая карта b0 -  показ в температуре в часах C/F; b1 - показ значка градуса
+  show_temp_text_props: number;    // WW:x              X - битовая карта b0 -  показ в температуре в макросе {WT} C/F; b1 - показ значка градуса
   debug: boolean;
   debug_hour: number;
   debug_minutes: number;
@@ -207,6 +212,8 @@ export class StateModel implements IStateModel {
   public ssid = '';
   public password = '';
   public ip = '';
+  public ipc = '';
+  public useDHCP = false;
   public apName = '';
   public apPass = '';
   public useAP = false;
@@ -278,6 +285,10 @@ export class StateModel implements IStateModel {
   public clock_time_zone = '';
   public clock_tm1627_off = true;
   public clock_scroll_speed = 255;
+  public clock_dot_width = 2;
+  public clock_dot_space = 1;
+  public clock_offset_x = 0;
+  public clock_offset_y = 0;
   public text_color_mode = 0;
   public text_use_overlay = false;
   public text_interval = 600;
@@ -327,6 +338,7 @@ export class StateModel implements IStateModel {
   public small_font_type = 0;
   public weather_farenheit = false;
   public show_temp_props = 0;
+  public show_temp_text_props = 0;
   public debug = false;
   public debug_hour = 0;
   public debug_minutes = 0;
@@ -392,6 +404,8 @@ export class StateModel implements IStateModel {
       case 'NA':   return this.password;
       case 'NX':   return this.password;
       case 'IP':   return this.ip;
+      case 'IPС':  return this.ipc;
+      case 'DH':   return this.useDHCP;
       case 'AN':   return this.apName;
       case 'AB':   return this.apPass;
       case 'AU':   return this.useAP;
@@ -464,6 +478,10 @@ export class StateModel implements IStateModel {
       case 'NZ':   return this.clock_time_zone;
       case 'OF':   return this.clock_tm1627_off;
       case 'SC':   return this.clock_scroll_speed;
+      case 'CD':   return this.clock_dot_width;
+      case 'CS':   return this.clock_dot_space;
+      case 'CX':   return this.clock_offset_x;
+      case 'CY':   return this.clock_offset_y;
       case 'CT':   return this.text_color_mode;
       case 'TE':   return this.text_use_overlay;
       case 'TI':   return this.text_interval;
@@ -480,6 +498,7 @@ export class StateModel implements IStateModel {
       case 'ELH':  return this.sync_local_h;
       case 'TF':   return this.weather_farenheit;
       case 'WV':   return this.show_temp_props;
+      case 'WW':   return this.show_temp_text_props;
       case 'C12':  return this.time12h;
       case 'C35':  return this.small_font_type;
 
@@ -543,6 +562,8 @@ export class StateModel implements IStateModel {
       case 'NA':   this.password = '' + value;                                    break;
       case 'NX':   this.password = '' + value;                                    break;
       case 'IP':   this.ip = '' + value;                                          break;
+      case 'IPC':  this.ipc = '' + value;                                         break;
+      case 'DH':   this.useDHCP = Number(value) === 1;                            break;
       case 'AN':   this.apName = '' + value;                                      break;
       case 'AB':   this.apPass = '' + value;                                      break;
       case 'AU':   this.useAP = Number(value) === 1;                              break;
@@ -624,6 +645,10 @@ export class StateModel implements IStateModel {
       case 'NZ':   this.clock_time_zone = '' + value;                             break;
       case 'OF':   this.clock_tm1627_off = Number(value) === 1;                   break;
       case 'SC':   this.clock_scroll_speed = Number(value);                       break;
+      case 'CD':   this.clock_dot_width = Number(value);                          break;
+      case 'CS':   this.clock_dot_space = Number(value);                          break;
+      case 'CX':   this.clock_offset_x = Number(value);                           break;
+      case 'CY':   this.clock_offset_y = Number(value);                           break;
       case 'CT':   this.text_color_mode = Number(value);                          break;
       case 'TE':   this.text_use_overlay = Number(value) === 1;                   break;
       case 'TI':   this.text_interval = Number(value);                            break;
@@ -634,6 +659,7 @@ export class StateModel implements IStateModel {
       case 'C2':   this.text_color = '' + value;                                  break;
       case 'TF':   this.weather_farenheit = Number(value) === 1;                  break;
       case 'WV':   this.show_temp_props = Number(value);                          break;
+      case 'WW':   this.show_temp_text_props = Number(value);                     break;
       case 'C12':  this.time12h = Number(value) === 1;                            break;
       case 'C35':  this.small_font_type = Number(value);                          break;
 

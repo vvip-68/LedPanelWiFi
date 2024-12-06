@@ -909,6 +909,17 @@
         ::ng-deep mat-select.mat-mdc-select {
           width: 76px;
           margin: -4px 6px 0 0;
+
+          .mat-mdc-select-arrow-wrapper {
+            position: relative;
+            transform: none !important;
+            top: 2px;
+
+            .mat-mdc-select-arrow {
+              color: var(--field-input-color) !important;
+            }
+          }
+
           &.pin-select {
             width: 42px;
           }
