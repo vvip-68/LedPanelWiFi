@@ -617,7 +617,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     this.dotSpaceToggler = this.dotSpace == 1;
 
     // Если ширина матрицы меньше ширины часов
-    this.allowX = this.managementService.state.width < clockWidth ? 0 : Math.round((this.managementService.state.width - clockWidth) / 2);
+    this.allowX = this.managementService.state.width < clockWidth ? 0 : Math.round((this.managementService.state.width - clockWidth) / 2) + 1;
     // Если высота матрицы меньше высоты часов
     this.allowY = this.managementService.state.height < clockHeight ? 0 : Math.round((this.managementService.state.height - clockHeight) / 2);
 
