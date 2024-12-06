@@ -129,7 +129,7 @@ int8_t getClockY() {
      
   // Часы - нечетное количество строк, матрица - четное или нечетное количество строк
   // Для матриц с четным количеством - сдинуть на один ряд вверх
-  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2);
+  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2) + clockOffsetY;
   
   return y;
 }
@@ -144,7 +144,7 @@ int8_t getTemperatureY() {
   
   // Температура - нечетное количество строк, матрица - четное или нечетное количество строк
   // Для матриц с четным количеством - сдинуть на один ряд вверх
-  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2);
+  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2) + clockOffsetY;
   
   return y;  
 }
@@ -162,7 +162,7 @@ int8_t getCalendarY() {
   
   // Температура - нечетное количество строк, матрица - четное или нечетное количество строк
   // Для матриц с четным количеством - сдинуть на один ряд вверх
-  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2);
+  int8_t y = ((pHEIGHT - height) / 2) + ((pHEIGHT + 1) % 2) + clockOffsetY;
   
   return y;
 }
@@ -273,6 +273,7 @@ void calcClockPosition() {
       
       // Шрифт 5x7 - изначально на ширину поля 26+
       clockX_dot_pos--;
+
       // Часы
       if (h10 == 1 && h01 == 1) {
         clockX_H01_pos = CLOCK_XC - 6;
@@ -289,6 +290,7 @@ void calcClockPosition() {
         clockX_H01_pos = CLOCK_XC - 7;
         clockX_H10_pos = CLOCK_XC - 13;
       }
+
       // Минуты
       if (m10 == 1 && m01 == 1) {
         clockX_M10_pos = CLOCK_XC + 1;
@@ -305,17 +307,21 @@ void calcClockPosition() {
         clockX_M10_pos = CLOCK_XC + 2;
         clockX_M01_pos = CLOCK_XC + 8;
       }
+      
       // Если ширина поля 25 - ширина точек не 2 колонки, а одна - позиции минут сдвигаются влево на 1 колонку
-      if (pWIDTH == 25) {
+      // Также учитывать настройку - ширина точек 1 или 2 диода
+      if (pWIDTH == 25 || clockDotWidth == 1) {
         clockX_M01_pos--;
         clockX_M10_pos--;
       }
+
       // Если ширина поля 23 или 24 - ширина точек не 2 колонки, а одна, пробела между цифрой и точками нет
       // - позиции минут сдвигаются влево на 2 колонки, позиция часов сдвигается вправо на 1 колонку
-      if (pWIDTH <= 24) {
+      // Также учитывать настройку - нужны ли пробелы между разделительными точками и окружающими цифрами
+      if (pWIDTH <= 24 || !clockDotSpace) {
         if (h10 > 0) {
-          clockX_M01_pos -= 2;
-          clockX_M10_pos -= 2;
+          clockX_M01_pos -= 1;
+          clockX_M10_pos -= 1;
           clockX_H01_pos++;
           clockX_H10_pos++;
         } else {
@@ -334,7 +340,6 @@ void calcClockPosition() {
       clockW = clockX_M01_pos - clockX  + 5;
       // Если ед минут = 1 - ширина уменьшается на 1, т.к. цифра узкая
       if (m01 == 1) clockW--;
-      
     }
         
   } else {
@@ -401,8 +406,13 @@ void calcClockPosition() {
   if (pWIDTH % 2 == 0 && clockW % 2 == 1) offset++;
   if (pWIDTH % 2 == 1 && clockW % 2 == 0) offset++;
   int8_t dx = offset - clockX + offset2;
-  if (dx != 0) shiftClockPosition(dx, 0);
-    
+  if (dx != 0) shiftClockPosition(dx, 0); 
+
+  // Если задано смещение часов по оси X и часы - статичные (не движущиеся) - сдвинуть вычисленные позиции отображения
+  if (clockOffsetX != 0 && clockScrollSpeed > 254) {
+      shiftClockPosition(clockOffsetX, 0);
+  }
+
 }
 
 #if (USE_WEATHER == 1)      
@@ -627,6 +637,11 @@ void calcTemperaturePosition() {
   if (pWIDTH % 2 == 1 && temperatureW % 2 == 0) offset++;
   int8_t dx = offset - temperatureX + offset2;
   shiftTemperaturePosition(dx, 0);
+
+  // Если задано смещение часов по оси X и часы - статичные (не движущиеся) - сдвинуть вычисленные позиции отображения
+  if (clockOffsetX != 0 && clockScrollSpeed > 254) {
+      shiftTemperaturePosition(clockOffsetX, 0);
+  }
 }
 
 #endif 
@@ -766,6 +781,20 @@ void calcCalendarPosition() {
   }    
   
   calendarH = (c_size == 1 ? 11 : 15);
+
+  // Центрировать календарь относительно линии CLOCK_XC
+  int8_t offset  = (pWIDTH - calendarW) / 2;
+  int8_t offset2 = CLOCK_XC - (pWIDTH / 2);
+  if (pWIDTH % 2 == 0 && calendarW % 2 == 1) offset++;
+  if (pWIDTH % 2 == 1 && calendarW % 2 == 0) offset++;
+  int8_t dx = offset - calendarX + offset2;
+  shiftCalendarPosition(dx, 0);
+
+  // Если задано смещение часов по оси X и часы - статичные (не движущиеся) - сдвинуть вычисленные позиции отображения
+  if (clockOffsetX != 0 && clockScrollSpeed > 254) {
+      shiftCalendarPosition(clockOffsetX, 0);
+  }
+
 }
 
 
@@ -897,8 +926,9 @@ void drawClock() {
         drawPixelXY(getClockX(clockX_dot_pos), clockY + 2, clockLED[2]);
         drawPixelXY(getClockX(clockX_dot_pos), clockY + 4, clockLED[2]);
         drawPixelXY(getClockX(clockX_dot_pos), clockY + 5, clockLED[2]);
+
         // Для ширины матрицы в 26 колонок - рисовать одинарные точки разделения часов/минут
-        if (pWIDTH > 25) {
+        if (pWIDTH > 25 && clockDotWidth == 2) {
           drawPixelXY(getClockX(clockX_dot_pos + 1), clockY + 1, clockLED[2]);
           drawPixelXY(getClockX(clockX_dot_pos + 1), clockY + 2, clockLED[2]);
           drawPixelXY(getClockX(clockX_dot_pos + 1), clockY + 4, clockLED[2]);
@@ -913,7 +943,6 @@ void drawClock() {
     }  
       
   }
-
 
   // Рисовать границы прямоугольника области часов
   if (debug) {

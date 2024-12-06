@@ -221,9 +221,21 @@ void set_ShowTempProps(int8_t value) {
   int8_t old = (showTempDegree ? 0x02 : 0x00) | (showTempLetter ? 0x01 : 0x00);
   if (old == value) return;
   putShowTempProps(value);  
+  value = getShowTempProps();
   showTempDegree = (value & 0x02) > 0;
   showTempLetter = (value & 0x01) > 0;
   addKeyToChanged("WV");
+}
+
+// WW - нужно ли показывать знак градуса и C/F при отображении температуры в макросе {WT} бегущей строки
+void set_ShowTempTextProps(int8_t value) {
+  int8_t old = (showTempTextDegree ? 0x02 : 0x00) | (showTempTextLetter ? 0x01 : 0x00);
+  if (old == value) return;
+  putShowTempTextProps(value);  
+  value = getShowTempTextProps();
+  showTempTextDegree = (value & 0x02) > 0;
+  showTempTextLetter = (value & 0x01) > 0;
+  addKeyToChanged("WW");
 }
 
 #endif
@@ -510,6 +522,32 @@ void set_CLOCK_SIZE(uint8_t value) {
   addKeyToChanged("CK");
 }
 
+// CX смещение часов по оси X
+void set_ClockOffsetX(int8_t value) {
+  int8_t oldValue = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
+  if (oldValue != value) {
+    if (CLOCK_SIZE == 0)
+      putClockOffsetXsmall(value);
+    else 
+      putClockOffsetXbig(value);      
+  }
+  clockOffsetX = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
+  addKeyToChanged("CX");
+}
+
+// CY смещение часов по оси Y
+void set_ClockOffsetY(int8_t value) {
+  int8_t oldValue = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
+  if (oldValue != value) {
+    if (CLOCK_SIZE == 0)
+      putClockOffsetYsmall(value);
+    else 
+      putClockOffsetYbig(value);      
+  }
+  clockOffsetY = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
+  addKeyToChanged("CY");
+}
+
 // NB nightClockBrightness
 void set_nightClockBrightness(uint8_t value) {
   if (nightClockBrightness == value) return;
@@ -525,6 +563,22 @@ void set_nightClockColor(uint8_t value) {
   putNightClockColor(value);
   nightClockColor = getNightClockColor();
   addKeyToChanged("NC");
+}
+
+// CD - ширина точки в больших часах
+void set_clockDotWidth(uint8_t value) {
+  if (clockDotWidth == value) return;
+  putClockDotWidth(value);
+  clockDotWidth = getClockDotWidth();
+  addKeyToChanged("CD");
+}
+
+// CS - ширина точки в больших часах
+void set_clockDotSpace(bool value) {
+  if (clockDotSpace == value) return;
+  putClockDotSpace(value);
+  clockDotSpace = getClockDotSpace();
+  addKeyToChanged("CS");
 }
 
 // SC clockScrollSpeed
@@ -620,6 +674,13 @@ void set_SoftAPPass(const String& value) {
   addKeyToChanged("AA");
   addKeyToChanged("AB");
 }              
+
+// DH - ширина точки в больших часах
+void set_useDHCP(bool value) {
+  if (getUseDHCP() == value) return;
+  putUseDHCP(value);
+  addKeyToChanged("DH");
+}
 
 // IP wifi_connected
 void set_wifi_connected(bool value) {

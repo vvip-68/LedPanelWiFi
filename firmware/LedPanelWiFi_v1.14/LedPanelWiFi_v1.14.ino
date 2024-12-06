@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2024.1106")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2024.1206")
 
 // К сведению. На некоторых лентах и старых китайских матрицах типа 16x16, 32x8 выпуска до 2019-2020 годов на ESP8266 (Wemos, NodeMCU), могут наблюдаться следующие эффекты
 //   - на матрице постоянно горит первый свтодиод разными цветами
@@ -1076,11 +1076,13 @@ void startWiFi(uint32_t waitTime) {
   // Пытаемся соединиться с роутером в сети
   String ssid(getSsid());
   String pass(getPass());
+  bool   useDHCP = getUseDHCP();
+
   if (ssid.length() > 0 && pass.length() > 0) {
     DEBUG(F("\nПодключение к "));
     DEBUG(ssid);
 
-    if (IP_STA[0] + IP_STA[1] + IP_STA[2] + IP_STA[3] > 0) {      
+    if (!useDHCP && (IP_STA[0] + IP_STA[1] + IP_STA[2] + IP_STA[3] > 0)) {      
       WiFi.config(IPAddress(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3]),  // 192.168.0.106
                   IPAddress(IP_STA[0], IP_STA[1], IP_STA[2], GTW),        // 192.168.0.1
                   IPAddress(255, 255, 255, 0),                            // Mask

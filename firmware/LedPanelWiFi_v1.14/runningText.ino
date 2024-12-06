@@ -1429,18 +1429,23 @@ String processMacrosInText(const String& text) {
     // Если включено отображение температуры цветом - добавить макрос цвета перед температурой 
     idx = textLine.indexOf("{WT}");
     if (idx >= 0) {
-      // Подготовить строку текущего времени HH:mm и заменить все вхождения {D} на эту строку
+      // Подготовить строку температуры и заменить все вхождения {WT} на эту строку
       int8_t th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
       String s_temperature((th == 0 ? "" : (th > 0 ? "+" : ""))); s_temperature += th;
-      String s_degree(isFarenheit ? PSTR("°F") : PSTR("°C"));
+      
       String s_color, s_color2;
 
       if (useTemperatureColor) {
-        s_color = "{C#" + IntToHex(getTemperatureColor(th)) + "}";
-        s_color2 = "{C" + IntToHex(globalTextColor) + "}";
+        s_color  = "{C#" + IntToHex(getTemperatureColor(th)) + "}";           // Каким цветом будет отображаться значение температуры
+        s_color2 = "{C#" + IntToHex(globalTextColor) + "}";                   // Чтобы продолжение строки не было тем же цветом - вставить макрос дефолтного цвета строки
       }
 
-      String s_tmp(s_color); s_tmp += s_temperature; s_tmp +=s_degree; s_tmp += s_color2;
+      String s_tmp(s_color);  s_tmp += s_temperature; 
+      if (showTempTextDegree) s_tmp += "°";                                   // Знак градуса добавлять, только если указано в настройках
+      if (showTempTextLetter) {                                               // C/F добавлять, только если указано в настройках
+        s_tmp += (isFarenheit ? PSTR("F") : PSTR("C"));
+      }
+      s_tmp += s_color2;
       
       textLine.replace("{WT}", s_tmp);
     }

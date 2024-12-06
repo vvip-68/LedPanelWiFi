@@ -40,9 +40,9 @@
 
 // ------------------------ Сервер времени ---------------------
 
-#define DEFAULT_NTP_SERVER PSTR("ru.pool.ntp.org") // NTP сервер по умолчанию "time.nist.gov"
-#define DEFAULT_AP_NAME    PSTR("PanelAP")         // Имя точки доступа по умолчанию 
-#define DEFAULT_AP_PASS    PSTR("12341234")        // Пароль точки доступа по умолчанию
+#define DEFAULT_NTP_SERVER PSTR("ntp0.ntp-servers.net") // NTP сервер по умолчанию "time.nist.gov"
+#define DEFAULT_AP_NAME    PSTR("PanelAP")              // Имя точки доступа по умолчанию 
+#define DEFAULT_AP_PASS    PSTR("12341234")             // Пароль точки доступа по умолчанию
 
 // ------------ Настройки региона погоды и часового пояса
 
@@ -637,6 +637,11 @@ bool     textOverlayEnabled = true;         // Доступность оверл
 int8_t   text_overlay_low  = 0;             // Вычисленная позиция оверлея матрицы - во всю ширину, область отображения текста бегущей строки - в процессе вычислении могут получаться отрицательные значения
 int8_t   text_overlay_high = 0;
 
+int8_t   clockOffsetX = 0;                  // Смещение часов относительно центра (коррекция положения по оси X)  
+int8_t   clockOffsetY = 0;                  // Смещение часов относительно центра (коррекция положения по оси Y)  
+uint8_t  clockDotWidth = 2;                 // Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маирицы
+bool     clockDotSpace = true;              // Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы)
+
 // ---------------------------------------------------------------
 
 #if (USE_ANIMATION == 1)
@@ -875,8 +880,10 @@ int8_t     temperatureX_SG_pos,  temperatureX_DG_pos;
 int8_t     temperatureX_CF_pos;
 bool       show_tempCF = false;                  // Показывать ли C/F в малых часах
 bool       show_tempDG = false;                  // Показывать ли знак градуса в малых часах (если включен прказ C/F)
-bool       showTempDegree = false;               // Температура шрифтом 3х5 - true - рисовать значок градуса, false - не рисовать
-bool       showTempLetter = false;               // Температура шрифтом 3х5 - true - рисовать C/F, 1 - не рисовать C/F
+bool       showTempDegree = false;               // Температура в часах - true - рисовать значок градуса, false - не рисовать
+bool       showTempLetter = false;               // Температура в часах - true - рисовать C/F, 1 - не рисовать C/F
+bool       showTempTextDegree = true;            // Температура макросе {WT} - true - рисовать значок градуса, false - не рисовать
+bool       showTempTextLetter = true;            // Температура макросе {WT} - true - рисовать C/F, 1 - не рисовать C/F
 #endif
 
 uint8_t    calendarW, calendarH;                 // Ширина и высота блока отображения календаря (зависит от текущей даты из за разной ширины цифр текушей даты)

@@ -98,7 +98,7 @@ void loadSettings() {
   //   92 - группа синхронизации
   //   94 - полная ширина матрицы при использовании карты индексов
   //   95 - полная высота матрицы при использовании карты индексов
-  //   96 - Отображение температуры малых часов - битовая карта b0: 0 - не рисовать C/F, 1 - рисовать C/F; b1: 0 - не рисовать заначок градуса; 1 - рисовать значок градуса   // getShowTempProps()  putShowTempProps()
+  //   96 - Отображение температуры в часах - битовая карта b0: 0 - не рисовать C/F, 1 - рисовать C/F; b1: 0 - не рисовать заначок градуса; 1 - рисовать значок градуса   // getShowTempProps()  putShowTempProps()
   //   97 - время задержки повтора нажатия кнопки в играх 10..100                                            // getGameButtonSpeed();          // putGameButtonSpeed(val)
   //   98 - masterX - трансляция экрана с MASTER - координата X мастера с которой начинается прием изображения
   //   99 - masterY - трансляция экрана с MASTER - координата Y мастера с которой начинается прием изображения
@@ -143,9 +143,18 @@ void loadSettings() {
   //**242 - не используется
   //  243 - Режим по времени "Рассвет" - так же как для режима 1                                             // getAM5effect()                 // putAM5effect(dawn_effect_id)
   // 244,245,246,247 - Код региона OpenWeatherMap для получения погоды (4 байта - uint32_t)                  // getWeatherRegion2()            // putWeatherRegion2(regionID2)
-  //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)
+  //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)  
   
-  //**249-275 - не используется
+  //  249 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) в малых часах 
+  //  250 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
+  //  251 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) в больших часах 
+  //  252 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
+  //  253 - clockDotWidth = 2;      // Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маирицы
+  //  254 - clockDotSpace = 1;      // Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы) - 0 или 1
+  //  255 - useDHCP = false;        // Использовать DHCP вместо статического адреса
+  //  256 - Отображение температуры в макросе {WT} бегущей строки - битовая карта b0: 0 - не рисовать C/F, 1 - рисовать C/F; b1: 0 - не рисовать заначок градуса; 1 - рисовать значок градуса
+
+  //**257-275 - не используется
   // 276 - порядок цвета для ленты на линии 1
   // 277 - порядок цвета для ленты на линии 2
   // 278 - порядок цвета для ленты на линии 3
@@ -253,7 +262,12 @@ void loadSettings() {
     COLOR_TEXT_MODE       = getTextColor();
     CURRENT_LIMIT         = getPowerLimit();
     TEXT_INTERVAL         = getTextInterval();
-    
+
+    clockOffsetX          = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
+    clockOffsetY          = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
+    clockDotWidth         = getClockDotWidth();
+    clockDotSpace         = getClockDotSpace();
+
     useRandomSequence     = getRandomMode();
     nightClockColor       = getNightClockColor();
     nightClockBrightness  = getNightClockBrightness();
@@ -328,6 +342,9 @@ void loadSettings() {
       int8_t props        = getShowTempProps();
       showTempDegree      = (props & 0x02) > 0;    
       showTempLetter      = (props & 0x01) > 0;
+      props               = getShowTempTextProps();
+      showTempTextDegree  = (props & 0x02) > 0;    
+      showTempTextLetter  = (props & 0x01) > 0;
     #endif  
 
     getStaticIP();
@@ -391,6 +408,13 @@ void saveDefaults() {
   putSmallFontType(use_round_3x5 ? 1 : 0);
 
   putAutoplay(manualMode);
+
+  putClockOffsetXsmall(clockOffsetX);
+  putClockOffsetYsmall(clockOffsetY);
+  putClockOffsetXbig(clockOffsetX);
+  putClockOffsetYbig(clockOffsetY);
+  putClockDotWidth(clockDotWidth);
+  putClockDotSpace(clockDotSpace);
 
   putClockOrientation(CLOCK_ORIENT);
   putPowerLimit(CURRENT_LIMIT);
@@ -459,6 +483,7 @@ void saveDefaults() {
   putGlobalTextColor(globalTextColor);      // Цвет текста в режиме "Монохром"
 
   putUseSoftAP(useSoftAP);
+  putUseDHCP(false);
 
   #if (USE_E131 == 1)
     workMode = STANDALONE;                  // По умолчанию - самостоятельный режим работы
@@ -499,9 +524,11 @@ void saveDefaults() {
     putShowWeatherInClock(showWeatherInClock);
     putIsFarenheit(isFarenheit);
     putShowTempProps((showTempDegree ? 0x02 : 0x00) | (showTempLetter ? 0x01 : 0x00));
+    putShowTempTextProps((showTempTextDegree ? 0x02 : 0x00) | (showTempTextLetter ? 0x01 : 0x00));
   #endif
        
   putStaticIP(IP_STA[0], IP_STA[1], IP_STA[2], IP_STA[3]);
+  putUseDHCP(IP_STA[0] + IP_STA[1] + IP_STA[2] + IP_STA[3] == 0);
 
   // Инициализировать строку использования эффектов - по умолчанию - все, порядок - в порядке определения)
   effect_order = String(IDX_LINE).substring(0,MAX_EFFECT);
@@ -2294,16 +2321,15 @@ void putSmallFontType(int8_t type) {
   }
 }
 
-// Отображать значок градуса и букву C/F при отображении температуры в малых часах
-int8_t getShowTempProps() {
+// Отображать значок градуса и букву C/F при отображении температуры в часах
+uint8_t getShowTempProps() {
   // b0 - отображать букву C/F
   // b1 - отображать значок градуса
-  uint8_t value = EEPROMread(96); 
-  return  value;
+  return EEPROMread(96); ;
 }
 
-// Отображать значок градуса и букву C/F при отображении температуры в малых часах
-void putShowTempProps(int8_t type) {
+// Отображать значок градуса и букву C/F при отображении температуры в часах
+void putShowTempProps(uint8_t type) {
   // b0 - отображать букву C/F
   // b1 - отображать значок градуса
   if (type != getShowTempProps()) {
@@ -2311,6 +2337,110 @@ void putShowTempProps(int8_t type) {
   }
 }
 
+// Смещение часов относительно центра (коррекция положения по оси X) в малых часах 
+int8_t getClockOffsetXsmall() {
+  return (int8_t)EEPROMread(249);
+}
+
+// Смещение часов относительно центра (коррекция положения по оси X) в малых часах
+void putClockOffsetXsmall(int8_t value) {
+  if (value != getClockOffsetXsmall()) {
+    EEPROMwrite(249, value);
+  }
+}
+
+// Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
+int8_t getClockOffsetYsmall() {
+  return (int8_t)EEPROMread(250);
+}
+
+// Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
+void putClockOffsetYsmall(int8_t value) {
+  if (value != getClockOffsetYsmall()) {
+    EEPROMwrite(250, value);
+  }
+}
+
+// Смещение часов относительно центра (коррекция положения по оси X) в больших часах 
+int8_t getClockOffsetXbig() {
+  return (int8_t)EEPROMread(251);
+}
+
+// Смещение часов относительно центра (коррекция положения по оси X) в больших часах
+void putClockOffsetXbig(int8_t value) {
+  if (value != getClockOffsetXbig()) {
+    EEPROMwrite(251, value);
+  }
+}
+
+// Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
+int8_t getClockOffsetYbig() {
+  return (int8_t)EEPROMread(252);
+}
+
+// Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
+void putClockOffsetYbig(int8_t value) {
+  if (value != getClockOffsetYbig()) {
+    EEPROMwrite(252, value);
+  }
+}
+
+// Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маирицы
+uint8_t getClockDotWidth() {
+  uint8_t value = EEPROMread(253);
+  if (value < 1) value = 1;
+  if (value > 2) value = 2;
+  return value;
+}
+
+// Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маирицы
+void putClockDotWidth(uint8_t value) {
+  if (value < 1) value = 1;
+  if (value > 2) value = 2;
+  if (value != getClockDotWidth()) {
+    EEPROMwrite(253, value);
+  }
+}
+
+// Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы) - 0 или 1
+bool getClockDotSpace() {
+  return EEPROMread(254) > 0;
+}
+
+// Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы) - 0 или 1
+void putClockDotSpace(bool value) {
+  if (value != getClockDotSpace()) {
+    EEPROMwrite(254, value ? 1 : 0);
+  }
+}
+
+// Использовать DHCP вместо статического адреса
+bool getUseDHCP() {
+  return EEPROMread(255) != 0;
+}
+
+// Использовать DHCP вместо статического адреса
+void putUseDHCP(bool value) {
+  if (value != getUseDHCP()) {
+    EEPROMwrite(255, value ? 1 : 0);
+  }
+}
+
+// Отображать значок градуса и букву C/F при отображении температуры в макросе {WT} бегущей строки
+uint8_t getShowTempTextProps() {
+  // b0 - отображать букву C/F
+  // b1 - отображать значок градуса
+  return  EEPROMread(256);
+}
+
+// Отображать значок градуса и букву C/F при отображении температуры в макросе {WT} бегущей строки
+void putShowTempTextProps(uint8_t type) {
+  // b0 - отображать букву C/F
+  // b1 - отображать значок градуса
+  if (type != getShowTempTextProps()) {
+    EEPROMwrite(256, type);
+  }
+}
 
 // ----------------------------------------------------------
 // ----------------------------------------------------------
