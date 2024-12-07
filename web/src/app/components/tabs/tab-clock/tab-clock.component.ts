@@ -72,6 +72,10 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   public dotWidthToggler = true;
   public dotSpaceToggler = true;
 
+  public offsetXinitialized = false;
+  public offsetYinitialized = false;
+
+
   public allowX = 0;
   public allowY = 0;
   public allowAdvanced = false;
@@ -168,9 +172,11 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
               break;
             case 'CX':
               this.offsetX = this.managementService.state.clock_offset_x;
+              this.offsetXinitialized = true;
               break;
             case 'CY':
               this.offsetY = this.managementService.state.clock_offset_y;
+              this.offsetYinitialized = true;
               break;
             case 'DC':
               this.clock_show_date = this.managementService.state.clock_show_date;
@@ -250,19 +256,23 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     this.offsetXChanged$
       .pipe(takeUntil(this.destroy$), debounceTime(100))
       .subscribe((value) => {
-        this.offsetX = value;
-        this.managementService.state.clock_offset_x = this.offsetX;
-        // $19 21 X Y; - Смещение часов по X,Y
-        this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
+        if (this.offsetXinitialized) {
+          this.offsetX = value;
+          this.managementService.state.clock_offset_x = this.offsetX;
+          // $19 21 X Y; - Смещение часов по X,Y
+          this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
+        }
       });
 
     this.offsetYChanged$
       .pipe(takeUntil(this.destroy$), debounceTime(100))
       .subscribe((value) => {
-        this.offsetY = value;
-        this.managementService.state.clock_offset_y = this.offsetY;
-        // $19 21 X Y; - Смещение часов по X,Y
-        this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
+        if (this.offsetYinitialized) {
+          this.offsetY = value;
+          this.managementService.state.clock_offset_y = this.offsetY;
+          // $19 21 X Y; - Смещение часов по X,Y
+          this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
+        }
       });
 
   }
