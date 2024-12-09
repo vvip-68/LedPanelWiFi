@@ -1,13 +1,17 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
 #include <stdint.h>
 #include <catch.hpp>
 
+#include "Allocators.hpp"
+#include "Literals.hpp"
+
 TEST_CASE("JsonArray::operator[]") {
-  DynamicJsonDocument doc(4096);
+  SpyingAllocator spy;
+  JsonDocument doc(&spy);
   JsonArray array = doc.to<JsonArray>();
 
   SECTION("Pad with null") {
@@ -55,17 +59,58 @@ TEST_CASE("JsonArray::operator[]") {
     REQUIRE(false == array[0].is<int>());
   }
 
-  SECTION("const char*") {
-    const char* str = "hello";
+  SECTION("string literal") {
+    array[0] = "hello";
 
-    array[0] = str;
-    REQUIRE(str == array[0].as<const char*>());
+    REQUIRE(array[0].as<std::string>() == "hello");
     REQUIRE(true == array[0].is<const char*>());
     REQUIRE(false == array[0].is<int>());
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+                         });
   }
 
+  SECTION("const char*") {
+    const char* str = "hello";
+    array[0] = str;
+
+    REQUIRE(array[0].as<std::string>() == "hello");
+    REQUIRE(true == array[0].is<const char*>());
+    REQUIRE(false == array[0].is<int>());
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+                         });
+  }
+
+  SECTION("std::string") {
+    array[0] = "hello"_s;
+
+    REQUIRE(array[0].as<std::string>() == "hello");
+    REQUIRE(true == array[0].is<const char*>());
+    REQUIRE(false == array[0].is<int>());
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+                         });
+  }
+
+#ifdef HAS_VARIABLE_LENGTH_ARRAY
+  SECTION("VLA") {
+    size_t i = 16;
+    char vla[i];
+    strcpy(vla, "world");
+
+    array.add("hello");
+    array[0] = vla;
+
+    REQUIRE(array[0] == "world"_s);
+  }
+#endif
+
   SECTION("nested array") {
-    DynamicJsonDocument doc2(4096);
+    JsonDocument doc2;
     JsonArray arr2 = doc2.to<JsonArray>();
 
     array[0] = arr2;
@@ -76,7 +121,7 @@ TEST_CASE("JsonArray::operator[]") {
   }
 
   SECTION("nested object") {
-    DynamicJsonDocument doc2(4096);
+    JsonDocument doc2;
     JsonObject obj = doc2.to<JsonObject>();
 
     array[0] = obj;
@@ -87,7 +132,7 @@ TEST_CASE("JsonArray::operator[]") {
   }
 
   SECTION("array subscript") {
-    DynamicJsonDocument doc2(4096);
+    JsonDocument doc2;
     JsonArray arr2 = doc2.to<JsonArray>();
     const char* str = "hello";
 
@@ -100,7 +145,7 @@ TEST_CASE("JsonArray::operator[]") {
 
   SECTION("object subscript") {
     const char* str = "hello";
-    DynamicJsonDocument doc2(4096);
+    JsonDocument doc2;
     JsonObject obj = doc2.to<JsonObject>();
 
     obj["x"] = str;
@@ -110,65 +155,17 @@ TEST_CASE("JsonArray::operator[]") {
     REQUIRE(str == array[0]);
   }
 
-  SECTION("should not duplicate const char*") {
-    array[0] = "world";
-    const size_t expectedSize = JSON_ARRAY_SIZE(1);
-    REQUIRE(expectedSize == doc.memoryUsage());
-  }
-
-  SECTION("should duplicate char*") {
-    array[0] = const_cast<char*>("world");
-    const size_t expectedSize = JSON_ARRAY_SIZE(1) + JSON_STRING_SIZE(5);
-    REQUIRE(expectedSize == doc.memoryUsage());
-  }
-
-  SECTION("should duplicate std::string") {
-    array[0] = std::string("world");
-    const size_t expectedSize = JSON_ARRAY_SIZE(1) + JSON_STRING_SIZE(5);
-    REQUIRE(expectedSize == doc.memoryUsage());
-  }
-
   SECTION("array[0].to<JsonObject>()") {
     JsonObject obj = array[0].to<JsonObject>();
     REQUIRE(obj.isNull() == false);
   }
 
-#ifdef HAS_VARIABLE_LENGTH_ARRAY
-  SECTION("set(VLA)") {
-    size_t i = 16;
-    char vla[i];
-    strcpy(vla, "world");
+  SECTION("Use a JsonVariant as index") {
+    array[0] = 1;
+    array[1] = 2;
+    array[2] = 3;
 
-    array.add("hello");
-    array[0].set(vla);
-
-    REQUIRE(std::string("world") == array[0]);
-  }
-
-  SECTION("operator=(VLA)") {
-    size_t i = 16;
-    char vla[i];
-    strcpy(vla, "world");
-
-    array.add("hello");
-    array[0] = vla;
-
-    REQUIRE(std::string("world") == array[0]);
-  }
-#endif
-}
-
-TEST_CASE("JsonArrayConst::operator[]") {
-  DynamicJsonDocument doc(4096);
-  JsonArray array = doc.to<JsonArray>();
-  array.add(0);
-
-  SECTION("int") {
-    array[0] = 123;
-    JsonArrayConst carr = array;
-
-    REQUIRE(123 == carr[0].as<int>());
-    REQUIRE(true == carr[0].is<int>());
-    REQUIRE(false == carr[0].is<bool>());
+    REQUIRE(array[array[1]] == 3);
+    REQUIRE(array[array[3]] == nullptr);
   }
 }

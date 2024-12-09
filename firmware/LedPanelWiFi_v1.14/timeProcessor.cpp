@@ -7,21 +7,41 @@
  #include <TZ.h>                        // TZ declarations https://github.com/esp8266/Arduino/blob/master/cores/esp8266/TZ.h
  #include <sntp.h>
 
- #ifdef __NEWLIB__ 
-  #if __NEWLIB__ >= 4
-    extern "C" {
-        #include <sys/_tz_structs.h>
-    };
+  #ifdef __NEWLIB__ 
+    #if __NEWLIB__ >= 4 
+      extern "C" {
+          #include <sys/_tz_structs.h>
+      };
+    #endif
   #endif
- #endif
+
 #endif
 
 #ifdef ESP32
- #include <time.h>
- #include <esp_sntp.h>
+  #include <time.h>
+  #include <esp_sntp.h>
+  #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+    #ifdef __NEWLIB__ 
+      #if __NEWLIB__ >= 4 
+        extern "C" {
+            #include <sys/_tz_structs.h>
+        };
+      #endif
+    #endif
+  #endif
 #endif
-#include "a_def_hard.h"                 // нам нужны макросы для дебага
 
+#ifndef DEBUGLN
+  #define DEBUGLN(x)          if (vDEBUG_SERIAL) Serial.println(x)
+#endif  
+
+#ifndef DEBUG
+  #define DEBUG(x)            if (vDEBUG_SERIAL) Serial.print(x)
+#endif  
+
+#ifndef DEBUGLOG
+  #define DEBUGLOG(func, ...) if (vDEBUG_SERIAL) Serial.func(__VA_ARGS__)
+#endif  
 
 #ifndef TZONE
 #define TZONE PSTR("GMT0")              // default Time-Zone
@@ -44,15 +64,26 @@ TimeProcessor::TimeProcessor()
    
 #ifdef ESP32
     sntp_set_time_sync_notification_cb( [](struct timeval *tv){ timeavailable(tv);} );
-#ifdef ESP_ARDUINO_VERSION
-    sntp_servermode_dhcp(1);
-#endif
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+        // Эта строчка вводит контроллер в циклическую перезагрузку
+        // esp_sntp_servermode_dhcp(1); 
+    #else    
+        sntp_servermode_dhcp(1);
+    #endif
 #endif
 
-    configTzTime(TZONE, ntp1, ntp2, userntp ? userntp->data() : NULL);
-    sntp_stop();    // отключаем ntp пока нет подключения к AP
+    configTzTime(TZONE, ntp1, ntp2, userntp ? userntp.c_str() : NULL);
+
+#ifdef ESP8266
+    sntp_stop();        // отключаем ntp пока нет подключения к AP
+#endif
 
 #ifdef ESP32
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      esp_sntp_stop();  // отключаем ntp пока нет подключения к AP
+    #else
+      sntp_stop();      // отключаем ntp пока нет подключения к AP
+    #endif
     // hook up WiFi events handler
     WiFi.onEvent(std::bind(&TimeProcessor::_onWiFiEvent, this, std::placeholders::_1, std::placeholders::_2));
 #endif
@@ -143,16 +174,29 @@ void TimeProcessor::onSTADisconnected([[maybe_unused]] const WiFiEventStationMod
 #ifdef ESP32
 void TimeProcessor::_onWiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info){
     switch (event){
-    case SYSTEM_EVENT_STA_GOT_IP:
-        sntp_setservername(1, (char*)ntp2);
-        if (userntp)
-            sntp_setservername(CUSTOM_NTP_INDEX, userntp->data());
-        sntp_init();
-        DEBUGLOG(println, F("\nTIME: Синхронизация с NTP"));
-        break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-        sntp_stop();
-        break;
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      case IP_EVENT_STA_GOT_IP:
+          esp_sntp_setservername(1, (char*)ntp2);
+          if (userntp.length() > 0)
+              esp_sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+          esp_sntp_init();
+          DEBUGLOG(println, F("\nTIME: Синхронизация с NTP"));
+          break;
+      case WIFI_EVENT_STA_DISCONNECTED:
+          esp_sntp_stop();
+          break;
+    #else
+      case SYSTEM_EVENT_STA_GOT_IP:
+          sntp_setservername(1, (char*)ntp2);
+          if (userntp.length() > 0)
+              sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+          sntp_init();
+          DEBUGLOG(println, F("\nTIME: Синхронизация с NTP"));
+          break;
+      case SYSTEM_EVENT_STA_DISCONNECTED:
+          sntp_stop();
+          break;
+    #endif
     default:
         break;
     }
@@ -213,30 +257,53 @@ long int TimeProcessor::getOffset(){
 
 void TimeProcessor::setcustomntp(const char* ntp){
     if (!ntp) return;
-    if (!userntp)
-        userntp = new std::string(ntp);
-    else
-        *userntp = ntp;
-    sntp_setservername(CUSTOM_NTP_INDEX, userntp->data());
-    DEBUGLOG(printf, "TIME: Сервер NTP: %s\n", userntp->data());
+
+    userntp = String(ntp);
+
+    #ifdef ESP8266
+      sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+    #endif
+    #ifdef ESPESP32
+      #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)        
+        esp_sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+      #else 
+        sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+      #endif
+    #endif
+    DEBUGLOG(printf, "TIME: Сервер NTP: %s\n", userntp.c_str());
 }
 
 /**
  * @brief - retreive NTP server name or IP
  */
 String TimeProcessor::getserver(uint8_t idx){
-    if (sntp_getservername(idx)){
-        return String(sntp_getservername(idx));
-    } else {
-#ifdef ESP8266
-        IPAddress addr(sntp_getserver(idx));
-#endif
-#ifdef ESP32
-        const ip_addr_t * _ip = sntp_getserver(idx);
-        IPAddress addr(_ip->u_addr.ip4.addr);
-#endif
-        return addr.toString();
-    }
+  #ifdef ESP8266
+      if (sntp_getservername(idx)){
+          return String(sntp_getservername(idx));
+      } else {
+          IPAddress addr(sntp_getserver(idx));
+          return addr.toString();
+      }
+  #endif
+  #ifdef ESP32
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)   
+      if (esp_sntp_getservername(idx)){
+          return String(esp_sntp_getservername(idx));  
+      } else {
+          const ip_addr_t * _ip = esp_sntp_getserver(idx);
+          IPAddress addr(_ip->u_addr.ip4.addr);
+          return addr.toString();
+      }
+    #else  
+      if (sntp_getservername(idx)){
+          return String(sntp_getservername(idx));  
+      } else {
+          const ip_addr_t * _ip = sntp_getserver(idx);
+          IPAddress addr(_ip->u_addr.ip4.addr);
+          return addr.toString();
+      }
+    #endif    
+  #endif
 };
 
 /**
@@ -248,23 +315,63 @@ void TimeProcessor::attach_callback(callback_function_t callback){
 }
 
 void TimeProcessor::ntpodhcp(bool enable){
+  #ifdef ESP8266
     sntp_servermode_dhcp(enable);
-
     if (!enable){
         DEBUGLOG(println, F("TIME: NTP over DHCP - выключено"));
         sntp_setservername(0, (char*)ntp1);
         sntp_setservername(1, (char*)ntp2);
-        if (userntp && userntp->length())
-            sntp_setservername(CUSTOM_NTP_INDEX, userntp->data());
+        if (userntp.length() > 0)
+            sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
     }
+  #endif
+  #ifdef ESP32
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      esp_sntp_servermode_dhcp(enable);
+      if (!enable){
+          DEBUGLOG(println, F("TIME: NTP over DHCP - выключено"));
+          esp_sntp_setservername(0, (char*)ntp1);
+          esp_sntp_setservername(1, (char*)ntp2);
+          if (userntp.length() > 0)
+              esp_sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+      }
+    #else
+      sntp_servermode_dhcp(enable);
+      if (!enable){
+          DEBUGLOG(println, F("TIME: NTP over DHCP - выключено"));
+          sntp_setservername(0, (char*)ntp1);
+          sntp_setservername(1, (char*)ntp2);
+          if (userntp.length())
+              sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
+      }
+    #endif
+  #endif
 };
 
 void TimeProcessor::enable(){
+  #ifdef ESP8266
     sntp_init();
+  #endif
+  #ifdef ESP32
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      esp_sntp_init();
+    #else
+      sntp_init();
+    #endif
+  #endif
 }
 
 void TimeProcessor::disable(){
+  #ifdef ESP8266
     sntp_stop();
+  #endif
+  #ifdef ESP32
+    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+      esp_sntp_stop();    // отключаем ntp пока нет подключения к AP
+    #else
+      sntp_stop();    // отключаем ntp пока нет подключения к AP
+    #endif
+  #endif
 }
 
 // the hour now (localtime)

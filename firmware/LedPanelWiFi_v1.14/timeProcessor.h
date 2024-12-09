@@ -39,7 +39,7 @@ private:
 
     const char* ntp1 = NTP1ADDRESS;
     const char* ntp2 = NTP2ADDRESS;
-    std::string* userntp = nullptr;          // user defined NTP server
+    String userntp;                   // user defined NTP server
 
 #ifdef ESP32
     /**

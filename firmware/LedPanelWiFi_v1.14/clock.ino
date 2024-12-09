@@ -439,7 +439,7 @@ void calcTemperaturePosition() {
   if (c_size == 1) {
         
     // Если температура равна 0 - рисуется маленькая буква 'C' размером 2x3 или 'F' размером 3x5  
-    if (t == 0) {
+    if (t == 0) { //+++!!!  && !show_tempDG
       
       show_tempCF = true;
       temperatureW = 7;
@@ -1278,7 +1278,7 @@ void clockTicker() {
       // отображать показание текущего значения яркости в процентах 0..99
       if (isButtonHold) bCounter = 4;
       if (!isButtonHold && bCounter > 0 && halfSec) bCounter--;
-      uint8_t prcBrightness = map8(globalBrightness,0,99);
+      uint8_t prcBrightness = map8(deviceBrightness,0,99);
       uint8_t m10 = getByteForDigit(prcBrightness / 10);
       uint8_t m01 = getByteForDigit(prcBrightness % 10);
       currDisplay[0] = _b_;  // display->displayByte(_b_, _r_, m10, m01);

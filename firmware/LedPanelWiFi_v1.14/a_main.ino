@@ -54,7 +54,7 @@ void process() {
         DEBUGLN(F("Запуск вещания E1.31 потока"));
         commandSetDimension(pWIDTH, pHEIGHT);
         commandTurnOnOff(isTurnedOff);
-        commandSetBrightness(globalBrightness);
+        commandSetBrightness(deviceBrightness);
         commandSetSpecialBrightness(specialBrightness);
         if (syncMode == COMMAND) {
           // Установить  на клиентах время мастера, текущий цвет рисования, скорости прокрутки текста и часов,
@@ -359,7 +359,7 @@ void process() {
         FastLEDshow();
       }
     } else {
-      uint8_t br = specialMode ? specialBrightness : globalBrightness;
+      uint8_t br = specialMode ? specialBrightness : deviceBrightness;
       if (br == 1 && !(loadingFlag || isAlarming || thisMode == MC_TEXT || thisMode == MC_DRAW || thisMode == MC_LOADIMAGE)) {
         if (allowHorizontal || allowVertical) {
           customRoutine(MC_CLOCK);    
@@ -496,7 +496,7 @@ void process() {
   // и он останется с черным экраном, хотя на самом деле мастер что-то передает
   #if (USE_E131 == 1)
     if (abs((long long)(millis() - last_sent_brightness_sync)) > 1000) {
-      uint8_t value = specialMode ? specialBrightness : globalBrightness;
+      uint8_t value = specialMode ? specialBrightness : deviceBrightness;
       commandSetBrightness(value);
       last_sent_brightness_sync = millis();
     }        
@@ -616,11 +616,11 @@ void process() {
         if (clicks == 0 && isHolded) {
           // Управление яркостью - только если нажата и удерживается без предварительного короткого нажатия
           isButtonHold = true;
-          if (globalBrightness == 255)
+          if (deviceBrightness == 255)
             brightDirection = false;
-          else if (globalBrightness <= 4) {
+          else if (deviceBrightness <= 4) {
             brightDirection = true;
-            globalBrightness = 4;
+            deviceBrightness = 4;
           } else { 
             brightDirection = !brightDirection;
           }
@@ -727,19 +727,19 @@ String getEffectName(int8_t mode) {
 void processButtonStep() {
   if (isTurnedOff) return;
   if (brightDirection) {
-    if (globalBrightness < 10) set_globalBrightness(globalBrightness + 1);
-    else if (globalBrightness < 250) set_globalBrightness(globalBrightness + 5);
+    if (deviceBrightness < 10) set_globalBrightness(deviceBrightness + 1);
+    else if (deviceBrightness < 250) set_globalBrightness(deviceBrightness + 5);
     else {
       set_globalBrightness(255);
     }
   } else {
-    if (globalBrightness > 15) set_globalBrightness(globalBrightness - 5);
-    else if (globalBrightness > 2) set_globalBrightness(globalBrightness - 1);
+    if (deviceBrightness > 15) set_globalBrightness(deviceBrightness - 5);
+    else if (deviceBrightness > 2) set_globalBrightness(deviceBrightness - 1);
     else {
       set_globalBrightness(2);
     }
   }
-  set_specialBrightness(globalBrightness);  
+  set_specialBrightness(deviceBrightness);  
 }
 #endif
 
@@ -1237,7 +1237,7 @@ void parsing() {
           set_specialBrightness(nightClockBrightness);
         } else {
           set_globalBrightness(intData[2]);
-          if (specialMode) set_specialBrightness(globalBrightness);
+          if (specialMode) set_specialBrightness(deviceBrightness);
           if (thisMode == MC_DRAW || thisMode == MC_LOADIMAGE) {
             FastLEDshow();
           }
@@ -3130,7 +3130,7 @@ String getStateValue(const String& key, int8_t effect, bool shrt) {
 
   // Текущая яркость
   if (key == "BR") {
-    uint8_t br = (isNightClock ? nightClockBrightness : (specialMode ? specialBrightness : globalBrightness));
+    uint8_t br = (isNightClock ? nightClockBrightness : (specialMode ? specialBrightness : deviceBrightness));
     if (shrt) {
       return String(br);
     }
@@ -5035,7 +5035,7 @@ void setSpecialMode(int8_t spc_mode) {
       tmp_eff = MC_CLOCK;
       set_globalColor(getGlobalClockColor());
       specialClock = true;
-      set_specialBrightness(globalBrightness);
+      set_specialBrightness(deviceBrightness);
       break;
       
     case 5:  // Белый экран (ночник);
@@ -5150,7 +5150,7 @@ void setEffect(uint8_t eff) {
   }
   
   if (thisMode != MC_DAWN_ALARM) {
-    FastLEDsetBrightness(globalBrightness);      
+    FastLEDsetBrightness(deviceBrightness);      
   }
 }
 
@@ -5304,7 +5304,7 @@ void turnOff() {
     bool mm = manualMode;
     #if (USE_E131 == 1)
     // Запомнить текущий используемый уровень яркости.
-    uint8_t bright = specialModeId < 0 ? globalBrightness : specialBrightness;
+    uint8_t bright = specialModeId < 0 ? deviceBrightness : specialBrightness;
     #endif
     // Выключить панель - черный экран
     setSpecialMode(0);

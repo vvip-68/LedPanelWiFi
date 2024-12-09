@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -193,9 +193,7 @@ TEST_CASE("Polyfills/type_traits") {
     CHECK(is_convertible<MemberProxy<JsonObject, const char*>,
                          JsonVariantConst>::value == true);
     CHECK(is_convertible<JsonObjectConst, JsonVariantConst>::value == true);
-    CHECK(is_convertible<DynamicJsonDocument, JsonVariantConst>::value == true);
-    CHECK(is_convertible<StaticJsonDocument<10>, JsonVariantConst>::value ==
-          true);
+    CHECK(is_convertible<JsonDocument, JsonVariantConst>::value == true);
   }
 
   SECTION("is_class") {
@@ -213,4 +211,26 @@ TEST_CASE("Polyfills/type_traits") {
     CHECK(is_enum<bool>::value == false);
     CHECK(is_enum<double>::value == false);
   }
+
+  SECTION("remove_cv") {
+    CHECK(is_same<remove_cv_t<const int>, int>::value);
+    CHECK(is_same<remove_cv_t<volatile int>, int>::value);
+    CHECK(is_same<remove_cv_t<const volatile int>, int>::value);
+    CHECK(is_same<remove_cv_t<int>, int>::value);
+    CHECK(is_same<remove_cv_t<decltype("toto")>, decltype("toto")>::value);
+  }
+
+  SECTION("decay") {
+    CHECK(is_same<decay_t<int>, int>::value);
+    CHECK(is_same<decay_t<int&>, int>::value);
+    CHECK(is_same<decay_t<int&&>, int>::value);
+    CHECK(is_same<decay_t<int[]>, int*>::value);
+    CHECK(is_same<decay_t<int[10]>, int*>::value);
+    CHECK(is_same<decay_t<decltype("toto")>, const char*>::value);
+  }
+}
+
+TEST_CASE("is_std_string") {
+  REQUIRE(is_std_string<std::string>::value == true);
+  REQUIRE(is_std_string<EmptyClass>::value == false);
 }

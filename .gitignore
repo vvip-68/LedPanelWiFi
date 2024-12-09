@@ -2,7 +2,4 @@
 .pio
 .vscode
 user_*.ini
-/controller_0xE3.hex
-/window-1_0xE3.hex
-/window-2_0xE3.hex
-/window-3_0xE3.hex
+/*.hex

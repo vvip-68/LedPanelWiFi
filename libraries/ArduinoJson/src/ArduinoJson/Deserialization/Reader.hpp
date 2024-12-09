@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -11,7 +11,7 @@
 
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
-// The default reader is a simple wrapper for Readers that are not copiable
+// The default reader is a simple wrapper for Readers that are not copyable
 template <typename TSource, typename Enable = void>
 struct Reader {
  public:
@@ -19,7 +19,7 @@ struct Reader {
 
   int read() {
     // clang-format off
-    return source_->read();  // Error here? See https://arduinojson.org/v6/invalid-input/
+    return source_->read();  // Error here? See https://arduinojson.org/v7/invalid-input/
     // clang-format on
   }
 
@@ -62,9 +62,8 @@ ARDUINOJSON_END_PRIVATE_NAMESPACE
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
 template <typename TInput>
-Reader<typename remove_reference<TInput>::type> makeReader(TInput&& input) {
-  return Reader<typename remove_reference<TInput>::type>{
-      detail::forward<TInput>(input)};
+Reader<remove_reference_t<TInput>> makeReader(TInput&& input) {
+  return Reader<remove_reference_t<TInput>>{detail::forward<TInput>(input)};
 }
 
 template <typename TChar>

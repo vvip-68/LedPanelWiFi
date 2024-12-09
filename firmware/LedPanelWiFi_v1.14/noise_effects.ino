@@ -25,7 +25,7 @@ void madnessNoise() {
     }        
   }
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   scale = map8(getEffectScaleParamValue(MC_NOISE_MADNESS),0,100);
   fillnoise8();
   for (uint8_t i = 0; i < pWIDTH; i++) {
@@ -212,7 +212,7 @@ void fillNoiseLED() {
   x += speed / 8;
   y -= speed / 16;
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for (uint8_t i = 0; i < pWIDTH; i++) {
     for (uint8_t j = 0; j < pHEIGHT; j++) {

@@ -1,33 +1,85 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
+#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
+#define ARDUINOJSON_ENABLE_PROGMEM 1
 #include <ArduinoJson.h>
+
 #include <catch.hpp>
 
-typedef ArduinoJson::detail::MemberProxy<JsonDocument&, const char*>
-    MemberProxy;
+#include "Allocators.hpp"
+#include "Literals.hpp"
+
+using ArduinoJson::detail::sizeofArray;
+using ArduinoJson::detail::sizeofObject;
 
 TEST_CASE("MemberProxy::add()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  SpyingAllocator spy;
+  JsonDocument doc(&spy);
+  const auto& mp = doc["hello"];
 
-  SECTION("add(int)") {
+  SECTION("integer") {
     mp.add(42);
 
     REQUIRE(doc.as<std::string>() == "{\"hello\":[42]}");
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                         });
   }
 
-  SECTION("add(const char*)") {
+  SECTION("string literal") {
     mp.add("world");
 
     REQUIRE(doc.as<std::string>() == "{\"hello\":[\"world\"]}");
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                         });
   }
+
+  SECTION("const char*") {
+    const char* temp = "world";
+    mp.add(temp);
+
+    REQUIRE(doc.as<std::string>() == "{\"hello\":[\"world\"]}");
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+                         });
+  }
+
+  SECTION("char[]") {
+    char temp[] = "world";
+    mp.add(temp);
+
+    REQUIRE(doc.as<std::string>() == "{\"hello\":[\"world\"]}");
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+
+                         });
+  }
+
+#ifdef HAS_VARIABLE_LENGTH_ARRAY
+  SECTION("VLA") {
+    size_t i = 16;
+    char vla[i];
+    strcpy(vla, "world");
+
+    mp.add(vla);
+
+    REQUIRE(doc.as<std::string>() == "{\"hello\":[\"world\"]}");
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("world")),
+                         });
+  }
+#endif
 }
 
 TEST_CASE("MemberProxy::clear()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  JsonDocument doc;
+  const auto& mp = doc["hello"];
 
   SECTION("size goes back to zero") {
     mp.add(42);
@@ -45,7 +97,7 @@ TEST_CASE("MemberProxy::clear()") {
 }
 
 TEST_CASE("MemberProxy::operator==()") {
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;
 
   SECTION("1 vs 1") {
     doc["a"] = 1;
@@ -84,33 +136,14 @@ TEST_CASE("MemberProxy::operator==()") {
   }
 }
 
-TEST_CASE("MemberProxy::containsKey()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
-
-  SECTION("containsKey(const char*)") {
-    mp["key"] = "value";
-
-    REQUIRE(mp.containsKey("key") == true);
-    REQUIRE(mp.containsKey("key") == true);
-  }
-
-  SECTION("containsKey(std::string)") {
-    mp["key"] = "value";
-
-    REQUIRE(mp.containsKey(std::string("key")) == true);
-    REQUIRE(mp.containsKey(std::string("key")) == true);
-  }
-}
-
 TEST_CASE("MemberProxy::operator|()") {
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;
 
   SECTION("const char*") {
     doc["a"] = "hello";
 
-    REQUIRE((doc["a"] | "world") == std::string("hello"));
-    REQUIRE((doc["b"] | "world") == std::string("world"));
+    REQUIRE((doc["a"] | "world") == "hello"_s);
+    REQUIRE((doc["b"] | "world") == "world"_s);
   }
 
   SECTION("Issue #1411") {
@@ -120,14 +153,14 @@ TEST_CASE("MemberProxy::operator|()") {
                                 // to trigger the bug
     const char* sensor = doc["sensor"] | test;  // "gps"
 
-    REQUIRE(sensor == std::string("gps"));
+    REQUIRE(sensor == "gps"_s);
   }
 
   SECTION("Issue #1415") {
     JsonObject object = doc.to<JsonObject>();
     object["hello"] = "world";
 
-    StaticJsonDocument<0> emptyDoc;
+    JsonDocument emptyDoc;
     JsonObject anotherObject = object["hello"] | emptyDoc.to<JsonObject>();
 
     REQUIRE(anotherObject.isNull() == false);
@@ -136,8 +169,8 @@ TEST_CASE("MemberProxy::operator|()") {
 }
 
 TEST_CASE("MemberProxy::remove()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  JsonDocument doc;
+  const auto& mp = doc["hello"];
 
   SECTION("remove(int)") {
     mp.add(1);
@@ -162,7 +195,7 @@ TEST_CASE("MemberProxy::remove()") {
     mp["a"] = 1;
     mp["b"] = 2;
 
-    mp.remove(std::string("b"));
+    mp.remove("b"_s);
 
     REQUIRE(mp.as<std::string>() == "{\"a\":1}");
   }
@@ -183,8 +216,8 @@ TEST_CASE("MemberProxy::remove()") {
 }
 
 TEST_CASE("MemberProxy::set()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  JsonDocument doc;
+  const auto& mp = doc["hello"];
 
   SECTION("set(int)") {
     mp.set(42);
@@ -205,11 +238,23 @@ TEST_CASE("MemberProxy::set()") {
 
     REQUIRE(doc.as<std::string>() == "{\"hello\":\"world\"}");
   }
+
+#ifdef HAS_VARIABLE_LENGTH_ARRAY
+  SECTION("set(vla)") {
+    size_t i = 8;
+    char vla[i];
+    strcpy(vla, "world");
+
+    mp.set(vla);
+
+    REQUIRE(doc.as<std::string>() == "{\"hello\":\"world\"}");
+  }
+#endif
 }
 
 TEST_CASE("MemberProxy::size()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  JsonDocument doc;
+  const auto& mp = doc["hello"];
 
   SECTION("returns 0") {
     REQUIRE(mp.size() == 0);
@@ -230,23 +275,9 @@ TEST_CASE("MemberProxy::size()") {
   }
 }
 
-TEST_CASE("MemberProxy::memoryUsage()") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
-
-  SECTION("returns 0 when null") {
-    REQUIRE(mp.memoryUsage() == 0);
-  }
-
-  SECTION("return the size for a string") {
-    mp.set(std::string("hello"));
-    REQUIRE(mp.memoryUsage() == 6);
-  }
-}
-
 TEST_CASE("MemberProxy::operator[]") {
-  DynamicJsonDocument doc(4096);
-  MemberProxy mp = doc["hello"];
+  JsonDocument doc;
+  const auto& mp = doc["hello"];
 
   SECTION("set member") {
     mp["world"] = 42;
@@ -262,10 +293,10 @@ TEST_CASE("MemberProxy::operator[]") {
 }
 
 TEST_CASE("MemberProxy cast to JsonVariantConst") {
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;
   doc["hello"] = "world";
 
-  const MemberProxy mp = doc["hello"];
+  const auto& mp = doc["hello"];
 
   JsonVariantConst var = mp;
 
@@ -273,10 +304,10 @@ TEST_CASE("MemberProxy cast to JsonVariantConst") {
 }
 
 TEST_CASE("MemberProxy cast to JsonVariant") {
-  DynamicJsonDocument doc(4096);
+  JsonDocument doc;
   doc["hello"] = "world";
 
-  MemberProxy mp = doc["hello"];
+  const auto& mp = doc["hello"];
 
   JsonVariant var = mp;
 
@@ -287,42 +318,115 @@ TEST_CASE("MemberProxy cast to JsonVariant") {
   CHECK(doc.as<std::string>() == "{\"hello\":\"toto\"}");
 }
 
-TEST_CASE("MemberProxy::createNestedArray()") {
-  StaticJsonDocument<1024> doc;
-  JsonArray arr = doc["items"].createNestedArray();
-  arr.add(42);
+TEST_CASE("Deduplicate keys") {
+  SpyingAllocator spy;
+  JsonDocument doc(&spy);
 
-  CHECK(doc["items"][0][0] == 42);
+  SECTION("std::string") {
+    doc[0]["example"_s] = 1;
+    doc[1]["example"_s] = 2;
+
+    const char* key1 = doc[0].as<JsonObject>().begin()->key().c_str();
+    const char* key2 = doc[1].as<JsonObject>().begin()->key().c_str();
+    CHECK(key1 == key2);
+
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("example")),
+                         });
+  }
+
+  SECTION("char*") {
+    char key[] = "example";
+    doc[0][key] = 1;
+    doc[1][key] = 2;
+
+    const char* key1 = doc[0].as<JsonObject>().begin()->key().c_str();
+    const char* key2 = doc[1].as<JsonObject>().begin()->key().c_str();
+    CHECK(key1 == key2);
+
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("example")),
+                         });
+  }
+
+  SECTION("Arduino String") {
+    doc[0][String("example")] = 1;
+    doc[1][String("example")] = 2;
+
+    const char* key1 = doc[0].as<JsonObject>().begin()->key().c_str();
+    const char* key2 = doc[1].as<JsonObject>().begin()->key().c_str();
+    CHECK(key1 == key2);
+
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("example")),
+                         });
+  }
+
+  SECTION("Flash string") {
+    doc[0][F("example")] = 1;
+    doc[1][F("example")] = 2;
+
+    const char* key1 = doc[0].as<JsonObject>().begin()->key().c_str();
+    const char* key2 = doc[1].as<JsonObject>().begin()->key().c_str();
+    CHECK(key1 == key2);
+
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("example")),
+                         });
+  }
 }
 
-TEST_CASE("MemberProxy::createNestedArray(key)") {
-  StaticJsonDocument<1024> doc;
-  JsonArray arr = doc["weather"].createNestedArray("temp");
-  arr.add(42);
+TEST_CASE("MemberProxy under memory constraints") {
+  TimebombAllocator timebomb(1);
+  SpyingAllocator spy(&timebomb);
+  JsonDocument doc(&spy);
 
-  CHECK(doc["weather"]["temp"][0] == 42);
-}
+  SECTION("key slot allocation fails") {
+    timebomb.setCountdown(0);
 
-TEST_CASE("MemberProxy::createNestedObject()") {
-  StaticJsonDocument<1024> doc;
-  JsonObject obj = doc["items"].createNestedObject();
-  obj["value"] = 42;
+    doc["hello"_s] = "world";
 
-  CHECK(doc["items"][0]["value"] == 42);
-}
+    REQUIRE(doc.is<JsonObject>());
+    REQUIRE(doc.size() == 0);
+    REQUIRE(doc.overflowed() == true);
+    REQUIRE(spy.log() == AllocatorLog{
+                             AllocateFail(sizeofPool()),
+                         });
+  }
 
-TEST_CASE("MemberProxy::createNestedObject(key)") {
-  StaticJsonDocument<1024> doc;
-  JsonObject obj = doc["status"].createNestedObject("weather");
-  obj["temp"] = 42;
+  SECTION("value slot allocation fails") {
+    timebomb.setCountdown(1);
 
-  CHECK(doc["status"]["weather"]["temp"] == 42);
-}
+    // fill the pool entirely, but leave one slot for the key
+    doc["foo"][ARDUINOJSON_POOL_CAPACITY - 4] = 1;
+    REQUIRE(doc.overflowed() == false);
 
-TEST_CASE("MemberProxy::shallowCopy()") {
-  StaticJsonDocument<1024> doc1, doc2;
-  doc2["hello"] = "world";
-  doc1["obj"].shallowCopy(doc2);
+    doc["hello"_s] = "world";
 
-  CHECK(doc1.as<std::string>() == "{\"obj\":{\"hello\":\"world\"}}");
+    REQUIRE(doc.is<JsonObject>());
+    REQUIRE(doc.size() == 1);
+    REQUIRE(doc.overflowed() == true);
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             AllocateFail(sizeofPool()),
+                         });
+  }
+
+  SECTION("key string allocation fails") {
+    timebomb.setCountdown(1);
+
+    doc["hello"_s] = "world";
+
+    REQUIRE(doc.is<JsonObject>());
+    REQUIRE(doc.size() == 0);
+    REQUIRE(doc.overflowed() == true);
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             AllocateFail(sizeofString("hello")),
+                         });
+  }
 }

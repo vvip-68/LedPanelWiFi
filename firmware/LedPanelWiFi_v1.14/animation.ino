@@ -188,7 +188,7 @@ void drawImageRow(uint8_t row, const uint16_t (*frame)) {
   
   if (!frame) return;  
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   int8_t y = flip_y ? pos_y + image_desc.frame_height - row - 1 : pos_y + row;
   if (y < 0  || y > pHEIGHT - 1) return;
@@ -217,7 +217,7 @@ void drawImageCol(uint8_t col, const uint16_t (*frame)) {
 
   if (!frame) return;
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   int8_t x = flip_x ? pos_x + image_desc.frame_width - col - 1 : pos_x + col;
   if (x < 0  || x > pWIDTH - 1) return;
@@ -253,7 +253,7 @@ void animationRoutine() {
   
   const uint16_t *ppFrame;
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));  
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));  
 
   // ------------- ИНИЦИАЛИЗАЦИЯ ПАРАМЕТРОВ --------------
 

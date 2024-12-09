@@ -653,6 +653,10 @@
 
 #include <EEPROM.h>              // Библиотека поддержки постоянной памяти
 #include <ArduinoJson.h>         // Библиотека для работы с JSON (погода, состояние системы)
+    
+                                 // Начиная с версии 3.9.2 FastLED допускает оверклокинг - повышенную частоту вывода сигнала в линию
+                                 // Если диодов много - можно попробовать увеличить частоту вывода на ленту, установив некоторое значение оверклокинга
+//#define FASTLED_OVERCLOCK 1.0    // 1.2 -> 20% overclock ~ 960 khz.
 #include <FastLED.h>             // Установите в менеджере библиотек стандартную библиотеку FastLED
 
 #if (USE_TM1637 == 1)
@@ -696,6 +700,7 @@
 #endif
 
 // =======================================================
+
 #define DEBUGLN(x)    if (vDEBUG_SERIAL) Serial.println(x)
 #define DEBUG(x)      if (vDEBUG_SERIAL) Serial.print(x)
 #define DEBUGR(x, r)  if (vDEBUG_SERIAL) Serial.print(x, r)

@@ -177,7 +177,7 @@ void DrawSlide() {
   bool     drawBlack, allBlack;
   int8_t   lim, counter;
   
-  uint8_t  effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t  effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   FastLED.clear();
 
   // Показ полной картинки

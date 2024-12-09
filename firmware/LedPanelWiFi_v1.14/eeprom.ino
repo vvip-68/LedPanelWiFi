@@ -28,7 +28,7 @@ void loadSettings() {
 
   // Адреса в EEPROM:
   //    0 - если EEPROM_OK - EEPROM инициализировано, если другое значение - нет                             // EEPROMread(0)                 // EEPROMWrite(0, EEPROM_OK)
-  //    1 - максимальная яркость ленты 1-255                                                                 // getMaxBrightness()            // putMaxBrightness(globalBrightness)
+  //    1 - максимальная яркость ленты 1-255                                                                 // getMaxBrightness()            // putMaxBrightness(deviceBrightness)
   //    2 - автосмена режима в демо: вкл/выкл                                                                // getAutoplay();                // putAutoplay(manualMode)
   //    3 - время автосмены режимов в сек                                                                    // getAutoplayTime()             // putAutoplayTime(autoplayTime / 1000L)     // autoplayTime - мс; в ячейке - в сек
   //    4 - время бездействия до переключения в авторежим в минутах                                          // getIdleTime()                 // putIdleTime(idleTime / 60L / 1000L)       // idleTime - мс; в ячейке - в мин
@@ -241,7 +241,7 @@ void loadSettings() {
     maxDim                = max(pWIDTH, pHEIGHT);
     minDim                = min(pWIDTH, pHEIGHT);
     
-    globalBrightness      = getMaxBrightness();
+    deviceBrightness      = getMaxBrightness();
     isAuxActive           = getAuxLineState(); 
     auxLineModes          = getAuxLineModes();
 
@@ -394,7 +394,7 @@ void saveDefaults() {
   putMetaMatrixAngle(mANGLE);
   putMetaMatrixDirection(mDIRECTION);
 
-  putMaxBrightness(globalBrightness);
+  putMaxBrightness(deviceBrightness);
 
   putAutoplayTime(autoplayTime / 1000L);
   uint32_t _idleTime = idleTime / 60L / 1000L;
@@ -1813,6 +1813,9 @@ void printEffectUsage() {
   DEBUGLN(F("Выбранные эффекты и их порядок: "));
 
   for (uint8_t i = 0; i < effect_order.length(); i++) {
+    #if defined(ESP8266)
+    ESP.wdtFeed();
+    #endif
     char eff = effect_order[i];
     int8_t eff_idx = codes.indexOf(eff);
     if (eff_idx >= 0) {

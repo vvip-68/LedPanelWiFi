@@ -22,10 +22,6 @@
 #include "WebResponseImpl.h"
 #include "cbuf.h"
 
-#ifndef ASYNC_RESPONSE_HDR_BUFF_SIZE
-#define ASYNC_RESPONSE_HDR_BUFF_SIZE 300
-#endif
-
 // Since ESP8266 does not link memchr by default, here's its implementation.
 void* memchr(void* ptr, int ch, size_t count)
 {
@@ -134,7 +130,7 @@ String AsyncWebServerResponse::_assembleHead(uint8_t version){
       addHeader("Transfer-Encoding","chunked");
   }
   String out = String();
-  int bufSize = ASYNC_RESPONSE_HDR_BUFF_SIZE;
+  int bufSize = 300;
   char buf[bufSize];
 
   snprintf(buf, bufSize, "HTTP/1.%d %d %s\r\n", version, _code, _responseCodeToString(_code));
@@ -316,12 +312,14 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
     if(_chunked){
       // HTTP 1.1 allows leading zeros in chunk length. Or spaces may be added.
       // See RFC2616 sections 2, 3.6.1.
+      // -- OR NOT: There is nothing about spaces there, and it breaks Webkit browsers on iOS!
       readLen = _fillBufferAndProcessTemplates(buf+headLen+6, outLen - 8);
       if(readLen == RESPONSE_TRY_AGAIN){
           free(buf);
           return 0;
       }
       outLen = sprintf((char*)buf+headLen, "%04x", readLen) + headLen;
+      // while(outLen < headLen + 4) buf[outLen++] = ' ';
       buf[outLen++] = '\r';
       buf[outLen++] = '\n';
       outLen += readLen;
@@ -537,9 +535,9 @@ AsyncFileResponse::AsyncFileResponse(FS &fs, const String& path, const String& c
     addHeader("Content-Disposition", buf);
   } else {
     // set filename and force rendering
-    // snprintf(buf, sizeof (buf), "inline; filename=\"%s\"", filename);
-    // addHeader("Content-Disposition", buf);
+    snprintf(buf, sizeof (buf), "inline; filename=\"%s\"", filename);
   }
+  // addHeader("Content-Disposition", buf);
 }
 
 AsyncFileResponse::AsyncFileResponse(File content, const String& path, const String& contentType, bool download, AwsTemplateProcessor callback): AsyncAbstractResponse(callback){
@@ -566,14 +564,12 @@ AsyncFileResponse::AsyncFileResponse(File content, const String& path, const Str
   char* filename = (char*)path.c_str() + filenameStart;
 
   if(download) {
-    // set filename and force download
     snprintf(buf, sizeof (buf), "attachment; filename=\"%s\"", filename);
     addHeader("Content-Disposition", buf);
   } else {
-    // set filename and force rendering
     snprintf(buf, sizeof (buf), "inline; filename=\"%s\"", filename);
   }
-  // addHeader("Content-Disposition", buf);
+  //addHeader("Content-Disposition", buf);
 }
 
 size_t AsyncFileResponse::_fillBuffer(uint8_t *data, size_t len){

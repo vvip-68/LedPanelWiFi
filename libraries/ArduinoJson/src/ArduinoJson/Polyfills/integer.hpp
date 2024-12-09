@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -11,21 +11,24 @@
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
 template <int Bits>
-struct int_t;
+struct uint_;
 
 template <>
-struct int_t<8> {
-  typedef int8_t type;
+struct uint_<8> {
+  using type = uint8_t;
 };
 
 template <>
-struct int_t<16> {
-  typedef int16_t type;
+struct uint_<16> {
+  using type = uint16_t;
 };
 
 template <>
-struct int_t<32> {
-  typedef int32_t type;
+struct uint_<32> {
+  using type = uint32_t;
 };
+
+template <int Bits>
+using uint_t = typename uint_<Bits>::type;
 
 ARDUINOJSON_END_PRIVATE_NAMESPACE

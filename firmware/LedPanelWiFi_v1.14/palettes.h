@@ -346,8 +346,11 @@ DEFINE_GRADIENT_PALETTE( Blue_Cyan_Yellow_gp ) {
   191,  42,255, 45,
   255, 255,255,  0};
 
-
+#if FASTLED_VERSION >= 3009000
+const TProgmemRGBGradientPaletteRef gGradientPrizmataPalettes[] = {
+#else
 const TProgmemRGBGradientPalettePtr gGradientPrizmataPalettes[] = {
+#endif  
   Sunset_Real_gp,
   es_rivendell_15_gp,
   es_ocean_breeze_036_gp,
@@ -383,7 +386,11 @@ const TProgmemRGBGradientPalettePtr gGradientPrizmataPalettes[] = {
   Blue_Cyan_Yellow_gp 
 };
 
+#if FASTLED_VERSION >= 3009000
+const TProgmemRGBGradientPaletteRef gGradientShadowsPalettes[] = {
+#else  
 const TProgmemRGBGradientPalettePtr gGradientShadowsPalettes[] = {
+#endif
   Sunset_Real_gp,
   es_rivendell_15_gp,
   es_ocean_breeze_036_gp,
@@ -419,5 +426,10 @@ const TProgmemRGBGradientPalettePtr gGradientShadowsPalettes[] = {
   Blue_Cyan_Yellow_gp 
 };
   
+#if FASTLED_VERSION >= 3009000  
+const uint8_t gGradientPrizmataPaletteCount = sizeof( gGradientPrizmataPalettes) / sizeof( TProgmemRGBGradientPaletteRef );
+const uint8_t gGradientShadowsPaletteCount = sizeof( gGradientShadowsPalettes) / sizeof( TProgmemRGBGradientPaletteRef );
+#else
 const uint8_t gGradientPrizmataPaletteCount = sizeof( gGradientPrizmataPalettes) / sizeof( TProgmemRGBGradientPalettePtr );
 const uint8_t gGradientShadowsPaletteCount = sizeof( gGradientShadowsPalettes) / sizeof( TProgmemRGBGradientPalettePtr );
+#endif

@@ -160,7 +160,7 @@ bool getWeather() {
 
   // Нам не нужно доставать все данные из ответа. Задаем фильтр - это существенно уменьшит размер требуемой памяти 
   {
-    StaticJsonDocument<200> filter;
+    ArduinoJson::V721PB22::JsonDocument filter;
     
     if (useWeather == 1) {
       // Yandex

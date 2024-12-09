@@ -55,15 +55,15 @@ void set_isNightClock(bool value) {
   addKeyToChanged("BR");
 }
 
-// BR globalBrightness
+// BR deviceBrightness
 void set_globalBrightness(uint8_t value) {
   #if (USE_E131 == 1)
     commandSetBrightness(value);
   #endif
-  if (globalBrightness == value) return;
+  if (deviceBrightness == value) return;
   putMaxBrightness(value);
-  globalBrightness = getMaxBrightness();
-  FastLEDsetBrightness(globalBrightness);
+  deviceBrightness = getMaxBrightness();
+  FastLEDsetBrightness(deviceBrightness);
   addKeyToChanged("BR");
 }
 

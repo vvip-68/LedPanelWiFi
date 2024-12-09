@@ -6,6 +6,11 @@ uint16_t XY(uint8_t x, uint8_t y) {
   return (uint16_t)getPixelNumber(x, y);
 }
 
+// Эта функция используется как callback при вызове некоторых эффектов FastLED 3.9.x - например blur2d()
+uint16_t XYfunc(uint16_t x, uint16_t y, [[maybe_unused]] uint16_t width, [[maybe_unused]] uint16_t height) { 
+  return (uint16_t)getPixelNumber(x, y);
+}
+
 // ---------------------------------------------
 
 uint8_t USE_SEGMENTS = 0;
@@ -60,7 +65,7 @@ void snowRoutine() {
   // сдвигаем всё вниз
   shiftDown();
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for (uint8_t x = 0; x < pWIDTH; x++) {
     // заполняем случайно верхнюю строку
@@ -94,7 +99,7 @@ void lightBallsRoutine() {
     USE_SEGMENTS = getEffectScaleParamValue2(MC_PAINTBALL);
   }
     
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   // Apply some blurring to whatever's already on the matrix
   // Note that we never actually clear the matrix, we just constantly
@@ -102,7 +107,11 @@ void lightBallsRoutine() {
   // an automatic trend toward black -- by design.
   uint8_t blurAmount = map(effectBrightness, 32,255, 65,91);
   uint8_t actualBrightness = map(effectBrightness, 32,255, 125,250);
-  blur2d(leds, pWIDTH, pHEIGHT, blurAmount);
+  #if FASTLED_VERSION >= 3009000
+    blur2d(leds, pWIDTH, pHEIGHT, blurAmount, xyMap);
+  #else 
+    blur2d(leds, pWIDTH, pHEIGHT, blurAmount);
+  #endif
 
   // The color of each point shifts over time, each at a different speed.
   uint32_t ms = millis();
@@ -190,7 +199,7 @@ void swirlRoutine() {
     USE_SEGMENTS = getEffectScaleParamValue2(MC_SWIRL);
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   // Apply some blurring to whatever's already on the matrix
   // Note that we never actually clear the matrix, we just constantly
@@ -199,7 +208,11 @@ void swirlRoutine() {
 
   uint8_t blurAmount = map(effectBrightness, 32,255, 65,91);
   uint8_t actualBrightness = map(effectBrightness, 32,255, 125,250);
-  blur2d(leds, pWIDTH, pHEIGHT, blurAmount);
+  #if FASTLED_VERSION >= 3009000
+    blur2d(leds, pWIDTH, pHEIGHT, blurAmount, xyMap);
+  #else 
+    blur2d(leds, pWIDTH, pHEIGHT, blurAmount);
+  #endif
 
   uint32_t ms = millis();  
   float spd = (map8(255-getEffectSpeedValue(MC_SWIRL), 50, 100) / 100.0) / (USE_SEGMENTS != 0 ? 1 : (float)seg_num);
@@ -295,7 +308,7 @@ CRGB    ballColor;
 
 void ballRoutine() {
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   
   if (loadingFlag) {
     for (uint8_t i = 0; i < 2; i++) {
@@ -372,7 +385,7 @@ void rainbowRoutine() {
 // *********** радуга диагональная ***********
 
 void rainbowDiagonal() {
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1, maxDim);
   hue += 2;  
   for (uint8_t x = 0; x < pWIDTH; x++) {
@@ -389,7 +402,7 @@ void rainbowDiagonal() {
 // *********** радуга горизонтальная ***********
 
 void rainbowHorizontal() {
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1,pWIDTH);
   hue += 2;
   for (uint8_t j = 0; j < pHEIGHT; j++) {
@@ -402,7 +415,7 @@ void rainbowHorizontal() {
 // *********** радуга вертикальная ***********
 
 void rainbowVertical() {
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t koef = map8(getEffectScaleParamValue(MC_RAINBOW),1,pHEIGHT);
   hue += 2;
   for (uint8_t i = 0; i < pWIDTH; i++) {
@@ -423,7 +436,7 @@ void rainbowRotate() {
   int8_t   yHueDelta8   = yHueDelta32 / 32768;
   int8_t   xHueDelta8   = xHueDelta32 / 32768;
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for(uint8_t y = 0; y < pHEIGHT; y++) {
     lineStartHue += yHueDelta8;
@@ -444,7 +457,7 @@ void colorsRoutine() {
     // modeCode = MC_COLORS;
     FastLED.clear();  // очистить
   }
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   hue += map8(getEffectScaleParamValue(MC_COLORS),1,10);
   CHSV hueColor = CHSV(hue, 255, effectBrightness);
   for (uint16_t i = 0; i < NUM_LEDS; i++) {
@@ -477,7 +490,7 @@ void cyclonRoutine() {
     FastLED.clear();  // очистить
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t actualBrightness = map(effectBrightness, 32,255, 125,250);
   
   // Использовать отрисовку по сегментам
@@ -654,7 +667,7 @@ void shiftFireUp() {
 void drawFrame(uint8_t pcnt) {
   int nextv;
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   //each row interpolates with the one before it
   for (uint8_t y = pHEIGHT - 1; y > 0; y--) {
@@ -720,7 +733,7 @@ void matrixRoutine() {
     FastLED.clear();
   }
   
-  uint8_t  effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t  effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint32_t cut_out = pHEIGHT < 10 ? 0x40 : 0x20; // на 0x004000 хвосты матрицы короткие (4 точки), на 0x002000 - длиннее (8 точек)
 
   for (uint8_t x = 0; x < pWIDTH; x++) {
@@ -794,7 +807,7 @@ void trafficRoutine() {
 
   uint8_t  cnt;
   uint16_t density;
-  uint8_t  effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t  effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   // Сгенерировать начало новых дорожек для верха и низа
   density = map8(255 - getEffectScaleParamValue(thisMode), 1, pWIDTH * 2) * 5;  
@@ -980,7 +993,7 @@ void wormsRoutine() {
     }
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   TRACK_STEP = map8(255 - getEffectScaleParamValue2(MC_WORMS), 10, 255);  
 
   // Скорость затухания - косвенно - длина хвоста
@@ -1025,7 +1038,7 @@ void starfallRoutine() {
     FastLED.clear();  // очистить
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   int8_t STAR_DENSE = map8(255-getEffectScaleParamValue(MC_STARFALL),10,120);
   
   // заполняем головами комет левую и верхнюю линию
@@ -1073,7 +1086,7 @@ void sparklesRoutine() {
     FastLED.clear();  // очистить
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t sparklesCount = map8(getEffectScaleParamValue(MC_SPARKLES),1,25);
   
   for (uint8_t i = 0; i < sparklesCount; i++) {
@@ -1122,7 +1135,7 @@ void lightersRoutine() {
     }
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   FastLED.clear();
 
   if (++loopCounter > 20) loopCounter = 0;
@@ -1209,7 +1222,7 @@ void flickerRoutine() {
     hue_time = (uint32_t)((uint32_t)random16() << 16) + (uint32_t)random16();    
   }
 
-  // uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  // uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   // adjust the intra-frame time values
   hue_speed = map8(255-getEffectSpeedValue(MC_FLICKER), 1, 5);
 
@@ -1250,7 +1263,7 @@ void starsRoutine() {
   if (spd > 0 && loopCounter++ < map8(spd, 0, 30)) return;
   loopCounter = 0;
     
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t fadeBrightness =  effectBrightness / 4 * 3;  
   uint8_t the_color = getEffectScaleParamValue(thisMode);
   uint8_t color = the_color;
@@ -1336,7 +1349,7 @@ void stars2Routine() {
   uint8_t contrast = getEffectContrastValue(thisMode);
   uint8_t delta2 = 0;
 
-  uint8_t delta = 255 - globalBrightness;  
+  uint8_t delta = 255 - deviceBrightness;  
   if (drawRays < 2) {
     if (delta > 200) delta2 = delta / 3; else
     if (delta > 150) delta2 = delta / 4; else
@@ -1760,7 +1773,7 @@ void fillColorProcedure() {
     // modeCode = MC_FILL_COLOR;
     loadingFlag = false;
   }
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   uint8_t bright = isAlarming && !isAlarmStopped 
     ? dawnBrightness
@@ -1812,7 +1825,7 @@ void pacificaRoutine()
     loadingFlag = false;
   }
 
-  // uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  // uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   // Increment the four "color index start" counters, one for each wave layer.
   // Each is incremented at a different speed, and the speeds vary over time.
@@ -1934,7 +1947,7 @@ void shadowsRoutine() {
   uint16_t ms = millis();
   uint16_t deltams = ms - sLastMillis ;
   
-  uint8_t  effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t  effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
@@ -2024,7 +2037,7 @@ void paletteRoutine() {
     FastLED.clear();
   }
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for (uint8_t c = 0; c < num_x; c++) {
     uint8_t block_x = off_x + c * BLOCK_SIZE;
@@ -2205,7 +2218,7 @@ void analyzerRoutine() {
     st = phase % 2 == 1 ? pWIDTH / 2 : 0;
   }
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   
   maxValue = 0;
   FastLED.clear();  // очистить матрицу
@@ -2284,7 +2297,7 @@ void prizmataRoutine() {
 
   // Отрисовка режима происходит на максимальной скорости. Значение effectSpeed влияет на параметр BPM функции beatsin8
   uint8_t spd = map8(255-getEffectSpeedValue(MC_PRIZMATA), 12, 64);   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   if (dir_mx == 0) {
     for (uint8_t x = 0; x < pWIDTH; x++) {
@@ -2327,7 +2340,7 @@ void munchRoutine() {
     FastLED.clear();
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for (uint8_t x = 0; x < minDimLocal; x++) {
     for (uint8_t y = 0; y < minDimLocal; y++) {
@@ -2373,7 +2386,7 @@ void rain(uint8_t backgroundDepth, uint8_t spawnFreq, uint8_t tailLength, bool s
   static uint16_t noiseY = random16();
   static uint16_t noiseZ = random16();
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   
   fadeToBlackBy( leds, NUM_LEDS, 255-tailLength);
 
@@ -2548,7 +2561,7 @@ void fire2Routine() {
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random(256));
 
-  uint8_t effectBrightness = map8(getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode)), 32,128);
+  uint8_t effectBrightness = map8(getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode)), 32,128);
 
   // Loop for each column individually
   for (uint8_t x = 0; x < pWIDTH; x++) {
@@ -2616,7 +2629,7 @@ void arrowsRoutine() {
     arrowSetupForMode(arrow_mode, true);
   }
   
-  uint8_t effectBrightness = map8(getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode)), 32,255);  
+  uint8_t effectBrightness = map8(getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode)), 32,255);  
 
   fader(65);
   CHSV color;
@@ -3036,7 +3049,7 @@ void rubikRoutine() {
     FastLED.clear();
   }
   
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   
   if (phase == 0) {
     // Взять из массива порядка размещения плашек очередную позицию, из массива цветов - цвет  и вывести на матрицу очередную плашку    

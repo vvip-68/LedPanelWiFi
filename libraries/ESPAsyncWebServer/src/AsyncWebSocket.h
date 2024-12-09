@@ -24,10 +24,10 @@
 #include <Arduino.h>
 #ifdef ESP32
 #include <AsyncTCP.h>
-#define WS_MAX_QUEUED_MESSAGES 64 // 32
+#define WS_MAX_QUEUED_MESSAGES 32
 #else
 #include <ESPAsyncTCP.h>
-#define WS_MAX_QUEUED_MESSAGES 16 // 8
+#define WS_MAX_QUEUED_MESSAGES 8
 #endif
 #include <ESPAsyncWebServer.h>
 
@@ -45,8 +45,6 @@
 #else
 #define DEFAULT_MAX_WS_CLIENTS 4
 #endif
-
-#define WS_MAX_HEADER_LEN 16
 
 class AsyncWebSocket;
 class AsyncWebSocketResponse;
@@ -168,8 +166,6 @@ class AsyncWebSocketClient {
 
     uint8_t _pstate;
     AwsFrameInfo _pinfo;
-    uint8_t *_partialHeader;
-    uint8_t _partialHeaderLen;
 
     uint32_t _lastMessageTime;
     uint32_t _keepAlivePeriod;

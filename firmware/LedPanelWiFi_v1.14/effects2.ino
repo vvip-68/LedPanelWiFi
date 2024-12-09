@@ -67,7 +67,7 @@ void processStreamRoutine(uint8_t aType) {
     FastLED.clear();
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t sinbpm = thisMode == MC_PRIZMATA2 ? map8(getEffectScaleParamValue(thisMode),1,242) : map8(getEffectScaleParamValue(thisMode),1,212);
     
   EVERY_N_SECONDS(12) { chooseNextPalette(aType); }
@@ -379,7 +379,7 @@ Firework *firework = NULL;
   
 void fireworksRoutine() {
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(MC_FIREWORKS));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(MC_FIREWORKS));
   uint8_t the_sizeMax = 0;
 
   if      (pWIDTH  > pHEIGHT) the_sizeMax = pWIDTH / 2;

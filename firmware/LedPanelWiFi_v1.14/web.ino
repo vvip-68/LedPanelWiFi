@@ -128,11 +128,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_CONNECT:
       web_client_count++;
       last_web_client_id = client->id();
-      Serial.printf(PSTR("WebSocket клиент #%u с адреса %s\n"), last_web_client_id, client->remoteIP().toString().c_str());
+      Serial.printf(PSTR("WebSocket клиент #%u с адреса %s\n"), (unsigned int)last_web_client_id, client->remoteIP().toString().c_str());
       break;
     case WS_EVT_DISCONNECT:
       web_client_count--;
-      Serial.printf(PSTR("WebSocket клиент #%u отключен\n"), client->id());
+      Serial.printf(PSTR("WebSocket клиент #%u отключен\n"), (unsigned int)client->id());
       break;
     case WS_EVT_DATA:
       handleWebSocketMessage(arg, data, len, client);
@@ -172,7 +172,7 @@ void SendWebKey(const String& key, const String& value) {
   // Если key - ключ с возможно большим значением - отправлять как готовый json-объект
   // Если key - обычный ключ - удалить начальную и конечную фигурные скобки - тогда это будет
   // просто составная часть для накопительного объекта json
-  uint16_t max_part_len = MAX_BUFFER_SIZE - 49;                    // <-- ??? должно быть нечетным, иначе почему-то substring(0,max_part_len) рвет UTF8 строку посреди символа и 1-я часть строки в конце получает "обрубок"
+  uint16_t max_part_len = 255;                                     // <-- ??? должно быть нечетным, иначе почему-то substring(0,max_part_len) рвет UTF8 строку посреди символа и 1-я часть строки в конце получает "обрубок"
                                                                    //         с нераспознаваемым символом на конце, вторая часть - "обрубок" с нераспазноваемым символом в начале. Потом такая строка упаковывается в JSON 
                                                                    //         принимая которую WebSocket говорит что фрейм не может быть распознан как UTF8 текст и рвет соединение Web-сокета,
                                                                    //         что в логе браузера - постоянные "клиент был отключен" и все новые и новые попытки переподключения 
@@ -263,6 +263,10 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
   
   while (true) {
 
+    #if defined(ESP8266)
+    ESP.wdtFeed();
+    #endif
+    
     #if defined(ESP32)
       File entry = folder.openNextFile();
       if (!entry) break;

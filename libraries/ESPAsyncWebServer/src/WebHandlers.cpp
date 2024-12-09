@@ -20,7 +20,6 @@
 */
 #include "ESPAsyncWebServer.h"
 #include "WebHandlerImpl.h"
-#include <ctime>
 
 AsyncStaticWebHandler::AsyncStaticWebHandler(const char* uri, FS& fs, const char* path, const char* cache_control)
   : _fs(fs), _uri(uri), _path(path), _default_file("index.htm"), _cache_control(cache_control), _last_modified(""), _callback(nullptr)
@@ -59,15 +58,14 @@ AsyncStaticWebHandler& AsyncStaticWebHandler::setCacheControl(const char* cache_
 }
 
 AsyncStaticWebHandler& AsyncStaticWebHandler::setLastModified(const char* last_modified){
-  _last_modified = last_modified;
+  _last_modified = String(last_modified);
   return *this;
 }
 
-AsyncStaticWebHandler& AsyncStaticWebHandler::setLastModified(const std::tm* last_modified){
-  constexpr size_t buffsize = sizeof("Fri, 27 Jan 2023 15:50:27 GMT");    // a format for LM header
-  char result[buffsize];
-  std::strftime(result, buffsize, "%a, %d %b %Y %H:%M:%S GMT", last_modified);
-  return setLastModified(static_cast<const char *>(result));
+AsyncStaticWebHandler& AsyncStaticWebHandler::setLastModified(struct tm* last_modified){
+  char result[30];
+  strftime (result,30,"%a, %d %b %Y %H:%M:%S %Z", last_modified);
+  return setLastModified((const char *)result);
 }
 
 #ifdef ESP8266
@@ -189,16 +187,14 @@ uint8_t AsyncStaticWebHandler::_countBits(const uint8_t value) const
 void AsyncStaticWebHandler::handleRequest(AsyncWebServerRequest *request)
 {
   // Get the filename from request->_tempObject and free it
-  String filename((char*)request->_tempObject);
+  String filename = String((char*)request->_tempObject);
   free(request->_tempObject);
   request->_tempObject = NULL;
   if((_username != "" && _password != "") && !request->authenticate(_username.c_str(), _password.c_str()))
       return request->requestAuthentication();
 
   if (request->_tempFile == true) {
-    time_t lw = request->_tempFile.getLastWrite();    // get last file mod time (if supported by FS)
-    if (lw) setLastModified(std::gmtime(&lw));
-    String etag(lw ? lw : request->_tempFile.size());   // set etag to lastmod timestamp if available, otherwise to size
+    String etag = String(request->_tempFile.size());
     if (_last_modified.length() && _last_modified == request->header("If-Modified-Since")) {
       request->_tempFile.close();
       request->send(304); // Not modified

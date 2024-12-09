@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 // we expect ArduinoJson.h to include <string_view>
@@ -11,12 +11,18 @@
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
+#include "Allocators.hpp"
+#include "Literals.hpp"
+
 #if !ARDUINOJSON_ENABLE_STRING_VIEW
 #  error ARDUINOJSON_ENABLE_STRING_VIEW must be set to 1
 #endif
 
+using ArduinoJson::detail::sizeofArray;
+
 TEST_CASE("string_view") {
-  StaticJsonDocument<256> doc;
+  SpyingAllocator spy;
+  JsonDocument doc(&spy);
   JsonVariant variant = doc.to<JsonVariant>();
 
   SECTION("deserializeJson()") {
@@ -61,16 +67,15 @@ TEST_CASE("string_view") {
 
   SECTION("String deduplication") {
     doc.add(std::string_view("example one", 7));
-    REQUIRE(doc.memoryUsage() == JSON_ARRAY_SIZE(1) + 8);
-
     doc.add(std::string_view("example two", 7));
-    REQUIRE(doc.memoryUsage() == JSON_ARRAY_SIZE(2) + 8);
-
     doc.add(std::string_view("example\0tree", 12));
-    REQUIRE(doc.memoryUsage() == JSON_ARRAY_SIZE(3) + 21);
-
     doc.add(std::string_view("example\0tree and a half", 12));
-    REQUIRE(doc.memoryUsage() == JSON_ARRAY_SIZE(4) + 21);
+
+    REQUIRE(spy.log() == AllocatorLog{
+                             Allocate(sizeofPool()),
+                             Allocate(sizeofString("example")),
+                             Allocate(sizeofString("example tree")),
+                         });
   }
 
   SECTION("as<std::string_view>()") {
@@ -88,7 +93,7 @@ TEST_CASE("string_view") {
   }
 
   SECTION("String containing NUL") {
-    doc.set(std::string("hello\0world", 11));
+    doc.set("hello\0world"_s);
     REQUIRE(doc.as<std::string_view>().size() == 11);
     REQUIRE(doc.as<std::string_view>() == std::string_view("hello\0world", 11));
   }

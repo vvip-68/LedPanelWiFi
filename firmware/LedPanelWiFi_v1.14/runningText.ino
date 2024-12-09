@@ -12,6 +12,9 @@ void InitializeTexts() {
     String path; path.reserve(strlen_P(FS_TEXT_STORAGE));
     
     for (int8_t i = 1; i <= num; i++) {
+      #if defined(ESP8266)
+      ESP.wdtFeed();
+      #endif
       path += GetToken(FPSTR(FS_TEXT_STORAGE), i, '/');
       if (path.length() != 0) {
         if (!LittleFS.exists(path)) {
@@ -46,6 +49,9 @@ void InitializeTexts() {
   // значительное время, когда останавливается все и система упорно пытается загрузить содержимое несуществующих файлов - система "зависает".
   
   for (uint8_t i=0; i < TEXTS_MAX_COUNT; i++) {
+    #if defined(ESP8266)
+    ESP.wdtFeed();
+    #endif
     char charIndex = getAZIndex(i);
     String fileName(FS_TEXT_STORAGE); fileName += '/'; fileName += charIndex;
     if (!LittleFS.exists(fileName)) {

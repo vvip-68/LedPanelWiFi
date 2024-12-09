@@ -17,7 +17,7 @@ void drawPattern(uint8_t ptrn, uint8_t W, uint8_t H) {
   uint8_t y_offs = 0;
   uint8_t x_offs = 0;
     
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
   uint8_t variant = map8(getEffectScaleParamValue(MC_PATTERNS),0,4);
   uint8_t spd1 = map8(255-getEffectSpeedValue(MC_PATTERNS), 6, 15);
   uint8_t spd2 = map8(255-getEffectSpeedValue(MC_PATTERNS), 7, 20);
@@ -78,7 +78,7 @@ void drawPicture_XY(uint8_t iconIdx, uint8_t X, uint8_t Y, uint8_t W, uint8_t H)
     loadingFlag = false;
   }
 
-  uint8_t effectBrightness = getBrightnessCalculated(globalBrightness, getEffectContrastValue(thisMode));
+  uint8_t effectBrightness = getBrightnessCalculated(deviceBrightness, getEffectContrastValue(thisMode));
 
   for (uint8_t x = 0; x < W; x++) {
     for (uint8_t y = 0; y < H; y++) {

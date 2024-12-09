@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2023, Benoit BLANCHON
+// Copyright © 2014-2024, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -21,12 +21,12 @@ struct FloatTraits {};
 
 template <typename T>
 struct FloatTraits<T, 8 /*64bits*/> {
-  typedef uint64_t mantissa_type;
+  using mantissa_type = uint64_t;
   static const short mantissa_bits = 52;
   static const mantissa_type mantissa_max =
       (mantissa_type(1) << mantissa_bits) - 1;
 
-  typedef int16_t exponent_type;
+  using exponent_type = int16_t;
   static const exponent_type exponent_max = 308;
 
   static pgm_ptr<T> positiveBinaryPowersOfTen() {
@@ -77,17 +77,17 @@ struct FloatTraits<T, 8 /*64bits*/> {
 
   template <typename TOut>  // int64_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_signed<TOut>::value &&
-                             sizeof(TOut) == 8,
-                         signed>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_signed<TOut>::value &&
+                      sizeof(TOut) == 8,
+                  signed>* = 0) {
     return forge(0x43DFFFFFFFFFFFFF);  //  9.2233720368547748e+18
   }
 
   template <typename TOut>  // uint64_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_unsigned<TOut>::value &&
-                             sizeof(TOut) == 8,
-                         unsigned>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_unsigned<TOut>::value &&
+                      sizeof(TOut) == 8,
+                  unsigned>* = 0) {
     return forge(0x43EFFFFFFFFFFFFF);  //  1.8446744073709549568e+19
   }
 
@@ -105,12 +105,12 @@ struct FloatTraits<T, 8 /*64bits*/> {
 
 template <typename T>
 struct FloatTraits<T, 4 /*32bits*/> {
-  typedef uint32_t mantissa_type;
+  using mantissa_type = uint32_t;
   static const short mantissa_bits = 23;
   static const mantissa_type mantissa_max =
       (mantissa_type(1) << mantissa_bits) - 1;
 
-  typedef int8_t exponent_type;
+  using exponent_type = int8_t;
   static const exponent_type exponent_max = 38;
 
   static pgm_ptr<T> positiveBinaryPowersOfTen() {
@@ -157,33 +157,33 @@ struct FloatTraits<T, 4 /*32bits*/> {
 
   template <typename TOut>  // int32_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_signed<TOut>::value &&
-                             sizeof(TOut) == 4,
-                         signed>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_signed<TOut>::value &&
+                      sizeof(TOut) == 4,
+                  signed>* = 0) {
     return forge(0x4EFFFFFF);  // 2.14748352E9
   }
 
   template <typename TOut>  // uint32_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_unsigned<TOut>::value &&
-                             sizeof(TOut) == 4,
-                         unsigned>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_unsigned<TOut>::value &&
+                      sizeof(TOut) == 4,
+                  unsigned>* = 0) {
     return forge(0x4F7FFFFF);  // 4.29496704E9
   }
 
   template <typename TOut>  // int64_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_signed<TOut>::value &&
-                             sizeof(TOut) == 8,
-                         signed>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_signed<TOut>::value &&
+                      sizeof(TOut) == 8,
+                  signed>* = 0) {
     return forge(0x5EFFFFFF);  // 9.22337148709896192E18
   }
 
   template <typename TOut>  // uint64_t
   static T highest_for(
-      typename enable_if<is_integral<TOut>::value && is_unsigned<TOut>::value &&
-                             sizeof(TOut) == 8,
-                         unsigned>::type* = 0) {
+      enable_if_t<is_integral<TOut>::value && is_unsigned<TOut>::value &&
+                      sizeof(TOut) == 8,
+                  unsigned>* = 0) {
     return forge(0x5F7FFFFF);  // 1.844674297419792384E19
   }
 
