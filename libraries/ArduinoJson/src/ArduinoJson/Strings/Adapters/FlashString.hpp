@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -26,15 +26,11 @@ class FlashString {
     return static_cast<char>(pgm_read_byte(str_ + i));
   }
 
-  const char* data() const {
-    return nullptr;
-  }
-
   size_t size() const {
     return size_;
   }
 
-  friend bool stringEquals(FlashString a, RamString b) {
+  friend bool stringEquals(FlashString a, SizedRamString b) {
     ARDUINOJSON_ASSERT(a.typeSortKey < b.typeSortKey);
     ARDUINOJSON_ASSERT(!a.isNull());
     ARDUINOJSON_ASSERT(!b.isNull());
@@ -43,7 +39,7 @@ class FlashString {
     return ::memcmp_P(b.data(), a.str_, a.size_) == 0;
   }
 
-  friend int stringCompare(FlashString a, RamString b) {
+  friend int stringCompare(FlashString a, SizedRamString b) {
     ARDUINOJSON_ASSERT(a.typeSortKey < b.typeSortKey);
     ARDUINOJSON_ASSERT(!a.isNull());
     ARDUINOJSON_ASSERT(!b.isNull());
@@ -63,8 +59,8 @@ class FlashString {
     ::memcpy_P(p, s.str_, n);
   }
 
-  bool isStatic() const {
-    return false;
+  StringStoragePolicy::Copy storagePolicy() const {
+    return StringStoragePolicy::Copy();
   }
 
  private:
@@ -74,7 +70,7 @@ class FlashString {
 
 template <>
 struct StringAdapter<const __FlashStringHelper*, void> {
-  using AdaptedString = FlashString;
+  typedef FlashString AdaptedString;
 
   static AdaptedString adapt(const __FlashStringHelper* s) {
     return AdaptedString(s, s ? strlen_P(reinterpret_cast<const char*>(s)) : 0);
@@ -83,7 +79,7 @@ struct StringAdapter<const __FlashStringHelper*, void> {
 
 template <>
 struct SizedStringAdapter<const __FlashStringHelper*, void> {
-  using AdaptedString = FlashString;
+  typedef FlashString AdaptedString;
 
   static AdaptedString adapt(const __FlashStringHelper* s, size_t n) {
     return AdaptedString(s, n);

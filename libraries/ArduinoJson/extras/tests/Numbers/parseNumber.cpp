@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.hpp>
@@ -9,55 +9,45 @@ using namespace ArduinoJson;
 using namespace ArduinoJson::detail;
 
 TEST_CASE("Test unsigned integer overflow") {
-  Number first, second;
+  VariantData first, second;
 
   // Avoids MSVC warning C4127 (conditional expression is constant)
   size_t integerSize = sizeof(JsonInteger);
 
   if (integerSize == 8) {
-    first = parseNumber("18446744073709551615");
-    second = parseNumber("18446744073709551616");
+    parseNumber("18446744073709551615", first);
+    parseNumber("18446744073709551616", second);
   } else {
-    first = parseNumber("4294967295");
-    second = parseNumber("4294967296");
+    parseNumber("4294967295", first);
+    parseNumber("4294967296", second);
   }
 
-  REQUIRE(first.type() == NumberType::UnsignedInteger);
-  REQUIRE(second.type() == NumberType::Double);
+  REQUIRE(first.type() == uint8_t(VALUE_IS_UNSIGNED_INTEGER));
+  REQUIRE(second.type() == uint8_t(VALUE_IS_FLOAT));
 }
 
 TEST_CASE("Test signed integer overflow") {
-  Number first, second;
+  VariantData first, second;
 
   // Avoids MSVC warning C4127 (conditional expression is constant)
   size_t integerSize = sizeof(JsonInteger);
 
   if (integerSize == 8) {
-    first = parseNumber("-9223372036854775808");
-    second = parseNumber("-9223372036854775809");
+    parseNumber("-9223372036854775808", first);
+    parseNumber("-9223372036854775809", second);
   } else {
-    first = parseNumber("-2147483648");
-    second = parseNumber("-2147483649");
+    parseNumber("-2147483648", first);
+    parseNumber("-2147483649", second);
   }
 
-  REQUIRE(first.type() == NumberType::SignedInteger);
-  REQUIRE(second.type() == NumberType::Double);
+  REQUIRE(first.type() == uint8_t(VALUE_IS_SIGNED_INTEGER));
+  REQUIRE(second.type() == uint8_t(VALUE_IS_FLOAT));
 }
 
 TEST_CASE("Invalid value") {
-  auto result = parseNumber("6a3");
+  VariantData result;
 
-  REQUIRE(result.type() == NumberType::Invalid);
-}
+  parseNumber("6a3", result);
 
-TEST_CASE("float") {
-  auto result = parseNumber("3.402823e38");
-
-  REQUIRE(result.type() == NumberType::Float);
-}
-
-TEST_CASE("double") {
-  auto result = parseNumber("1.7976931348623157e308");
-
-  REQUIRE(result.type() == NumberType::Double);
+  REQUIRE(result.type() == uint8_t(VALUE_IS_NULL));
 }

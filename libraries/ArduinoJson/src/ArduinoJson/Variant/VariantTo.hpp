@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -20,15 +20,15 @@ struct VariantTo {};
 
 template <>
 struct VariantTo<JsonArray> {
-  using type = JsonArray;
+  typedef JsonArray type;
 };
 template <>
 struct VariantTo<JsonObject> {
-  using type = JsonObject;
+  typedef JsonObject type;
 };
 template <>
 struct VariantTo<JsonVariant> {
-  using type = JsonVariant;
+  typedef JsonVariant type;
 };
 
 ARDUINOJSON_END_PRIVATE_NAMESPACE

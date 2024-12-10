@@ -1,11 +1,10 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
 
 #include <ArduinoJson/Memory/MemoryPool.hpp>
-#include <ArduinoJson/Memory/StringNode.hpp>
 #include <ArduinoJson/Misc/SerializedValue.hpp>
 #include <ArduinoJson/Numbers/convertNumber.hpp>
 #include <ArduinoJson/Strings/JsonString.hpp>
@@ -14,549 +13,310 @@
 
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
-template <typename T>
-T parseNumber(const char* s);
-
 class VariantData {
   VariantContent content_;  // must be first to allow cast from array to variant
-  VariantType type_;
-  SlotId next_;
+  uint8_t flags_;
 
  public:
-  // Placement new
-  static void* operator new(size_t, void* p) noexcept {
-    return p;
-  }
+  VariantData() : flags_(VALUE_IS_NULL) {}
 
-  static void operator delete(void*, void*) noexcept {}
-
-  VariantData() : type_(VariantType::Null), next_(NULL_SLOT) {}
-
-  SlotId next() const {
-    return next_;
-  }
-
-  void setNext(SlotId slot) {
-    next_ = slot;
+  void operator=(const VariantData& src) {
+    content_ = src.content_;
+    flags_ = uint8_t((flags_ & OWNED_KEY_BIT) | (src.flags_ & ~OWNED_KEY_BIT));
   }
 
   template <typename TVisitor>
-  typename TVisitor::result_type accept(
-      TVisitor& visit, const ResourceManager* resources) const {
-#if ARDUINOJSON_USE_EXTENSIONS
-    auto extension = getExtension(resources);
-#else
-    (void)resources;  // silence warning
-#endif
-    switch (type_) {
-      case VariantType::Float:
-        return visit.visit(content_.asFloat);
+  typename TVisitor::result_type accept(TVisitor& visitor) const {
+    switch (type()) {
+      case VALUE_IS_FLOAT:
+        return visitor.visitFloat(content_.asFloat);
 
-#if ARDUINOJSON_USE_DOUBLE
-      case VariantType::Double:
-        return visit.visit(extension->asDouble);
-#endif
+      case VALUE_IS_ARRAY:
+        return visitor.visitArray(content_.asCollection);
 
-      case VariantType::Array:
-        return visit.visit(content_.asArray);
+      case VALUE_IS_OBJECT:
+        return visitor.visitObject(content_.asCollection);
 
-      case VariantType::Object:
-        return visit.visit(content_.asObject);
+      case VALUE_IS_LINKED_STRING:
+      case VALUE_IS_OWNED_STRING:
+        return visitor.visitString(content_.asString.data,
+                                   content_.asString.size);
 
-      case VariantType::LinkedString:
-        return visit.visit(JsonString(content_.asLinkedString, true));
+      case VALUE_IS_OWNED_RAW:
+      case VALUE_IS_LINKED_RAW:
+        return visitor.visitRawJson(content_.asString.data,
+                                    content_.asString.size);
 
-      case VariantType::OwnedString:
-        return visit.visit(JsonString(content_.asOwnedString->data,
-                                      content_.asOwnedString->length));
+      case VALUE_IS_SIGNED_INTEGER:
+        return visitor.visitSignedInteger(content_.asSignedInteger);
 
-      case VariantType::RawString:
-        return visit.visit(RawString(content_.asOwnedString->data,
-                                     content_.asOwnedString->length));
+      case VALUE_IS_UNSIGNED_INTEGER:
+        return visitor.visitUnsignedInteger(content_.asUnsignedInteger);
 
-      case VariantType::Int32:
-        return visit.visit(static_cast<JsonInteger>(content_.asInt32));
-
-      case VariantType::Uint32:
-        return visit.visit(static_cast<JsonUInt>(content_.asUint32));
-
-#if ARDUINOJSON_USE_LONG_LONG
-      case VariantType::Int64:
-        return visit.visit(extension->asInt64);
-
-      case VariantType::Uint64:
-        return visit.visit(extension->asUint64);
-#endif
-
-      case VariantType::Boolean:
-        return visit.visit(content_.asBoolean != 0);
+      case VALUE_IS_BOOLEAN:
+        return visitor.visitBoolean(content_.asBoolean != 0);
 
       default:
-        return visit.visit(nullptr);
+        return visitor.visitNull();
     }
   }
 
-  template <typename TVisitor>
-  static typename TVisitor::result_type accept(const VariantData* var,
-                                               const ResourceManager* resources,
-                                               TVisitor& visit) {
-    if (var != 0)
-      return var->accept(visit, resources);
-    else
-      return visit.visit(nullptr);
-  }
-
-  VariantData* addElement(ResourceManager* resources) {
-    auto array = isNull() ? &toArray() : asArray();
-    return detail::ArrayData::addElement(array, resources);
-  }
-
-  static VariantData* addElement(VariantData* var, ResourceManager* resources) {
-    if (!var)
-      return nullptr;
-    return var->addElement(resources);
-  }
+  template <typename T>
+  T asIntegral() const;
 
   template <typename T>
-  bool addValue(const T& value, ResourceManager* resources) {
-    auto array = isNull() ? &toArray() : asArray();
-    return detail::ArrayData::addValue(array, value, resources);
+  T asFloat() const;
+
+  JsonString asString() const;
+
+  bool asBoolean() const;
+
+  CollectionData* asArray() {
+    return isArray() ? &content_.asCollection : 0;
   }
 
-  template <typename T>
-  static bool addValue(VariantData* var, const T& value,
-                       ResourceManager* resources) {
-    if (!var)
-      return false;
-    return var->addValue(value, resources);
-  }
-
-  bool asBoolean(const ResourceManager* resources) const {
-#if ARDUINOJSON_USE_EXTENSIONS
-    auto extension = getExtension(resources);
-#else
-    (void)resources;  // silence warning
-#endif
-    switch (type_) {
-      case VariantType::Boolean:
-        return content_.asBoolean;
-      case VariantType::Uint32:
-      case VariantType::Int32:
-        return content_.asUint32 != 0;
-      case VariantType::Float:
-        return content_.asFloat != 0;
-#if ARDUINOJSON_USE_DOUBLE
-      case VariantType::Double:
-        return extension->asDouble != 0;
-#endif
-      case VariantType::Null:
-        return false;
-#if ARDUINOJSON_USE_LONG_LONG
-      case VariantType::Uint64:
-      case VariantType::Int64:
-        return extension->asUint64 != 0;
-#endif
-      default:
-        return true;
-    }
-  }
-
-  ArrayData* asArray() {
-    return isArray() ? &content_.asArray : 0;
-  }
-
-  const ArrayData* asArray() const {
+  const CollectionData* asArray() const {
     return const_cast<VariantData*>(this)->asArray();
   }
 
-  CollectionData* asCollection() {
+  const CollectionData* asCollection() const {
     return isCollection() ? &content_.asCollection : 0;
   }
 
-  const CollectionData* asCollection() const {
-    return const_cast<VariantData*>(this)->asCollection();
+  CollectionData* asObject() {
+    return isObject() ? &content_.asCollection : 0;
   }
 
-  template <typename T>
-  T asFloat(const ResourceManager* resources) const {
-    static_assert(is_floating_point<T>::value, "T must be a floating point");
-#if ARDUINOJSON_USE_EXTENSIONS
-    auto extension = getExtension(resources);
-#else
-    (void)resources;  // silence warning
-#endif
-    switch (type_) {
-      case VariantType::Boolean:
-        return static_cast<T>(content_.asBoolean);
-      case VariantType::Uint32:
-        return static_cast<T>(content_.asUint32);
-      case VariantType::Int32:
-        return static_cast<T>(content_.asInt32);
-#if ARDUINOJSON_USE_LONG_LONG
-      case VariantType::Uint64:
-        return static_cast<T>(extension->asUint64);
-      case VariantType::Int64:
-        return static_cast<T>(extension->asInt64);
-#endif
-      case VariantType::LinkedString:
-      case VariantType::OwnedString:
-        return parseNumber<T>(content_.asOwnedString->data);
-      case VariantType::Float:
-        return static_cast<T>(content_.asFloat);
-#if ARDUINOJSON_USE_DOUBLE
-      case VariantType::Double:
-        return static_cast<T>(extension->asDouble);
-#endif
-      default:
-        return 0;
-    }
-  }
-
-  template <typename T>
-  T asIntegral(const ResourceManager* resources) const {
-    static_assert(is_integral<T>::value, "T must be an integral type");
-#if ARDUINOJSON_USE_EXTENSIONS
-    auto extension = getExtension(resources);
-#else
-    (void)resources;  // silence warning
-#endif
-    switch (type_) {
-      case VariantType::Boolean:
-        return content_.asBoolean;
-      case VariantType::Uint32:
-        return convertNumber<T>(content_.asUint32);
-      case VariantType::Int32:
-        return convertNumber<T>(content_.asInt32);
-#if ARDUINOJSON_USE_LONG_LONG
-      case VariantType::Uint64:
-        return convertNumber<T>(extension->asUint64);
-      case VariantType::Int64:
-        return convertNumber<T>(extension->asInt64);
-#endif
-      case VariantType::LinkedString:
-        return parseNumber<T>(content_.asLinkedString);
-      case VariantType::OwnedString:
-        return parseNumber<T>(content_.asOwnedString->data);
-      case VariantType::Float:
-        return convertNumber<T>(content_.asFloat);
-#if ARDUINOJSON_USE_DOUBLE
-      case VariantType::Double:
-        return convertNumber<T>(extension->asDouble);
-#endif
-      default:
-        return 0;
-    }
-  }
-
-  ObjectData* asObject() {
-    return isObject() ? &content_.asObject : 0;
-  }
-
-  const ObjectData* asObject() const {
+  const CollectionData* asObject() const {
     return const_cast<VariantData*>(this)->asObject();
   }
 
-  JsonString asRawString() const {
-    switch (type_) {
-      case VariantType::RawString:
-        return JsonString(content_.asOwnedString->data,
-                          content_.asOwnedString->length);
-      default:
-        return JsonString();
-    }
-  }
-
-  JsonString asString() const {
-    switch (type_) {
-      case VariantType::LinkedString:
-        return JsonString(content_.asLinkedString, true);
-      case VariantType::OwnedString:
-        return JsonString(content_.asOwnedString->data,
-                          content_.asOwnedString->length);
-      default:
-        return JsonString();
-    }
-  }
-
-#if ARDUINOJSON_USE_EXTENSIONS
-  const VariantExtension* getExtension(const ResourceManager* resources) const;
-#endif
-
-  VariantData* getElement(size_t index,
-                          const ResourceManager* resources) const {
-    return ArrayData::getElement(asArray(), index, resources);
-  }
-
-  static VariantData* getElement(const VariantData* var, size_t index,
-                                 const ResourceManager* resources) {
-    return var != 0 ? var->getElement(index, resources) : 0;
-  }
-
-  template <typename TAdaptedString>
-  VariantData* getMember(TAdaptedString key,
-                         const ResourceManager* resources) const {
-    return ObjectData::getMember(asObject(), key, resources);
-  }
-
-  template <typename TAdaptedString>
-  static VariantData* getMember(const VariantData* var, TAdaptedString key,
-                                const ResourceManager* resources) {
-    if (!var)
-      return 0;
-    return var->getMember(key, resources);
-  }
-
-  VariantData* getOrAddElement(size_t index, ResourceManager* resources) {
-    auto array = isNull() ? &toArray() : asArray();
-    if (!array)
-      return nullptr;
-    return array->getOrAddElement(index, resources);
-  }
-
-  template <typename TAdaptedString>
-  VariantData* getOrAddMember(TAdaptedString key, ResourceManager* resources) {
-    if (key.isNull())
-      return nullptr;
-    auto obj = isNull() ? &toObject() : asObject();
-    if (!obj)
-      return nullptr;
-    return obj->getOrAddMember(key, resources);
-  }
+  bool copyFrom(const VariantData& src, MemoryPool* pool);
 
   bool isArray() const {
-    return type_ == VariantType::Array;
+    return (flags_ & VALUE_IS_ARRAY) != 0;
   }
 
   bool isBoolean() const {
-    return type_ == VariantType::Boolean;
+    return type() == VALUE_IS_BOOLEAN;
   }
 
   bool isCollection() const {
-    return type_ & VariantTypeBits::CollectionMask;
-  }
-
-  bool isFloat() const {
-    return type_ & VariantTypeBits::NumberBit;
+    return (flags_ & COLLECTION_MASK) != 0;
   }
 
   template <typename T>
-  bool isInteger(const ResourceManager* resources) const {
-#if ARDUINOJSON_USE_LONG_LONG
-    auto extension = getExtension(resources);
-#else
-    (void)resources;  // silence warning
-#endif
-    switch (type_) {
-      case VariantType::Uint32:
-        return canConvertNumber<T>(content_.asUint32);
+  bool isInteger() const {
+    switch (type()) {
+      case VALUE_IS_UNSIGNED_INTEGER:
+        return canConvertNumber<T>(content_.asUnsignedInteger);
 
-      case VariantType::Int32:
-        return canConvertNumber<T>(content_.asInt32);
-
-#if ARDUINOJSON_USE_LONG_LONG
-      case VariantType::Uint64:
-        return canConvertNumber<T>(extension->asUint64);
-
-      case VariantType::Int64:
-        return canConvertNumber<T>(extension->asInt64);
-#endif
+      case VALUE_IS_SIGNED_INTEGER:
+        return canConvertNumber<T>(content_.asSignedInteger);
 
       default:
         return false;
     }
   }
 
-  bool isNull() const {
-    return type_ == VariantType::Null;
-  }
-
-  static bool isNull(const VariantData* var) {
-    if (!var)
-      return true;
-    return var->isNull();
-  }
-
-  bool isObject() const {
-    return type_ == VariantType::Object;
+  bool isFloat() const {
+    return (flags_ & NUMBER_BIT) != 0;
   }
 
   bool isString() const {
-    return type_ == VariantType::LinkedString ||
-           type_ == VariantType::OwnedString;
+    return type() == VALUE_IS_LINKED_STRING || type() == VALUE_IS_OWNED_STRING;
   }
 
-  size_t nesting(const ResourceManager* resources) const {
-    auto collection = asCollection();
-    if (collection)
-      return collection->nesting(resources);
-    else
-      return 0;
+  bool isObject() const {
+    return (flags_ & VALUE_IS_OBJECT) != 0;
   }
 
-  static size_t nesting(const VariantData* var,
-                        const ResourceManager* resources) {
-    if (!var)
-      return 0;
-    return var->nesting(resources);
+  bool isNull() const {
+    return type() == VALUE_IS_NULL;
   }
 
-  void removeElement(size_t index, ResourceManager* resources) {
-    ArrayData::removeElement(asArray(), index, resources);
+  bool isEnclosed() const {
+    return !isFloat();
   }
 
-  static void removeElement(VariantData* var, size_t index,
-                            ResourceManager* resources) {
-    if (!var)
-      return;
-    var->removeElement(index, resources);
+  void remove(size_t index) {
+    if (isArray())
+      content_.asCollection.removeElement(index);
   }
 
   template <typename TAdaptedString>
-  void removeMember(TAdaptedString key, ResourceManager* resources) {
-    ObjectData::removeMember(asObject(), key, resources);
-  }
-
-  template <typename TAdaptedString>
-  static void removeMember(VariantData* var, TAdaptedString key,
-                           ResourceManager* resources) {
-    if (!var)
-      return;
-    var->removeMember(key, resources);
-  }
-
-  void reset() {  // TODO: remove
-    type_ = VariantType::Null;
+  void remove(TAdaptedString key) {
+    if (isObject())
+      content_.asCollection.removeMember(key);
   }
 
   void setBoolean(bool value) {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    type_ = VariantType::Boolean;
+    setType(VALUE_IS_BOOLEAN);
     content_.asBoolean = value;
   }
 
-  template <typename T>
-  enable_if_t<sizeof(T) == 4, bool> setFloat(T value, ResourceManager*) {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    type_ = VariantType::Float;
+  void setFloat(JsonFloat value) {
+    setType(VALUE_IS_FLOAT);
     content_.asFloat = value;
-    return true;
+  }
+
+  void setLinkedRaw(SerializedValue<const char*> value) {
+    if (value.data()) {
+      setType(VALUE_IS_LINKED_RAW);
+      content_.asString.data = value.data();
+      content_.asString.size = value.size();
+    } else {
+      setType(VALUE_IS_NULL);
+    }
   }
 
   template <typename T>
-  enable_if_t<sizeof(T) == 8, bool> setFloat(T value, ResourceManager*);
+  bool storeOwnedRaw(SerializedValue<T> value, MemoryPool* pool) {
+    const char* dup = pool->saveString(adaptString(value.data(), value.size()));
+    if (dup) {
+      setType(VALUE_IS_OWNED_RAW);
+      content_.asString.data = dup;
+      content_.asString.size = value.size();
+      return true;
+    } else {
+      setType(VALUE_IS_NULL);
+      return false;
+    }
+  }
 
   template <typename T>
-  enable_if_t<is_signed<T>::value, bool> setInteger(T value,
-                                                    ResourceManager* resources);
+  typename enable_if<is_unsigned<T>::value>::type setInteger(T value) {
+    setType(VALUE_IS_UNSIGNED_INTEGER);
+    content_.asUnsignedInteger = static_cast<JsonUInt>(value);
+  }
 
   template <typename T>
-  enable_if_t<is_unsigned<T>::value, bool> setInteger(
-      T value, ResourceManager* resources);
+  typename enable_if<is_signed<T>::value>::type setInteger(T value) {
+    setType(VALUE_IS_SIGNED_INTEGER);
+    content_.asSignedInteger = value;
+  }
 
-  void setRawString(StringNode* s) {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
+  void setNull() {
+    setType(VALUE_IS_NULL);
+  }
+
+  void setString(JsonString s) {
     ARDUINOJSON_ASSERT(s);
-    type_ = VariantType::RawString;
-    content_.asOwnedString = s;
+    if (s.isLinked())
+      setType(VALUE_IS_LINKED_STRING);
+    else
+      setType(VALUE_IS_OWNED_STRING);
+    content_.asString.data = s.c_str();
+    content_.asString.size = s.size();
   }
 
-  template <typename T>
-  void setRawString(SerializedValue<T> value, ResourceManager* resources);
+  CollectionData& toArray() {
+    setType(VALUE_IS_ARRAY);
+    content_.asCollection.clear();
+    return content_.asCollection;
+  }
 
-  template <typename T>
-  static void setRawString(VariantData* var, SerializedValue<T> value,
-                           ResourceManager* resources) {
-    if (!var)
-      return;
-    var->clear(resources);
-    var->setRawString(value, resources);
+  CollectionData& toObject() {
+    setType(VALUE_IS_OBJECT);
+    content_.asCollection.clear();
+    return content_.asCollection;
+  }
+
+  size_t memoryUsage() const {
+    switch (type()) {
+      case VALUE_IS_OWNED_STRING:
+      case VALUE_IS_OWNED_RAW:
+        // We always add a zero at the end: the deduplication function uses it
+        // to detect the beginning of the next string.
+        return content_.asString.size + 1;
+      case VALUE_IS_OBJECT:
+      case VALUE_IS_ARRAY:
+        return content_.asCollection.memoryUsage();
+      default:
+        return 0;
+    }
+  }
+
+  size_t size() const {
+    return isCollection() ? content_.asCollection.size() : 0;
+  }
+
+  VariantData* addElement(MemoryPool* pool) {
+    if (isNull())
+      toArray();
+    if (!isArray())
+      return 0;
+    return content_.asCollection.addElement(pool);
+  }
+
+  VariantData* getElement(size_t index) const {
+    const CollectionData* col = asArray();
+    return col ? col->getElement(index) : 0;
+  }
+
+  VariantData* getOrAddElement(size_t index, MemoryPool* pool) {
+    if (isNull())
+      toArray();
+    if (!isArray())
+      return 0;
+    return content_.asCollection.getOrAddElement(index, pool);
   }
 
   template <typename TAdaptedString>
-  bool setString(TAdaptedString value, ResourceManager* resources);
-
-  bool setString(StringNode* s, ResourceManager*) {
-    setOwnedString(s);
-    return true;
+  VariantData* getMember(TAdaptedString key) const {
+    const CollectionData* col = asObject();
+    return col ? col->getMember(key) : 0;
   }
 
   template <typename TAdaptedString>
-  static void setString(VariantData* var, TAdaptedString value,
-                        ResourceManager* resources) {
-    if (!var)
-      return;
-    var->clear(resources);
-    var->setString(value, resources);
-  }
-
-  void setLinkedString(const char* s) {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    ARDUINOJSON_ASSERT(s);
-    type_ = VariantType::LinkedString;
-    content_.asLinkedString = s;
-  }
-
-  void setOwnedString(StringNode* s) {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    ARDUINOJSON_ASSERT(s);
-    type_ = VariantType::OwnedString;
-    content_.asOwnedString = s;
-  }
-
-  size_t size(const ResourceManager* resources) const {
-    if (isObject())
-      return content_.asObject.size(resources);
-
-    if (isArray())
-      return content_.asArray.size(resources);
-
-    return 0;
-  }
-
-  static size_t size(const VariantData* var, const ResourceManager* resources) {
-    return var != 0 ? var->size(resources) : 0;
-  }
-
-  ArrayData& toArray() {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    type_ = VariantType::Array;
-    new (&content_.asArray) ArrayData();
-    return content_.asArray;
-  }
-
-  static ArrayData* toArray(VariantData* var, ResourceManager* resources) {
-    if (!var)
+  VariantData* getOrAddMember(TAdaptedString key, MemoryPool* pool) {
+    if (isNull())
+      toObject();
+    if (!isObject())
       return 0;
-    var->clear(resources);
-    return &var->toArray();
+    return content_.asCollection.getOrAddMember(key, pool);
   }
 
-  ObjectData& toObject() {
-    ARDUINOJSON_ASSERT(type_ == VariantType::Null);  // must call clear() first
-    type_ = VariantType::Object;
-    new (&content_.asObject) ObjectData();
-    return content_.asObject;
+  void movePointers(ptrdiff_t stringDistance, ptrdiff_t variantDistance) {
+    if (flags_ & OWNED_VALUE_BIT)
+      content_.asString.data += stringDistance;
+    if (flags_ & COLLECTION_MASK)
+      content_.asCollection.movePointers(stringDistance, variantDistance);
   }
 
-  static ObjectData* toObject(VariantData* var, ResourceManager* resources) {
-    if (!var)
-      return 0;
-    var->clear(resources);
-    return &var->toObject();
+  uint8_t type() const {
+    return flags_ & VALUE_MASK;
   }
 
-  VariantType type() const {
-    return type_;
+  template <typename TAdaptedString>
+  inline bool setString(TAdaptedString value, MemoryPool* pool) {
+    if (value.isNull()) {
+      setNull();
+      return true;
+    }
+
+    return storeString(pool, value, VariantStringSetter(this));
   }
 
-  // Release the resources used by this variant and set it to null.
-  void clear(ResourceManager* resources);
-
-  static void clear(VariantData* var, ResourceManager* resources) {
-    if (!var)
-      return;
-    var->clear(resources);
+ private:
+  void setType(uint8_t t) {
+    flags_ &= OWNED_KEY_BIT;
+    flags_ |= t;
   }
+
+  struct VariantStringSetter {
+    VariantStringSetter(VariantData* instance) : instance_(instance) {}
+
+    template <typename TStoredString>
+    void operator()(TStoredString s) {
+      if (s)
+        instance_->setString(s);
+      else
+        instance_->setNull();
+    }
+
+    VariantData* instance_;
+  };
 };
 
 ARDUINOJSON_END_PRIVATE_NAMESPACE

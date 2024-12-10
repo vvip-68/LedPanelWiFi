@@ -15,7 +15,7 @@ compile() {
   "code":$(read_string "$FILE_PATH"),
   "codes": [{"file":"ArduinoJson.h","code":$(read_string "$ARDUINOJSON_H")}],
   "options": "warning,c++11",
-  "compiler": "gcc-head",
+  "compiler": "gcc-5.5.0",
   "save": true
 }
 END

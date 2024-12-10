@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #pragma once
@@ -8,7 +8,7 @@
 
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 
-// The default writer is a simple wrapper for Writers that are not copyable
+// The default writer is a simple wrapper for Writers that are not copiable
 template <typename TDestination, typename Enable = void>
 class Writer {
  public:

@@ -1,5 +1,5 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
@@ -7,8 +7,14 @@
 #include <catch.hpp>
 #include <limits>
 
-#include "Allocators.hpp"
-#include "Literals.hpp"
+template <typename T>
+void checkValue(T expected) {
+  DynamicJsonDocument doc(4096);
+  JsonVariant variant = doc.to<JsonVariant>();
+
+  variant.set(expected);
+  REQUIRE(expected == variant.as<T>());
+}
 
 template <typename T>
 void checkReference(T& expected) {
@@ -18,7 +24,7 @@ void checkReference(T& expected) {
 
 template <typename T>
 void checkNumericType() {
-  JsonDocument docMin, docMax;
+  DynamicJsonDocument docMin(4096), docMax(4096);
   JsonVariant variantMin = docMin.to<JsonVariant>();
   JsonVariant variantMax = docMax.to<JsonVariant>();
 
@@ -33,29 +39,27 @@ void checkNumericType() {
 }
 
 TEST_CASE("JsonVariant set()/get()") {
-  SpyingAllocator spy;
-  JsonDocument doc(&spy);
-  JsonVariant variant = doc.to<JsonVariant>();
-
 #if ARDUINOJSON_USE_LONG_LONG
   SECTION("SizeOfJsonInteger") {
     REQUIRE(8 == sizeof(JsonInteger));
   }
 #endif
 
-  // /!\ Most test were moved to `JsonVariant/set.cpp`
-  // TODO: move the remaining tests too
-
-  SECTION("False") {
-    variant.set(false);
-    REQUIRE(variant.as<bool>() == false);
-    REQUIRE(spy.log() == AllocatorLog{});
+  SECTION("Null") {
+    checkValue<const char*>(NULL);
+  }
+  SECTION("const char*") {
+    checkValue<const char*>("hello");
+  }
+  SECTION("std::string") {
+    checkValue<std::string>("hello");
   }
 
+  SECTION("False") {
+    checkValue<bool>(false);
+  }
   SECTION("True") {
-    variant.set(true);
-    REQUIRE(variant.as<bool>() == true);
-    REQUIRE(spy.log() == AllocatorLog{});
+    checkValue<bool>(true);
   }
 
   SECTION("Double") {
@@ -125,17 +129,15 @@ TEST_CASE("JsonVariant set()/get()") {
 #endif
 
   SECTION("CanStoreObject") {
-    JsonDocument doc2;
-    JsonObject object = doc2.to<JsonObject>();
+    DynamicJsonDocument doc(4096);
+    JsonObject object = doc.to<JsonObject>();
 
-    variant.set(object);
-    REQUIRE(variant.is<JsonObject>());
-    REQUIRE(variant.as<JsonObject>() == object);
+    checkValue<JsonObject>(object);
   }
 }
 
 TEST_CASE("volatile") {
-  JsonDocument doc;
+  DynamicJsonDocument doc(4096);
   JsonVariant variant = doc.to<JsonVariant>();
 
   SECTION("volatile bool") {  // issue #2029

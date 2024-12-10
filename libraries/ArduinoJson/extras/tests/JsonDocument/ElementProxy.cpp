@@ -1,83 +1,42 @@
 // ArduinoJson - https://arduinojson.org
-// Copyright © 2014-2024, Benoit BLANCHON
+// Copyright © 2014-2023, Benoit BLANCHON
 // MIT License
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
-#include "Allocators.hpp"
-#include "Literals.hpp"
-
-using ElementProxy = ArduinoJson::detail::ElementProxy<JsonDocument&>;
+typedef ArduinoJson::detail::ElementProxy<JsonDocument&> ElementProxy;
 
 TEST_CASE("ElementProxy::add()") {
-  SpyingAllocator spy;
-  JsonDocument doc(&spy);
-  doc.add<JsonVariant>();
-  const ElementProxy& ep = doc[0];
+  DynamicJsonDocument doc(4096);
+  doc.add();
+  ElementProxy ep = doc[0];
 
-  SECTION("integer") {
+  SECTION("add(int)") {
     ep.add(42);
 
     REQUIRE(doc.as<std::string>() == "[[42]]");
-    REQUIRE(spy.log() == AllocatorLog{
-                             Allocate(sizeofPool()),
-                         });
   }
 
-  SECTION("string literal") {
+  SECTION("add(const char*)") {
     ep.add("world");
 
     REQUIRE(doc.as<std::string>() == "[[\"world\"]]");
-    REQUIRE(spy.log() == AllocatorLog{
-                             Allocate(sizeofPool()),
-                         });
   }
 
-  SECTION("const char*") {
-    const char* s = "world";
-    ep.add(s);
-
-    REQUIRE(doc.as<std::string>() == "[[\"world\"]]");
-    REQUIRE(spy.log() == AllocatorLog{
-                             Allocate(sizeofPool()),
-                             Allocate(sizeofString("world")),
-                         });
-  }
-
-  SECTION("char[]") {
+  SECTION("set(char[])") {
     char s[] = "world";
     ep.add(s);
     strcpy(s, "!!!!!");
 
     REQUIRE(doc.as<std::string>() == "[[\"world\"]]");
-    REQUIRE(spy.log() == AllocatorLog{
-                             Allocate(sizeofPool()),
-                             Allocate(sizeofString("world")),
-                         });
   }
-
-#ifdef HAS_VARIABLE_LENGTH_ARRAY
-  SECTION("VLA") {
-    size_t i = 8;
-    char vla[i];
-    strcpy(vla, "world");
-
-    ep.add(vla);
-
-    REQUIRE(doc.as<std::string>() == "[[\"world\"]]");
-    REQUIRE(spy.log() == AllocatorLog{
-                             Allocate(sizeofPool()),
-                             Allocate(sizeofString("world")),
-                         });
-  }
-#endif
 }
 
 TEST_CASE("ElementProxy::clear()") {
-  JsonDocument doc;
-  doc.add<JsonVariant>();
-  const ElementProxy& ep = doc[0];
+  DynamicJsonDocument doc(4096);
+  doc.add();
+  ElementProxy ep = doc[0];
 
   SECTION("size goes back to zero") {
     ep.add(42);
@@ -95,7 +54,7 @@ TEST_CASE("ElementProxy::clear()") {
 }
 
 TEST_CASE("ElementProxy::operator==()") {
-  JsonDocument doc;
+  DynamicJsonDocument doc(4096);
 
   SECTION("1 vs 1") {
     doc.add(1);
@@ -135,9 +94,9 @@ TEST_CASE("ElementProxy::operator==()") {
 }
 
 TEST_CASE("ElementProxy::remove()") {
-  JsonDocument doc;
-  doc.add<JsonVariant>();
-  const ElementProxy& ep = doc[0];
+  DynamicJsonDocument doc(4096);
+  doc.add();
+  ElementProxy ep = doc[0];
 
   SECTION("remove(int)") {
     ep.add(1);
@@ -162,7 +121,7 @@ TEST_CASE("ElementProxy::remove()") {
     ep["a"] = 1;
     ep["b"] = 2;
 
-    ep.remove("b"_s);
+    ep.remove(std::string("b"));
 
     REQUIRE(ep.as<std::string>() == "{\"a\":1}");
   }
@@ -183,8 +142,8 @@ TEST_CASE("ElementProxy::remove()") {
 }
 
 TEST_CASE("ElementProxy::set()") {
-  JsonDocument doc;
-  const ElementProxy& ep = doc[0];
+  DynamicJsonDocument doc(4096);
+  ElementProxy ep = doc[0];
 
   SECTION("set(int)") {
     ep.set(42);
@@ -205,24 +164,12 @@ TEST_CASE("ElementProxy::set()") {
 
     REQUIRE(doc.as<std::string>() == "[\"world\"]");
   }
-
-#ifdef HAS_VARIABLE_LENGTH_ARRAY
-  SECTION("set(VLA)") {
-    size_t i = 8;
-    char vla[i];
-    strcpy(vla, "world");
-
-    ep.set(vla);
-
-    REQUIRE(doc.as<std::string>() == "[\"world\"]");
-  }
-#endif
 }
 
 TEST_CASE("ElementProxy::size()") {
-  JsonDocument doc;
-  doc.add<JsonVariant>();
-  const ElementProxy& ep = doc[0];
+  DynamicJsonDocument doc(4096);
+  doc.add();
+  ElementProxy ep = doc[0];
 
   SECTION("returns 0") {
     REQUIRE(ep.size() == 0);
@@ -241,9 +188,24 @@ TEST_CASE("ElementProxy::size()") {
   }
 }
 
+TEST_CASE("ElementProxy::memoryUsage()") {
+  DynamicJsonDocument doc(4096);
+  doc.add();
+  ElementProxy ep = doc[0];
+
+  SECTION("returns 0 for null") {
+    REQUIRE(ep.memoryUsage() == 0);
+  }
+
+  SECTION("returns size for string") {
+    ep.set(std::string("hello"));
+    REQUIRE(ep.memoryUsage() == 6);
+  }
+}
+
 TEST_CASE("ElementProxy::operator[]") {
-  JsonDocument doc;
-  const ElementProxy& ep = doc[1];
+  DynamicJsonDocument doc(4096);
+  ElementProxy ep = doc[1];
 
   SECTION("set member") {
     ep["world"] = 42;
@@ -256,25 +218,13 @@ TEST_CASE("ElementProxy::operator[]") {
 
     REQUIRE(doc.as<std::string>() == "[null,[null,null,42]]");
   }
-
-#ifdef HAS_VARIABLE_LENGTH_ARRAY
-  SECTION("set VLA") {
-    size_t i = 8;
-    char vla[i];
-    strcpy(vla, "world");
-
-    ep[0] = vla;
-
-    REQUIRE(doc.as<std::string>() == "[null,[\"world\"]]");
-  }
-#endif
 }
 
 TEST_CASE("ElementProxy cast to JsonVariantConst") {
-  JsonDocument doc;
+  DynamicJsonDocument doc(4096);
   doc[0] = "world";
 
-  const ElementProxy& ep = doc[0];
+  const ElementProxy ep = doc[0];
 
   JsonVariantConst var = ep;
 
@@ -282,10 +232,10 @@ TEST_CASE("ElementProxy cast to JsonVariantConst") {
 }
 
 TEST_CASE("ElementProxy cast to JsonVariant") {
-  JsonDocument doc;
+  DynamicJsonDocument doc(4096);
   doc[0] = "world";
 
-  const ElementProxy& ep = doc[0];
+  ElementProxy ep = doc[0];
 
   JsonVariant var = ep;
 
@@ -294,4 +244,12 @@ TEST_CASE("ElementProxy cast to JsonVariant") {
   var.set("toto");
 
   CHECK(doc.as<std::string>() == "[\"toto\"]");
+}
+
+TEST_CASE("ElementProxy::shallowCopy()") {
+  StaticJsonDocument<1024> doc1, doc2;
+  doc2["hello"] = "world";
+  doc1[0].shallowCopy(doc2);
+
+  CHECK(doc1.as<std::string>() == "[{\"hello\":\"world\"}]");
 }
