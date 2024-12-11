@@ -3,3 +3,4 @@
 .vscode
 user_*.ini
 /*.hex
+/web/.angular
