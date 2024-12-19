@@ -1953,9 +1953,11 @@ void parsing() {
              addKeyToChanged("TY");                  // Отправить также строку в канал WEB
            }
            break;
+         #if (USE_WEATHER == 1)                  
          case 3:               // $13 3 X;   - отображение температуры в макросе {WT}: X - битовая карта, b0 - отображать  C/F, b1 = отображать значок градуса
            set_ShowTempTextProps(intData[2]);
            break;
+         #endif  
          case 9:               // $13 9 D; - Периодичность отображения бегущей строки (в секундах D)
            set_TEXT_INTERVAL(intData[2]);
            SendWebInfo(MSG_OP_SUCCESS);
