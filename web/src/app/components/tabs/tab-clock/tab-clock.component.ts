@@ -278,7 +278,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   }
 
   public loadTimeZones() {
-    const filePath = `assets/tz-${this.L.lang}.json`;
+    const filePath = `a/tz-${this.L.lang}.json`;
     const headers = new HttpHeaders();
     this.httpClient.get(filePath, {headers, responseType: 'text'})
       .pipe(map(response => JSON.parse(stripComments(<string>response))))

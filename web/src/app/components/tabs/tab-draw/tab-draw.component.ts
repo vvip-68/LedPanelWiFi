@@ -65,6 +65,10 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   picture_file: number = -1;  // Выбранный из сохраненных файл картинки
   file_name: string = "";
 
+  mouseDown: boolean = false;
+  mouseCellX: number = -1;
+  mouseCellY: number = -1;
+
   get brushColor(): HSLA | HSVA | RGBA | string  {
     return this._brushColor;
   }
@@ -315,14 +319,94 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
     ctx!.stroke();
   }
 
-  canvasClick($event: MouseEvent) {
+  canvasMouseDown($event: MouseEvent) {
+    this.mouseDown = true;
     // @ts-ignore
     const x = $event.layerX - $event.target.offsetLeft;
     // @ts-ignore
     const y = $event.layerY - $event.target.offsetTop;
-
     const cellX = Math.trunc(x / this.cellSize);
     const cellY = Math.trunc(y / this.cellSize);
+    this.mouseCellX = cellX;
+    this.mouseCellY = cellY;
+    this.canvasAction(cellX, cellY)
+  }
+
+  canvasTouchDown($event: TouchEvent) {
+    if (!$event.touches) return;
+    this.mouseDown = true;
+    // @ts-ignore
+    const rect = $event.touches[0].target.getBoundingClientRect();
+    // @ts-ignore
+    const x = $event.touches[0].pageX - rect.left;
+    // @ts-ignore
+    const y = $event.touches[0].pageY - rect.top;
+    const cellX = Math.trunc(x / this.cellSize);
+    const cellY = Math.trunc(y / this.cellSize);
+    this.mouseCellX = cellX;
+    this.mouseCellY = cellY;
+    this.canvasAction(cellX, cellY)
+  }
+
+  canvasMouseUp($event: MouseEvent) {
+    this.mouseDown = false;
+    this.mouseCellX = -1;
+    this.mouseCellY = -1;
+  }
+
+  canvasTouchUp($event: TouchEvent) {
+    this.mouseDown = false;
+    this.mouseCellX = -1;
+    this.mouseCellY = -1;
+  }
+
+  canvasMouseMove($event: MouseEvent) {
+    if (!this.mouseDown) return;
+    // @ts-ignore
+    const x = $event.layerX - $event.target.offsetLeft;
+    // @ts-ignore
+    const y = $event.layerY - $event.target.offsetTop;
+    const cellX = Math.trunc(x / this.cellSize);
+    const cellY = Math.trunc(y / this.cellSize);
+    // Если мышка нажата и находится в области рисования и позиция не совпадает с предыдущей - выполнить действие для новой ячейки - рисовать / стирать
+    if (cellX >= 0 && cellY >= 0 &&  cellX < this.managementService.state.width && cellY < this.managementService.state.height && (cellX !== this.mouseCellX || cellY !== this.mouseCellY)) {
+      this.mouseCellX = cellX;
+      this.mouseCellY = cellY;
+      this.canvasAction(cellX, cellY);
+    }
+    $event.stopPropagation();
+    $event.preventDefault();
+  }
+
+  canvasTouchMove($event: TouchEvent) {
+    if (!this.mouseDown) return;
+    if (!$event.touches) return;
+    // @ts-ignore
+    const rect = $event.touches[0].target.getBoundingClientRect();
+    // @ts-ignore
+    const x = $event.touches[0].pageX - rect.left;
+    // @ts-ignore
+    const y = $event.touches[0].pageY - rect.top;
+    const cellX = Math.trunc(x / this.cellSize);
+    const cellY = Math.trunc(y / this.cellSize);
+    // Если мышка нажата и находится в области рисования и позиция не совпадает с предыдущей - выполнить действие для новой ячейки - рисовать / стирать
+    if (cellX >= 0 && cellY >= 0 &&  cellX < this.managementService.state.width && cellY < this.managementService.state.height && (cellX !== this.mouseCellX || cellY !== this.mouseCellY)) {
+      this.mouseCellX = cellX;
+      this.mouseCellY = cellY;
+      this.canvasAction(cellX, cellY);
+    }
+    $event.stopPropagation();
+    $event.preventDefault();
+  }
+
+  canvasOutMouseMove($event: MouseEvent) {
+    this.mouseDown = false;
+    this.mouseCellX = -1;
+    this.mouseCellY = -1;
+  }
+
+  canvasAction(cellX: number, cellY: number) {
+    if (cellX < 0 || cellX >= this.managementService.state.width || cellY < 0 || cellY >= this.managementService.state.height) return;
 
     if (this.active_tool === 0) {
       // Пипетка

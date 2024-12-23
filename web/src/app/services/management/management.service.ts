@@ -213,7 +213,7 @@ export class ManagementService extends Base implements OnDestroy {
 
         // Язык из прошивки - 'RUS', 'ENG', 'ESP', 'LAT' или что в прошивке еще определено.
         // Встроенные языки - 'RUS', 'ENG', 'ESP', 'LAT' изначально присутствуют в прошивке в сервисе languageService,
-        // Дополнительные языки могут быть загружены из assets/langs в json файлах с именем файла, соответствующим запрошенному языку,
+        // Дополнительные языки могут быть загружены из a/l в json файлах с именем файла, соответствующим запрошенному языку,
         // например 'ger.json', 'fra.json' и т.д.
         case 'LG':
           this.L.loadLanguage(args);
@@ -699,7 +699,7 @@ export class ManagementService extends Base implements OnDestroy {
 
     const indecies = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < 36; i++) {
-      const filePath = `assets/txt/${indecies[i]}?nocache=${Date.now()}`;
+      const filePath = `a/txt/${indecies[i]}?nocache=${Date.now()}`;
       const headers = new HttpHeaders().set('Cache-Control', 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0').set('Pragma', 'no-cache').set('Expires', '0');
       this.httpClient.get(filePath, {headers, responseType: 'text'})
         .subscribe({

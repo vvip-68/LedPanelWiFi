@@ -38,7 +38,7 @@ export class LanguagesService implements OnInit, OnDestroy {
   public loadLanguage(lang: string) {
     this.lang = lang.toLowerCase();
     window.localStorage['lang'] = lang;
-    const filePath = `assets/langs/${this.lang}.json`;
+    const filePath = `a/l/${this.lang}.json`;
     const headers = new HttpHeaders();
     this.httpClient.get(filePath, {headers, responseType: 'text'})
       .pipe(map(response => JSON.parse(stripComments(<string>response))))

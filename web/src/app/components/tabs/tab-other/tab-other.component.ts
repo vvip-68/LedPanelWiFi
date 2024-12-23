@@ -253,7 +253,7 @@ export class TabOtherComponent extends Base implements OnInit, OnDestroy {
       this.L.$("Загрузить"),
       this.L.$("Загрузить"),
       this.uploadFileForm,
-      '/assets/',
+      '/a/',
       { confirmationMessage: null, fileNewName: this.backup_file });
   }
 

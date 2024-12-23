@@ -5,25 +5,25 @@
       <div [class]="getControllerType()">
         @switch (getControllerType()) {
           @case ('esp32') {
-            <img ngSrc="assets/images/esp32.svg" width="173" height="355" alt="">
+            <img ngSrc="a/i/32.svg" width="173" height="355" alt="">
           }
           @case ('esp32s2') {
-            <img ngSrc="assets/images/esp32s2.svg" width="173" height="355" alt="">
+            <img ngSrc="a/i/32s2.svg" width="173" height="355" alt="">
           }
           @case ('esp32s2mini') {
-            <img ngSrc="assets/images/esp32s2mini.png" width="183" height="236" alt="">
+            <img ngSrc="a/i/32s2m.png" width="183" height="236" alt="">
           }
           @case ('esp32s3') {
-            <img ngSrc="assets/images/esp32s3.svg" width="173" height="402" alt="">
+            <img ngSrc="a/i/32s3.svg" width="173" height="402" alt="">
           }
           @case ('esp32s3mini') {
-            <img ngSrc="assets/images/esp32s3mini.png" width="183" height="235" alt="">
+            <img ngSrc="a/i/32s3m.png" width="183" height="235" alt="">
           }
           @case ('esp32c3') {
-            <img ngSrc="assets/images/esp32c3.svg" width="173" height="303" alt="">
+            <img ngSrc="a/i/32c3.svg" width="173" height="303" alt="">
           }
           @case ('esp32c3mini') {
-            <img ngSrc="assets/images/esp32c3mini.png" width="173" height="236" alt="">
+            <img ngSrc="a/i/32c3m.png" width="173" height="236" alt="">
           }
         }
 
@@ -44,7 +44,7 @@
 
     @if (controller_type === 1) {
       <div class="nodemcu">
-        <img ngSrc="assets/images/nodemcu.svg" width="172" height="323" alt="">
+        <img ngSrc="a/i/node.svg" width="172" height="323" alt="">
         <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark d0 warn" [matTooltip]="L.$('pull_high')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
@@ -107,7 +107,7 @@
 
     @if (controller_type === 2) {
       <div class="wemos">
-        <img ngSrc="assets/images/wemos.svg" width="172" height="236" alt="">
+        <img ngSrc="a/i/wemos.svg" width="172" height="236" alt="">
 
         <div class="mark tx warn" [matTooltip]="L.$('warn_tx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>
         <div class="mark rx warn" [matTooltip]="L.$('warn_rx')" matTooltipPosition="before"><mat-icon>priority_high</mat-icon></div>

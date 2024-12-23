@@ -38,7 +38,7 @@
             },
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/a"
             ],
             "styles": [
               "src/styles.scss"

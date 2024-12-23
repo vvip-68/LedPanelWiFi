@@ -1,12 +1,13 @@
-<div class="tab-draw">
+<div class="tab-draw" (mousemove)="canvasOutMouseMove($event)">
   <fieldset class="app-fieldset draw-fieldset">
     <legend>{{ L.$('Рисование') }}</legend>
     <div #canvas_container class="canvas-container">
-      <canvas #canvas class="canvas" (click)="canvasClick($event)">
-
-      </canvas>
+      <canvas #canvas class="canvas"
+              (mousedown)="canvasMouseDown($event)" (mouseup)="canvasMouseUp($event)" (mousemove)="canvasMouseMove($event)"
+              (touchstart)="canvasTouchDown($event)" (touchend)="canvasTouchUp($event)" (touchmove)="canvasTouchMove($event)" ></canvas>
     </div>
   </fieldset>
+
 
   <div class="actions">
     <color-photoshop [header]="L.$('Выбор цвета кисти')" [(color)]="brushColor"></color-photoshop>
