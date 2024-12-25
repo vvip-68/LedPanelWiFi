@@ -21,7 +21,7 @@ void allocateLeds() {
   //FastLED.addLeds<LED_CHIP, D3, COLOR_ORDER>(leds, 256, 256).setCorrection( TypicalLEDStrip );
 
   if (leds != NULL) {
-    for (int i = 1; i < 4; i++) {
+    for (int i = 1; i <= 4; i++) {
       // К сожалению функция FastLED.addLeds() в качестве чипсета, пина подключения и порядка цвета принимает только константы времени компиляции
       // Эти параметры не могут быть заданы переменными. ТО есть настройка LED_CHIP и COLOR_ORDER - в файле a_def_hard.h, LED_PIN - из переменной, но в switch - в каждую строку подставлена константа
       

@@ -163,8 +163,12 @@ void doEffectWithOverlay(uint8_t aMode) {
   if (needStopText || mandatoryStopText) {    
     showTextNow = false; 
     mandatoryStopText = false;
+
     ResetRunningTextFlags();
     currentText.clear();
+
+    // Если макросом {#N} была определена слудующая строк и именно она отображалась - сбросить, т.к. действие завершено
+    if (currentTextLineIdx >= 0 && currentTextLineIdx == nextTextLineIdx) nextTextLineIdx = -1;
     
     ignoreTextOverlaySettingforEffect = nextTextLineIdx >= 0;
     specialTextEffectParam = -1;

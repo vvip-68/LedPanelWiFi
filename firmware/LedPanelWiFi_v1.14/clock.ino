@@ -439,7 +439,7 @@ void calcTemperaturePosition() {
   if (c_size == 1) {
         
     // Если температура равна 0 - рисуется маленькая буква 'C' размером 2x3 или 'F' размером 3x5  
-    if (t == 0) { //+++!!!  && !show_tempDG
+    if (t == 0) { // && !show_tempDG
       
       show_tempCF = true;
       temperatureW = 7;
@@ -514,7 +514,7 @@ void calcTemperaturePosition() {
     }
 
     // Полная ширина температуры с отображением значка градуса и буквы C/F = 11 + 6 = 17;
-    // Если не влазим по ширине - удаляем пробер между десятками градусов и знаком +/-
+    // Если не влазим по ширине - удаляем пробел между десятками градусов и знаком +/-
     if (pWIDTH <= 16 && show_tempCF && show_tempDG && dec_t > 1) {
       temperatureX_SG_pos++;
       temperatureW--;
