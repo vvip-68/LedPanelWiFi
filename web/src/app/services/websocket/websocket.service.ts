@@ -1,9 +1,10 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import {BehaviorSubject, interval, Observable, Observer, Subject, Subscription, takeUntil, takeWhile} from 'rxjs';
+import {BehaviorSubject, catchError, interval, Observable, Observer, Subject, throwError as observableThrowError, Subscription, takeUntil, takeWhile, tap} from 'rxjs';
 import {distinctUntilChanged, filter, map, share} from 'rxjs/operators';
 import {WebSocketSubject, WebSocketSubjectConfig} from 'rxjs/webSocket';
 import {environment} from "../../../environments/environment";
 import {Base} from "../../components/base.class";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 
 export const WS = {
   // 'Топики' получения состояния из устройства
@@ -83,7 +84,7 @@ export class WebsocketService extends Base implements IWebsocketService, OnDestr
 
   // -------------------------------------
 
-  constructor() {
+  constructor(private httpClient: HttpClient) {
     super();
 
     this.config = {
@@ -217,7 +218,7 @@ export class WebsocketService extends Base implements IWebsocketService, OnDestr
     } else if (this.reconnection$ == null) {
       this.reconnect();
     }
-}
+  }
 
   /*
   * answer on ping received
@@ -257,6 +258,116 @@ export class WebsocketService extends Base implements IWebsocketService, OnDestr
   public sendText(text: string): void {
     this.send(WS.SEND.COMMAND, text);
   }
+
+  public getFile(fileName: string): Observable<any> {
+
+    let contentType: string;
+    // https://github.com/angular/angular/issues/18586
+    const reForFilenameExtension = /(?:\.([^.]+))?$/;
+    // @ts-ignore
+    const ext = reForFilenameExtension.exec(fileName)[1];
+    switch (ext) {
+      case 'json':
+        contentType = 'text/plain';
+        break;
+      //   https://stackoverflow.com/questions/25727306/request-header-field-access-control-allow-headers-is-not-allowed-by-access-contr
+      case 'tar':
+      case 'tgz':
+        contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+        break;
+      case 'txt':
+        contentType = 'text/plain';
+        break;
+      default:
+        contentType = 'text/plain';
+        break;
+    }
+
+    const headers = new HttpHeaders().set('content-type', contentType).set('Cache-Control', 'no-cache, no-store, must-revalidate, post-check=0, pre-check=0').set('Pragma', 'no-cache');
+    const url = `http://${this.host}/${fileName}`;
+
+    switch (ext) {
+      case 'json':
+        contentType = 'text/plain';
+        return this.httpClient.get(url, { headers: headers, responseType: 'json' })
+          .pipe(
+            map(response => response),
+            tap(response => this.logResponse('getFile', 'getFile()', url, '', '', response)),
+            catchError(error => {
+              return observableThrowError(error);
+            }));
+
+      case 'tar':
+      case 'tgz':
+        contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+        return this.httpClient.get(url, { headers: headers, responseType: 'blob' })
+          .pipe(
+            map(response => response),
+            tap(response => this.logResponse('getFile', 'getFile()', url, '', '', response)),
+            catchError(error => {
+              return observableThrowError(error);
+            }));
+
+      case 'txt':
+        contentType = 'text/plain';
+        return this.httpClient.get(url, { headers: headers, responseType: 'text' })
+          .pipe(
+            map(response => response),
+            tap(response => this.logResponse('getFile', 'getFile()', url, '', '', response)),
+            catchError(error => {
+              return observableThrowError(error);
+            }));
+
+      default:
+        contentType = 'text/plain';
+        return this.httpClient.get(url, { headers: headers, responseType: 'json' })
+          .pipe(
+            map(response => response),
+            tap(response => this.logResponse('getFile', 'getFile()', url, '', '', response)),
+            catchError(error => {
+              return observableThrowError(error);
+            }));
+    }
+
+  }
+
+  public logResponse(caller: Object | string, functionName: string, request: any, dataset: any, component: any, response: any) {
+    const name = typeof caller === 'string' ? caller : caller.constructor.name;
+    window.console.group(name);
+    window.console.log(functionName + ' << \'' + dataset + '\' and \'' + component + '\'');
+    window.console.log('request:', request);
+    window.console.log('response:', response);
+    window.console.groupEnd();
+  }
+
+  public handleError(caller: Object | string, msg: string, response?: any) {
+    const name = typeof caller === 'string' ? caller : caller.constructor.name;
+    window.console.group(name);
+    window.console.error(msg, response);
+    window.console.groupEnd();
+  }
+
+  public handleWarning(caller: Object | string, msg: string, warn?: any) {
+    const name = typeof caller === 'string' ? caller : caller.constructor.name;
+    window.console.group(name);
+    window.console.warn(msg, warn);
+    window.console.groupEnd();
+  }
+
+  public handleInfo(caller: Object | string, msg: string, info?: any) {
+    const name = typeof caller === 'string' ? caller : caller.constructor.name;
+    window.console.group(name);
+    window.console.info(msg, info);
+    window.console.groupEnd();
+  }
+
+  public handleTrace(caller: Object | string, msg: string, trace?: any) {
+    const name = typeof caller === 'string' ? caller : caller.constructor.name;
+    window.console.group(name);
+    window.console.log(msg, trace);
+    window.console.groupEnd();
+  }
+
   override ngOnDestroy() {
     this.webSocketSubscription.unsubscribe();
     super.ngOnDestroy();

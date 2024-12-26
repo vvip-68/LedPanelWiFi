@@ -690,7 +690,7 @@ export class ManagementService extends Base implements OnDestroy {
     this.picture_list = this.sortComboBoxItems(this.picture_list);
   }
 
-  private loadTextLines() {
+  public loadTextLines() {
 
     this.text_lines = [];
     for (let i = 0; i < 36; i++) {

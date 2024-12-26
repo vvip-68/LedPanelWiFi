@@ -1815,6 +1815,8 @@ void printEffectUsage() {
   for (uint8_t i = 0; i < effect_order.length(); i++) {
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
     char eff = effect_order[i];
     int8_t eff_idx = codes.indexOf(eff);

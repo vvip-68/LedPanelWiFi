@@ -575,9 +575,15 @@
   "Градус": "Grado",
   "Изменчивость": "Variabilidad",
   "Справка": "Ayuda",
-  "Отображать в макросе {WT}:": "Mostrar en la macro {WT}ойки": "Configuración avanzada",
+  "Отображать в макросе {WT}:": "Mostrar en la macro {WT}",
   "Смещение по X": "Cambio X",
   "Смещение по Y": "Cambio Y",
   "Ширина точки:": "Ancho de punto",
-  "Отступ у точки": "Punto espaciado"
+  "Отступ у точки": "Punto espaciado",
+  "Импорт текстовых строк": "Importar textos",
+  "Экспорт текстовых строк": "Exportar textos",
+  "Импорт": "Import",
+  "Экспорт": "Export",
+  "Upload text error": "Error al cargar textos en el controlador",
+  "Wait for import completed": "La importación está en curso..."
 }

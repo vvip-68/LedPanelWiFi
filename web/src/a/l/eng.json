@@ -579,5 +579,11 @@
   "Смещение по X": "Shift X",
   "Смещение по Y": "Shift Y",
   "Ширина точки:":  "Dot width",
-  "Отступ у точки":  "Spaced dot"
+  "Отступ у точки":  "Spaced dot",
+  "Импорт текстовых строк": "Import texts",
+  "Экспорт текстовых строк": "Export texts",
+  "Импорт": "Import",
+  "Экспорт": "Export",
+  "Upload text error": "Error while loading texts into controller",
+  "Wait for import completed": "Importing is in progress..."
 }

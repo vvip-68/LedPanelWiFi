@@ -37,7 +37,7 @@
         <div style="flex:1"></div>
 
         <div class="action-container" style="margin: 0 6px 0 0;">
-          <button mat-raised-button color="primary" (click)="applyInterval($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
+          <button mat-raised-button color="primary" class="btn_text_param" (click)="applyInterval($event)" [disabled]="isDisabled()">{{L.$('Применить')}}</button>
         </div>
       </div>
 
@@ -50,7 +50,7 @@
         </mat-radio-group>
 
         <div class="select-color">
-          <button mat-raised-button color="primary" (click)="showColorSelector()" [disabled]="isDisabled()">{{L.$('Выбрать цвет')}}</button>
+          <button mat-raised-button color="primary" class="btn_text_param" (click)="showColorSelector()" [disabled]="isDisabled()">{{L.$('Выбрать цвет')}}</button>
           @if (sample_color_visible) {
             <div class="sample-color" [style.background-color]="getTextSampleColor()"></div>
           }
@@ -107,9 +107,9 @@
 
     </fieldset>
 
-    <fieldset class="app-fieldset texts-fieldset mac" [ngClass]="{'disabled': isDisabled2()}">
+    <fieldset class="app-fieldset texts-fieldset mac">
       <legend>{{ L.$('Макросы бегущей строки') }}</legend>
-      <div class="macros-container">
+      <div class="macros-container" [ngClass]="{'disabled': isDisabled2()}">
         <button [matTooltip]="L.$('Цвет текста')" [disabled]="isDisabled2()" (click)="macrosTextColor()" class="btn">
           <mat-icon matSuffix>palette</mat-icon>
           <span>A</span>
@@ -213,6 +213,8 @@
         </button>
       </div>
 
+      <div style="flex:1"></div>
+
       @if (supportWeather) {
         <div class="macros-ts">
           <div class="field-container check">
@@ -226,7 +228,36 @@
           </div>
         </div>
       }
+
+      <div class="import-export">
+        <!--button mat-raised-button color="primary" class="btn"
+                matTooltip="{{L.$('Импорт текстовых строк')}}"
+                [disabled]="isDisabled()"
+                (click)="importTexts()">
+          <mat-icon matSuffix>file_upload</mat-icon>
+          <span>{{L.$('Импорт')}}</span>
+        </button-->
+
+        <div class="like-btn" matTooltip="{{L.$('Импорт текстовых строк')}}">
+          <label class="btn btn-default mat-button">
+            <mat-icon matSuffix>publish</mat-icon>
+            <span>{{L.$('Импорт')}}</span>
+            <form #uploadFileForm>
+              <input name="file" type="file" style="display: none;" ng2FileSelect [uploader]="fileUploaderWrapper.getUploader()" (onFileSelected)="onUpload()" accept=".txt">
+            </form>
+          </label>
+        </div>
+
+        <button mat-raised-button color="primary" class="btn"
+                matTooltip="{{L.$('Экспорт текстовых строк')}}"
+                [disabled]="isDisabled()"
+                (click)="exportTexts()">
+          <mat-icon matSuffix>file_download</mat-icon>
+          <span>{{L.$('Экспорт')}}</span>
+        </button>
+      </div>
     </fieldset>
+
 
     <mat-menu #menuDateFormat="matMenu">
       @for (item of date_fmt; track item) {

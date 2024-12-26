@@ -34,6 +34,11 @@
       --check-label-width: 138px;
       --check-label-inner-width: 50px;
 
+      .btn_text_param {
+        width: 9em;
+        font-size: 12px !important;
+      }
+
       .letter {
         display: flex !important;
         letter-spacing: 5px;
@@ -149,7 +154,7 @@
           .select-color {
             position: relative;
             top: -95px;
-            right: -233px;
+            right: -237px;
 
             .sample-color {
               position: relative;
@@ -366,6 +371,49 @@
         }
       }
 
+      .import-export {
+        margin: 0.5em 0 1em 0;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+        .btn {
+          width: 8em;
+          margin-left: 0.5em;
+        }
+
+        .like-btn {
+          width: 8em;
+          margin-right: 0.75em;
+
+          label {
+            color: white;
+            height: 28px;
+            background-color: var(--button-back-color);
+            font-size: 14px;
+            border-radius: 4px;
+
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+
+            &:hover {
+              background-color: var(--button-hover-color);
+              color: white;
+              cursor: pointer;
+            }
+
+            .mat-icon {
+              font-size: 18px;
+              margin-top: 5px;
+            }
+          }
+        }
+      }
+
       .free_mem {
         width: 100%;
         font-size: 10px;
@@ -375,7 +423,7 @@
       }
 
       &.mac {
-        &.disabled {
+        .macros-container.disabled {
           filter: grayscale(1);
           color: var(--button-disabled-color);
         }

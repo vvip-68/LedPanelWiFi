@@ -270,7 +270,7 @@
   
   #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
-  static const char textLine_1[] PROGMEM = "{D} {WT}";
+  static const char textLine_1[] PROGMEM = "Пусть сбудутся ваши мечты!";
   static const char textLine_2[] PROGMEM = "До {C#00D0FF}Нового года {C#FFFFFF}осталось {C#10FF00}{R01.01.***+}{S01.12.****#31.12.**** 23:59:59}{E21}";
   static const char textLine_3[] PROGMEM = "До {C#0019FF}Нового года{C#FFFFFF} {P01.01.****#4}";
   static const char textLine_4[] PROGMEM = "С {C#00D0FF}Новым {C#0BFF00}{D:yyyy} {C#FFFFFF}годом!{S01.01.****#31.01.**** 23:59:59}{E21}";
@@ -280,29 +280,29 @@
   static const char textLine_8[] PROGMEM = "Крепитесь, люди - скоро {C#FF0300}лето!{S01.01.****#10.04.****}";
   static const char textLine_9[] PROGMEM = "Это {C#0081FF}\"ж-ж-ж\"{C#FFFFFF} - неспроста!";
   static const char textLine_A[] PROGMEM = "{C#000001}Раз! Два!! Три!!! {C#33C309}Ёлочка,{B#000000}{C#000001} гори!!!{C#FFFFFF}";
-  static const char textLine_B[] PROGMEM = "Дело было вечером, делать было нечего...";
+  static const char textLine_B[] PROGMEM = "-Дело было вечером, делать было нечего...";
   static const char textLine_C[] PROGMEM = "С наступающим Новым {C#00C911}{D:yyy+}{C#FFFFFF} годом!{S01.12.****#31.12.****}";
-  static const char textLine_D[] PROGMEM = "Это нужно обдумать...";
-  static const char textLine_E[] PROGMEM = "В этом что-то есть...";
+  static const char textLine_D[] PROGMEM = "-Это нужно обдумать...";
+  static const char textLine_E[] PROGMEM = "-В этом что-то есть...";
   static const char textLine_F[] PROGMEM = "В {C#10FF00}Красноярске {C#FFFFFF}{WS} {WT}";
   static const char textLine_G[] PROGMEM = "Вот оно что, {C#FF0000}Михалыч{C#FFFFFF}!..";
   static const char textLine_H[] PROGMEM = "Сегодня {D:d MMMM yyyy} года, {D:dddd}";
-  static const char textLine_I[] PROGMEM = "Лень - двигатель прогресса";
-  static const char textLine_J[] PROGMEM = "Чем бы дитя не тешилось...";
-  static const char textLine_K[] PROGMEM = "С Рождеством!{S07.01.****}";
+  static const char textLine_I[] PROGMEM = "-Лень - двигатель прогресса";
+  static const char textLine_J[] PROGMEM = "-Чем бы дитя не тешилось...";
+  static const char textLine_K[] PROGMEM = "Счастливого Рождества!{S07.01.****}";
   static const char textLine_L[] PROGMEM = "С днем Победы!{S09.05.**** 7:00#09.05.**** 21:30}";
   static const char textLine_M[] PROGMEM = "Сегодня {D:dddd dd MMMM}, на улице {WS}, {WT}";
   static const char textLine_N[] PROGMEM = "С праздником, соседи!";
-  static const char textLine_O[] PROGMEM = "Не скучайте!";
+  static const char textLine_O[] PROGMEM = "-Не скучайте!";
   static const char textLine_P[] PROGMEM = "Счастья всем! И пусть никто не уйдет обиженным.";
   static const char textLine_Q[] PROGMEM = "В отсутствии солнца сияйте сами!";
   static const char textLine_R[] PROGMEM = "Раз! {C#000001}Два!! {C#FFFFFF}Три!!! {C#018C0A}Ёлочка,{C#FFFFFF} гори!!!{S01.01.****#19.01.****}{S01.12.****#31.12.****}";
-  static const char textLine_S[] PROGMEM = "Время принимать решения!";
-  static const char textLine_T[] PROGMEM = "Время делать выводы!";
+  static const char textLine_S[] PROGMEM = "-Время принимать решения!";
+  static const char textLine_T[] PROGMEM = "-Время делать выводы!";
   static const char textLine_U[] PROGMEM = "Лето, ах лето!{S15.05.****#01.09.****}";
-  static const char textLine_V[] PROGMEM = "Нет предела совершенству!";
+  static const char textLine_V[] PROGMEM = "-Нет предела совершенству!";
   static const char textLine_W[] PROGMEM = "До {C#0080B0}Нового года{C#FFFFFF} осталось... понять как жить дальше...{S01.12.****#31.12.**** 23:59:59}";
-  static const char textLine_X[] PROGMEM = "Курочка по зёрнышку, копеечка к копеечке!";
+  static const char textLine_X[] PROGMEM = "-Курочка по зёрнышку, копеечка к копеечке!";
   static const char textLine_Y[] PROGMEM = "Подъем через {P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "-Доброе утро!";
   #endif
@@ -325,6 +325,10 @@
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Не удалось загрузить резервную копию настроек";
   static const char MSG_BACKUP_LOAD_OK[] PROGMEM     = "Настройки из резервной копии восстановлены";
   static const char MSG_OP_SUCCESS[] PROGMEM         = "Настройки сохранены";
+  static const char MSG_TEXT_EXPORT_ERROR[] PROGMEM  = "Не удалось экспортировать строки";
+  static const char MSG_TEXT_EXPORT_OK[] PROGMEM     = "Экспорт строк выполнен";
+  static const char MSG_TEXT_IMPORT_ERROR[] PROGMEM  = "Не удалось импортировать строки";
+  static const char MSG_TEXT_IMPORT_OK[] PROGMEM     = "Импорт строк выполнен";
 
   static const char MODE_NIGHT_CLOCK[] PROGMEM       = "Ночные часы";
   static const char MODE_CLOCK[] PROGMEM             = "Часы";
@@ -620,6 +624,10 @@
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Unable to load backup file";
   static const char MSG_BACKUP_LOAD_OK[] PROGMEM     = "Settings were sucessfully loaded";
   static const char MSG_OP_SUCCESS[] PROGMEM         = "Sucessfully applied";
+  static const char MSG_TEXT_EXPORT_ERROR[] PROGMEM  = "Texts export error";
+  static const char MSG_TEXT_EXPORT_OK[] PROGMEM     = "Texts exported";
+  static const char MSG_TEXT_IMPORT_ERROR[] PROGMEM  = "Texts import error";
+  static const char MSG_TEXT_IMPORT_OK[] PROGMEM     = "Texts imported";
 
   static const char MODE_NIGHT_CLOCK[] PROGMEM       = "Night clock";
   static const char MODE_CLOCK[] PROGMEM             = "Clock";
@@ -915,6 +923,10 @@
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM  = "Error al cargar la copia de seguridad de la configuración";
   static const char MSG_BACKUP_LOAD_OK[] PROGMEM     = "Configuración de copia de seguridad restaurada";
   static const char MSG_OP_SUCCESS[] PROGMEM         = "Los ajustes se han guardado";
+  static const char MSG_TEXT_EXPORT_ERROR[] PROGMEM  = "Error de exportación de textos";
+  static const char MSG_TEXT_EXPORT_OK[] PROGMEM     = "Textos exportados";
+  static const char MSG_TEXT_IMPORT_ERROR[] PROGMEM  = "Error de importación de textos";
+  static const char MSG_TEXT_IMPORT_OK[] PROGMEM     = "Textos importados";
 
   static const char MODE_NIGHT_CLOCK[] PROGMEM       = "Reloj de la noche";
   static const char MODE_CLOCK[] PROGMEM             = "Reloj";
@@ -1208,6 +1220,10 @@
   static const char MSG_BACKUP_LOAD_ERROR[] PROGMEM = "Neizdevās ielādēt iestatījumu rezerves kopiju";
   static const char MSG_BACKUP_LOAD_OK[] PROGMEM = "Iestatījumu atjaunošana no dublējuma";
   static const char MSG_OP_SUCCESS[] PROGMEM = "Saglabāti iestatījumi";
+  static const char MSG_TEXT_EXPORT_ERROR[] PROGMEM = "Tekstu eksportēšanas kļūda";
+  static const char MSG_TEXT_EXPORT_OK[] PROGMEM = "Eksportētie teksti";
+  static const char MSG_TEXT_IMPORT_ERROR[] PROGMEM = "Tekstu importēšanas kļūda";
+  static const char MSG_TEXT_IMPORT_OK[] PROGMEM = "Importētie teksti";
 
   static const char MODE_NIGHT_CLOCK[] PROGMEM = "Nakts pulksteņi";
   static const char MODE_CLOCK[] PROGMEM = "Pulkstenis";

@@ -576,5 +576,11 @@
   "Смещение по X": "Nobīde X",
   "Смещение по Y": "Nobīde Y",
   "Ширина точки:":  "Dot izmērs",
-  "Отступ у точки":  "Atstarpēm dot"
+  "Отступ у точки":  "Atstarpēm dot",
+  "Импорт текстовых строк": "Tekstu importēšana",
+  "Экспорт текстовых строк": "Eksporta teksti",
+  "Импорт": "Imports",
+  "Экспорт": "Eksports",
+  "Upload text error": "Kļūda, ielādējot tekstus kontrolierī",
+  "Wait for import completed": "Importēšana notiek..."
 }

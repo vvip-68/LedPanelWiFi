@@ -269,6 +269,8 @@ void checkWebSubDir(uint8_t level, const String& full_dir_name, const String& di
 
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
     
     #if defined(ESP32)

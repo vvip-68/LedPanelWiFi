@@ -176,6 +176,7 @@ export interface IStateModel {
   debug_month: number;
   debug_year: number;
   debug_cross: boolean;
+  text_action: string;
 }
 
 export class StateModel implements IStateModel {
@@ -347,6 +348,7 @@ export class StateModel implements IStateModel {
   public debug_month = 0;
   public debug_year = 0;
   public debug_cross = false;
+  public text_action = '';
 
   constructor() {
     const date= new Date();
@@ -501,6 +503,7 @@ export class StateModel implements IStateModel {
       case 'WW':   return this.show_temp_text_props;
       case 'C12':  return this.time12h;
       case 'C35':  return this.small_font_type;
+      case 'TXT':  return this.text_action;
 
       case 'MC':   return this.controller;
       case '2306': return this.led_line_1;
@@ -662,6 +665,7 @@ export class StateModel implements IStateModel {
       case 'WW':   this.show_temp_text_props = Number(value);                     break;
       case 'C12':  this.time12h = Number(value) === 1;                            break;
       case 'C35':  this.small_font_type = Number(value);                          break;
+      case 'TXT':   this.text_action = '' + value;                                break;
 
       case 'EMX':  this.sync_master_x = Number(value);                            break;
       case 'EMY':  this.sync_master_y = Number(value);                            break;

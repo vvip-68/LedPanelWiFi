@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2024.1222")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2024.1226")
 
 // Смотри секцию "Известные проблемы"
 //#pragma GCC optimize ("O1")
@@ -495,6 +495,8 @@ void setup() {
  
   #if defined(ESP8266)
   ESP.wdtFeed();
+  #else
+  delay(1);
   #endif
   loadSettings();
 
@@ -533,6 +535,8 @@ void setup() {
 
   #if defined(ESP8266)
   ESP.wdtFeed();
+  #else
+  delay(1);
   #endif
 
   // -----------------------------------------  
@@ -732,6 +736,8 @@ void setup() {
 
   #if defined(ESP8266)
   ESP.wdtFeed();
+  #else
+  delay(1);
   #endif
   DEBUGLN();
 
@@ -791,6 +797,8 @@ void setup() {
 
   #if defined(ESP8266)
   ESP.wdtFeed();
+  #else
+  delay(1);
   #endif
  
   #if (USE_BUTTON  == 1)
@@ -838,6 +846,8 @@ void setup() {
   #if (USE_ANIMATION == 1)
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
     // Поиск доступных анимаций
     initAnimations();
@@ -849,6 +859,8 @@ void setup() {
   #if (USE_MP3 == 1)
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
     // Первый этап инициализации плеера - подключение и основные настройки
     InitializeDfPlayer1();
@@ -870,6 +882,8 @@ void setup() {
     if (isSdCardExist) {
       #if defined(ESP8266)
       ESP.wdtFeed();
+      #else
+      delay(1);
       #endif
       DEBUGLN(F("Поиск файлов эффектов Jinx!.."));    
       if (sd_card_ok) {
@@ -941,7 +955,7 @@ void setup() {
     {
       static unsigned long startTimer;
       static File file;
-      static bool error;
+      static bool error;      
       
       if (!index) {
         error = false;
@@ -978,11 +992,16 @@ void setup() {
             // Загруженное имя файла передается от сервера. Стандартное имя 'eeprom_0xXX.hex' могло быть переименовано, 
             // чтобы было понятно от какого устройства бэкап. Например dev_lamp.hex. Под этим же именем оно и загрузилось в корень FS
             String srcFile('/'); srcFile += filename;
-            // Реальное имя файла сохраненных настроек должно быть 'eeprom_0xXX.hex', где XX - значение константы версия EEPROM_OK
-            // и файл с настройками должен быть размещен в папке '/web/a'.
             String dstFile(FS_BACK_STORAGE); 
             if (!dstFile.endsWith("/")) dstFile += '/'; 
-            dstFile += F("eeprom_0x"); dstFile += IntToHex(EEPROM_OK, 2); dstFile += ".hex";  
+            if (srcFile.endsWith(".hex")) {
+              // Реальное имя файла сохраненных настроек должно быть 'eeprom_0xXX.hex', где XX - значение константы версия EEPROM_OK
+              // и файл с настройками должен быть размещен в папке '/web/a'.                            
+              dstFile += F("eeprom_0x"); dstFile += IntToHex(EEPROM_OK, 2); dstFile += ".hex";
+            } else {
+              dstFile += filename;
+            }
+
             // Если файл со старыми настройками есть в папке назначения - удалить его
             if (LittleFS.exists(dstFile)) LittleFS.remove(dstFile);
             // Теперь переносим только что загруженный файл в место постоянного размещения и с новым имененм
@@ -998,8 +1017,10 @@ void setup() {
             request->send(200, MIMETYPE_HTML, "File upload completed!");
             request->client()->close();
             DEBUGLOG(printf_P, PSTR("Загрузка выполнена: %i байт за %.2f сек ( %.2f КБ/сек ).\n"), index + len, (millis() - startTimer) / 1000.0, 1.0 * (index + len) / (millis() - startTimer));
-            eeprom_backup = checkEepromBackup();
-            addKeyToChanged("EE");
+            if (filename.endsWith(".hex")) {
+              eeprom_backup = checkEepromBackup();
+              addKeyToChanged("EE");
+            }
           }
         }
       }
@@ -1289,6 +1310,8 @@ void startWiFi(uint32_t waitTime) {
 
       #if defined(ESP8266)
       ESP.wdtFeed();
+      #else
+      delay(1);
       #endif
     }
     DEBUGLN();
@@ -1340,6 +1363,8 @@ void startSoftAP() {
     
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
 
     DEBUG('.');

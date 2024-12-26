@@ -4,6 +4,7 @@ import {LanguagesService} from "../../services/languages/languages.service";
 import { MatButtonModule } from '@angular/material/button';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import {Base} from "../base.class";
+import {isNullOrUndefinedOrEmpty} from "../../services/helper";
 
 @Component({
     selector: 'app-confirmation-dialog',
@@ -19,6 +20,7 @@ export class ConfirmationDialogComponent extends Base implements OnInit, OnDestr
   okText: string = '';
   cancelText: string = '';
   cancelVisible = true;
+  okTextVisible = true;
 
   constructor(@Inject(MAT_DIALOG_DATA) private data: any,
               public L: LanguagesService) {
@@ -29,6 +31,7 @@ export class ConfirmationDialogComponent extends Base implements OnInit, OnDestr
     this.title = this.data.title;
     this.message = this.data.message.replace(/\n/gi, '<br>');
     this.cancelVisible = typeof this.data.useCancel === 'undefined' || this.data.useCancel;
+    this.okTextVisible = typeof this.data.useOk === 'undefined' || this.data.useOk;
     this.okText = this.data.okText ?? this.L.$('Да');
     this.cancelText = this.data.cancelText ?? this.L.$('Отмена');
   }

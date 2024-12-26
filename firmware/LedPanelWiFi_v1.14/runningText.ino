@@ -14,6 +14,8 @@ void InitializeTexts() {
     for (int8_t i = 1; i <= num; i++) {
       #if defined(ESP8266)
       ESP.wdtFeed();
+      #else
+      delay(1);
       #endif
       path += GetToken(FPSTR(FS_TEXT_STORAGE), i, '/');
       if (path.length() != 0) {
@@ -51,6 +53,8 @@ void InitializeTexts() {
   for (uint8_t i=0; i < TEXTS_MAX_COUNT; i++) {
     #if defined(ESP8266)
     ESP.wdtFeed();
+    #else
+    delay(1);
     #endif
     char charIndex = getAZIndex(i);
     String fileName(FS_TEXT_STORAGE); fileName += '/'; fileName += charIndex;
@@ -3018,4 +3022,176 @@ void ParseDateTime(const String& str, struct tm* tm) {
   DEBUGLN(String(F("Parse out: ")) + padNum(tm.tm_day, 2) + "." + padNum(tm.tm_mon + 1, 2) + "." + padNum(tm.tm_year + 1900, 4) + " " + padNum(tm.tm_hour, 2) + ":" + padNum(tm.tm_min, 2) + ":" + padNum(tm.tm_sec, 2));
   DEBUGLN(DELIM_LINE);
   */
+}
+
+String readLine(File file) {
+  String text; text.reserve(256);
+  while (file.available()) {    
+    char ch = file.read();
+    if (ch == '\r') continue;
+    if (ch == '\n') break;
+    text += ch;
+  }
+  return text;
+}
+
+// Импортировать текстовые строки из загруженного файла
+bool importTextLines() {
+  bool ok = true;
+
+  String fileName(F("texts.txt"));
+  String fullName(FS_BACK_STORAGE);
+  if (!fullName.endsWith("/")) fullName += '/'; 
+  fullName += fileName;
+
+  DEBUG(F("Импорт строк из: ")); DEBUGLN(fullName);
+
+  File file = LittleFS.open(fullName, "r");
+  
+  if (!file) {
+    DEBUG(F("Файл '")); DEBUG(fullName); DEBUGLN(F("' не найден."));
+    ok = false;
+  }
+
+  if (ok) {
+    String text; text.reserve(256);
+
+    while (file.available()) {    
+      text = readLine(file);
+      text.trim();
+      if (text.length() == 0) continue;
+      // Здесь считана строка из файла в формате 'A: текст', где 'A' - индекс строки, ':' разделитель, пробел за ним необязателен
+      char ch = text.charAt(0);
+      char dv = text.charAt(1);
+      if (dv != ':') continue;                                               // Резделитель - двоеточие? Если нет - какая-то ошибка в формате строки - пропускаем
+      if (!((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z'))) continue; // Индекс - символ в диапазоне '0'..'9', 'A'..'Z' - если нет - какая-то ошибка - пропускаем
+      text[0] = ' '; text[1] = ' ';                                          // заменяем в строке символы индекса и двоеточие на пробелы, затем просто trim() удаляя начальные и конечные пробелы
+      if (ch == '0') text.replace('|', '\n');                                // Строка '0' - индексная может состоять из двух частей, разделенных '\n' - для дневного и ночного режимов.
+      text.trim();                                                           // При экспорте '\n' заменяется на '|'/ Делаем обратную замену при импорте
+      // Сохраняем строку в файл
+      saveTextLine(ch, text);    
+      DEBUG(F("[")); DEBUG(ch); DEBUG(F("]: '")); DEBUG(text); DEBUGLN("'");    
+    }
+
+    file.close();
+    LittleFS.remove(fullName);
+  }
+
+  if (!ok) {
+    DEBUGLN(F("Ошибка импорта строк"));
+    SendWebError(MSG_TEXT_IMPORT_ERROR);
+  } else {
+    // Отправить в браузер уведомление, что файл создан - можно скачивать.
+    DEBUGLN(F("Импорт строк выполнен"));
+    InitializeTexts();
+    // Пересканировать события с временнЫми отметками
+    rescanTextEvents();
+    // Сообщение клиенту о завершении операции
+    SendWebInfo(MSG_TEXT_IMPORT_OK);
+    SendWebKey("TXT", "IMPORT");
+  }
+
+  return ok;
+}
+
+// Экспортировать текстовые строки в файл
+bool exportTextLines() {
+
+  bool ok = true;
+  size_t buf_size = 512;
+  File file;
+
+  String message; message.reserve(256);
+    
+  uint8_t *buf = (uint8_t*)malloc(buf_size);
+  if (buf == nullptr) {
+    DEBUGLN(F("Недостаточно памяти экспорта строк"));
+    return false;
+  }
+  memset(buf, 0, buf_size);
+
+  String fileName(F("texts.txt"));
+  String fullName(FS_BACK_STORAGE);
+  if (!fullName.endsWith("/")) fullName += '/'; 
+  fullName += fileName;
+
+  DEBUG(F("Экспорт строк в:")); DEBUGLN(fullName);
+
+  // Если файл с таким именем уже есть - удалить
+  if (LittleFS.exists(fullName)) {
+    ok = LittleFS.remove(fullName);
+  }
+
+  file = LittleFS.open(fullName, "w");
+
+  if (!file) {
+    DEBUGLN(F("Ошибка создания файла"));
+    free(buf);
+    return false;
+  }
+
+  // Сохраняем тексты бегущей строки в формате 'idx: txt\r\n'
+  //   idx   - индекc '0'..'9', 'A'..'Z' (пробел - для удобства чтения)
+  //   txt   - содержимое бегущей строки
+  //   \r\n  - разделитель - конец строки
+
+  // Сделать резервную копию строк текста бегущей строки
+  for (uint8_t i = 0; i < TEXTS_MAX_COUNT; i++) {
+    
+    yield();
+    
+    char c = getAZIndex(i);
+    String text(getTextByIndex(i));
+
+    // Буфер должен вмещать строку, + 1 байт - индекс строки + 2 байта - ': ' + 2 байт терминальный символ \r\n
+    int16_t idx = text.indexOf('\n');
+    while (idx >= 0) {
+      text.replace('\n','|');
+      idx = text.indexOf('\n');
+    }
+
+    size_t len_text = text.length(), lenw = 0, lend = len_text + 5;      
+    // Если текущий буфер недостаточен для размещения строки - выделить новый
+    if (lend > buf_size) {
+      free(buf);
+      buf_size = lend;
+      buf = (uint8_t*)malloc(buf_size);
+      if (buf == nullptr) {
+        DEBUGLN(F("Недостаточно памяти для экспорта строк'"));
+        ok = false; 
+        break;        
+      }
+    }
+    
+    memset(buf, 0, buf_size);
+    buf[0] = c;
+    buf[1] = ':';
+    buf[2] = ' ';
+    if (len_text > 0) {
+      text.toCharArray(reinterpret_cast<char*>(buf + 3), len_text + 1);
+    }
+    buf[len_text + 3] = '\r';
+    buf[len_text + 4] = '\n';
+
+    lenw = file.write(buf, lend);
+    ok = lenw == lend;       
+    if (!ok) break;
+    
+    DEBUG(F("Сохранение строки [")); DEBUG(c); DEBUG(F("] : '")); DEBUG(text); DEBUGLN("'");
+  }
+  
+  file.close();
+  free(buf);        
+
+  if (!ok) {
+    DEBUGLN(F("Ошибка экспорта' строк"));
+    SendWebError(MSG_TEXT_EXPORT_ERROR);
+  } else {
+    // Отправить в браузер уведомление, что файл создан - можно скачивать.
+    DEBUGLN(F("Экспорт строк выполнен."));
+    SendWebInfo(MSG_TEXT_EXPORT_OK);
+    SendWebKey("TXT", "EXPORT");
+  }
+
+  return ok;
 }
