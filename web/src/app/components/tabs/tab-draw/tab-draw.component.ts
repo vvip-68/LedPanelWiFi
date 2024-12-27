@@ -66,6 +66,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   file_name: string = "";
 
   mouseDown: boolean = false;
+  touchDown: boolean = false;
   mouseCellX: number = -1;
   mouseCellY: number = -1;
 
@@ -90,6 +91,8 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   private loadIndex: number = -1;     // индекс загружаемой строки / колонки
   private intervalId: any = undefined;
 
+  private isMobile: boolean = false;
+
   constructor(@Inject(DOCUMENT) private document: Document,
               public socketService: WebsocketService,
               public managementService: ManagementService,
@@ -100,6 +103,15 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   }
 
   ngOnInit() {
+
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+      this.isMobile = true;
+    } else
+    if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+      this.isMobile = true;
+    }
+
     fromEvent(window, 'resize')
       .pipe(takeUntil(this.destroy$), debounceTime(250))
       .subscribe( evt => { this.drawCanvas(); } );
@@ -320,6 +332,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   }
 
   canvasMouseDown($event: MouseEvent) {
+    if (this.isMobile) return;
     this.mouseDown = true;
     // @ts-ignore
     const x = $event.layerX - $event.target.offsetLeft;
@@ -334,7 +347,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
 
   canvasTouchDown($event: TouchEvent) {
     if (!$event.touches) return;
-    this.mouseDown = true;
+    this.touchDown = true;
     // @ts-ignore
     const rect = $event.touches[0].target.getBoundingClientRect();
     // @ts-ignore
@@ -355,13 +368,13 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   }
 
   canvasTouchUp($event: TouchEvent) {
-    this.mouseDown = false;
+    this.touchDown = false;
     this.mouseCellX = -1;
     this.mouseCellY = -1;
   }
 
   canvasMouseMove($event: MouseEvent) {
-    if (!this.mouseDown) return;
+    if (this.isMobile || !this.mouseDown) return;
     // @ts-ignore
     const x = $event.layerX - $event.target.offsetLeft;
     // @ts-ignore
@@ -379,7 +392,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
   }
 
   canvasTouchMove($event: TouchEvent) {
-    if (!this.mouseDown) return;
+    if (!this.touchDown) return;
     if (!$event.touches) return;
     // @ts-ignore
     const rect = $event.touches[0].target.getBoundingClientRect();
@@ -401,6 +414,7 @@ export class TabDrawComponent extends Base implements OnInit, OnDestroy, AfterVi
 
   canvasOutMouseMove($event: MouseEvent) {
     this.mouseDown = false;
+    this.touchDown = false;
     this.mouseCellX = -1;
     this.mouseCellY = -1;
   }
