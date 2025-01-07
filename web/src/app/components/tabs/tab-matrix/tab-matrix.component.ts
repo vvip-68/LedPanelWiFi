@@ -170,4 +170,17 @@ export class TabMatrixComponent extends Base implements OnInit, OnDestroy {
     return !this.socketService.isConnected;
   }
 
+  getMatrixSize(): string {
+    if (this.radio_idx == 0) {
+      return this.index_files.length == 0 ? '0 x 0' : `${this.index_files[this.index_file].displayText.replace('x', ' x ')}`;
+    }
+
+    const w = this.segWidthFormControl.value as number;
+    const h = this. segHeightFormControl.value as number;
+    const sw = this.tolWidthFormControl.value as number;
+    const sh = this.tolHeightFormControl.value as number;
+
+    return `${w * sw} x ${h * sh}`;
+  }
+
 }

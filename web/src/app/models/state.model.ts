@@ -94,9 +94,14 @@ export interface IStateModel {
   clock_orientation: number;       // CO	-	CO:X - ориентация часов: 0 - горизонтально, 1 - вертикально
   clock_color_mode: number;        // CС	-	CС:X - режим цвета часов оверлея: 0,1,2
   clock_size: number;              // CK	-	CK:X - размер горизонтальных часов, где Х = 0 - авто; 1 - малые 3x5; 2 - большие 5x7
+  clock_show_variant: number;      // CSV - CSV:X - флаги варианта размещения часов/календаря/температуры на поле матрицы
+  clock_show_alignment: number;    // CSA - CSA:X - флаги варианта выравнивания часов/календаря/температуры в области отображения
+  calendar_width: number;          // CF	-	CF:X - отображать в горизонтальном календаре 0/2/4 цифры годв
   clock_show_date: boolean;        // DC	-	DC:X - показывать дату вместе с часами 0-нет, 1-да
-  clock_show_date_time: number;    // DD	- DD:число - время показа даты при отображении часов (в секундах)
-  clock_show_date_intvl: number;   // DI	- DI:число - интервал показа даты при отображении часов (в секундах)
+  clock_cycle_T1: number;          // T1	- T1:число - интервал показа даты при отображении часов (в секундах)
+  clock_cycle_T2: number;          // T2	- T2:число - время показа даты при отображении часов (в секундах)
+  clock_cycle_F1: number;          // F1	- F1:число - флаги отображения часов/календаря в циклах T1-T4
+  clock_cycle_F2: number;          // F2	- F2:число - флаги отображения температуры в циклах T1-T4
   clock_show_temp: boolean;        // DW	- DW:X - показывать температуру вместе с малыми часами 0-нет, 1-да
   clock_temp_color_day: boolean;   // WC	- WC:X - показывать цветную температуру днем 0-нет, 1-да
   clock_temp_color_night: boolean; // WN	- WN:X - показывать цветную температуру ночью 0-нет, 1-да
@@ -108,8 +113,13 @@ export interface IStateModel {
   clock_scroll_speed: number;      // SC	- SC:число - скорость смещения часов оверлея
   clock_dot_width: number;         // CD  - CD:число - ширина точки в больших часах 2 или 1
   clock_dot_space: number;         // CS  - CS:X - наличие пробела между разделительной точкой больших часов и окружающими цифрами 0-нет, 1-да
-  clock_offset_x: number;          // OX  - OX:число - смещение часов ао оси X
-  clock_offset_y: number;          // OY  - OX:число - смещение часов ао оси Y
+  clock_offset_x: number;          // СX  - CX:число - смещение часов по оси X
+  clock_offset_y: number;          // СY  - CY:число - смещение часов по оси Y
+  temp_offset_x: number;           // СXT - СXT:число - смещение температуры по оси X
+  temp_offset_y: number;           // СYT - СYT:число - смещение температуры по оси Y
+  calendar_offset_x: number;       // СXC - СXC:число - смещение календаря по оси X
+  calendar_offset_y: number;       // СYC - СYC:число - смещение календаря по оси Y
+  text_offset_y: number;           // СYL - СYL:число - смещение бегущей строки по оси Y
   text_color_mode: number;         // CT  - CT:X - режим цвета текстовой строки: 0 - монохром, 1 - радуга, 2 - каждая буква своим цветом
   text_use_overlay: boolean;       // TE  - TE:X - оверлей текста бегущей строки вкл/выкл, где Х = 0 - выкл; 1 - вкл (использовать бегущую строку в эффектах)
   text_interval: number;           // TI  - TI:число - интервал отображения текста бегущей строки
@@ -122,6 +132,7 @@ export interface IStateModel {
                                    //   - 3 - голубой - активна, содержит макросы кроме даты
                                    //   - 4 - синий   - активная, содержит макрос даты
                                    //   - 5 - красный - для строки 0 - это управляющая строка
+  hide_on_text_running: number;    // HTR  - HTR:число - скрывать при бегущей строке b0 - часы  b1 - календарь  b2 - температуру
   text_edit: string;               // TY  - TY:I:Z > текст  - текст для строки, с указанным индексом I 0..35, Z 0..9,A..Z. текст ответа в формате: 'I:Z > текст';
   text_color: string;              // C2 - C2:цвет - цвет режима "монохром" бегущей строки; цвет: 192,96,96 - R,G,B
   image_line: string;              // IR - IR N|RRGGBB,RRGGBB,...,RRGGBB - прием строки изображения; IC - IC N|RRGGBB,RRGGBB,...,RRGGBB - прием колонки изображения
@@ -176,6 +187,7 @@ export interface IStateModel {
   debug_month: number;
   debug_year: number;
   debug_cross: boolean;
+  debug_frame: boolean;
   text_action: string;
 }
 
@@ -274,9 +286,14 @@ export class StateModel implements IStateModel {
   public clock_orientation = 0;
   public clock_color_mode = 0;
   public clock_size = 0;
+  public calendar_width = 2;
+  public clock_show_variant = 0;
+  public clock_show_alignment   = 0;
   public clock_show_date = false;
-  public clock_show_date_time = 2;
-  public clock_show_date_intvl = 240;
+  public clock_cycle_T1 = 240;
+  public clock_cycle_T2 = 2;
+  public clock_cycle_F1 = 0;
+  public clock_cycle_F2 = 0;
   public clock_show_temp = false;
   public clock_temp_color_day = false;
   public clock_temp_color_night = false;
@@ -290,6 +307,12 @@ export class StateModel implements IStateModel {
   public clock_dot_space = 1;
   public clock_offset_x = 0;
   public clock_offset_y = 0;
+  public hide_on_text_running = 0;
+  public temp_offset_x = 0;
+  public temp_offset_y = 0;
+  public calendar_offset_x = 0;
+  public calendar_offset_y = 0;
+  public text_offset_y = 0;
   public text_color_mode = 0;
   public text_use_overlay = false;
   public text_interval = 600;
@@ -340,14 +363,15 @@ export class StateModel implements IStateModel {
   public weather_farenheit = false;
   public show_temp_props = 0;
   public show_temp_text_props = 0;
-  public debug = false;
   public debug_hour = 0;
   public debug_minutes = 0;
   public debug_temperature = 0;
   public debug_day = 0;
   public debug_month = 0;
   public debug_year = 0;
+  public debug = false;
   public debug_cross = false;
+  public debug_frame = false;
   public text_action = '';
 
   constructor() {
@@ -359,6 +383,7 @@ export class StateModel implements IStateModel {
     this.debug_month = date.getMonth() + 1;
     this.debug_year = date.getFullYear();
     this.debug_cross = false;
+    this.debug_frame = false;
   }
 
   setValue(key: string, value: any): any {
@@ -468,9 +493,15 @@ export class StateModel implements IStateModel {
       case 'CO':   return this.clock_orientation;
       case 'CC':   return this.clock_color_mode;
       case 'CK':   return this.clock_size;
+      case 'CSV':  return this.clock_show_variant;
+      case 'CSA':  return this.clock_show_alignment;
+      case 'HTR':  return this.hide_on_text_running;
+      case 'CF':   return this.calendar_width;
       case 'DC':   return this.clock_show_date;
-      case 'DD':   return this.clock_show_date_time;
-      case 'DI':   return this.clock_show_date_intvl;
+      case 'CT1':  return this.clock_cycle_T1;
+      case 'CT2':  return this.clock_cycle_T2;
+      case 'CF1':  return this.clock_cycle_F1;
+      case 'CF2':  return this.clock_cycle_F2;
       case 'DW':   return this.clock_show_temp;
       case 'WC':   return this.clock_temp_color_day;
       case 'WN':   return this.clock_temp_color_night;
@@ -484,6 +515,11 @@ export class StateModel implements IStateModel {
       case 'CS':   return this.clock_dot_space;
       case 'CX':   return this.clock_offset_x;
       case 'CY':   return this.clock_offset_y;
+      case 'CXT':  return this.temp_offset_x;
+      case 'CYT':  return this.temp_offset_y;
+      case 'CXC':  return this.calendar_offset_x;
+      case 'CYC':  return this.calendar_offset_y;
+      case 'CYL':  return this.text_offset_y;
       case 'CT':   return this.text_color_mode;
       case 'TE':   return this.text_use_overlay;
       case 'TI':   return this.text_interval;
@@ -636,9 +672,15 @@ export class StateModel implements IStateModel {
       case 'CO':   this.clock_orientation = Number(value);                        break;
       case 'CC':   this.clock_color_mode = Number(value);                         break;
       case 'CK':   this.clock_size = Number(value);                               break;
+      case 'CSV':  this.clock_show_variant = Number(value);                       break;
+      case 'CSA':  this.clock_show_alignment = Number(value);                     break;
+      case 'HTR':  this.hide_on_text_running = Number(value);                     break;
+      case 'CF':   this.calendar_width = Number(value);                           break;
       case 'DC':   this.clock_show_date = Number(value) === 1;                    break;
-      case 'DD':   this.clock_show_date_time = Number(value);                     break;
-      case 'DI':   this.clock_show_date_intvl = Number(value);                    break;
+      case 'CT1':  this.clock_cycle_T1 = Number(value);                           break;
+      case 'CT2':  this.clock_cycle_T2 = Number(value);                           break;
+      case 'CF1':  this.clock_cycle_F1 = Number(value);                           break;
+      case 'CF2':  this.clock_cycle_F2 = Number(value);                           break;
       case 'DW':   this.clock_show_temp = Number(value) === 1;                    break;
       case 'WC':   this.clock_temp_color_day = Number(value) === 1;               break;
       case 'WN':   this.clock_temp_color_night = Number(value) === 1;             break;
@@ -652,6 +694,11 @@ export class StateModel implements IStateModel {
       case 'CS':   this.clock_dot_space = Number(value);                          break;
       case 'CX':   this.clock_offset_x = Number(value);                           break;
       case 'CY':   this.clock_offset_y = Number(value);                           break;
+      case 'CXT':  this.temp_offset_x = Number(value);                            break;
+      case 'CYT':  this.temp_offset_y = Number(value);                            break;
+      case 'CXC':  this.calendar_offset_x = Number(value);                        break;
+      case 'CYC':  this.calendar_offset_y = Number(value);                        break;
+      case 'CYL':  this.text_offset_y = Number(value);                            break;
       case 'CT':   this.text_color_mode = Number(value);                          break;
       case 'TE':   this.text_use_overlay = Number(value) === 1;                   break;
       case 'TI':   this.text_interval = Number(value);                            break;
@@ -665,7 +712,7 @@ export class StateModel implements IStateModel {
       case 'WW':   this.show_temp_text_props = Number(value);                     break;
       case 'C12':  this.time12h = Number(value) === 1;                            break;
       case 'C35':  this.small_font_type = Number(value);                          break;
-      case 'TXT':   this.text_action = '' + value;                                break;
+      case 'TXT':  this.text_action = '' + value;                                 break;
 
       case 'EMX':  this.sync_master_x = Number(value);                            break;
       case 'EMY':  this.sync_master_y = Number(value);                            break;
@@ -745,6 +792,12 @@ export class StateModel implements IStateModel {
         this.hw_rx   = Number(parts[7]);
       }
       break;
+      case 'DBG':
+        const str = ('' + value);
+        this.debug       = str.length > 0 && str[0] === '1';
+        this.debug_frame = str.length > 1 && str[1] === '1';
+        this.debug_cross = str.length > 2 && str[2] === '1';
+        break;
     }
     // @formatter:on
   }

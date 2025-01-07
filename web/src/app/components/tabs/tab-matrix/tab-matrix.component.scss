@@ -82,8 +82,22 @@
       width: 316px;
       font-size: 11px;
       color: var(--matrix-size-warning);
-      padding: 0 0 0 12px;
+      padding: 6px 0 0 12px;
       line-height: 1.35em;
+    }
+
+    .matrix-size {
+      display: flex;
+      flex-direction: row;
+      width: 326px;
+      font-size: 14px;
+      color: var(--matrix-size-color);
+      padding: 6px 0 0 12px;
+      line-height: 1.35em;
+
+      .title {
+        flex: 1;
+      }
     }
 
     .field-container {

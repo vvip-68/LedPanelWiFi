@@ -1,0 +1,440 @@
+<div class="tab-layout">
+  <div class="top-container">
+    <fieldset class="app-fieldset layout-fieldset advanced">
+      <legend>{{ L.$('Расположение') }}</legend>
+
+      <div class="section-title">
+        {{ L.$('Часы') }}
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Смещение по X') }}</mat-label>
+        <mat-slider [disableRipple]="true" [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    color="primary"
+                    max="{{managementService.state.width / 2}}" min="{{-managementService.state.width / 2}}" step="1">
+          <input #slClockX (valueChange)="offsetClockXChanged($event)" [value]="offsetClockX" matSliderThumb>
+          <p>{{ slClockX.value }}</p>
+        </mat-slider>
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Смещение по Y') }}</mat-label>
+        <mat-slider [disableRipple]="true" [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    color="primary"
+                    max="{{+managementService.state.height / 2}}" min="{{-managementService.state.height / 2}}" step="1">
+          <input #slClockY (valueChange)="offsetClockYChanged($event)" [value]="offsetClockY" matSliderThumb>
+          <p>{{ slClockY.value }}</p>
+        </mat-slider>
+      </div>
+
+      @if (allowDotWidthAndSpace) {
+        <div class="dot">
+
+          <div class="toggler-container dot-width">
+            <div class="toggler-label" style="display:flex;flex-direction:row">
+              <p>{{ L.$('Ширина точки:') }}</p><p>1</p>
+            </div>
+            <div class="toggler">
+              <mat-slide-toggle color="primary" class="switch" labelPosition="before" [ngModel]="dotWidthToggler" (toggleChange)="toggleDotWidth()" [disabled]="isDisabled()"></mat-slide-toggle>
+            </div>
+            <div class="toggler-label">
+              <span>2</span>
+            </div>
+          </div>
+
+          <div class="toggler-container dot-space">
+            <div class="toggler-label">
+              <p>{{ L.$('Отступ') }}</p>
+            </div>
+            <div class="toggler">
+              <mat-slide-toggle color="primary" class="switch" labelPosition="before" [ngModel]="dotSpaceToggler" (toggleChange)="toggleDotSpace()" [disabled]="isDisabled()"></mat-slide-toggle>
+            </div>
+          </div>
+
+        </div>
+      }
+
+      <div class="field-container rb-alignments">
+        <mat-label>{{ L.$('Выравнивание') }}</mat-label>
+        <mat-radio-group [(ngModel)]="clock_show_alignment" [disableControl]="isDisabled()" (change)="changeAlignment()" color="primary">
+          <mat-radio-button [value]="1" class="rb" [matTooltip]="L.$('По левому краю')"> {{ L.$('Лев') }}</mat-radio-button>
+          <mat-radio-button [value]="0" class="rb" [matTooltip]="L.$('По центру области')"> {{ L.$('Цен') }}</mat-radio-button>
+          <mat-radio-button [value]="2" class="rb" [matTooltip]="L.$('По правому краю')"> {{ L.$('Прaв') }}</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="section-title">
+        {{ L.$('Календарь') }}
+      </div>
+
+      <div class="field-container rb-variants">
+        <mat-radio-group [(ngModel)]="calendar_show_variant" [disableControl]="isDisabled()" (change)="changeShowVariant()" color="primary">
+          <mat-radio-button [value]="0" class="rb"> {{ L.$('В позиции часов') }}</mat-radio-button>
+          <mat-radio-button [value]="3" class="rb"> {{ L.$('Произвольно') }}</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Смещение по X') }}</mat-label>
+        <mat-slider [disableRipple]="true" [disabled]="isDisabled() || calendar_show_variant !== 3"
+                    [displayWith]="formatLabel"
+                    color="primary"
+                    max="{{managementService.state.width / 2}}" min="{{-managementService.state.width / 2}}" step="1">
+          <input #slCalendarX (valueChange)="offsetCalendarXChanged($event)" [value]="offsetCalendarX" matSliderThumb>
+          <p>{{ slCalendarX.value }}</p>
+        </mat-slider>
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Смещение по Y') }}</mat-label>
+        <mat-slider [disableRipple]="true" [disabled]="isDisabled() || calendar_show_variant !== 3"
+                    [displayWith]="formatLabel"
+                    color="primary"
+                    max="{{+managementService.state.height / 2}}" min="{{-managementService.state.height / 2}}" step="1">
+          <input #slCalendarY (valueChange)="offsetCalendarYChanged($event)" [value]="offsetCalendarY" matSliderThumb>
+          <p>{{ slCalendarY.value }}</p>
+        </mat-slider>
+      </div>
+
+      <div class="field-container rb-alignments">
+        <mat-label>{{ L.$('Выравнивание') }}</mat-label>
+        <mat-radio-group [(ngModel)]="calendar_show_alignment" [disableControl]="isDisabled() || calendar_show_variant !== 3" (change)="changeAlignment()" color="primary">
+          <mat-radio-button [value]="1" class="rb" [matTooltip]="L.$('По левому краю')"> {{ L.$('Лев') }}</mat-radio-button>
+          <mat-radio-button [value]="0" class="rb" [matTooltip]="L.$('По центру области')"> {{ L.$('Цен') }}</mat-radio-button>
+          <mat-radio-button [value]="2" class="rb" [matTooltip]="L.$('По правому краю')"> {{ L.$('Прaв') }}</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      @if (clock_orientation == 0) {
+        <div class="field-container year">
+
+          <mat-form-field class="year-lines"  floatLabel="always" hintLabel="{{ L.$('Год в горизонтальном календаре') }}">
+            <mat-label>{{ L.$('Год:') }}</mat-label>
+            <mat-select [(ngModel)]="calendarLines" panelClass="app-select-panel cal-line-width" [disableControl]="isDisabled() || calendar_show_variant !== 3" (valueChange)="changeYearLines($event)">
+              @for (wdt of calendarLinesList; track wdt) {
+                <mat-option [value]="wdt.value">
+                  {{ wdt.displayText }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="year-width">
+            <mat-select [(ngModel)]="calendarWidth" panelClass="app-select-panel cal-year-width" [disableControl]="isDisabled() || calendar_show_variant !== 3 || calendarLines === 2" (valueChange)="changeYearWidth($event)">
+              @for (wdt of calendarWidthList; track wdt) {
+                <mat-option [value]="wdt.value">
+                  {{ wdt.displayText }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+        </div>
+      }
+
+      <div class="spacer"></div>
+      @if (this.supportWeather) {
+        <div class="section-title">
+          {{ L.$('Температура') }}
+        </div>
+
+        <div class="field-container rb-variants">
+          <mat-radio-group [(ngModel)]="temp_show_variant" [disableControl]="isDisabled()" (change)="changeShowVariant()" color="primary">
+            <mat-radio-button [value]="0" class="rb"> {{ L.$('Под часами') }}</mat-radio-button>
+            <mat-radio-button [value]="1" class="rb"> {{ L.$('За часами') }}</mat-radio-button>
+            <mat-radio-button [value]="3" class="rb"> {{ L.$('Произвольно') }}</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <div class="field-container slider">
+          <mat-label>{{ L.$('Смещение по X') }}</mat-label>
+          <mat-slider [disableRipple]="true" [disabled]="isDisabled() || temp_show_variant !== 3"
+                      [displayWith]="formatLabel"
+                      color="primary"
+                      max="{{managementService.state.width / 2}}" min="{{-managementService.state.width / 2}}" step="1">
+            <input #slTempX (valueChange)="offsetTempXChanged($event)" [value]="offsetTempX" matSliderThumb>
+            <p>{{ slTempX.value }}</p>
+          </mat-slider>
+        </div>
+
+        <div class="field-container slider">
+          <mat-label>{{ L.$('Смещение по Y') }}</mat-label>
+          <mat-slider [disableRipple]="true" [disabled]="isDisabled() || temp_show_variant !== 3"
+                      [displayWith]="formatLabel"
+                      color="primary"
+                      max="{{+managementService.state.height / 2}}" min="{{-managementService.state.height / 2}}" step="1">
+            <input #slTempY (valueChange)="offsetTempYChanged($event)" [value]="offsetTempY" matSliderThumb>
+            <p>{{ slTempY.value }}</p>
+          </mat-slider>
+        </div>
+
+        <div class="field-container rb-alignments">
+          <mat-label>{{ L.$('Выравнивание') }}</mat-label>
+          <mat-radio-group [(ngModel)]="temp_show_alignment" [disableControl]="isDisabled() || temp_show_variant !== 3" (change)="changeAlignment()" color="primary">
+            <mat-radio-button [value]="1" class="rb" [matTooltip]="L.$('По левому краю')"> {{ L.$('Лев') }}</mat-radio-button>
+            <mat-radio-button [value]="0" class="rb" [matTooltip]="L.$('По центру области')"> {{ L.$('Цен') }}</mat-radio-button>
+            <mat-radio-button [value]="2" class="rb" [matTooltip]="L.$('По правому краю')"> {{ L.$('Прaв') }}</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <div class="spacer"></div>
+      }
+
+      <div class="section-title">
+        {{ L.$('Бегущая строка ') }}
+      </div>
+
+      <div class="field-container slider">
+        <mat-label>{{ L.$('Смещение по Y') }}</mat-label>
+        <mat-slider [disableRipple]="true" [disabled]="isDisabled()"
+                    [displayWith]="formatLabel"
+                    color="primary"
+                    max="{{+managementService.state.height / 2}}" min="{{-managementService.state.height / 2}}" step="1">
+          <input #slTextsY (valueChange)="offsetTextYChanged($event)" [value]="offsetTextY" matSliderThumb>
+          <p>{{ slTextsY.value }}</p>
+        </mat-slider>
+      </div>
+
+    </fieldset>
+
+    <fieldset class="app-fieldset layout-fieldset advanced">
+      <legend>{{ L.$('Опции отображения') }}</legend>
+
+      <div class="section-title interval">
+        {{ L.$('Интервал показа') }}
+      </div>
+
+      <div class="field-container">
+
+        <mat-form-field class="date" floatLabel="always" hintLabel="{{ L.$('от 2 до 240 секунд') }}">
+          <mat-label>{{ L.$('T1 / T3') }}</mat-label>
+          <input (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)" [disableControl]="isDisabled()" [errorStateMatcher]="matcher" [formControl]="clockCycleT2FormControl" [max]="240" [min]="2"
+                 autocomplete="off"
+                 matInput
+                 type="number">
+          <p matTextSuffix="">{{ L.$('сек') }}</p>
+          @if (clockCycleT2FormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (clockCycleT2FormControl.hasError('range') && !clockCycleT2FormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 2 до 240 секунд') }}
+            </mat-error>
+          }
+        </mat-form-field>
+
+        <div style="width:12px"></div>
+
+        <mat-form-field class="date" floatLabel="always" hintLabel="{{ L.$('от 2 до 240 секунд') }}">
+          <mat-label>{{ L.$('T2 / T4') }}</mat-label>
+          <input (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)" [disableControl]="isDisabled()" [errorStateMatcher]="matcher" [formControl]="clockCycleT1FormControl" [max]="240" [min]="2"
+                 autocomplete="off"
+                 matInput
+                 type="number">
+          <p matTextSuffix="">{{ L.$('сек') }}</p>
+          @if (clockCycleT1FormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('Поле не может быть пустым!') }}
+            </mat-error>
+          }
+          @if (clockCycleT1FormControl.hasError('range') && !clockCycleT1FormControl.hasError('required')) {
+            <mat-error>
+              {{ L.$('от 2 до 240 секунд') }}
+            </mat-error>
+          }
+        </mat-form-field>
+
+      </div>
+
+      <div class="table-container">
+        <div class="title c"> {{ L.$('Цикл показа') }}</div>
+        <div class="title t">T1</div>
+        <div class="title t">T2</div>
+        <div class="title t">T3</div>
+        <div class="title t">T4</div>
+
+        <div class="title">{{ L.$('Часы') }}</div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="clock_t1" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="clock_t2" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="clock_t3" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="clock_t4" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+
+        <div class="title">{{ L.$('Календарь') }}</div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="calendar_t1" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="calendar_t2" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="calendar_t3" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="calendar_t4" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+
+        @if (this.supportWeather) {
+          <div class="title">{{ L.$('Температура') }}</div>
+          <div class="cell"><mat-checkbox class="cb" [(ngModel)]="temp_t1" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+          <div class="cell"><mat-checkbox class="cb" [(ngModel)]="temp_t2" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+          <div class="cell"><mat-checkbox class="cb" [(ngModel)]="temp_t3" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+          <div class="cell"><mat-checkbox class="cb" [(ngModel)]="temp_t4" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        }
+
+      </div>
+
+      <div class="section-title cycle">
+        {{ L.$('При показе бегущей строки') }}
+      </div>
+
+      <div class="table-container text">
+        <div></div>
+        <div class="title t">{{ L.$('Часы') }}</div>
+        <div class="title t">{{ L.$('Календарь') }}</div>
+        @if (this.supportWeather) {
+          <div class="title t">{{ L.$('Температура') }}</div>
+        } @else {
+          <div class="title t"></div>
+        }
+
+        <div class="title">{{ L.$('Скрывать') }}</div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="hide_clock_on_text" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell"><mat-checkbox class="cb" [(ngModel)]="hide_calendar_on_text" [disableControl]="isDisabled()" color="primary"></mat-checkbox></div>
+        <div class="cell">
+          @if (this.supportWeather) {
+          <mat-checkbox class="cb" [(ngModel)]="hide_temp_on_text" [disableControl]="isDisabled()" color="primary"></mat-checkbox>
+          }
+        </div>
+      </div>
+
+      <div class="field-container buttons">
+        <div class="action-button">
+          <button (click)="applyOptions($event)" [disabled]="isDisabled() || !isValid()" color="primary" mat-raised-button>{{ L.$('Применить') }}</button>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <mat-checkbox class="chk-title" [checked]="managementService.state.debug" color="primary" (change)="debugOnOf($event.checked)">
+        {{ L.$('Отладка') }}
+      </mat-checkbox>
+
+      <div class="debug-container">
+
+        <div class="field-container nomargin">
+          <mat-form-field hintLabel="{{ L.$('от 0 до 23') }}" floatLabel="always">
+            <mat-label>{{ L.$('Час') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="0" [max]="23" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                   [formControl]="hoursFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if (hoursFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от 0 до 23') }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field hintLabel="{{ L.$('от 0 до 59') }}" floatLabel="always">
+            <mat-label>{{ L.$('Мин') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="0" [max]="59" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                   [formControl]="minutesFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if ( minutesFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от 0 до 59') }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field hintLabel="{{ L.$('от -40 до +40') }}" floatLabel="always">
+            <mat-label>{{ L.$('Темп. °C') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="-40" [max]="40" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
+                   [formControl]="temperatureFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if (temperatureFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от -40 до 40') }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field hintLabel="{{ L.$('от 1 до 31') }}" floatLabel="always">
+            <mat-label>{{ L.$('День') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="1" [max]="31" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                   [formControl]="daysFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if (daysFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от 1 до 31') }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field hintLabel="{{ L.$('от 1 до 12') }}" floatLabel="always">
+            <mat-label>{{ L.$('Мес.') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="1" [max]="12" (keydown)="commonService.checkLength($event,2)" (keyup)="commonService.checkLength($event, 2)"
+                   [formControl]="monthFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if ( monthFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от 1 до 12') }}
+              </mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field hintLabel="{{ L.$('от 1900 до 2100') }}" floatLabel="always">
+            <mat-label>{{ L.$('Год') }}</mat-label>
+            <input matInput required autocomplete="off" type="number" class="size" [min]="1900" [max]="2100" (keydown)="commonService.checkLength($event,4)" (keyup)="commonService.checkLength($event, 4)"
+                   [formControl]="yearFormControl"
+                   [disableControl]="isDisabled() || !isDebugOn()"
+                   [errorStateMatcher]="matcher">
+            @if (yearFormControl.hasError('range')) {
+              <mat-error>
+                {{ L.$('от 1900 до 2100') }}
+              </mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="send-button">
+          <div class="arrows">
+            <button mat-raised-button color="primary" class="narrow"
+                    [disabled]="isDisabled() || !isDebugOn()"
+                    (click)="left()">
+              <mat-icon>arrow_back</mat-icon>
+            </button>
+            <button mat-raised-button color="primary" class="narrow"
+                    [disabled]="isDisabled() || !isDebugOn()"
+                    (click)="right()">
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+            <button mat-raised-button color="primary" class="narrow"
+                    [disabled]="isDisabled() || !isDebugOn()"
+                    (click)="reset()">
+              <mat-icon class="rot90">vertical_align_center</mat-icon>
+            </button>
+          </div>
+
+          <mat-checkbox [checked]="managementService.state.debug_frame" color="primary" [disabled]="isDisabled() || !isDebugOn()" (change)="frameOnOf($event.checked)">
+            {{ L.$('Рамка') }}
+          </mat-checkbox>
+
+          <mat-checkbox [checked]="managementService.state.debug_cross" color="primary" [disabled]="isDisabled() || !isDebugOn()" (change)="crossOnOf($event.checked)">
+            {{ L.$('Крест') }}
+          </mat-checkbox>
+
+          <button mat-raised-button color="primary" class="send"
+                  [disabled]="isDisabled() || !isDebugValid() || !isDebugOn()"
+                  (click)="send()">
+            {{L.$('Отправить')}}
+          </button>
+        </div>
+
+      </div>
+
+    </fieldset>
+  </div>
+</div>

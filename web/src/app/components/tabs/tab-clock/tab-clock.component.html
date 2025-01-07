@@ -127,18 +127,12 @@
           </div>
         }
 
-        @if ((managementService.state.clock_allow_horizontal || managementService.state.clock_allow_vertical) && clock_orientation === 0 && supportWeather) {
+        @if ((managementService.state.clock_allow_horizontal || managementService.state.clock_allow_vertical) && supportWeather) {
           <div>
-            <div class="spacer">
-            </div>
+            <div class="spacer"></div>
 
-            <div class="toggler-container advanced">
-              <div class="toggler">
-                <mat-slide-toggle color="primary" class="switch" [ngModel]="clock_show_temp" (toggleChange)="toggleTemperatureInClock()" [disabled]="isDisabled()"></mat-slide-toggle>
-              </div>
-              <div class="toggler-label">
-                <p>{{ L.$('Показывать температуру в часах') }}</p>
-              </div>
+            <div class="section-title">
+              {{ L.$('Температура') }}
             </div>
 
             <div class="field-container check">
@@ -163,76 +157,11 @@
 
           </div>
         }
-
-        @if (managementService.state.clock_allow_horizontal || managementService.state.clock_allow_vertical) {
-          <div>
-            <div class="spacer">
-            </div>
-
-            <div class="toggler-container advanced">
-              <div class="toggler">
-                <mat-slide-toggle color="primary" class="switch" [ngModel]="clock_show_date" (toggleChange)="toggleDateInClock()" [disabled]="isDisabled()"></mat-slide-toggle>
-              </div>
-              <div class="toggler-label">
-                <p>{{ L.$('Показывать дату в часах') }}</p>
-              </div>
-            </div>
-
-            <div class="field-container">
-              <mat-form-field hintLabel="{{ L.$('от 2 до 240 секунд') }}" floatLabel="always" class="date">
-                <mat-label>{{ L.$('на') }}</mat-label>
-                <input matInput autocomplete="new-password" type="number" [min]="2" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                       [formControl]="showDateDurationFormControl"
-                       [disableControl]="isDisabled()"
-                       [errorStateMatcher]="matcher">
-                <p matTextSuffix="">{{ L.$('сек') }}</p>
-                @if (showDateDurationFormControl.hasError('required')) {
-                  <mat-error>
-                    {{ L.$('Поле не может быть пустым!') }}
-                  </mat-error>
-                }
-                @if (showDateDurationFormControl.hasError('range') && !showDateDurationFormControl.hasError('required')) {
-                  <mat-error>
-                    {{ L.$('от 2 до 240 секунд') }}
-                  </mat-error>
-                }
-              </mat-form-field>
-
-              <div style="width:12px"></div>
-
-              <mat-form-field hintLabel="{{ L.$('от 2 до 240 секунд') }}" floatLabel="always" class="date">
-                <mat-label>{{ L.$('каждые') }}</mat-label>
-                <input matInput autocomplete="new-password" type="number" [min]="2" [max]="240" (keydown)="commonService.checkLength($event,3)" (keyup)="commonService.checkLength($event, 3)"
-                       [formControl]="showDateIntervalFormControl"
-                       [disableControl]="isDisabled()"
-                       [errorStateMatcher]="matcher">
-                <p matTextSuffix="">{{ L.$('сек') }}</p>
-                @if (showDateIntervalFormControl.hasError('required')) {
-                  <mat-error>
-                    {{ L.$('Поле не может быть пустым!') }}
-                  </mat-error>
-                }
-                @if (showDateIntervalFormControl.hasError('range') && !showDateIntervalFormControl.hasError('required')) {
-                  <mat-error>
-                    {{ L.$('от 2 до 240 секунд') }}
-                  </mat-error>
-                }
-              </mat-form-field>
-            </div>
-
-            <div class="field-container buttons">
-              <div class="action-button">
-                <button mat-raised-button color="primary" (click)="applyDateShow($event)" [disabled]="isDisabled() || !isValid()">{{ L.$('Применить') }}</button>
-              </div>
-            </div>
-
-          </div>
-        }
       </fieldset>
     }
 
     <div class="time-advanced">
-      <fieldset class="app-fieldset clock-fieldset time">
+      <fieldset class="app-fieldset clock-fieldset ntp-fieldset">
         <legend>{{ L.$('Время интернета') }}</legend>
 
         <div class="toggler-container ntp">
@@ -297,71 +226,6 @@
         </div>
 
       </fieldset>
-
-      @if (allowAdvanced) {
-        <fieldset class="app-fieldset clock-fieldset advanced">
-          <legend>{{ L.$('Расширенные настройки') }}</legend>
-
-          @if (allowX != 0) {
-            <div class="field-container slider">
-              <mat-label>{{ L.$('Смещение по X') }}</mat-label>
-              <mat-slider [disableRipple]="true" color="primary"
-                          [disabled]="isDisabled()"
-                          [displayWith]="formatLabel"
-                          min="{{-allowX}}" step="1" max="{{+allowX}}">
-                <input #slX matSliderThumb [value]="offsetX" (valueChange)="offsetXChanged($event)">
-                <p>{{ slX.value }}</p>
-              </mat-slider>
-            </div>
-          }
-
-          @if (allowY != 0) {
-            <div class="field-container slider">
-              <mat-label>{{ L.$('Смещение по Y') }}</mat-label>
-              <mat-slider [disableRipple]="true" color="primary"
-                          [disabled]="isDisabled()"
-                          [displayWith]="formatLabel"
-                          min="{{-allowY}}" step="1" max="{{+allowY}}">
-                <input #slY matSliderThumb [value]="offsetY" (valueChange)="offsetYChanged($event)">
-                <p>{{ slY.value }}</p>
-              </mat-slider>
-            </div>
-          }
-
-          @if (allowDotWidth || allowDotSpace) {
-            <div class="dot">
-
-              @if (allowDotWidth) {
-              <div class="toggler-container">
-                <div class="toggler-label">
-                  <p>{{ L.$('Ширина точки:') }} <span>&nbsp;&nbsp;&nbsp;1</span></p>
-                </div>
-                <div class="toggler">
-                  <mat-slide-toggle color="primary" class="switch" labelPosition="before" [ngModel]="dotWidthToggler" (toggleChange)="toggleDotWidth()" [disabled]="isDisabled()" ></mat-slide-toggle>
-                </div>
-                <div class="toggler-label">
-                  <span>&nbsp;2</span>
-                </div>
-              </div>
-              }
-
-              @if (allowDotSpace) {
-                <div class="toggler-container">
-                  <div class="toggler-label">
-                    <p>{{ L.$('Отступ у точки') }}</p>
-                  </div>
-                  <div class="toggler">
-                    <mat-slide-toggle color="primary" class="switch" labelPosition="before" [ngModel]="dotSpaceToggler" (toggleChange)="toggleDotSpace()" [disabled]="isDisabled()"></mat-slide-toggle>
-                  </div>
-                </div>
-              }
-
-            </div>
-          }
-
-        </fieldset>
-      }
-
     </div>
   </div>
 </div>

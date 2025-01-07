@@ -7,7 +7,11 @@
         <span>{{ L.$('Матрица ') }}</span>
       </ng-template>
       <ng-template matTabContent>
-        <app-tab-matrix></app-tab-matrix>
+        @defer (on viewport) {
+          <app-tab-matrix></app-tab-matrix>
+        } @placeholder {
+          <div>{{ L.$('Матрица ') }}</div>
+        }
       </ng-template>
     </mat-tab>
 
@@ -17,9 +21,29 @@
         <span>{{ L.$('Оборудование') }}</span>
       </ng-template>
       <ng-template matTabContent>
-        <app-tab-wiring></app-tab-wiring>
+        @defer (on viewport) {
+          <app-tab-wiring></app-tab-wiring>
+        } @placeholder {
+          <div>{{ L.$('Оборудование') }}</div>
+        }
       </ng-template>
     </mat-tab>
+
+    @if (managementService.state.clock_allow_horizontal || managementService.state.clock_allow_vertical) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" matTooltip="{{L.$('Разметка ')}}">dashboard</mat-icon>
+          <span>{{ L.$('Разметка ') }}</span>
+        </ng-template>
+        <ng-template matTabContent>
+          @defer (on viewport) {
+            <app-tab-layout></app-tab-layout>
+          } @placeholder {
+            <div>{{ L.$('Разметка ') }}</div>
+          }
+        </ng-template>
+      </mat-tab>
+    }
 
     @if (supportE131) {
       <mat-tab>
@@ -28,7 +52,11 @@
           <span>{{ L.$('Группы ') }}</span>
         </ng-template>
         <ng-template matTabContent>
-          <app-tab-synch></app-tab-synch>
+          @defer (on viewport) {
+            <app-tab-synch></app-tab-synch>
+          } @placeholder {
+            <div>{{ L.$('Группы ') }}</div>
+          }
         </ng-template>
       </mat-tab>
     }
@@ -39,7 +67,11 @@
         <span>{{ L.$('Сеть ') }}</span>
       </ng-template>
       <ng-template matTabContent>
-        <app-tab-network></app-tab-network>
+        @defer (on viewport) {
+          <app-tab-network></app-tab-network>
+        } @placeholder {
+          <div>{{ L.$('Сеть ') }}</div>
+        }
       </ng-template>
     </mat-tab>
 
@@ -50,7 +82,11 @@
           <span>{{ L.$('Погода ') }}</span>
         </ng-template>
         <ng-template matTabContent>
-          <app-tab-weather></app-tab-weather>
+          @defer (on viewport) {
+            <app-tab-weather></app-tab-weather>
+          } @placeholder {
+            <div>{{ L.$('Погода ') }}</div>
+          }
         </ng-template>
       </mat-tab>
     }
@@ -61,7 +97,11 @@
         <span>{{ L.$('Прочее ') }}</span>
       </ng-template>
       <ng-template matTabContent>
-        <app-tab-other></app-tab-other>
+        @defer (on viewport) {
+          <app-tab-other></app-tab-other>
+        } @placeholder {
+          <div>{{ L.$('Прочее ') }}</div>
+        }
       </ng-template>
     </mat-tab>
 

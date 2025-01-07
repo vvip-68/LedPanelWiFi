@@ -62,7 +62,6 @@ export class ManagementService extends Base implements OnDestroy {
   private loadIndex: number = -1;     // индекс загружаемой строки
   private intervalId: any = undefined;
 
-
   constructor(private commonService: CommonService,
               private wsService: WebsocketService,
               private httpClient: HttpClient,
@@ -606,9 +605,10 @@ export class ManagementService extends Base implements OnDestroy {
     // Сформировать массив эффектов, отмеченных к использованию в порядке, определенном в переданной строке-параметре
     for (let idx = 0; idx < usage.length; idx++) {
       const effect_idx = this.effects_code.indexOf(usage[idx]);
-      if (effect_idx >= 0 && effect_idx < this.effects.length) {
-        this.effects[effect_idx].order = idx;
-        this.effects_in_use.push(effect_idx);
+      const array_idx = this.effects.findIndex(p => p.id === effect_idx);
+      if (array_idx != -1) {
+        this.effects[array_idx].order = idx;
+        this.effects_in_use.push(array_idx);
       }
     }
 

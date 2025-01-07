@@ -43,9 +43,9 @@ void loadSettings() {
   //   13 - IP[3]                                                                                            // - " -                         // - " -
   //   14 - Использовать режим точки доступа                                                                 // getUseSoftAP()                // putUseSoftAP(useSoftAP)
   //   15 - ориентация часов горизонтально / вертикально                                                     // getClockOrientation()         // putClockOrientation(CLOCK_ORIENT)
-  //   16 - Отображать с часами текущую дату                                                                 // getShowDateInClock()          // putShowDateInClock(showDateInClock)
-  //   17 - Кол-во секунд отображения даты                                                                   // getShowDateDuration()         // putShowDateDuration(showDateDuration)
-  //   18 - Отображать дату каждые N секунд                                                                  // getShowDateInterval()         // putShowDateInterval(showDateInterval)
+  // **16 - не используется
+  //   17 - Интервал отображения часов фазы T1/T3                                                            // getClockCycleT1()             // putClockCycleT1(clock_cycle_T1)
+  //   18 - Интервал отображения часов фазы T2/T4                                                            // getpClockCycleT2()            // putClockCycleT2(clock_cycle_T2)
   //   19 - тип часов горизонтальной ориентации 0-авто 1-малые 3х5 2 - большие 5х7                           // getClockSize()                // putClockSize(CLOCK_SIZE)
   //   20 - Будильник, дни недели                                                                            // getAlarmWeekDay()             // putAlarmParams(alarmWeekDay, dawnDuration, alarmEffect, alarmDuration)
   //   21 - Будильник, продолжительность "рассвета"                                                          // getDawnDuration()             // putAlarmParams(alarmWeekDay, dawnDuration, alarmEffect, alarmDuration)
@@ -59,7 +59,7 @@ void loadSettings() {
   //   29 - Номер последнего активированного вручную режима                                                  // getCurrentManualMode()        // putCurrentManualMode(xxx)
   //   30 - Отображать часы оверлеем в режимах                                                               // getClockOverlayEnabled()      // putClockOverlayEnabled(clockOverlayEnabled)
   //   31 - Использовать случайную последовательность в демо-режиме                                          // getRandomMode()               // putRandomMode(useRandomSequence)
-  //   32 - Отображать с часами текущую температуру                                                          // getShowWeatherInClock()       // putShowWeatherInClock(showWeatherInClock)
+  // **32 -  не используется
   //   33 - Режим 1 по времени - часы                                                                        // getAM1hour()                  // putAM1hour(AM1_hour)
   //   34 - Режим 1 по времени - минуты                                                                      // getAM1minute()                // putAM1minute(AM1_minute) 
   //   35 - Режим 1 по времени - -3 - выкл. (не исп.); -2 - выкл. (черный экран); -1 - ночн.часы, 0 - случ., // getAM1effect()                // putAM1effect(AM1_effect_id)
@@ -135,26 +135,51 @@ void loadSettings() {
   // 176,177,178,179 - Код региона Yandex для получения погоды (4 байта - uint32_t)                          // getWeatherRegion()             // putWeatherRegion(regionID)
   //  180 - цвет температуры в дневных часах: 0 - цвет часов; 1 - цвет в зависимости от температуры          // getUseTemperatureColor()       // putUseTemperatureColor(useTemperatureColor)
   //  181 - цвет температуры в ночных часах:  0 - цвет часов; 1 - цвет в зависимости от температуры          // getUseTemperatureColorNight()  // putUseTemperatureColorNight(useTemperatureColorNight)
-  // **182 - не используется
-  // ...
-  // **239 - не используется 
-  // 240 - яркость ночных часов                                                                              // getNightClockBrightness()      // putNightClockBrightness(nightClockBrightness)
-  //**241 - не используется
-  //**242 - не используется
+  // **182-238 - не используется
+  //  239 - textOffsetY = 0;        // Смещение бегущей строки относительно центра (коррекция положения по оси Y)  - большие часы
+  //  240 - яркость ночных часов                                                                             // getNightClockBrightness()      // putNightClockBrightness(nightClockBrightness)
+  //  241 - Отображение года в горизонтальных часах 0/2/4 цифры  (малые часы, младшие 4 бита)                // getCalendarYearWidth()         // putCalendarYearWidth(сalendarYearWidth)
+  //  241 - Отображение года в 1 строку или 2 строки - (малые часы, старшие 4 бита) 
+  //  242 - Отображение года в горизонтальных часах 0/2/4 цифры  (большие часы) (младшие 4 бита)
+  //  242 - Отображение года в 1 строку или 2 строки - (большие часы, старшие 4 бита) 
   //  243 - Режим по времени "Рассвет" - так же как для режима 1                                             // getAM5effect()                 // putAM5effect(dawn_effect_id)
   // 244,245,246,247 - Код региона OpenWeatherMap для получения погоды (4 байта - uint32_t)                  // getWeatherRegion2()            // putWeatherRegion2(regionID2)
   //  248 - Режим по времени "Закат" - так же как для режима 1                                               // getAM6effect()                 // putAM6effect(dawn_effect_id)  
-  
-  //  249 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) в малых часах 
-  //  250 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
-  //  251 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) в больших часах 
-  //  252 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
-  //  253 - clockDotWidth = 2;      // Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маирицы
+  //  249 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) - малые часы
+  //  250 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) - малые часы
+  //  251 - tempOffsetX = 0;        // Смещение температуры относительно центра (коррекция положения по оси X) - малые часы
+  //  252 - tempOffsetY = 0;        // Смещение температуры относительно центра (коррекция положения по оси Y) - малые часы
+  //  253 - clockDotWidth = 2;      // Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина матрицы
   //  254 - clockDotSpace = 1;      // Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы) - 0 или 1
   //  255 - useDHCP = false;        // Использовать DHCP вместо статического адреса
   //  256 - Отображение температуры в макросе {WT} бегущей строки - битовая карта b0: 0 - не рисовать C/F, 1 - рисовать C/F; b1: 0 - не рисовать заначок градуса; 1 - рисовать значок градуса
-
-  //**257-275 - не используется
+  //  257 - calendarOffsetX = 0;    // Смещение календаря относительно центра (коррекция положения по оси X) - малые часы
+  //  258 - calendarOffsetY = 0;    // Смещение календаря относительно центра (коррекция положения по оси Y) - малые часы
+  //  259 - textOffsetY = 0;        // Смещение бегущей строки относительно центра (коррекция положения по оси Y)
+  //  260 - clockOffsetX = 0;       // Смещение часов относительно центра (коррекция положения по оси X) - большие часы
+  //  261 - clockOffsetY = 0;       // Смещение часов относительно центра (коррекция положения по оси Y) - большие часы
+  //  262 - tempOffsetX = 0;        // Смещение температуры относительно центра (коррекция положения по оси X) - большие часы
+  //  263 - tempOffsetY = 0;        // Смещение температуры относительно центра (коррекция положения по оси Y) - большие часы
+  //  264 - calendarOffsetX = 0;    // Смещение календаря относительно центра (коррекция положения по оси X) - большие часы
+  //  265 - calendarOffsetY = 0;    // Смещение календаря относительно центра (коррекция положения по оси Y) - большие часы
+  //  266 -                         // Фазы включения отображения часов (младшие 4 бита) и календаря (Старишие 4 бита) T4T3T2T1 T4T3T2T1 в режиме малых часов 
+  //  267 -                         // Фазы включения отображения часов (младшие 4 бита) и календаря (Старишие 4 бита) T4T3T2T1 T4T3T2T1 в режиме больших часов 
+  //  268 - флаги b7b6b5b4b3b2b1b0 - b3b2b1b0 - при показе бегущей строки b0 -скрывть часы; b1 - скрывать календарь; b2 - скрывть температуру; b7b6b5b4b3 - зарезервировано - в малых часах
+  //  269 - флаги b7b6b5b4b3b2b1b0 - b3b2b1b0 - при показе бегущей строки b0 -скрывть часы; b1 - скрывать календарь; b2 - скрывть температуру; b7b6b5b4b3 - зарезервировано - в больших часах
+  //  270 - флаги b7b6b5b4b3b2b1b0 - b1b0 - выравнивание часов       00 - центр 01 - лево 10 - право 11 - зарезервировано  малые часы
+  //                               - b3b2 - выравнивание календаря   00 - центр 01 - лево 10 - право 11 - зарезервировано
+  //                               - b5b4 - выравнивание температуры 00 - центр 01 - лево 10 - право 11 - зарезервировано
+  //                               - b7b6 - зарезервировано
+  //  271 - флаги b7b6b5b4b3b2b1b0 - b1b0 - выравнивание часов       00 - центр 01 - лево 10 - право 11 - зарезервировано  большие часы
+  //                               - b3b2 - выравнивание календаря   00 - центр 01 - лево 10 - право 11 - зарезервировано
+  //                               - b5b4 - выравнивание температуры 00 - центр 01 - лево 10 - право 11 - зарезервировано
+  //                               - b7b6 - зарезервировано
+  //  272 - флаги b7b6b5b4b3b2b1b0 - b1b0 - отображ календаря 00 - в позиции часов, 11 - произвольно; 01 и 10 - зарезервировано
+  //                                 b3b2 - отображение температуры 00 - под часами, 01 - справа от часов; 10 - зарезервировано; 11 - произвольно
+  //  273 - флаги b7b6b5b4b3b2b1b0 - b1b0 - отображ календаря 0 - в позиции часов, 1 - произвольно; 01 и 10 - зарезервировано
+  //                                 b3b2 - отображение температуры 00 - под часами, 01 - справа от часов; 10 - зарезервировано; 11 - произвольно
+  //  274 -                         // Фазы включения отображения температуры (младшие 4 бита) T4T3T2T1 в режиме малых часов      Старшие 4 бита не используются
+  //  275 -                         // Фазы включения отображения температуры (младшие 4 бита) T4T3T2T1 в режиме больших часов    Старшие 4 бита не используются
   // 276 - порядок цвета для ленты на линии 1
   // 277 - порядок цвета для ленты на линии 2
   // 278 - порядок цвета для ленты на линии 3
@@ -263,17 +288,11 @@ void loadSettings() {
     CURRENT_LIMIT         = getPowerLimit();
     TEXT_INTERVAL         = getTextInterval();
 
-    clockOffsetX          = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
-    clockOffsetY          = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
-    clockDotWidth         = getClockDotWidth();
-    clockDotSpace         = getClockDotSpace();
+    loadPlacementOptions();                               // Загрузить опции размещения часов/календаря/температуры в соотвествии с текущим размером часов (большие / малые)
 
     useRandomSequence     = getRandomMode();
     nightClockColor       = getNightClockColor();
     nightClockBrightness  = getNightClockBrightness();
-    showDateInClock       = getShowDateInClock();  
-    showDateDuration      = getShowDateDuration();
-    showDateInterval      = getShowDateInterval();
 
     alarmWeekDay          = getAlarmWeekDay();
     alarmEffect           = getAlarmEffect();
@@ -337,7 +356,6 @@ void loadSettings() {
       SYNC_WEATHER_PERIOD = getWeatherInterval();
       useTemperatureColor = getUseTemperatureColor();
       useTemperatureColorNight = getUseTemperatureColorNight();
-      showWeatherInClock  = getShowWeatherInClock();
       isFarenheit         = getIsFarenheit();
       int8_t props        = getShowTempProps();
       showTempDegree      = (props & 0x02) > 0;    
@@ -367,8 +385,39 @@ void loadSettings() {
     saveDefaults();
     saveSettings();
     
+    loadPlacementOptions();                 // Загрузить опции размещения часов/календаря/температуры в соотвествии с текущим размером часов (большие / малые)
+
     DEBUGLN();
   }  
+}
+
+void loadPlacementOptions() {
+
+    uint8_t value = getCalendarYearWidth();
+    calendarYearWidth = value & 0x0F;
+    calendarYearLines = (value & 0xF0) >> 4;
+    if (!(calendarYearWidth == 0 || calendarYearWidth == 2 || calendarYearWidth == 4)) calendarYearWidth = 2;
+    if (calendarYearLines < 1) calendarYearLines = 1;
+    if (calendarYearLines > 2) calendarYearLines = 2;
+
+    clockDotWidth         =  getClockDotWidth();
+    clockDotSpace         =  getClockDotSpace();
+    clock_show_variant    =  getClockShowVariant();
+    clock_show_alignment  =  getClockShowAlignment();
+    hide_on_text_running  =  getHideOnTextRunning();
+    clockOffsetX          =  getClockOffsetX();
+    clockOffsetY          =  getClockOffsetY();
+    tempOffsetX           =  getTempOffsetX();
+    tempOffsetY           =  getTempOffsetY();
+    calendarOffsetX       =  getCalendarOffsetX();
+    calendarOffsetY       =  getCalendarOffsetY();
+    textOffsetY           =  getTextOffsetY();
+    
+    clock_cycle_T1        =  getClockCycleT1();
+    clock_cycle_T2        =  getClockCycleT2();
+    clock_cycle_F1        =  getClockCycleF1();
+    clock_cycle_F2        =  getClockCycleF2();
+
 }
 
 void clearEEPROM() {
@@ -409,25 +458,121 @@ void saveDefaults() {
 
   putAutoplay(manualMode);
 
-  putClockOffsetXsmall(clockOffsetX);
-  putClockOffsetYsmall(clockOffsetY);
-  putClockOffsetXbig(clockOffsetX);
-  putClockOffsetYbig(clockOffsetY);
+  // Смещения часов / календаря / температуры нет ( в объявлении переменные инициализируются нулями)
+  putClockOffsetX(clockOffsetX);
+  putClockOffsetY(clockOffsetY);
+  putTempOffsetX(tempOffsetX);
+  putTempOffsetY(tempOffsetY);
+  putCalendarOffsetX(calendarOffsetX);
+  putCalendarOffsetY(calendarOffsetY);
+  putTextOffsetY(textOffsetY);
+
+  // Расположение часов в зависимости от размера матрицы
+  
+  clock_cycle_T1        = 30;
+  clock_cycle_T2        =  5;
+  clock_show_alignment  =  0;                     // Все объекты выравниваются по центру их блоков.
+  hide_on_text_running  =  7;                     // Скрывать часы / температуру / календарь при показе бегущей строки
+
+  clockDotWidth         = pWIDTH <= 25 ? 1 : 2;   // Ширина разделительных точек в больших часах 1 или 2, если позволяет ширина маnрицы
+  clockDotSpace         = pWIDTH > 25;            // Точки в больших часах отделены от цифр пробелом (если позволяет ширина матрицы)
+  calendarYearWidth = 2;                          // Отображение года в календаре - 0/2/4 цифры
+  calendarYearLines = 2;                          // Отображение года в календаре - 1/2 строки
+
+  CLOCK_ORIENT          =  0;
+
+  // При сохранении     начальных хначений размещения часов / календаря / температуры сохранение в ячейку идеит в зависимости от текущего значения CLOCK_SIZE
+  // получаемого через функцию getClockSizeType(), которая в свою очередть базируется на текущем значении ширины / высоты матрицы. 
+  // То есть, если даже установить CLOCK_SIZE = 2 (большие часы), но размеры матрицы позволяют только малые часы - функция getClockSizeType() вернет "малые часы" и сохранение 
+  // значения будет не в ту ячейку. Чтобы избежать такого поведения - временно меняем значение шрины/высоты матрицы так, чтобы в нее помещались и большие и малые часы, 
+  // предварительно сохранив реальные значения. После сохранения - восстановим реальные размеры матрицы
+  uint8_t saveWIDTH     = pWIDTH;  pWIDTH  = 32;
+  uint8_t saveHEIGHT    = pHEIGHT; pHEIGHT = 32;
+  
+  // ------------------------------------------------------------
+
+  // По умолчанию   подоазумеаем что   доступны и часы и календарь в две строки
+                                      
+  // Малые часы.
+  CLOCK_SIZE            = 1;
+  clock_cycle_F1        = 165;    // T1 - чаcы+температура T2 - календарь T3 - чаcы+температура T4 - календарь
+  clock_cycle_F2        = 5;
+  clock_show_variant    = 0;
+
+  // Если высота малых часов не позволяет размещать температуру ПОД часами - но позволяет размещать ЗА часами - инициировать такое размещение
+  if (saveHEIGHT < 11 && saveWIDTH >= 30)  {
+    clock_show_variant  = 4;      // Календарь в позиции часов, температура справа от часов
+  } else
+
+  // Если высота малых часов не позволяет размещать температуру ПОД часами, для температуры ЗА часами тоже нет места -
+  if (saveHEIGHT < 11 || saveWIDTH < 15)  {
+    clock_show_variant  = 0;      // Календарь в позиции часов, температура сама по себе
+    clock_cycle_F1      = 133;    // T1 - чаcы T2 - температура T3 - чаcы T4 - календарь
+    clock_cycle_F2      = 2;
+  }
+
+  putClockCycleF1(clock_cycle_F1);
+  putClockCycleF2(clock_cycle_F2);
+  putClockShowVariant(clock_show_variant);
+  putClockShowAlignment(clock_show_alignment);
+  putHideOnTextRunning(hide_on_text_running);
+  putCalendarYearWidth((calendarYearLines << 4) | calendarYearWidth);
+
+  // ------------------------------------------------------------
+
+  // Большие часы
+  CLOCK_SIZE            = 2;
+  clock_cycle_F1        = 165;     // T1 - чаcы+температура T2 - календарь T3 - чаcы+температура T4 - календарь
+  clock_cycle_F2        = 5;
+  clock_show_variant    = 0;
+
+  // Если высота больших часов не позволяет размещать температуру под часами - но позволяет размещать за часами - инициировать таекое размещение
+  if (saveHEIGHT < 11 && saveWIDTH >= 43)  {
+    clock_show_variant  =  4;      // Календарь в позиции часов, температура справа от часов
+  } else
+
+  // Вывод часов 5x7 - только в вертикальном формате.
+  if (saveHEIGHT < 15 || saveWIDTH < 23)  {
+    clock_show_variant  = 0;      // Календарь в позиции часов, температура сама по себе
+    clock_cycle_F1      = 133;    // T1 - чаcы T2 - температура T3 - чаcы T4 - календарь
+    clock_cycle_F2      = 2;
+  }
+
+  putClockCycleF1(clock_cycle_F1);
+  putClockCycleF2(clock_cycle_F2);
+  putClockShowVariant(clock_show_variant);
+  putClockShowAlignment(clock_show_alignment);
+  putHideOnTextRunning(hide_on_text_running);
+  putCalendarYearWidth((calendarYearLines << 4) | calendarYearWidth);
+
+  // ------------------------------------------------------------
+
+  // Размер часов - автоб восстановить реальные значения ширины и высоты матрицы
+  CLOCK_SIZE = 0;
+  pWIDTH  = saveWIDTH;
+  pHEIGHT = saveHEIGHT;
+
   putClockDotWidth(clockDotWidth);
   putClockDotSpace(clockDotSpace);
 
+  putClockCycleT1(clock_cycle_T1);
+  putClockCycleT2(clock_cycle_T2);  
+
+  putClockSize(CLOCK_SIZE);
   putClockOrientation(CLOCK_ORIENT);
+
+  putNightClockColor(nightClockColor);  // Цвет ночных часов: 0 - R; 1 - G; 2 - B; 3 - C; 4 - M; 5 - Y;
+  putNightClockBrightness(nightClockBrightness);
+  
+  putTurnOffClockOnLampOff(needTurnOffClock);
+
+  // ------------------------------------------------------------
+
   putPowerLimit(CURRENT_LIMIT);
   putTextInterval(TEXT_INTERVAL);
   
   putRandomMode(useRandomSequence);
-  putNightClockColor(nightClockColor);  // Цвет ночных часов: 0 - R; 1 - G; 2 - B; 3 - C; 4 - M; 5 - Y;
-  putNightClockBrightness(nightClockBrightness);
-  putShowDateInClock(showDateInClock);
-  putShowDateDuration(showDateDuration);
-  putShowDateInterval(showDateInterval);
-  putTurnOffClockOnLampOff(needTurnOffClock);
-
+  
   putAlarmParams(alarmWeekDay,dawnDuration,alarmEffect,alarmDuration);
   #if (USE_MP3 == 1)
     putAlarmSounds(useAlarmSound, maxAlarmVolume, alarmSound, dawnSound);
@@ -521,7 +666,6 @@ void saveDefaults() {
     putWeatherRegion2(regionID2);
     putWeatherInterval(SYNC_WEATHER_PERIOD);
     putUseTemperatureColor(useTemperatureColor);
-    putShowWeatherInClock(showWeatherInClock);
     putIsFarenheit(isFarenheit);
     putShowTempProps((showTempDegree ? 0x02 : 0x00) | (showTempLetter ? 0x01 : 0x00));
     putShowTempTextProps((showTempTextDegree ? 0x02 : 0x00) | (showTempTextLetter ? 0x01 : 0x00));
@@ -1067,45 +1211,55 @@ void putClockOrientation(uint8_t orientation) {
   }
 }
 
-bool getShowWeatherInClock() {
-  bool val = EEPROMread(32) != 0;
-  return val;
-}
-
-void putShowWeatherInClock(bool use) {  
-  if (use != getShowWeatherInClock()) {
-    EEPROMwrite(32, use ? 1 : 0);
-  }
-}
-
-bool getShowDateInClock() {
-  bool val = EEPROMread(16) != 0;
-  return val;
-}
-
-void putShowDateInClock(bool use) {  
-  if (use != getShowDateInClock()) {
-    EEPROMwrite(16, use ? 1 : 0);
-  }
-}
-
-uint8_t getShowDateDuration() {
+// Время в секундах фазы отображения часов T1/T3
+uint8_t getClockCycleT1() {
   return EEPROMread(17);
 }
 
-void putShowDateDuration(uint8_t Duration) {
-  if (Duration != getShowDateDuration()) {
-    EEPROMwrite(17, Duration);
+// Время в секундах фазы отображения часов T1/T3
+void putClockCycleT1(uint8_t value) {
+  if (value != getClockCycleT1()) {
+    EEPROMwrite(17, value);
   }
 }
 
-uint8_t getShowDateInterval() {
+// Время в секундах фазы отображения часов T2/T4
+uint8_t getClockCycleT2() {
   return EEPROMread(18);
 }
 
-void putShowDateInterval(uint8_t Interval) {
-  if (Interval != getShowDateInterval()) {
-    EEPROMwrite(18, Interval);
+// Время в секундах фазы отображения часов T2/T4
+void putClockCycleT2(uint8_t value) {
+  if (value != getClockCycleT2()) {
+    EEPROMwrite(18, value);
+  }
+}
+
+// Видимость часов/календаря в фазах T1-T4
+uint8_t getClockCycleF1() {
+  uint16_t addr = getClockSizeType() == 1 ? 266 : 267;
+  return EEPROMread(addr);
+}
+
+// Видимость часов/календаря в фазах T1-T4
+void putClockCycleF1(uint8_t value) {
+  if (value != getClockCycleF1()) {
+    uint16_t addr = getClockSizeType() == 1 ? 266 : 267;
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Видимость температуры в фазах T1-T4
+uint8_t getClockCycleF2() {
+  uint16_t addr = getClockSizeType() == 1 ? 274 : 275;
+  return EEPROMread(addr);
+}
+
+// Видимость температуры в фазах T1-T4
+void putClockCycleF2(uint8_t value) {
+  if (value != getClockCycleF2()) {
+    uint16_t addr = getClockSizeType() == 1 ? 274 : 275;
+    EEPROMwrite(addr, value);
   }
 }
 
@@ -2342,51 +2496,116 @@ void putShowTempProps(uint8_t type) {
   }
 }
 
-// Смещение часов относительно центра (коррекция положения по оси X) в малых часах 
-int8_t getClockOffsetXsmall() {
-  return (int8_t)EEPROMread(249);
+// Отображение года в календаре: 0/2/4 цифры, в одну или в две строки
+int8_t getCalendarYearWidth() {
+  uint16_t addr = getClockSizeType() == 1 ? 241 : 242;            // 241 - малые часы; 242 - большие часы
+  int8_t value = (int8_t)EEPROMread(addr);
+  return value;
 }
 
-// Смещение часов относительно центра (коррекция положения по оси X) в малых часах
-void putClockOffsetXsmall(int8_t value) {
-  if (value != getClockOffsetXsmall()) {
-    EEPROMwrite(249, value);
+// Отображение года в календаре: 0/2/4 цифры, в одну или в две строки
+void putCalendarYearWidth(int8_t value) {
+  if (value != getCalendarYearWidth()) {
+    uint16_t addr = getClockSizeType() == 1 ? 241 : 242;           // 241 - малые часы; 242 - большие часы
+    EEPROMwrite(addr, value);
   }
 }
 
-// Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
-int8_t getClockOffsetYsmall() {
-  return (int8_t)EEPROMread(250);
+// Смещение часов относительно центра (коррекция положения по оси X)
+int8_t getClockOffsetX() {
+  uint16_t addr = getClockSizeType() == 1 ? 249 : 260;             // 249 - малые часы; 260 - большие часы
+  return (int8_t)EEPROMread(addr);
 }
 
-// Смещение часов относительно центра (коррекция положения по оси Y) в малых часах
-void putClockOffsetYsmall(int8_t value) {
-  if (value != getClockOffsetYsmall()) {
-    EEPROMwrite(250, value);
+// Смещение часов относительно центра (коррекция положения по оси X)
+void putClockOffsetX(int8_t value) {
+  if (value != getClockOffsetX()) {
+    uint16_t addr = getClockSizeType() == 1 ? 249 : 260;           // 249 - малые часы; 260 - большие часы
+    EEPROMwrite(addr, value);
   }
 }
 
-// Смещение часов относительно центра (коррекция положения по оси X) в больших часах 
-int8_t getClockOffsetXbig() {
-  return (int8_t)EEPROMread(251);
+// Смещение часов относительно центра (коррекция положения по оси Y)
+int8_t getClockOffsetY() {
+  uint16_t addr = getClockSizeType() == 1 ? 250 : 261;             // 250 - малые часы; 261 - большие часы
+  return (int8_t)EEPROMread(addr);
 }
 
-// Смещение часов относительно центра (коррекция положения по оси X) в больших часах
-void putClockOffsetXbig(int8_t value) {
-  if (value != getClockOffsetXbig()) {
-    EEPROMwrite(251, value);
+// Смещение часов относительно центра (коррекция положения по оси Y)
+void putClockOffsetY(int8_t value) {
+  if (value != getClockOffsetY()) {
+    uint16_t addr = getClockSizeType() == 1 ? 250 : 261;           // 250 - малые часы; 261 - большие часы
+    EEPROMwrite(addr, value);
   }
 }
 
-// Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
-int8_t getClockOffsetYbig() {
-  return (int8_t)EEPROMread(252);
+// Смещение температуры относительно центра (коррекция положения по оси X)
+int8_t getTempOffsetX() {
+  uint16_t addr = getClockSizeType() == 1 ? 251 : 262;             // 251 - малые часы; 262 - большие часы
+  return (int8_t)EEPROMread(addr);
 }
 
-// Смещение часов относительно центра (коррекция положения по оси Y) в больших часах
-void putClockOffsetYbig(int8_t value) {
-  if (value != getClockOffsetYbig()) {
-    EEPROMwrite(252, value);
+// Смещение температуры относительно центра (коррекция положения по оси X)
+void putTempOffsetX(int8_t value) {
+  if (value != getTempOffsetX()) {
+    uint16_t addr = getClockSizeType() == 1 ? 251 : 262;           // 251 - малые часы; 262 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Смещение температуры относительно центра (коррекция положения по оси Y)
+int8_t getTempOffsetY() {
+  uint16_t addr = getClockSizeType() == 1 ? 252 : 263;             // 252 - малые часы; 263 - большие часы
+  return (int8_t)EEPROMread(addr);
+}
+
+// Смещение температуры относительно центра (коррекция положения по оси Y)
+void putTempOffsetY(int8_t value) {
+  if (value != getTempOffsetY()) {
+    uint16_t addr = getClockSizeType() == 1 ? 252 : 263;           // 252 - малые часы; 263 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Смещение календаря относительно центра (коррекция положения по оси X)
+int8_t getCalendarOffsetX() {
+  uint16_t addr = getClockSizeType() == 1 ? 257 : 264;             // 257 - малые часы; 264 - большие часы
+  return (int8_t)EEPROMread(addr);
+}
+
+// Смещение календаря относительно центра (коррекция положения по оси X)
+void putCalendarOffsetX(int8_t value) {
+  if (value != getCalendarOffsetX()) {
+    uint16_t addr = getClockSizeType() == 1 ? 257 : 264;           // 257 - малыч часы; 264 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Смещение календаря относительно центра (коррекция положения по оси Y)
+int8_t getCalendarOffsetY() {
+  uint16_t addr = getClockSizeType() == 1 ? 258 : 265;             // 258 - малые часы; 265 - большие часы
+  return (int8_t)EEPROMread(addr);
+}
+
+// Смещение календаря относительно центра (коррекция положения по оси Y)
+void putCalendarOffsetY(int8_t value) {
+  if (value != getCalendarOffsetY()) {
+    uint16_t addr = getClockSizeType() == 1 ? 258 : 265;           // 258 - малые часы; 265 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Смещение бегущей строки относительно центра (коррекция положения по оси Y)
+int8_t getTextOffsetY() {
+  uint16_t addr = getClockSizeType() == 1 ? 259 : 239;             // 259 - малые часы; 239 - большие часы
+  return (int8_t)EEPROMread(addr);
+}
+
+// Смещение бегущей строки относительно центра (коррекция положения по оси Y)
+void putTextOffsetY(int8_t value) {
+  if (value != getTextOffsetY()) {
+    uint16_t addr = getClockSizeType() == 1 ? 259 : 239;           // 259 - малые часы; 239 - большие часы
+    EEPROMwrite(addr, value);
   }
 }
 
@@ -2446,6 +2665,50 @@ void putShowTempTextProps(uint8_t type) {
     EEPROMwrite(256, type);
   }
 }
+
+// Флаги вариантов размещения календаря и темепратуры - относительно часов или произвольно по указанному смещению
+uint8_t getClockShowVariant() {
+  uint16_t addr = getClockSizeType() == 1 ? 272 : 273;           // 272 - малые часы; 273 - большие часы
+  return  EEPROMread(addr);
+}
+
+// Флаги вариантов размещения календаря и темепратуры - относительно часов или произвольно по указанному смещению
+void putClockShowVariant(uint8_t value) {
+  if (value != getClockShowVariant()) {
+    uint16_t addr = getClockSizeType() == 1 ? 272 : 273;           // 272 - малые часы; 273 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Флаги выравнивани часов/календаря/температуры в области их отображения;
+uint8_t getClockShowAlignment() {
+  uint16_t addr = getClockSizeType() == 1 ? 270 : 271;           // 270 - малые часы; 271 - большие часы
+  return  EEPROMread(addr);
+}
+
+// Флаги выравнивани часов/календаря/температуры в области их отображения;
+void putClockShowAlignment(uint8_t value) {
+  if (value != getClockShowAlignment()) {
+    uint16_t addr = getClockSizeType() == 1 ? 270 : 271;           // 270 - малые часы; 271 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+// Флаг скрывать при бегущей строке b0 - часы  b1 - календарь  b2 - температуру
+uint8_t getHideOnTextRunning() {
+  uint16_t addr = getClockSizeType() == 1 ? 268 : 269;           // 268 - малые часы; 269 - большие часы
+  return  EEPROMread(addr);
+}
+
+// Флаг скрывать при бегущей строке b0 - часы  b1 - календарь  b2 - температуру
+void putHideOnTextRunning(uint8_t value) {
+  if (value != getHideOnTextRunning()) {
+    uint16_t addr = getClockSizeType() == 1 ? 268 : 269;           // 268 - малые часы; 269 - большие часы
+    EEPROMwrite(addr, value);
+  }
+}
+
+
 
 // ----------------------------------------------------------
 // ----------------------------------------------------------

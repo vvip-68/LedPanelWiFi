@@ -28,6 +28,7 @@
       --label-width: 160px;
 
       .message {
+        margin-top: 6px;
         width: 100%;
         font-size: 11px;
         text-align: center;
@@ -62,6 +63,25 @@
 
             ::ng-deep .mat-mdc-slider-visual-thumb {
               top: 0;
+            }
+          }
+        }
+
+        &.check {
+          margin-top: -8px;
+          align-items: center;
+
+          mat-label {
+            width: var(--check-label-width) !important;
+            min-width: var(--check-label-width) !important;
+          }
+
+          mat-checkbox {
+            margin: 0 12px 0 -6px;
+            border: none !important;
+
+            ::ng-deep .mdc-label {
+              width: var(--check-label-inner-width) !important;
             }
           }
         }

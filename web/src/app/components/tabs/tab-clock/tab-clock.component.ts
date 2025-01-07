@@ -55,8 +55,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   public clock_color_mode: number = -1;
   public color_list: ComboBoxItem[] = [];
   public clock_size: number = 0;
-  public clock_show_date: boolean = false;
-  public clock_show_temp = false;
   public clock_temp_color_day = false;
   public clock_temp_color_night = false;
   public clock_night_color = -1;
@@ -65,22 +63,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   public clock_scroll_speed = -1;
   public show_degree = false;
   public show_letter = false;
-  public offsetX = 0;
-  public offsetY = 0;
-  public dotWidth = 2;
-  public dotSpace = 1;
-  public dotWidthToggler = true;
-  public dotSpaceToggler = true;
-
-  public offsetXinitialized = false;
-  public offsetYinitialized = false;
-
-
-  public allowX = 0;
-  public allowY = 0;
-  public allowAdvanced = false;
-  public allowDotWidth = false;
-  public allowDotSpace = false;
 
   public time_area_list: ComboBoxItem[] = [];
   public time_area: string = '';
@@ -92,11 +74,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
   ntpTimeZoneFormControl = new FormControl('', [Validators.required]);
   matcher = new AppErrorStateMatcher();
 
-  private calcDelayedTimer: any;
-
   private speedChanged$ = new BehaviorSubject(this.clock_scroll_speed);
-  private offsetXChanged$ = new BehaviorSubject(this.offsetX);
-  private offsetYChanged$ = new BehaviorSubject(this.offsetY);
 
   constructor(
     public socketService: WebsocketService,
@@ -123,7 +101,7 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
       .subscribe((isConnected: boolean) => {
         if (isConnected) {
           // При первом соединении сокета с устройством запросить параметры, используемые в экране
-          let request = 'W|H|C12|C35|CE|CO|CC|CK|CX|CY|CD|CS|DC|DD|DI|DW|NC|NP|NZ|NS|SC|WC|WN|WV|WZ';
+          let request = 'W|H|C12|C35|CE|CO|CC|CK|DC|DD|DI|DW|NC|NP|NZ|NS|SC|WC|WN|WV|WZ';
           if (this.managementService.state.supportTM1637) {
             request += '|OF';
           }
@@ -147,50 +125,18 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
               break;
             case 'CO':
               this.clock_orientation = this.managementService.state.clock_orientation;
-              this.calculateOffsetAllowed();
               break;
             case 'CC':
               this.clock_color_mode = this.managementService.state.clock_color_mode;
               break;
-            case 'CD':
-              this.dotWidth = this.managementService.state.clock_dot_width;
-              this.calculateOffsetAllowed();
-              break;
             case 'CK':
               this.clock_size = this.managementService.state.clock_size;
-              this.calculateOffsetAllowed();
-              break;
-            case 'CS':
-              this.dotSpace = this.managementService.state.clock_dot_space;
-              this.calculateOffsetAllowed();
-              break;
-            case 'CV':
-              this.calculateOffsetAllowed();
-              break;
-            case 'CH':
-              this.calculateOffsetAllowed();
-              break;
-            case 'CX':
-              this.offsetX = this.managementService.state.clock_offset_x;
-              this.offsetXinitialized = true;
-              break;
-            case 'CY':
-              this.offsetY = this.managementService.state.clock_offset_y;
-              this.offsetYinitialized = true;
-              break;
-            case 'DC':
-              this.clock_show_date = this.managementService.state.clock_show_date;
-              this.calculateOffsetAllowed();
               break;
             case 'DD':
-              this.showDateDurationFormControl.setValue(this.managementService.state.clock_show_date_time);
+              this.showDateDurationFormControl.setValue(this.managementService.state.clock_cycle_T2);
               break;
             case 'DI':
-              this.showDateIntervalFormControl.setValue(this.managementService.state.clock_show_date_intvl);
-              break;
-            case 'DW':
-              this.clock_show_temp = this.managementService.state.clock_show_temp;
-              this.calculateOffsetAllowed();
+              this.showDateIntervalFormControl.setValue(this.managementService.state.clock_cycle_T1);
               break;
             case 'WC':
               this.clock_temp_color_day = this.managementService.state.clock_temp_color_day;
@@ -252,29 +198,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
           this.socketService.sendText(`$19 12 ${value};`);
         }
       });
-
-    this.offsetXChanged$
-      .pipe(takeUntil(this.destroy$), debounceTime(100))
-      .subscribe((value) => {
-        if (this.offsetXinitialized) {
-          this.offsetX = value;
-          this.managementService.state.clock_offset_x = this.offsetX;
-          // $19 21 X Y; - Смещение часов по X,Y
-          this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
-        }
-      });
-
-    this.offsetYChanged$
-      .pipe(takeUntil(this.destroy$), debounceTime(100))
-      .subscribe((value) => {
-        if (this.offsetYinitialized) {
-          this.offsetY = value;
-          this.managementService.state.clock_offset_y = this.offsetY;
-          // $19 21 X Y; - Смещение часов по X,Y
-          this.socketService.sendText(`$19 21 ${this.offsetX} ${this.offsetY};`);
-        }
-      });
-
   }
 
   public loadTimeZones() {
@@ -354,32 +277,10 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     this.speedChanged$.next(value);
   }
 
-  offsetXChanged(value: number) {
-    this.offsetXChanged$.next(value);
-  }
-
-  offsetYChanged(value: number) {
-    this.offsetYChanged$.next(value);
-  }
-
   toggleClockOverEffects() {
     this.clock_use_overlay = !this.clock_use_overlay;
     // $19 1 X;    - сохранить настройку X "Часы поверх эффектов"; X=0 - нет, X=1 - да
     this.socketService.sendText(`$19 1 ${this.clock_use_overlay ? 1 : 0};`);
-  }
-
-  toggleDotWidth() {
-    this.dotWidthToggler = !this.dotWidthToggler;
-    this.dotWidth = this.managementService.state.clock_dot_width = this.dotWidthToggler ? 2 : 1;
-    // $19 22 X Y; - Ширина разделительных точек в больших часах (X = 1|2), Y - есть ли пробелы между цифрами часов и точками 0|1
-    this.socketService.sendText(`$19 22 ${this.dotWidth} ${this.dotSpace};`);
-  }
-
-  toggleDotSpace() {
-    this.dotSpaceToggler = !this.dotSpaceToggler;
-    this.dotSpace = this.managementService.state.clock_dot_space = this.dotSpaceToggler ? 1 : 0;
-    // $19 22 X Y; - Ширина разделительных точек в больших часах (X = 1|2), Y - есть ли пробелы между цифрами часов и точками 0|1
-    this.socketService.sendText(`$19 22 ${this.dotWidth} ${this.dotSpace};`);
   }
 
   toggleTM1637() {
@@ -416,19 +317,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     return this.managementService.tz_map.get(area) || [];
   }
 
-
-  toggleTemperatureInClock() {
-    this.clock_show_temp = !this.clock_show_temp;
-    // $19 9 X;    - Показывать температуру вместе с часами X=1 - да; X=0 - нет
-    this.socketService.sendText(`$19 9 ${this.clock_show_temp ? 1 : 0};`);
-  }
-
-  toggleDateInClock() {
-    this.clock_show_date = !this.clock_show_date;
-    // $19 16 X;   - Показывать дату в режиме часов:  X=0 - нет, X=1 - да
-    this.socketService.sendText(`$19 16 ${this.clock_show_date ? 1 : 0};`);
-  }
-
   isDisabled(): boolean {
     return !this.socketService.isConnected;
   }
@@ -449,7 +337,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     // $19 7 X;    - Размер часов X: 0 - автовыбор в звыисимости от размера матрицы (3x5 или 5x7), 1 - малые 3х5, 2 - большие 5x7
     this.managementService.state.clock_size = this.clock_size;
     this.socketService.sendText(`$19 7 ${this.clock_size};`);
-    this.calculateOffsetAllowed();
   }
 
   changeFontType() {
@@ -497,14 +384,6 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
     return this.showDateDurationFormControl.valid && this.showDateIntervalFormControl.valid;
   }
 
-  applyDateShow($event: MouseEvent) {
-    // $19 17 DD II; - Продолжительность / интервал отображения даты / температуры (в секундах): D - продолжительность; I - интервал;
-    const DD = this.managementService.state.dawn_duration = this.showDateDurationFormControl.value as number;
-    const II = this.managementService.state.alarm_duration = this.showDateIntervalFormControl.value as number;
-
-    this.socketService.sendText(`$19 17 ${DD} ${II};`);
-  }
-
   toggleUseNtpClock() {
     this.clock_use_ntp = !this.clock_use_ntp;
     // $19 2 X;    - Использовать синхронизацию часов NTP;  X=0 - нет, X=1 - да
@@ -535,103 +414,5 @@ export class TabClockComponent extends Base implements OnInit, OnDestroy {
 
     this.socketService.sendText(`$6 1|${server_name}`);
     this.socketService.sendText(`$6 10|${time_zone}`);
-  }
-
-  calculateOffsetAllowed() {
-    // Пересчет параметров зависит от нескольких значений, которые поступают пачкой последовательно
-    // Не нужно выполнять пересчет на каждый поступивший параметр.
-    // Ждем, пока поступит последний и через xxx мс выполняем расчет
-    if (this.calcDelayedTimer) clearTimeout(this.calcDelayedTimer);
-    this.calcDelayedTimer = setTimeout(() => {
-      this.doCalculateOffsetAllowed();
-      this.calcDelayedTimer = undefined;
-    }, 500);
-  }
-
-  getClockSizeType(): number {
-    const clock_orient = this.managementService.state.clock_orientation;
-    const pWIDTH = this.managementService.state.width;
-    const pHEIGHT = this.managementService.state.height;
-    let clock_size = this.managementService.state.clock_size;
-
-    // Если часы авто или большие - определить - а поместятся ли они на
-    // матрицу по ширине при горизонтальном режиме / по высоте при вертикальном
-    // Большие часы для шрифта 5x7 требуют 4*5 /цифры/ + 4 /двоеточие/ + 2 /пробел между цифрами часов и минут / = 23, 25 или 26 колонки (одинарные / двойные точки в часах) если 23 - нет пробела вокруг точек
-    if ((clock_size == 0 || clock_size == 2) && ((clock_orient == 0 && pWIDTH < 23) || (clock_orient == 1 && pHEIGHT < 15))) clock_size = 1;
-    if (clock_size == 0) clock_size = 2;
-    return clock_size;
-  }
-
-  doCalculateOffsetAllowed() {
-
-    // Вычислить ширину и высоту часов в зависимости от того - большие или малые часы, горизонтально или вертикально,
-    // показывается ли дата, температура, ширины точки и пробела между точками и цифрами
-    let clockWidth = 0;
-    let clockHeight = 0;
-    let allowDotWidth = false;
-    let allowDotSpace = false;
-
-    const smallClock = this.getClockSizeType() == 1;
-
-    if (this.managementService.state.clock_orientation == 0 ) {
-      // Горизонтальные часы
-      if (smallClock) {
-        // Малые часы - Шрифт 3x5
-        // Ширина - 4 цифры, nри пробела между цифрами - ширина 15
-        clockWidth = 15;
-        // Высота - если есть температура или отображении даты - два ряда + 1 строка пробела == 11, если в один ряд - 5
-        clockHeight = this.managementService.state.clock_show_temp || this.managementService.state.clock_show_date ? 11 : 5;
-        // Насьройка ширины точки и прбелов  около точки - только для больших часов
-      } else {
-        allowDotWidth = true;
-        allowDotSpace = true;
-        // Ширина - 4 цифры, два пробела между цифрами часов и минут, плюс ширина точек и пробелы между точками и цифрами- ширина 22 + 1/2 - гирина точки + 2/0 - наличие пробела между цифрами
-        clockWidth = 22 + this.managementService.state.clock_dot_width + this.managementService.state.clock_dot_space * 2;
-        // Высота - если есть температура или отображении даты - два ряда + 1 строка пробела == 15, если в один ряд - 7
-        clockHeight = this.managementService.state.clock_show_temp || this.managementService.state.clock_show_date ? 15 : 7;
-        // Полная ширина больших часов - 26.
-        // Если ширина матрицы меньше 26 - ширина точек - 1
-        if (this.managementService.state.width < 26) {
-          clockWidth = 25;
-          this.dotWidth = this.managementService.state.clock_dot_width = 1;
-          allowDotWidth = false;
-        }
-        // Если ширина матрицы меньше 25 - нет пробела между точками и окружающими цифрами
-        if (this.managementService.state.width < 25) {
-          clockWidth = 23;
-          this.dotSpace = this.managementService.state.clock_dot_space = 0;
-          allowDotSpace = false;
-        }
-      }
-    } else {
-      // Вертикальные часы
-      if (smallClock) {
-        // Малые часы - шрифт 3x5 - в два ряда - нет зависимости от даты и температуры - дата - в два ряда, температура не отображается
-        clockWidth = 7;
-        clockHeight = 11;
-      } else {
-        // Большие часы - шрифт 5x7
-        allowDotWidth = true;
-        allowDotSpace = true;
-        // Ширина - 2 цифры + 1 пробел между цифрами = 11
-        clockWidth = 11;
-        // Высота - в два ряда плюс пробельная строка = 15
-        clockHeight = 15;
-      }
-    }
-
-    this.allowDotWidth = allowDotWidth;
-    this.allowDotSpace = allowDotSpace;
-
-    this.dotWidthToggler = this.dotWidth == 2;
-    this.dotSpaceToggler = this.dotSpace == 1;
-
-    // Если ширина матрицы меньше ширины часов
-    this.allowX = this.managementService.state.width < clockWidth ? 0 : Math.round((this.managementService.state.width - clockWidth) / 2) + 1;
-    // Если высота матрицы меньше высоты часов
-    this.allowY = this.managementService.state.height < clockHeight ? 0 : Math.round((this.managementService.state.height - clockHeight) / 2);
-
-    // Рассчитать доступность блока "Расширенные настройки и допустимые смещения часов по осям X,Y
-    this.allowAdvanced = this.allowX > 0 || this.allowY > 0 || allowDotWidth || allowDotSpace;
   }
 }

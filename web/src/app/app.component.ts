@@ -155,8 +155,4 @@ export class AppComponent extends Base implements OnInit, OnDestroy {
   onRightMouseClick(e: MouseEvent) {
     e.preventDefault();
   }
-
-  debugOnOff() {
-    this.managementService.state.debug = !this.managementService.state.debug;
-  }
 }

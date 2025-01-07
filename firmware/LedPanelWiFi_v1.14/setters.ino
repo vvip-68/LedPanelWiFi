@@ -524,28 +524,72 @@ void set_CLOCK_SIZE(uint8_t value) {
 
 // CX смещение часов по оси X
 void set_ClockOffsetX(int8_t value) {
-  int8_t oldValue = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
+  int8_t oldValue = getClockOffsetX();
   if (oldValue != value) {
-    if (CLOCK_SIZE == 0)
-      putClockOffsetXsmall(value);
-    else 
-      putClockOffsetXbig(value);      
+    putClockOffsetX(value);
   }
-  clockOffsetX = CLOCK_SIZE == 0 ? getClockOffsetXsmall() : getClockOffsetXbig();
+  clockOffsetX = getClockOffsetX();
   addKeyToChanged("CX");
 }
 
 // CY смещение часов по оси Y
 void set_ClockOffsetY(int8_t value) {
-  int8_t oldValue = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
+  int8_t oldValue = getClockOffsetY();
   if (oldValue != value) {
-    if (CLOCK_SIZE == 0)
-      putClockOffsetYsmall(value);
-    else 
-      putClockOffsetYbig(value);      
+    putClockOffsetY(value);
   }
-  clockOffsetY = CLOCK_SIZE == 0 ? getClockOffsetYsmall() : getClockOffsetYbig();
+  clockOffsetY = getClockOffsetY();
   addKeyToChanged("CY");
+}
+
+// CXT смещение температуры по оси X
+void set_TempOffsetX(int8_t value) {
+  int8_t oldValue = getTempOffsetX();
+  if (oldValue != value) {
+    putTempOffsetX(value);
+  }
+  tempOffsetX = getTempOffsetX();
+  addKeyToChanged("CXT");
+}
+
+// CYT смещение температуры по оси Y
+void set_TempOffsetY(int8_t value) {
+  int8_t oldValue = getTempOffsetY();
+  if (oldValue != value) {
+    putTempOffsetY(value);
+  }
+  tempOffsetY = getTempOffsetY();
+  addKeyToChanged("CYT");
+}
+
+// CXC смещение календаря по оси X
+void set_CalendarOffsetX(int8_t value) {
+  int8_t oldValue = getCalendarOffsetX();
+  if (oldValue != value) {
+    putCalendarOffsetX(value);
+  }
+  calendarOffsetX = getCalendarOffsetX();
+  addKeyToChanged("CXC");
+}
+
+// CYC смещение календаря по оси Y
+void set_CalendarOffsetY(int8_t value) {
+  int8_t oldValue = getCalendarOffsetY();
+  if (oldValue != value) {
+    putCalendarOffsetY(value);
+  }
+  calendarOffsetY = getCalendarOffsetY();
+  addKeyToChanged("CYC");
+}
+
+// CYL смещение бегущей строки по оси Y
+void set_TextOffsetY(int8_t value) {
+  int8_t oldValue = getTextOffsetY();
+  if (oldValue != value) {
+    putTextOffsetY(value);
+  }
+  textOffsetY = getTextOffsetY();
+  addKeyToChanged("CYL");
 }
 
 // NB nightClockBrightness
@@ -573,7 +617,21 @@ void set_clockDotWidth(uint8_t value) {
   addKeyToChanged("CD");
 }
 
-// CS - ширина точки в больших часах
+// CF - отображени года в календаре - 0/2/4 цифры года, календарь в одну / две строки
+void set_CalendarYearWidth(uint8_t value) {
+  uint8_t old_value = (calendarYearLines << 4) | calendarYearWidth;
+  if (old_value == value) return;
+  putCalendarYearWidth(value);
+  value = getCalendarYearWidth();
+  calendarYearWidth = value & 0x0F;
+  calendarYearLines = (value & 0xF0) >> 4;
+  if (!(calendarYearWidth == 0 || calendarYearWidth == 2 || calendarYearWidth == 4)) calendarYearWidth = 2;
+  if (calendarYearLines < 1) calendarYearLines = 1;
+  if (calendarYearLines > 2) calendarYearLines = 2;
+  addKeyToChanged("CF");
+}
+
+// CS - наличие пробела вокруг точек в больших часах
 void set_clockDotSpace(bool value) {
   if (clockDotSpace == value) return;
   putClockDotSpace(value);
@@ -592,28 +650,60 @@ void set_clockScrollSpeed(uint8_t value) {
   #endif
 }
 
-// DC showDateInClock
-void set_showDateInClock(bool value) {
-  if (showDateInClock == value) return;
-  putShowDateInClock(value);
-  showDateInClock = getShowDateInClock();
-  addKeyToChanged("DC");
+// CSV clock_show_variant
+void set_clockShowVariant(uint8_t value) {
+  if (clock_show_variant == value) return;
+  putClockShowVariant(value);
+  clock_show_variant = getClockShowVariant();
+  addKeyToChanged("CSV");
 }
 
-// DD showDateDuration
-void set_showDateDuration(uint8_t value) {
-  if (showDateDuration == value) return;
-  putShowDateDuration(value);
-  showDateDuration = getShowDateDuration();
-  addKeyToChanged("DD");
+// CSA clock_show_alignment
+void set_clockShowAlignment(uint8_t value) {
+  if (clock_show_alignment == value) return;
+  putClockShowAlignment(value);
+  clock_show_alignment = getClockShowAlignment();
+  addKeyToChanged("CSA");
 }
 
-// DI showDateInterval
-void set_showDateInterval(uint8_t value) {
-  if (showDateInterval == value) return;
-  putShowDateInterval(value);
-  showDateInterval = getShowDateInterval();
-  addKeyToChanged("DI");
+// HTR hide_on_text_running
+void set_hideOnTextRunning(uint8_t value) {
+  if (hide_on_text_running == value) return;
+  putHideOnTextRunning(value);
+  hide_on_text_running = getHideOnTextRunning();
+  addKeyToChanged("HTR");
+}
+
+// CT1 clock_cycle_T1
+void set_clockCycleT1(uint8_t value) {
+  if (clock_cycle_T1 == value) return;
+  putClockCycleT1(value);
+  clock_cycle_T1 = getClockCycleT1();
+  addKeyToChanged("CT1");
+}
+
+// CT2 clock_cycle_T2
+void set_clockCycleT2(uint8_t value) {
+  if (clock_cycle_T2 == value) return;
+  putClockCycleT2(value);
+  clock_cycle_T2 = getClockCycleT2();
+  addKeyToChanged("CT2");
+}
+
+// CF1 clock_cycle_F1
+void set_clockCycleF1(uint8_t value) {
+  if (clock_cycle_F1 == value) return;
+  putClockCycleF1(value);
+  clock_cycle_F1 = getClockCycleF1();
+  addKeyToChanged("CF1");
+}
+
+// CF2 clock_cycle_F2
+void set_clockCycleF2(uint8_t value) {
+  if (clock_cycle_F2 == value) return;
+  putClockCycleF2(value);
+  clock_cycle_F2 = getClockCycleF2();
+  addKeyToChanged("CF2");
 }
 
 // NP useNtp
@@ -698,14 +788,6 @@ void set_StaticIP(uint8_t p1, uint8_t p2, uint8_t p3, uint8_t p4) {
   putStaticIP(p1, p2, p3, p4);
   addKeyToChanged("IP");
 }              
-
-// DW showWeatherInClock
-void set_showWeatherInClock(bool value) {
-  if (showWeatherInClock == value) return;
-  putShowWeatherInClock(value);
-  showWeatherInClock = getShowWeatherInClock();
-  addKeyToChanged("DW");
-}
 
 // OF needTurnOffClock
 void set_needTurnOffClock(bool value) {

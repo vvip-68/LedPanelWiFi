@@ -1028,7 +1028,7 @@ String MCUType() {
     #elif defined(CONFIG_IDF_TARGET_ESP32S3)
       mcType = F("ESP32 S3");
     #elif defined(CONFIG_IDF_TARGET_ESP32C3)
-      mcType = F("ESP32 С3");
+      mcType = F("ESP32 C3");
     #else
       mcType = F("ESP32");
     #endif

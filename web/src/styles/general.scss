@@ -453,6 +453,23 @@ mat-error {
           display: none;
         }
       }
+
+      .mat-pseudo-checkbox-minimal {
+        margin-left: 0;
+        flex-shrink: 0;
+      }
+    }
+
+    &.shift-40px {
+      margin: 0 0 0 40px;
+    }
+
+    &.shift-60px {
+      margin: 0 0 0 60px;
+    }
+
+    &.shift-80px {
+      margin: 0 0 0 80px;
     }
 
     &.shift-120px {
@@ -465,6 +482,14 @@ mat-error {
 
     &.shift-160px {
       margin: 0 0 0 160px;
+    }
+
+    &.cal-line-width {
+      margin: 0 0 0 143px;
+    }
+
+    &.cal-year-width {
+      margin: 0 0 0 0;
     }
 
     .mat-mdc-option {

@@ -524,7 +524,7 @@
 ## Назначение пинов SPI по версии объявления пинов в ядре микроконтроллера:
 ## Для конкретной платы смотреть в папке C:\Users\AlVa\Local Settings\Arduino15\packages\esp32\hardware\esp32\2.0.14\variants
   
-| SPI Pin Name | ESP32  | ESP32-S2 | S2-MINI | ESP32-С3 | С3-MINI | ESP32-S3 | S3-MINI |
+| SPI Pin Name | ESP32  | ESP32-S2 | S2-MINI | ESP32-C3 | C3-MINI | ESP32-S3 | S3-MINI |
 |--------------|--------|----------|---------|----------|---------|----------|---------|
 | CS  (SS)     | GPIO5  | GPIO34   | GPIO12  | GPIO7    | GPIO5   | GPIO10   | GPIO10  | 
 | DI  (MOSI)   | GPIO23 | GPIO35   | GPIO11  | GPIO6    | GPIO4   | GPIO11   | GPIO11  |
@@ -537,7 +537,7 @@
 #define SD_CS_PIN (SS)  // подключение к пинам SD-shild: D8(CS), D5(CLK), D6(MISO), D7(MOSI)
 
 /*
-| I2C Pin Name | ESP32  | ESP32-S2 | S2-MINI  | ESP32-С3 | С3-MINI  | ESP32-S3 | S3-MINI |
+| I2C Pin Name | ESP32  | ESP32-S2 | S2-MINI  | ESP32-C3 | C3-MINI  | ESP32-S3 | S3-MINI |
 |--------------|--------|----------|----------|----------|----------|----------|---------|
 | SDA          | GPIO21 | GPIO8    | GPIO33   | GPIO8    | GPIO8    | GPIO8    | GPIO35  |
 | SCL          | GPIO22 | GPIO9    | GPIO35   | GPIO9    | GPIO10   | GPIO9    | GPIO36  |
@@ -559,8 +559,8 @@
   #define ALARM_PIN (25U)       // G25 управляющий пин вкл/выкл доп.оборудование при срабатывании будильника через MOSFET / реле; ALARM_ON - HIGH, ALARM_OFF - LOW
   #define AUX_PIN (27U)         // G27 управляющий пин вкл/выкл доп.оборудование режимы по времени через MOSFET / реле; AUX_ON - HIGH, AUX_OFF - LOW  
 #elif (CONFIG_IDF_TARGET_ESP32S2)
-  // ESP32-S2               ->  'ESP32S2 Dev Module'
 /*  
+  // ESP32-S2               ->  'ESP32S2 Dev Module'
   #define LED_PIN (13U)         // пин ленты
   #define PIN_BTN (15U)         // кнопка подключена сюда (PIN --- КНОПКА --- GND)
   #define SRX (16U)             // пин ESP32, который подключен в TX пин (3) модуля DFPlayer
@@ -586,8 +586,8 @@
   #define POWER_PIN (6U)        // G6 управляющий пин вкл/выкл матрицы через MOSFET или реле
   #define ALARM_PIN (5U)        // G5 управляющий пин вкл/выкл доп.оборудование при срабатывании будильника через MOSFET / реле; ALARM_ON - HIGH, ALARM_OFF - LOW
   #define AUX_PIN (4U)          // G4 управляющий пин вкл/выкл доп.оборудование режимы по времени через MOSFET / реле; AUX_ON - HIGH, AUX_OFF - LOW
-  // ESP32-S3-MINI          ->  'LOLIN S3 mini'
 /*  
+  // ESP32-S3-MINI          ->  'LOLIN S3 mini'
   #define LED_PIN (14U)         // пин ленты
   #define PIN_BTN (15U)         // кнопка подключена сюда (PIN --- КНОПКА --- GND)
   #define SRX (16U)             // пин ESP32, который подключен в TX пин (3) модуля DFPlayer
@@ -597,7 +597,7 @@
   #define AUX_PIN (4U)          // G4 управляющий пин вкл/выкл доп.оборудование режимы по времени через MOSFET / реле; AUX_ON - HIGH, AUX_OFF - LOW
 */
 #elif (CONFIG_IDF_TARGET_ESP32C3)
-  // ESP32-C3
+  // ESP32-C3               ->  'ESP32C3 Dev Module'     
   #define LED_PIN (1U)          // пин ленты
   #define PIN_BTN (0U)          // кнопка подключена сюда (PIN --- КНОПКА --- GND)
   #define SRX (2U)              // пин ESP32, который подключен в TX пин (3) модуля DFPlayer
@@ -605,8 +605,8 @@
   #define POWER_PIN (18U)       // G18 управляющий пин вкл/выкл матрицы через MOSFET или реле
   #define ALARM_PIN (19U)       // G19 управляющий пин вкл/выкл доп.оборудование при срабатывании будильника через MOSFET / реле; ALARM_ON - HIGH, ALARM_OFF - LOW
   #define AUX_PIN (19U)         // G19 управляющий пин вкл/выкл доп.оборудование режимы по времени через MOSFET / реле; AUX_ON - HIGH, AUX_OFF - LOW
-  // ESP32-C3-SUPER-MINI
-/*  
+/*             
+  // ESP32-C3-SUPER-MINI    ->  'LOLIN C3 Mini'
   #define LED_PIN (1U)          // пин ленты
   #define PIN_BTN (0U)          // кнопка подключена сюда (PIN --- КНОПКА --- GND)
   #define SRX (6U )             // пин ESP32, который подключен в TX пин (3) модуля DFPlayer

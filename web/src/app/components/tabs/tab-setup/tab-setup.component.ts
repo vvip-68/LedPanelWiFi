@@ -16,23 +16,26 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import {Base} from "../../base.class";
+import {TabLayoutComponent} from "../tab-layout/tab-layout.component";
+import {TabAlarmComponent} from "../tab-alarm/tab-alarm.component";
 
 @Component({
     selector: 'app-tab-setup',
     templateUrl: './tab-setup.component.html',
     styleUrls: ['./tab-setup.component.scss'],
     standalone: true,
-    imports: [
-        MatTabsModule,
-        MatIconModule,
-        MatTooltipModule,
-        TabMatrixComponent,
-        TabWiringComponent,
-        TabSynchComponent,
-        TabNetworkComponent,
-        TabWeatherComponent,
-        TabOtherComponent,
-    ],
+  imports: [
+    MatTabsModule,
+    MatIconModule,
+    MatTooltipModule,
+    TabMatrixComponent,
+    TabWiringComponent,
+    TabSynchComponent,
+    TabNetworkComponent,
+    TabWeatherComponent,
+    TabOtherComponent,
+    TabLayoutComponent,
+  ],
 })
 export class TabSetupComponent extends Base implements OnInit, OnDestroy {
 
