@@ -639,6 +639,16 @@ input[type=number] {
   height: 103px !important;
 }
 
+.clock-face__number {
+  button {
+    border-radius: 50%;
+  }
+}
+
+.clock-face__clock-hand_minute>button {
+  border-radius: 50%;
+}
+
 .clock-face__center {
   height: 8px !important;
 }
