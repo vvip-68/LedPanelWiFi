@@ -434,6 +434,7 @@ void doEffectWithOverlay(uint8_t aMode) {
     uint8_t temp_place = (clock_show_variant >> 2) & 0x03;
     uint8_t cald_place = clock_show_variant & 0x03;
 
+    #if (USE_WEATHER == 1)
     if (needShowTemperature && temp_place != 3) {
       // Если часы вертикальные - они не могут отображаться вместе с температурой - часы отключить
       if (needShowClock && CLOCK_ORIENT == 1) needShowClock = false;
@@ -458,7 +459,7 @@ void doEffectWithOverlay(uint8_t aMode) {
           }
           shiftClockPosition(clockOffsetX + shiftXc, clockOffsetY + shiftY);       CLOCK_X += (clockOffsetX + shiftXc);
           shiftTemperaturePosition(clockOffsetX + shiftXt, clockOffsetY - shiftY); TEMP_X  += (clockOffsetX + shiftXt);
-          // Иногда при некоторых сочетаниях значений часовы и температуры - температура оказывается не дотянута до правого края часов
+          // Иногда при некоторых сочетаниях значений часов и температуры - температура оказывается не дотянута до правого края часов
           // Снли позиция правого края часов и температуры не совпадают - сдвинуть часы еще на позицию вправо
           while (clockX + clockW > temperatureX + temperatureW) shiftTemperaturePosition(1, 0);
           while (clockX + clockW < temperatureX + temperatureW) shiftClockPosition(1, 0);
@@ -487,6 +488,7 @@ void doEffectWithOverlay(uint8_t aMode) {
       // Для правильной непротиворечивой последовательности нужн пойти в настройки цикла и там все непротиворечиво настроить
       if (needShowCalendar && cald_place != 3) needShowCalendar = false;
     }
+    #endif
 
    // Если задано смещение часов по оси X,Y  - сдвинуть вычисленные позиции отображения
     if (needShowClock && !isClockPlacementCompleted) {
@@ -511,13 +513,15 @@ void doEffectWithOverlay(uint8_t aMode) {
     //    уйдет за левый край матрицы, справа появится только после того, епе правй край макс. широкого блока уйдет за левый край матрицы
     // Все позиции и смещения рассчитываются относиттельно центра экрана
     //
-      
+    
+    #if (USE_WEATHER == 1)      
     if (needShowTemperature && temp_place == 3) {
       // Произвольное размещение температуры
       if (tempOffsetX != 0 || tempOffsetY != 0) {
         shiftTemperaturePosition(tempOffsetX, tempOffsetY);                          TEMP_X += tempOffsetX;
       }
     }
+    #endif
 
     if (needShowCalendar && cald_place == 3) {
       // Произвольное размещение календаря
