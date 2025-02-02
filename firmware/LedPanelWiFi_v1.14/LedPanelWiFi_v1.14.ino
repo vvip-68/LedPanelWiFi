@@ -7,7 +7,7 @@
 // https://raw.githubusercontent.com/esp8266/esp8266.github.io/master/stable/package_esp8266com_index.json
 // https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-#define FIRMWARE_VER F("WiFiPanel v.1.14.2025.0119")
+#define FIRMWARE_VER F("WiFiPanel v.1.14.2025.0202")
 
 // Смотри секцию "Известные проблемы"
 //#pragma GCC optimize ("O1")
@@ -247,7 +247,7 @@
 //
 // Некоторые SD-shield требуют напряжения питания 5 вольт, некоторые - 3.3 вольта
 // Если на SD-shield подать напряжение, не соответствующее его характеристикам - файлы с SD карты также будут не видны.
-// При использовании "матрешки" из Wemos d1 mini и соотвествующего ей Shield SD-card рекомендается распаивать ОБА пина питания - и +5В и +3.3В 
+// При использовании "матрешки" из Wemos d1 mini и соотвествующего ей Shield SD-card рекомендается подтягивать пин D8 к земле резистором 10 кОм 
 //
 // Рекомендуемый к использованию шилд SD-карты: https://aliexpress.ru/item/32718621622.html
 // Он удобно устанавливается "матрешкой" на платы микроконтроллеров

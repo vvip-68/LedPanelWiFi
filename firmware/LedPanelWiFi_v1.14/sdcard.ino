@@ -9,8 +9,8 @@ File fxdata;
 int8_t file_idx;    // Служебное - для определения какой следующий файл воспроизводить
 String fileName;
 
-void InitializeSD() {  
-  
+void InitializeSD() {
+
   set_isSdCardReady(false);
   set_isSdCardExist(false);
   
@@ -29,7 +29,7 @@ void InitializeSD() {
     DEBUGLN(F("не "));
   }
   DEBUGLN(F("подключена."));
-  
+
   if (!sd_card_ok) return;
 
   #if (USE_SD == 1 && FS_AS_SD == 0)
@@ -60,8 +60,11 @@ void InitializeSD() {
 
 void loadDirectory() {
 
-  String directoryName('/'); directoryName += pWIDTH; directoryName += 'x'; directoryName += pHEIGHT;
-  
+  String directoryName('/');
+  directoryName += pWIDTH;
+  directoryName += 'x';
+  directoryName += pHEIGHT;
+
   DEBUG(F("Папка с эффектами "));
   DEBUG(directoryName);
   
@@ -75,8 +78,8 @@ void loadDirectory() {
     DEBUGLN(F(" не обнаружена."));
     return;
   }
-  
-  DEBUGLN(F("Загрузка списка файлов с эффектами..."));  
+
+  DEBUGLN(F("Загрузка списка файлов с эффектами..."));
 
   uint32_t file_size;
   
@@ -176,19 +179,18 @@ void loadDirectory() {
 
   if (countFiles == 0) {
     DEBUGLN(F("Доступных файлов эффектов не найдено"));
-  }  else {
-    sortAndShow(directoryName);     
-  }  
-  
+  } else {
+    sortAndShow(directoryName);
+  }
 }
 
 // ----------------------------------
 // --------- alex-3ton part ---------
 
-void bbSort(String *arr, int sz) {
+void bbSort(String* arr, int sz) {
   // Простейшая сортировка (пузырёк)
   // Находим наименьшее значение и определяем на первую позицию,
-  // Когда поиск наименьшего значения закончен следующая позиция 
+  // Когда поиск наименьшего значения закончен следующая позиция
   //   устанавливается следующей по положению.
   // И т.д. тупым перебором
   if (sz > 1) {
@@ -200,9 +202,9 @@ void bbSort(String *arr, int sz) {
           String q(arr[i]);
           arr[i] = arr[j];
           arr[j] = q;
-        } 
-      } 
-    } 
+        }
+      }
+    }
   }
 }
 
@@ -235,7 +237,7 @@ void sortAndShow(const String& directoryName) {
   bool     error = false;
   uint32_t file_size;
   uint16_t frame_sz = NUM_LEDS * 3 + 1;
-    
+
   for (uint8_t x = 0; x < countFiles; x++) {
     String fileName(directoryName); fileName += '/'; fileName += nameFiles[x]; fileName += ".out";
     
@@ -251,7 +253,7 @@ void sortAndShow(const String& directoryName) {
       nameFiles[x] = "";
       continue;
     }
-    
+
     file_size = fxdata.size();
     fxdata.close();
 
@@ -260,8 +262,8 @@ void sortAndShow(const String& directoryName) {
     String s_fsize = fileSizeToString(file_size);
     s_fsize = padLeft(s_fsize, 10);
 
-    DEBUG("   "); 
-    DEBUG(padRight(nameFiles[x],16));
+    DEBUG("   ");
+    DEBUG(padRight(nameFiles[x], 16));
     if (cnt == 0) {
       s_fsize += ", "; s_fsize += frames; s_fsize += F(" кадр.");
       DEBUG(padRight(s_fsize, 29));
@@ -334,14 +336,14 @@ void sdcardRoutine() {
           file_idx = 0;
         } else if (countFiles == 2) {
           file_idx = (file_idx != 1) ? 0 : 1;
-        } else if (currentFile == -1) {  
+        } else if (currentFile == -1) {
           // Последовательный перебор файлов с SD-карты
           if (sf_file_idx < 0) sf_file_idx = 0;
           if (sf_file_idx >= countFiles) sf_file_idx = countFiles - 1;
           file_idx = sf_file_idx;
         } else {
           // Случайный с SD-карты
-          file_idx = random16(0,countFiles);
+          file_idx = random16(0, countFiles);
           if (file_idx >= countFiles) file_idx = countFiles - 1;
         }
       } else {
@@ -377,35 +379,35 @@ void sdcardRoutine() {
     doc.clear();
     doc["act"] = F("SDCARD");
     if (error) {
-      doc["result"] = F("ERROR");  
+      doc["result"] = F("ERROR");
     } else {
       doc["result"] = F("OK");
     }
     doc["file"] = fileName;
-    
+
     String out;
-    serializeJson(doc, out);    
+    serializeJson(doc, out);
     doc.clear();
 
     SendWeb(out, TOPIC_SDC);
 
     FastLED.clear();
-  }  
+  }
 
   // Карта присутствует и файл открылся правильно?
   // Что-то пошло не так - перейти к следующему эффекту
   if (!(isSdCardReady && fxdata)) {
     if (fxdata) fxdata.close();
     nextMode();
-    return;    
+    return;
   }
-      
+
   if (fxdata.available()) {
     char tmp;
-    fxdata.readBytes(&tmp, 1); // ??? какой-то байт в начале последовательности - отметка начала кадра / номер канала кадрового потока, передаваемого на устройство ???
+    fxdata.readBytes(&tmp, 1);  // ??? какой-то байт в начале последовательности - отметка начала кадра / номер канала кадрового потока, передаваемого на устройство ???
     char* ptr = reinterpret_cast<char*>(&leds[0]);
-    int16_t cnt = fxdata.readBytes(ptr, NUM_LEDS * 3); // 3 байта на цвет RGB
-    play_file_finished = (cnt != NUM_LEDS * 3);    
+    int16_t cnt = fxdata.readBytes(ptr, NUM_LEDS * 3);  // 3 байта на цвет RGB
+    play_file_finished = (cnt != NUM_LEDS * 3);
   } else {
     play_file_finished = true;
   }
@@ -414,7 +416,7 @@ void sdcardRoutine() {
     DEBUG("'"); DEBUG(fileName); DEBUGLN(F("' - завершено"));
     fxdata.close();
     fileName.clear();
-    
+
     /*
     if (currentFile >= 0) {
       currentFile++; 

@@ -1568,12 +1568,12 @@ void drawCalendar() {
       } else {
 
         // Разделительная точка между числом и месяцем
-        drawPixelXY(getClockX(calendarX_DT1_pos), calendarY_D01_pos + 1, clockLED[2]);
+        //drawPixelXY(getClockX(calendarX_DT1_pos), calendarY_D01_pos + 1, clockLED[2]);
         drawPixelXY(getClockX(calendarX_DT1_pos), calendarY_D01_pos, clockLED[2]);
 
         // Разделительная точка между месяцем и годом
         if (calendarX_DT2_pos != -127) {
-          drawPixelXY(getClockX(calendarX_DT2_pos), calendarY_M10_pos + 1, clockLED[2]);
+          //drawPixelXY(getClockX(calendarX_DT2_pos), calendarY_M10_pos + 1, clockLED[2]);
           drawPixelXY(getClockX(calendarX_DT2_pos), calendarY_M10_pos, clockLED[2]);
         }
 
