@@ -264,6 +264,11 @@ int8_t   secs = 0, aday = 1, amnth = 1;
 int16_t  ayear = 1970;
 bool     dotFlag;                           // флаг: в часах рисуется точки 
 
+int8_t   lastClockX, lastClockW;
+int8_t   lastCalendarX, lastCalendarW;
+int8_t   lastTemperatureX, lastTemperatureW;
+bool     validClockX, validCalendarX, validTemperatureX;
+
 // ************************ НАСТРОЙКИ БЕГУЩЕЙ СТРОКИ ***********************
 
 #define D_TEXT_SPEED 200                    // скорость перемещения бегущей строки по умолчанию (мс)

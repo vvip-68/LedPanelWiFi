@@ -300,27 +300,43 @@ void doEffectWithOverlay(uint8_t aMode) {
 
     // Смещение движущихся часов - движется центр отображения, для часов - позиция по разделительным точкам ЧЧ:MM,
     // для календаря - точка разделения ДД.ММ
-    if ( clockReady && debug_hours < 0) {
+    if (clockReady && debug_hours < 0) {
       CLOCK_MOVE_CNT--;
       if (CLOCK_MOVE_CNT <= 0) {
         CLOCK_XC--;
         CLOCK_MOVE_CNT = CLOCK_MOVE_DIVIDER;
-        
-        // Взять максимальную ширину из блока часов или календаря
-        // Если правый край часов/календаря ушел за левый край матрицы - считать снова с правого края матрицы
-        uint8_t width = max( clockW, calendarW);
+
+        int16_t minX = validClockX ? lastClockX : (validCalendarX ? lastCalendarX : (validTemperatureX ? lastTemperatureX : -9999));
+        int16_t maxX = validClockX ? lastClockX + lastClockW : (validCalendarX ? lastCalendarX + lastCalendarW : (validTemperatureX ? lastTemperatureX + lastTemperatureW : -9999));
+
+        if (validClockX) {
+          minX = min(minX, (int16_t)lastClockX);
+          maxX = max(maxX, (int16_t)(lastClockX + lastClockW));
+        }
+        if (validCalendarX) {
+          minX = min(minX, (int16_t)lastCalendarX);
+          maxX = max(maxX, (int16_t)(lastCalendarX + lastCalendarW));
+        }
         #if (USE_WEATHER == 1)
-        if (useWeather > 0 && init_weather && weather_ok) width = max(width, temperatureW);
+        if (validTemperatureX) {
+          minX = min(minX, (int16_t)lastTemperatureX);
+          maxX = max(maxX, (int16_t)(lastTemperatureX + lastTemperatureW));
+        }
         #endif
-        if (CLOCK_XC < 0) {
-          if (vDEVICE_TYPE == 0) {
-            CLOCK_XC = pWIDTH - 1;
-          } else {
-            if (CLOCK_XC + width / 2 < 0) {
-              CLOCK_XC = pWIDTH + width / 2 - 1;
+
+        int16_t width = 0;
+        if (minX != -9999) {
+          width = maxX - minX + 1;
+          if (CLOCK_XC < 0) {
+            if (vDEVICE_TYPE == 0) {
+              CLOCK_XC = pWIDTH - 1;
+            } else {
+              if (CLOCK_XC + width / 2 < 0) {
+                CLOCK_XC = pWIDTH + width / 2 + 1;
+              }
             }
           }
-        }           
+        }
       }
     }
 
@@ -431,10 +447,11 @@ void doEffectWithOverlay(uint8_t aMode) {
     //                           b3b2 - отображение температуры 00 - под часами, 01 - справа от часов; 10 - зарезервировано; 11 - произвольно
 
     // Как отображать температуру? 0 - под часами 1 - справа от часов 3 - произвольно
-    uint8_t temp_place = (clock_show_variant >> 2) & 0x03;
     uint8_t cald_place = clock_show_variant & 0x03;
 
     #if (USE_WEATHER == 1)
+    uint8_t temp_place = (clock_show_variant >> 2) & 0x03;
+
     if (needShowTemperature && temp_place != 3) {
       // Если часы вертикальные - они не могут отображаться вместе с температурой - часы отключить
       if (needShowClock && CLOCK_ORIENT == 1) needShowClock = false;
@@ -463,34 +480,42 @@ void doEffectWithOverlay(uint8_t aMode) {
           // Снли позиция правого края часов и температуры не совпадают - сдвинуть часы еще на позицию вправо
           while (clockX + clockW > temperatureX + temperatureW) shiftTemperaturePosition(1, 0);
           while (clockX + clockW < temperatureX + temperatureW) shiftClockPosition(1, 0);
+
         } else {
+
           // Температура одновременно с часами, температура СПРАВА ОТ ЧАСОВ
           // Изначально и часы и температура находятся по центру матрицы.
           // Нужно разнести их так, чтобы левый край температуры через 2 столбца был присоединен к правому краю часов
-          // Затем объединенный прямоугольник центрировать, затем - сдвинуть по clockOffsetX и clockOffsetY
-          int8_t shiftXt =  clockX + clockW - temperatureX + 2;
+          // Затем объединенный прямоугольник центрировать относительно текущей позиции CLOCK_XC, затем - сдвинуть по clockOffsetX и clockOffsetY          
+
           // Размеры нового объединенного прямоугольника часов и погоды 
           int8_t newW = clockW + temperatureW + 2;
-          // Смещение от краев для центрирования середины прямоугольника относительно матрицы
-          int8_t offset = (pWIDTH - newW) / 2;
-          // Для центрирования нужно сдвинуть оба прямоугольника и часов и матрицы на
-          int8_t shift = clockX - offset;
-          shiftClockPosition(clockOffsetX - shift, clockOffsetY);                   CLOCK_X += (clockOffsetX - shift);
-          shiftTemperaturePosition(clockOffsetX - shift + shiftXt, clockOffsetY);   TEMP_X  += (clockOffsetX - shift + shiftXt);
+          int8_t shiftClockX = (newW - clockW) / 2;
+          int8_t newClockX = clockX - shiftClockX;
+          int8_t newTempX = newClockX + clockW + 2;
+          int8_t shiftTempX = newTempX - temperatureX;
+      
+          shiftClockPosition(clockOffsetX - shiftClockX, clockOffsetY);         CLOCK_X += (clockOffsetX - shiftClockX);
+          shiftTemperaturePosition(clockOffsetX + shiftTempX, clockOffsetY);    TEMP_X  += (clockOffsetX + shiftTempX);
+
         }
 
       } else {
+
         // Если температура отображается, а часы нет - отобразить температуру по центру области часов.
         shiftTemperaturePosition(clockOffsetX, clockOffsetY);                       TEMP_X  += clockOffsetX;
+
       }
+   
       isClockPlacementCompleted = true;
+
       // Если в данном режиме отображается температура - и для календаря указано "на месте часов" - календарь не может отображаться - место занято.
       // Для правильной непротиворечивой последовательности нужн пойти в настройки цикла и там все непротиворечиво настроить
       if (needShowCalendar && cald_place != 3) needShowCalendar = false;
     }
     #endif
 
-   // Если задано смещение часов по оси X,Y  - сдвинуть вычисленные позиции отображения
+    // Если задано смещение часов по оси X,Y  - сдвинуть вычисленные позиции отображения
     if (needShowClock && !isClockPlacementCompleted) {
       shiftClockPosition(clockOffsetX, clockOffsetY);                               CLOCK_X += clockOffsetX;
       isClockPlacementCompleted = true;
@@ -532,7 +557,9 @@ void doEffectWithOverlay(uint8_t aMode) {
 
     bool isClockOverlayGot = false;
     bool isCalendarOverlayGot = false;
+    #if (USE_WEATHER == 1)      
     bool isTemperatureOverlayGot = false;
+    #endif
     bool isTextOverlayGot = false;
 
     // Сохранить оверлей - область узора на экране поверх которого будут выведены часы / температура / календарь 
@@ -571,6 +598,16 @@ void doEffectWithOverlay(uint8_t aMode) {
     if (isCalendarOverlayGot) restoreCalendarOverlay();
     #if (USE_WEATHER == 1)
     if (isTemperatureOverlayGot) restoreTemperatureOverlay();
+    #endif
+
+    validClockX = needShowClock;
+    validCalendarX = needShowCalendar;
+    validTemperatureX = needShowTemperature;
+
+    lastClockX = clockX; lastClockW = clockW;
+    lastCalendarX = calendarX; lastCalendarW = calendarW;
+    #if (USE_WEATHER == 1)
+    lastTemperatureX = temperatureX; lastTemperatureW = temperatureW;
     #endif
   }  
 }
