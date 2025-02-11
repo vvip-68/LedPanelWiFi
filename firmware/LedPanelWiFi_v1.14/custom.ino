@@ -394,6 +394,10 @@ void doEffectWithOverlay(uint8_t aMode) {
       needShowCalendar    = (((clock_cycle_F1 & 0xF0) >> 4) & (0x01 << clock_cycle_phase)) != 0;
       needShowTemperature = ((clock_cycle_F2 & 0x0F) & (0x01 << clock_cycle_phase)) != 0;
 
+      #if (USE_WEATHER == 1)
+      if (needShowTemperature) needShowTemperature = useWeather > 0 && init_weather && weather_ok;
+      #endif
+      
       // Если сейчас отображается бегущая строка - проверить - должны ли часы / календарь / температура отображаться во время бегущей строки
       // hide_on_text_running - флаги: скрывать при бегущей строке b0 - часы  b1 - календарь  b2 - температуру
       if (showTextNow) {

@@ -1763,27 +1763,27 @@ void clockTicker() {
           }
         }
       } else {
-// Время получено - отображать часы:минуты
-#if (USE_WEATHER == 1)
-        if (useWeather > 0 && init_weather && weather_ok && (((second() + 10) % 30) >= 28)) {
-          int8_t th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
-          uint8_t t = abs(th);
-          uint8_t atH = t / 10;
-          uint8_t atL = t % 10;
-          currDotState = false;  // display->point(false);
-          if (atH == 0) {
-            currDisplay[0] = _empty;  // display->displayByte(_empty, (th >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
-            currDisplay[1] = (th >= 0) ? _empty : _dash;
-            currDisplay[2] = display->encodeDigit(atL);
-            currDisplay[3] = _degree;
-          } else {
-            currDisplay[0] = (th >= 0) ? _empty : _dash;  // display->displayByte((th >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
-            currDisplay[1] = display->encodeDigit(atH);
-            currDisplay[2] = display->encodeDigit(atL);
-            currDisplay[3] = _degree;
-          }
-        } else
-#endif
+        // Время получено - отображать часы:минуты
+        #if (USE_WEATHER == 1)
+          if (useWeather > 0 && init_weather && weather_ok && (((second() + 10) % 30) >= 28)) {
+            int8_t th = (isFarenheit ? (round(temperature * 9 / 5) + 32) : temperature);
+            uint8_t t = abs(th);
+            uint8_t atH = t / 10;
+            uint8_t atL = t % 10;
+            currDotState = false;  // display->point(false);
+            if (atH == 0) {
+              currDisplay[0] = _empty;  // display->displayByte(_empty, (th >= 0) ? _empty : _dash, display->encodeDigit(atL), _degree);
+              currDisplay[1] = (th >= 0) ? _empty : _dash;
+              currDisplay[2] = display->encodeDigit(atL);
+              currDisplay[3] = _degree;
+            } else {
+              currDisplay[0] = (th >= 0) ? _empty : _dash;  // display->displayByte((th >= 0) ? _empty : _dash, display->encodeDigit(atH), display->encodeDigit(atL), _degree);
+              currDisplay[1] = display->encodeDigit(atH);
+              currDisplay[2] = display->encodeDigit(atL);
+              currDisplay[3] = _degree;
+            }
+          } else
+        #endif
         {
           uint8_t hh = hour();
           if (time_h12) {
