@@ -190,6 +190,7 @@
           margin-left: auto;
           height: 72px;
           color: var(--app-foreground-color);
+          white-space: nowrap;
 
           &.disabled {
             color: var(--button-disabled-color);

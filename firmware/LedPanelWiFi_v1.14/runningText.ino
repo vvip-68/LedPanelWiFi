@@ -489,7 +489,7 @@ bool drawLetter(uint8_t index, uint8_t letter, uint8_t modif, int16_t offset, ui
 // интерпретатор кода символа в массиве fontHEX (для Arduino IDE 1.8.* и выше)
 int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
   font = font - '0' + 16;   // перевод код символа из таблицы ASCII в номер согласно нумерации массива    
-
+ 
   //DEBUGLN("modif=" + String(modif) + "; font=" + String(font));
 
   if (font <= 94) {
@@ -519,7 +519,7 @@ int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
       case 129: return read_char(&(fontHEX[166][row]));                              // Знак ¡
       case 144: return read_char(&(fontHEX[159][row]));                              // Знак градуса '°'
       case 150: return read_char(&(fontHEX[165][row]));                              // Знак евро '€' - реально '¶' - замена в runningText(), т.к. работает с оно-двух-байтовыми символами UTF-8, а евро - 4 байта, что ломает алгоритм
-      case 159: return read_char(&(fontHEX[167 ][row]));                             // Знак ¿
+      case 159: return read_char(&(fontHEX[167][row]));                              // Знак ¿
     }    
   } else if (modif == 195) {
     switch (font) {
@@ -548,6 +548,9 @@ int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
       switch (font) {
         case  96: return read_char(&(fontHEX[33][row])); //Ā 196    96  -     33
         case  97: return read_char(&(fontHEX[65][row])); //ā 196    97  -     65
+        case 100: return read_char(&(fontHEX[33][row])); //Ą 196   100  -     33 
+        case 102: return read_char(&(fontHEX[35][row])); //Ć 196   102  -     35 
+        case 103: return read_char(&(fontHEX[67][row])); //ć 196   103  -     67 
         case 114: return read_char(&(fontHEX[37][row])); //Ē 196   114  -     37
         case 115: return read_char(&(fontHEX[69][row])); //ē 196   115  -     69
         case 138: return read_char(&(fontHEX[41][row])); //Ī 196   138  -     41
@@ -565,25 +568,34 @@ int32_t getFont(uint8_t font, uint8_t modif, uint8_t row) {
       switch (font) {
         case 138: return read_char(&(fontHEX[53][row])); //Ū 197   138  -     53
         case 139: return read_char(&(fontHEX[85][row])); //ū 197   139  -     85
+        case  97: return read_char(&(fontHEX[168][row]));//Ł 197   99   -    168
+        case  98: return read_char(&(fontHEX[76][row])); //ł 197   99   -     76
+        case  99: return read_char(&(fontHEX[46][row])); //Ń 197   99   -     46
+        case 100: return read_char(&(fontHEX[78][row])); //ń 197   100  -     78
         case 101: return read_char(&(fontHEX[46][row])); //Ņ 197   101  -     46
         case 102: return read_char(&(fontHEX[78][row])); //ņ 197   102  -     78
+        case 122: return read_char(&(fontHEX[51][row])); //Ś 197   122  -     51
+        case 123: return read_char(&(fontHEX[83][row])); //ś 197   123  -     83
+        case 153: return read_char(&(fontHEX[58][row])); //Ź 197   153  -     58 
+        case 154: return read_char(&(fontHEX[90][row])); //ź 197   154  -     90
+        case 155: return read_char(&(fontHEX[58][row])); //Ż 197   155  -     58 
+        case 156: return read_char(&(fontHEX[90][row])); //ż 197   156  -     90
       }
     }
     switch (font) {
-      case 100: return read_char(&(fontHEX[33][row])); //Ą 196   100  -     33
       case 108: return read_char(&(fontHEX[35][row])); //Č 196   108  -     35
-      case 120: return read_char(&(fontHEX[37][row])); //Ę 196   120  -     37
-      case 118: return read_char(&(fontHEX[37][row])); //Ė 196   118  -     37
-      case 142: return read_char(&(fontHEX[41][row])); //Į 196   142  -     41
-      case 128: return read_char(&(fontHEX[51][row])); //Š 197   128  -     51
-      case 146: return read_char(&(fontHEX[53][row])); //Ų 197   146  -     53
-      case 157: return read_char(&(fontHEX[58][row])); //Ž 197   157  -     58
       case 109: return read_char(&(fontHEX[67][row])); //č 196   109  -     67  
-      case 121: return read_char(&(fontHEX[69][row])); //ę 196   121  -     69
+      case 118: return read_char(&(fontHEX[37][row])); //Ė 196   118  -     37
       case 119: return read_char(&(fontHEX[69][row])); //ė 196   119  -     69
-      case 143: return read_char(&(fontHEX[73][row])); //į 196   143  -     73
+      case 120: return read_char(&(fontHEX[37][row])); //Ę 196   120  -     37
+      case 121: return read_char(&(fontHEX[69][row])); //ę 196   121  -     69
+      case 128: return read_char(&(fontHEX[51][row])); //Š 197   128  -     51
       case 129: return read_char(&(fontHEX[83][row])); //š 197   129  -     83
+      case 142: return read_char(&(fontHEX[41][row])); //Į 196   142  -     41
+      case 143: return read_char(&(fontHEX[73][row])); //į 196   143  -     73
+      case 146: return read_char(&(fontHEX[53][row])); //Ų 197   146  -     53
       case 147: return read_char(&(fontHEX[85][row])); //ų 197   147  -     85
+      case 157: return read_char(&(fontHEX[58][row])); //Ž 197   157  -     58
       case 158: return read_char(&(fontHEX[90][row])); //ž 197   158  -     90
     }
   }
@@ -601,6 +613,7 @@ uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
     // 6 - Á - ударение над буквами Á, É, Í, Ó, Ú, á, é, í, ó, ú - по центру буквы    
     // 7 - Ñ - тильда над буквой Ñ  - по центру буквы    
     // 8 - Ģ - запятая под буквами Ģ, Ķ, Ļ, Ņ - по центру буквы    
+    // 9 - Ł - польское перечеркивание в буквах Ł, ł
   if ((modif == 208 && font == 97) || (modif == 195 && (font == 100 || font == 118 || font == 124))) {         // Ё, немец. Ä,Ö,Ü
     return read_char(&(diasHEX[0][row])); 
   } else if ((modif == 209 && font == 113) || (modif == 195 && (font == 132 || font == 150 || font == 156))) { // ё, немец. ä,ö,ü
@@ -626,13 +639,17 @@ uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
       switch (font) {
         case  96: return read_char(&(diasHEX[3][row])); //Ā 196    96  -     37
         case  97: return read_char(&(diasHEX[3][row])); //ā 196    97  -     37
+        case 100: return read_char(&(diasHEX[4][row])); //Ą 196   100  -     65
+        case 101: return read_char(&(diasHEX[4][row])); //ą 196   101  -     65
+        case 102: return read_char(&(diasHEX[6][row])); //Ć 196   102  -     35
+        case 103: return read_char(&(diasHEX[6][row])); //ć 196   103  -     67
         case 114: return read_char(&(diasHEX[3][row])); //Ē 196   114  -     37
         case 115: return read_char(&(diasHEX[3][row])); //ē 196   115  -     69
-        case 138: return read_char(&(diasHEX[3][row])); //Ī 196   138  -     41
-        case 139: return read_char(&(diasHEX[3][row])); //ī 196   139  -     73      
-        case 101: return read_char(&(diasHEX[4][row])); //ą 196   101  -     65
+        case 121: return read_char(&(diasHEX[5][row])); //ę 196   121  -     69
         case 130: return read_char(&(diasHEX[8][row])); //Ģ 196   130  -     39
         case 131: return read_char(&(diasHEX[6][row])); //ģ 196   131  -     71
+        case 138: return read_char(&(diasHEX[3][row])); //Ī 196   138  -     41
+        case 139: return read_char(&(diasHEX[3][row])); //ī 196   139  -     73      
         case 150: return read_char(&(diasHEX[8][row])); //Ķ 196   150  -     43
         case 151: return read_char(&(diasHEX[8][row])); //ķ 196   151  -     75
         case 155: return read_char(&(diasHEX[8][row])); //Ļ 196   155  -     44
@@ -641,14 +658,24 @@ uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
     }  
     if (modif == 197) {
       switch (font) {
-        case 138: return read_char(&(diasHEX[3][row])); //Ū 197   138  -     53
-        case 139: return read_char(&(diasHEX[3][row])); //ū 197   139  -     85      
+        case  97: return read_char(&(diasHEX[10][row]));//Ł 197    97  -     44
+        case  98: return read_char(&(diasHEX[9][row])); //ł 197    98  -     76
+        case  99: return read_char(&(diasHEX[6][row])); //Ń 197    99  -     46
+        case 100: return read_char(&(diasHEX[6][row])); //ń 197   100  -     78 
         case 101: return read_char(&(diasHEX[8][row])); //Ņ 197   101  -     46
         case 102: return read_char(&(diasHEX[8][row])); //ņ 197   102  -     78
+        case 121: return read_char(&(diasHEX[4][row])); //ę 196   121  -     69
+        case 122: return read_char(&(diasHEX[6][row])); //Ś 197   122  -     51
+        case 123: return read_char(&(diasHEX[6][row])); //ś 197   123  -     83
+        case 138: return read_char(&(diasHEX[3][row])); //Ū 197   138  -     53
+        case 139: return read_char(&(diasHEX[3][row])); //ū 197   139  -     85      
+        case 153: return read_char(&(diasHEX[6][row])); //Ź 197   153  -     58
+        case 154: return read_char(&(diasHEX[6][row])); //ź 197   154  -     90
+        case 155: return read_char(&(diasHEX[2][row])); //Ż 197   155  -     58
+        case 156: return read_char(&(diasHEX[2][row])); //ż 197   156  -     90
       }
     }
     switch (font) {
-      case 100: return read_char(&(diasHEX[4][row])); //Ą 196   100  -     33 
       case 108: return read_char(&(diasHEX[1][row])); //Č 196   108  -     35
       case 120: return read_char(&(diasHEX[4][row])); //Ę 196   120  -     37
       case 118: return read_char(&(diasHEX[2][row])); //Ė 196   118  -     37
@@ -657,7 +684,6 @@ uint16_t getDiasByte(uint8_t font, uint8_t modif, uint8_t row) {
       case 146: return read_char(&(diasHEX[5][row])); //Ų 197   146  -     53
       case 157: return read_char(&(diasHEX[1][row])); //Ž 197   157  -     58
       case 109: return read_char(&(diasHEX[1][row])); //č 196   109  -     67  
-      case 121: return read_char(&(diasHEX[4][row])); //ę 196   121  -     69
       case 119: return read_char(&(diasHEX[2][row])); //ė 196   119  -     69
       case 143: return read_char(&(diasHEX[5][row])); //į 196   143  -     73
       case 129: return read_char(&(diasHEX[1][row])); //š 197   129  -     83
@@ -719,6 +745,9 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
         switch (font) {
           case  96: return  3; //Ā 196    96
           case  97: return  1; //ā 196    97
+          case 100: return -1; //Ą 196   100
+          case 102: return  2; //Ć 196   102
+          case 103: return  1; //ć 196   103
           case 114: return  3; //Ē 196   114
           case 115: return  1; //ē 196   115
           case 101: return -1; //ą 196   101
@@ -732,12 +761,21 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
       }
       if (modif == 197) {
         switch (font) {
+          case  97: return  0; //Ł 197    97
+          case  98: return  0; //ł 197    98
+          case  99: return  2; //Ń 197    99
+          case 100: return  1; //ń 197   100
           case 101: return -1; //Ņ 197   101
           case 102: return -1; //ņ 197   102
+          case 122: return  2; //Ś 197   122
+          case 123: return  1; //ś 197   123
+          case 153: return  2; //Ź 197   153
+          case 154: return  1; //ź 197   154
+          case 155: return  3; //Ż 197   155
+          case 156: return  1; //ż 197   156
         }
       }
       switch (font) {
-        case 100: return -1; //Ą 196   100
         case 108: return  2; //Č 196   108
         case 120: return -1; //Ę 196   120
         case 118: return  3; //Ė 196   118
@@ -760,6 +798,9 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
         switch (font) {
           case  96: return  3; //Ā 196    96
           case  97: return  1; //ā 196    97
+          case 100: return -1; //Ą 196   100
+          case 102: return  3; //Ć 196   102
+          case 103: return  0; //ć 196   103
           case 114: return  3; //Ē 196   114
           case 115: return  0; //ē 196   115
           case 101: return -1; //ą 196   101
@@ -773,12 +814,21 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
       }
       if (modif == 197) {
         switch (font) {
+          case  97: return  0; //Ł 197    97
+          case  98: return  0; //ł 197    98
+          case  99: return  3; //Ń 197    99
+          case 100: return  0; //ń 197   100
           case 101: return -1; //Ņ 197   101
           case 102: return -1; //ņ 197   102
+          case 122: return  3; //Ś 197   122
+          case 123: return  0; //ś 197   123
+          case 153: return  3; //Ź 197   153
+          case 154: return  0; //ź 197   154
+          case 155: return  3; //Ż 197   155
+          case 156: return  0; //ż 197   156
         }
       }
       switch (font) {
-        case 100: return -1; //Ą 196   100
         case 108: return  3; //Č 196   108
         case 120: return -1; //Ę 196   120
         case 118: return  3; //Ė 196   118
