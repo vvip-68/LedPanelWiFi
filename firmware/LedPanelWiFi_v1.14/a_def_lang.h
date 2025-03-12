@@ -407,7 +407,6 @@
   
   #endif
 
-
   // List of animation names. Animations are defined in file 'animation.ino'
   #define LANG_IMAGE_LIST_DEF
   static const char LANG_IMAGE_LIST[] PROGMEM = 
@@ -1203,6 +1202,7 @@
   static const char textLine_Y[] PROGMEM = "Pacelieties {P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "Labrīt!";
   #endif
+
   // Darbības rezultātu virknes un daži citi ziņojumi, ko pārraida
   // no programmaparatūras uz tīmekļa lietojumprogrammu, lai parādītu
   static const char MSG_FILE_DELETED[] PROGMEM = "Izdzēsts fails";
@@ -1238,168 +1238,168 @@
 
 // ============================================== POL ============================================== 
 
-#if (LANG == 'POL')
-  #define UI F("POL")
+#if (LANG == 'POL') 
+  #define UI F("POL") 
   
-  // Список и порядок эффектов, передаваемый в Web-интерфейс. 
-  // Порядок имен эффектов в списке должен соответствовать списку эффектов, определенному в файле a_def_soft.h 
-  // в строках, начиная с 89. Данный список передается в Web-клиент, для чего требуется буфер. Буфер имеет размер MAX_BUFFER_SIZE
-  // Если даннвя строка (UTF-8, два байта на символ) не влезет в буфер - эффекты не будут переданы в Web-интерфейс, плашки эффектов будут отсутствовать,
-  // в логах браузера будет строчка
-  //  {"e": "stt","d": "{\"LE\":null}"}
-  //  json='{"LE":null}'
-  // В этом случае нужно либо сокращать имена эффектов, либо увеличивать размер буфера. Но увеличение размера буфера может привести к нехватки памяти
-  // и нестабильной работе прошивки на ESP8266. На ESP32 памяти больше - размер буфера можно увеличиватью
+  // Lista i kolejność efektów przekazywanych do interfejsu internetowego. 
+  // Kolejność nazw efektów na liście musi odpowiadać kolejności efektów zdefiniowanych w pliku a_def_soft.h 
+  // w wierszach zaczynających się od 89. Lista ta jest przekazywana do klienta internetowego, który wymaga bufora. Bufor ma rozmiar MAX_BUFFER_SIZE 
+  // Jeśli ten ciąg (UTF-8, dwa bajty na znak) nie zmieści się w buforze, efekty nie zostaną przesłane do interfejsu internetowego, paski efektów będą brakować, 
+  // logi przeglądarki będą zawierać wiersz
+  // {"e": "stt","d": "{\"LE\":null}"} 
+  // json='{"LE":null}' 
+  // W tym przypadku należy albo skrócić nazwy efektów, albo zwiększyć rozmiar bufora. Jednak zwiększenie rozmiaru bufora może prowadzić do niedoboru pamięci 
+  // i niestabilnej pracy oprogramowania sprzętowego w ESP8266. ESP32 ma więcej pamięci — rozmiar bufora można zwiększyć 
 
-  static const char EFFECT_LIST[] PROGMEM =
-    "Zegar,Lampa,Opady śniegu,Sześcian,Tęcza,Paintball,Ogień,The Matrix,Robaczek,Starfall,Confetti," 
-    "Kolorowy szum,Obłok,Lawa,Osocze,Benzyna na wodzie,Paulin,Zebra,Szumiący Las,Morskie surfowanie,Zmiana koloru," 
-    "Świetlik,Wir,Cyklon,Migotanie,Zorza polarna,Cień,Błędnik,Wężyk,Tetris,Arkanoid," 
-    "Paleta,Spectrum,Sinusoida,Haftanka,Deszcz,Kominek,Strzałka,Wzór,Kostka Rubika,Gwiazda,Zasłona,Ruch drogowy,Zorza,Strumień,Salut,Pas"
+  static const char EFFECT_LIST[] PROGMEM = 
+    "Zegar, Lampa, Opady śniegu, Kostka, Tęcza, Paintball, Ogień, Matrix, Robaki, Spadające gwiazdy, Konfetti," 
+    "Kolorowy szum, Chmury, Lawa, Plazma, Benzyna na wodzie, Paw, Zebra, Szumiący Las, Fale morskie, Zmiana koloru," 
+    "Świetliki, Wir, Cyklon, Migotanie, Zorza polarna, Cienie, Labirynt, Wąż, Tetris, Arkanoid," 
+    "Paleta, Widmo, Sinusoida, Haftowana koszula, Deszcz, Kominek, Strzałki, Wzory, Rubik, Gwiazdy, Zasłona, Ruch uliczny, Świt, Strumień, Fajerwerki, Paski" 
 
-  // Эффекты Анимации, Погоды, Слайды и SD-карта могут быть отключены условиями USE_ANIMATION = 0 и USE_SD = 0
-  // Список эффектов передается в WebUI позиционно: эффект "Часы" имеют ID=0, эффект "SD-карта" имеет ID=47 (см. определение в a_def_soft.h)
-  // При включении на стороне WebUI в контроллер передается ID (точнее позиция эффекта в списке). 
-  // Чтобы при отключении например "Анимациия","Погода","Слайды" не было смещения - нумерации эффектов вместо отсутствующих передается пустая строка
-  // Тогда при получении списка WebUI пропустит пустые эффекты, но позиции останутся правильными и эффект "SD-карта" будет иметь ID=47, а не 44
+  // Efekty Animacje, pogodę, slajdy i kartę SD można wyłączyć, spełniając warunki USE_ANIMATION = 0 i USE_SD = 0 
+  // Lista efektów jest przekazywana do WebUI pozycyjnie: efekt „Zegar” ma ID=0, efekt „Karta SD” ma ID=47 (zobacz definicję w a_def_soft.h) 
+  // Po włączeniu po stronie WebUI, ID (a dokładniej pozycja efektu na liście) jest przekazywane do kontrolera. 
+  // Tak, że przy wyłączaniu np. „Animacji”, „Pogody”, „Slajdów” nie następuje przesunięcie - do numeracji efektów przekazywany jest pusty ciąg zamiast brakujących 
+  // Wtedy przy odbieraniu listy WebUI pominie puste efekty, ale pozycje pozostaną poprawne, a efekt „Karta SD” będzie miał ID=47, a nie 44 
   
-  #if (USE_ANIMATION == 1)
-    ",Animacja,Pogoda,Diapozytyw"
-  #else  
-    ",,,"
-  #endif
+  #if (USE_ANIMATION == 1) 
+    ",Animacja,Pogoda,Slajdy" 
+  #else   
+    ",,," 
+  #endif 
   
-  #if (USE_SD == 1)   
-    ",Karta SD"
-  #else  
-    ","
-  #endif
-  ;                 // <-- эта точка с запятой закрывает оператор static const char EFFECT_LIST[] PROGMEM =
+  #if (USE_SD == 1)    
+    ",Karta SD" 
+  #else   
+    "," 
+  #endif 
+  ; // <-- ten średnik zamyka instrukcję static const char EFFECT_LIST[] PROGMEM = 
 
-  // ****************** ОПРЕДЕЛЕНИЯ ПАРАМЕТРОВ БУДИЛЬНИКА ********************
+  // ******************** DEFINICJE PARAMETRÓW ALARMU ******************** 
   
   #if (USE_MP3 == 1)
-  // SD карточка в MP3 плеере (DFPlayer) содержит в корне три папки - "01","02" и "03"
-  // Папка "01" содержит MP3 файлы звуков, проигрываемых при наступлении события будильника
-  // Папка "02" содержит MP3 файлы звуков, проигрываемых при наступлении события рассвета
-  // Папка "03" содержит MP3 файлы звуков, проигрываемых в макросе {A} бегущей строки
-  // DFPlayer не имеет возможности считывать имена файлов, только возможность получить количество файлов в папке.
-  // Команда на воспроизведение звука означает - играть файл с индексом (номером) N из папки M
-  // Номера файлов определяются таблицей размещения файлов SD-карты (FAT) и формируются в порядке очереди записи файлов на чистую флэшку
-  // Так, файл записанный в папку первым получает номер 1, второй - 2 и так далее и никак не зависит от имен файлов
-  // Данные массивы содержат отображаемые в приложении имена звуков в порядке, соответствующем нумерации записанных в папки файлов.
-  //
-  // Для формирования правильного порядка файлов звуков переименуйте их на компьютере во временной папке так, чтобы они 
-  // формировали нужный порядок, например - задайте им просто числовые имена вроде 001.mp3, 002.mp3 и так далее или 
-  // задайте числовой префикс существующему имени, например 01_birds.mpr, 02_thunder.mp3 и так далее
-  // Файлы в папке должны быть отсортированы в порядке имен.
-  // Далее создайте на чистой microSD-карте папку в которую будут помещены звуковые файлы и скопируйте их в 
-  // упорядоченном списке.
+  // Karta SD w odtwarzaczu MP3 (DFPlayer) zawiera trzy foldery w katalogu głównym - „01”, „02” i „03” 
+  // Folder „01” zawiera pliki MP3 dźwięków odtwarzanych po wystąpieniu zdarzenia alarmowego 
+  // Folder „02” zawiera pliki MP3 dźwięków odtwarzanych po wystąpieniu zdarzenia wschodu słońca 
+  // Folder „03” zawiera pliki MP3 dźwięków odtwarzanych w makrze {A} tickera 
+  // DFPlayer nie ma możliwości odczytu nazw plików, a jedynie możliwość uzyskania liczby plików w folderze.
+  // Polecenie odtworzenia dźwięku oznacza - odtwórz plik o indeksie (numerze) N z folderu M 
+  // Numery plików są określane przez tablicę alokacji plików (FAT) karty SD i są tworzone w kolejności kolejki nagrywania plików na czystym dysku flash 
+  // W ten sposób plik zapisany jako pierwszy do folderu otrzymuje numer 1, drugi - 2 itd. i nie zależy od nazw plików 
+  // Te tablice zawierają nazwy dźwięków wyświetlanych w aplikacji w kolejności odpowiadającej numeracji plików zapisanych w folderach.
+  // 
+  // Aby utworzyć prawidłową kolejność plików dźwiękowych, zmień ich nazwy na komputerze w folderze tymczasowym, aby 
+  // utwórz żądaną kolejność, na przykład - nadaj im po prostu nazwy numeryczne, takie jak 001.mp3, 002.mp3 itd. lub 
+  // nadaj numeryczny prefiks do istniejącej nazwy, na przykład 01_birds.mpr, 02_thunder.mp3 itd. 
+  // Pliki w folderze powinny być sortowane według kolejności nazw. 
+  // Następnie utwórz folder na czystej karcie microSD, w którym zostaną umieszczone pliki dźwiękowe i skopiuj je 
+  // w postaci uporządkowanej listy. 
   
-  // Список звуков для комбобокса "Звук будильника" в приложении на смартфоне
+  // Lista dźwięków dla pola kombi „Dźwięk alarmu” w aplikacji na smartfony 
   static const char ALARM_SOUND_LIST[] PROGMEM = 
-    "One Step Over,In the Death Car,Trąbka woła,Mayak,Mister Sandman,Kasetka,Banana Phone,Carol of the Bells";
+    "Jeden krok dalej, W samochodzie śmierci, Dzwoni trąbka, Latarnia morska, Pan Sandman, Pudełko, Telefon bananowy, Kolęda dzwonów"; 
   
-  // Список звуков для комбобокса "Звук рассвета" в приложении на смартфоне  
-  static const char DAWN_SOUND_LIST[] PROGMEM =
-    "Ptak,Burza,Fale przybrzeżne,Deszcz,Strumień,Mantra,La Petite Fille De La Mer";
+  // Lista dźwięków dla pola kombi „Dźwięk świtu” w aplikacji na smartfony   
+  static const char DAWN_SOUND_LIST[] PROGMEM = 
+    "Ptaki, Burza, Fale, Deszcz, Strumień, Mantra, La Petite Fille De La Mer"; 
   
-  // Список звуков для макроса {A} бегущей строки
+  // Lista dźwięków dla makra tickera {A} 
   static const char NOTIFY_SOUND_LIST[] PROGMEM = 
-    "Piece Of Сake,Swiftly,Pristine,Goes Without Saying,Inflicted,Eventually,Point Blank,Spring Board,"
-    "To The Point,Serious Strike,Jingle Bells,Happy New Year,Christmas Bells,Door Knock,Alarm Signal,"
-    "Viber Message,Viber Call,Text Message,Old Clock 1,Old Clock 2,Old Clock 3";
-  #endif
+    "Kawałek ciasta,Szybko,Nieskazitelny,Rozumie się samo przez się,Zadany,Ostatecznie,Zupełnie,Spring Board," 
+    "Do rzeczy,Poważne uderzenie,Dzwonki,Szczęśliwego Nowego Roku,Dzwonki świąteczne,Pukanie do drzwi,Sygnał alarmowy," 
+    "Wiadomość Viber,Połączenie Viber,Wiadomość tekstowa,Stary zegar 1,Stary zegar 2,Stary zegar 3"; 
+  #endif 
 
-  // Список названия анимаций. Анимации определены в файле 'animation.ino'
-  #define LANG_IMAGE_LIST_DEF
+  // Lista nazw animacji. Animacje są zdefiniowane w pliku 'animation.ino' 
+  #define LANG_IMAGE_LIST_DEF 
   static const char LANG_IMAGE_LIST[] PROGMEM = 
-    "Serce,Mario,Pogoda";
+    "Serce,Mario,Pogoda"; 
 
-  // Список названий узоров
+  // Lista nazw wzorów 
   static const char LANG_PATTERNS_LIST[] PROGMEM = 
-    "Zygzakiem,Nota,Romb,Serce,Choinka,Kratka,Emotikon,Zygzakiem,Linia,Fala,Łuska,Zasłona,Plecionka,Płatek śniegu,Kwadraciki,Grecja,Okrążenie,Baleron,"
-    "Wzórм 1,Wzór 2,Wzór 3,Wzór 4,Wzór 5,Wzór 6,Wzór 7,Wzór 8,Wzór 9,Wzór 10,Wzór 11,Wzór 12,Wzór 13,Wzór 14";
+    "Zygzak, Nuty, Diament, Serce, Choinka, Klatka, Buźka, Zygzak, Paski, Fale, Wagi, Zasłona, Warkocz, Płatek śniegu, Kwadraty, Grecja, Koła, Rolka," 
+    "Wzór 1, Wzór 2, Wzór 3, Wzór 4, Wzór 5, Wzór 6, Wzór 7, Wzór 8, Wzór 9, Wzór 10, Wzór 11, Wzór 12, Wzór 13, Wzór 14"; 
 
-  // Погодные условия от Yandex
-  static const char Y_CODE_01[] PROGMEM = "pochmurno z przejaśnieniami, lekki deszcz";             // cloudy, light rain
-  static const char Y_CODE_02[] PROGMEM = "pochmurno z przejaśnieniami, lekki śnieg";              // cloudy, light snow
-  static const char Y_CODE_03[] PROGMEM = "pochmurno z przejaśnieniami, lekki śnieg z deszczem";   // cloudy, wet snow
-  static const char Y_CODE_04[] PROGMEM = "zmienne zachmurzenie";                                  // partly cloudy
-  static const char Y_CODE_05[] PROGMEM = "zmienne zachmurzenie, deszcz";                          // partly cloudy, rain
-  static const char Y_CODE_06[] PROGMEM = "zmienne zachmurzenie, śnieg";                           // partly cloudy, show
-  static const char Y_CODE_07[] PROGMEM = "zmienne zachmurzenie, śnieg z deszczem";                // partly cloudy, wet snow
-  static const char Y_CODE_08[] PROGMEM = "zamieć";                                                // snowstorm
-  static const char Y_CODE_09[] PROGMEM = "mgła";                                                  // fog
-  static const char Y_CODE_10[] PROGMEM = "pochmurnie";                                            // overcast
-  static const char Y_CODE_11[] PROGMEM = "pochmurnie, lekki deszcz";                              // overcast, light rain 
-  static const char Y_CODE_12[] PROGMEM = "pochmurnie, lekki śnieg";                               // overcast, light snow
-  static const char Y_CODE_13[] PROGMEM = "pochmurnie, lekki deszcz śnieg z deszczem";             // overcast, wet snow 
-  static const char Y_CODE_14[] PROGMEM = "pochmurnie, deszcz";                                    // overcast, rain
-  static const char Y_CODE_15[] PROGMEM = "pochmurnie, śnieg z deszczem";                          // overcast, wet snow
-  static const char Y_CODE_16[] PROGMEM = "pochmurnie, śnieg";                                     // overcast, show
-  static const char Y_CODE_17[] PROGMEM = "pochmurnie, burza z deszczem";                          // overcast, thunderstorm with rain
-  static const char Y_CODE_18[] PROGMEM = "jasne";                                                 // clear
+  // Warunki pogodowe z Yandex 
+  static const char Y_CODE_01[] PROGMEM = "pochmurno z przejaśnieniami, lekki deszcz"; // pochmurno, lekki deszcz 
+  static const char Y_CODE_02[] PROGMEM = "cpochmurno z przejaśnieniami, lekki śnieg"; // pochmurno, lekki śnieg 
+  static const char Y_CODE_03[] PROGMEM = "pochmurno z przejaśnieniami, lekki śnieg z deszczem"; // pochmurno,mokry śnieg 
+  static const char Y_CODE_04[] PROGMEM = "zmienne zachmurzenie"; // częściowo pochmurno 
+  static const char Y_CODE_05[] PROGMEM = "zmienne zachmurzenie, deszcz"; // częściowe zachmurzenie, deszcz 
+  static const char Y_CODE_06[] PROGMEM = "zmiennezmienne zachmurzenie, śnieg"; // częściowo pochmurno, pokaż 
+  static const char Y_CODE_07[] PROGMEM = "zmienne zachmurzenie śnieg z deszczem"; // częściowe zachmurzenie, mokry śnieg
+  static const char Y_CODE_08[] PROGMEM = "zamieć"; // śnieżyca 
+  static const char Y_CODE_09[] PROGMEM = "mgła"; // mgła 
+  static const char Y_CODE_10[] PROGMEM = "cloudy"; // zachmurzenie statyczne 
+  static const char Y_CODE_11[] PROGMEM = "zachmurzenie, okresowo deszcz"; // pochmurno, lekki deszcz 
+  static const char Y_CODE_12[] PROGMEM = "pochmurno, okresowo śnieg"; // pochmurno, lekki śnieg 
+  static const char Y_CODE_13[] PROGMEM = "pochmurno, sporadyczne opady śniegu i deszczu"; // pochmurno, mokry śnieg 
+  static const char Y_CODE_14[] PROGMEM = "pochmurno, deszcz"; // pochmurno, deszcz 
+  static const char Y_CODE_15[] PROGMEM = "pochmurno, śnieg z deszczem"; // pochmurno, mokry śnieg 
+  static const char Y_CODE_16[] PROGMEM = "pochmurno, śnieg"; // pochmurno, pokaż 
+  static const char Y_CODE_17[] PROGMEM = "pochmurno, deszcz z burzą"; // zachmurzenie duże, burza z deszczem 
+  static const char Y_CODE_18[] PROGMEM = "clara"; // czyste niebo bez chmur 
 
-  // Погодные условия от OpenWeatherMap
-  static const char W_CODE_200[] PROGMEM = "Burza, mały deszcz";                                   // thunderstorm with light rain
-  static const char W_CODE_201[] PROGMEM = "Deszcz z burzą";                                       // thunderstorm with rain
-  static const char W_CODE_202[] PROGMEM = "Burze, ulewy";                                         // thunderstorm with heavy rain
-  static const char W_CODE_210[] PROGMEM = "Mała burza";                                           // light thunderstorm
-  static const char W_CODE_211[] PROGMEM = "Burza";                                                // thunderstorm
-  static const char W_CODE_212[] PROGMEM = "Silna burza";                                          // heavy thunderstorm
-  static const char W_CODE_221[] PROGMEM = "Przerywane burze";                                     // ragged thunderstorm
-  static const char W_CODE_230[] PROGMEM = "Burza, mały deszcz";                                   // thunderstorm with light drizzle
-  static const char W_CODE_231[] PROGMEM = "Burza z deszczem";                                     // thunderstorm with drizzle
-  static const char W_CODE_232[] PROGMEM = "Burza z ulewnym deszczem";                             // thunderstorm with heavy drizzle
-  static const char W_CODE_300[] PROGMEM = "Drobny deszcz";                                        // light intensity drizzle
-  static const char W_CODE_301[] PROGMEM = "Mżawka";                                               // drizzle
-  static const char W_CODE_302[] PROGMEM = "Ulewny deszcz";                                        // heavy intensity drizzle
-  static const char W_CODE_310[] PROGMEM = "Mały deszcz";                                          // light intensity drizzle rain
-  static const char W_CODE_311[] PROGMEM = "Mżawka";                                               // drizzle rain
-  static const char W_CODE_312[] PROGMEM = "Ulewny deszcz";                                        // heavy intensity drizzle rain
-  static const char W_CODE_313[] PROGMEM = "Ulewa, deszcz i mżawka";                               // shower rain and drizzle
-  static const char W_CODE_314[] PROGMEM = "Ulewne deszcze, deszcz i mżawka";                      // heavy shower rain and drizzle
-  static const char W_CODE_321[] PROGMEM = "Mżawka";                                               // shower drizzle  
-  static const char W_CODE_500[] PROGMEM = "Mały deszcz";                                          // light rain
-  static const char W_CODE_501[] PROGMEM = "Умеренный дождь";                                      // moderate rain
-  static const char W_CODE_502[] PROGMEM = "Ulewa";                                                // heavy intensity rain
-  static const char W_CODE_503[] PROGMEM = "Ulewny deszcz";                                        // very heavy rain
-  static const char W_CODE_504[] PROGMEM = "Ulewny deszcz";                                        // extreme rain
-  static const char W_CODE_511[] PROGMEM = "Grad";                                                 // freezing rain
-  static const char W_CODE_520[] PROGMEM = "Mały deszcz";                                          // light intensity shower rain
-  static const char W_CODE_521[] PROGMEM = "Mżawka";                                               // shower rain
-  static const char W_CODE_522[] PROGMEM = "Ulewny deszcz";                                        // heavy intensity shower rain
-  static const char W_CODE_531[] PROGMEM = "Czasami deszcz";                                       // ragged shower rain
-  static const char W_CODE_600[] PROGMEM = "Mały śnieg";                                           // light snow
-  static const char W_CODE_601[] PROGMEM = "Śnieg";                                                // Snow
-  static const char W_CODE_602[] PROGMEM = "Opady śniegu";                                         // Heavy snow
-  static const char W_CODE_611[] PROGMEM = "Błoto";                                                // Sleet
-  static const char W_CODE_612[] PROGMEM = "Lekki śnieg";                                          // Light shower sleet
-  static const char W_CODE_613[] PROGMEM = "Ulewa, śnieg";                                         // Shower sleet
-  static const char W_CODE_615[] PROGMEM = "Mokry śnieg";                                          // Light rain and snow
-  static const char W_CODE_616[] PROGMEM = "Deszcz ze śniegiem";                                   // Rain and snow
-  static const char W_CODE_620[] PROGMEM = "Małe opady śniegu";                                    // Light shower snow
-  static const char W_CODE_621[] PROGMEM = "Opady śniegu, śnieżyca";                               // Shower snow
-  static const char W_CODE_622[] PROGMEM = "Obfite opady śniegu";                                  // Heavy shower snow
-  static const char W_CODE_701[] PROGMEM = "Mgła";                                                 // mist
-  static const char W_CODE_711[] PROGMEM = "Zamglenie";                                            // Smoke
-  static const char W_CODE_721[] PROGMEM = "Lekka mgła";                                           // Haze
-  static const char W_CODE_731[] PROGMEM = "Zakurzone wiry";                                       // sand/ dust whirls
-  static const char W_CODE_741[] PROGMEM = "Mgła";                                                 // fog
-  static const char W_CODE_751[] PROGMEM = "Wiry piaskowe";                                        // sand
-  static const char W_CODE_761[] PROGMEM = "Zakurzone wiry";                                       // dust
-  static const char W_CODE_762[] PROGMEM = "Popiół wulkaniczny";                                   // volcanic ash
-  static const char W_CODE_771[] PROGMEM = "Szkwałowy wiatr";                                      // squalls
-  static const char W_CODE_781[] PROGMEM = "Tornado";                                              // tornado
-  static const char W_CODE_800[] PROGMEM = "Jasne";                                                // clear sky
-  static const char W_CODE_801[] PROGMEM = "Małe zachmurzenie";                                    // few clouds: 11-25%
-  static const char W_CODE_802[] PROGMEM = "Zmienne zachmurzenie";                                 // scattered clouds: 25-50%
-  static const char W_CODE_803[] PROGMEM = "Pochmurno z przejaśnieniami";                          // broken clouds: 51-84%
-  static const char W_CODE_804[] PROGMEM = "Pochmurnie";                                           // overcast clouds: 85-100%
+  // Warunki pogodowe z OpenWeatherMap 
+  static const char W_CODE_200[] PROGMEM = "Burza, lekki deszcz"; // burza z lekkim deszczem 
+  static const char W_CODE_201[] PROGMEM = "Deszcz z burzą"; // burza z deszczem 
+  static const char W_CODE_202[] PROGMEM = "Burza, deszcz"; // burza z ulewnym deszczem 
+  static const char W_CODE_210[] PROGMEM = "Mała burza"; // lekka burza 
+  static const char W_CODE_211[] PROGMEM = "Burza"; // burza 
+  static const char W_CODE_212[] PROGMEM = "Silna burza"; // silna burza 
+  static const char W_CODE_221[] PROGMEM = "Przerywane burze"; // poszarpana burza 
+  static const char W_CODE_230[] PROGMEM = "Burza,lekki deszcz"; // burza z mżawką 
+  static const char W_CODE_231[] PROGMEM = "Burza z mżawką"; // burza z mżawką 
+  static const char W_CODE_232[] PROGMEM = "Burza z ulewną mżawką"; // burza z ulewną mżawką
+  static const char W_CODE_300[] PROGMEM = "Lekki deszcz"; // intensywność światła mżawka 
+  static const char W_CODE_301[] PROGMEM = "Mżawka";  
+  static const char W_CODE_302[] PROGMEM = "Ulewny deszcz"; // silna mżawka 
+  static const char W_CODE_310[] PROGMEM = "Lekki deszcz"; // intensywność światła mżawka 
+  static const char W_CODE_311[] PROGMEM = "Mżawka"; // mżawka 
+  static const char W_CODE_312[] PROGMEM = "Ulewny deszcz"; // ulewa o dużej intensywności 
+  static const char W_CODE_313[] PROGMEM = "Ulewa, deszcz i mżawka"; // przelotny deszcz i mżawka 
+  static const char W_CODE_314[] PROGMEM = "Ulewny deszcz, deszcz i mżawka"; // ulewny deszcz i mżawka 
+  static const char W_CODE_321[] PROGMEM = "Ulewny deszcz i mżawka"; // mżawka   
+  static const char W_CODE_500[] PROGMEM = "Lekki deszcz"; // lekki deszcz 
+  static const char W_CODE_501[] PROGMEM = "Umiarkowany deszcz"; // umiarkowany deszcz 
+  static const char W_CODE_502[] PROGMEM = "Deszcz"; // intensywny deszcz 
+  static const char W_CODE_503[] PROGMEM = "Ulewny deszcz"; // bardzo ulewny deszcz 
+  static const char W_CODE_504[] PROGMEM = "Ulewny deszcz"; // ekstremalny deszcz 
+  static const char W_CODE_511[] PROGMEM = "Grad"; // marznący deszcz 
+  static const char W_CODE_520[] PROGMEM = "Lekki deszcz"; // intensywność światła, deszcz, 
+  static const char W_CODE_521[] PROGMEM = "Mżawka"; // deszcz prysznicowy 
+  static const char W_CODE_522[] PROGMEM = "Ulewny deszcz"; // intensywny deszcz 
+  static const char W_CODE_531[] PROGMEM = "Czasami pada deszcz"; // nierówny deszcz 
+  static const char W_CODE_600[] PROGMEM = "Lekkie opady śniegu"; // lekki śnieg 
+  static const char W_CODE_601[] PROGMEM = "Śnieg"; // 
+  static const char W_CODE_602[] PROGMEM = "Opady śniegu";
+  static const char W_CODE_611[] PROGMEM = "Deszcz ze śniegiem "; // Deszcz ze śniegiem 
+  static const char W_CODE_612[] PROGMEM = "Lekkie opady śniegu";     																														 
+  static const char W_CODE_613[] PROGMEM = "Deszcz ze śniegiem,śnieg"; // Przelotny deszcz ze śniegiem 
+  static const char W_CODE_615[] PROGMEM = "Mokry śnieg"; // Lekki deszcz i śnieg 
+  static const char W_CODE_616[] PROGMEM = "Deszcz i śnieg"; // Deszcz i śnieg 
+  static const char W_CODE_620[] PROGMEM = "Lekkie opady śniegu"; // Lekki deszcz śniegu 
+  static const char W_CODE_621[] PROGMEM = "Opady śniegu, zamieć"; // Opady śniegu 
+  static const char W_CODE_622[] PROGMEM = "Intensywne opady śniegu"; // Ulewny śnieg 
+  static const char W_CODE_701[] PROGMEM = "Mgła"; // mgła 
+  static const char W_CODE_711[] PROGMEM = "Zamglenie"; // Zamglenie
+  static const char W_CODE_721[] PROGMEM = "Lekka mgła"; // Mgła 
+  static const char W_CODE_731[] PROGMEM = "wichry pyłowe"; // wiry piasku/ pyłu 
+  static const char W_CODE_741[] PROGMEM = "Mgła"; // mgła 
+  static const char W_CODE_751[] PROGMEM = "Wichry piaskowe"; // piasek 
+  static const char W_CODE_761[] PROGMEM = "Wichry Pyłu"; // 
+  static const char W_CODE_762[] PROGMEM = "Popiół wulkaniczny"; // popiół wulkaniczny 
+  static const char W_CODE_771[] PROGMEM = "Wiatr wulkaniczny"; // szkwały 
+  static const char W_CODE_781[] PROGMEM = "Tornado"; // tornado 
+  static const char W_CODE_800[] PROGMEM = "Czyste niebo"; // czyste niebo
+  static const char W_CODE_801[] PROGMEM = "Małe zachmurzenie"; // mało chmur: 11-25% 
+  static const char W_CODE_802[] PROGMEM = "Częściowe zachmurzenie"; // zachmurzenie rozproszone: 25-50% 
+  static const char W_CODE_803[] PROGMEM = "Pochmurno z przejaśnieniami"; // chmury rozproszone: 51-84% 
+  static const char W_CODE_804[] PROGMEM = "Pochmurnie"; // zachmurzone chmury:85-100% 
 
-  // Константы вывода даты в бегущей строке
-
+  // Stałe do wyświetlania daty w bieżącym wierszu 
+  
   static const char SMonth_01[]  PROGMEM = "stycznia";
   static const char SMonth_02[]  PROGMEM = "lutego";
   static const char SMonth_03[]  PROGMEM = "marca";
@@ -1450,25 +1450,25 @@
   static const char SDayShrt_6[] PROGMEM = "sb";
   static const char SDayShrt_7[] PROGMEM = "nd";
 
-  static const char SDayForm_1[] PROGMEM = " dni";        // Пробел в начале обязателен
-  static const char SDayForm_2[] PROGMEM = " dzień";
-  static const char SDayForm_3[] PROGMEM = " dni";
+  static const char SDayForm_1[] PROGMEM = " dni"; // Spacja na początku jest wymagana 
+  static const char SDayForm_2[] PROGMEM = " dzień"; 
+  static const char SDayForm_3[] PROGMEM = " dni"; 
  
   static const char SHourForm_1[] PROGMEM = " godzina";        // Пробел в начале обязателен
   static const char SHourForm_2[] PROGMEM = " godziny";
   static const char SHourForm_3[] PROGMEM = " godzin";
-
-  static const char SMinuteForm_1[] PROGMEM = " minut";    // Пробел в начале обязателен
+																							  
+  static const char SMinuteForm_1[] PROGMEM = " minut"; // Spacja na początku jest wymagana 
   static const char SMinuteForm_2[] PROGMEM = " minuta";
-  static const char SMinuteForm_3[] PROGMEM = " minuty";
+  static const char SMinuteForm_3[] PROGMEM = " minuty"; 
 
-  static const char SSecondForm_1[] PROGMEM = " sekund";   // Пробел в начале обязателен
-  static const char SSecondForm_2[] PROGMEM = " sekunda";
-  static const char SSecondForm_3[] PROGMEM = " sekundy";
+  static const char SSecondForm_1[] PROGMEM = " sekund"; // Spacja na początku jest wymagana
+  static const char SSecondForm_2[] PROGMEM = " sekunda"; 
+  static const char SSecondForm_3[] PROGMEM = " sekundy"; 
 
-  // Примеры строк для "Бегущей строки", которые будут заполнены этими значениями при установленном флаге INITIALIZE_TEXTS == 1 в a_def_hard.h (в строке 62)
-  // на шаге инициализации при первом запуске прошивки на микроконтроллере.
-  // Данные примеры содержат некоторые варианты использования макросов в бегущей строке.
+  // Przykłady wierszy dla „Treading line”, które zostaną wypełnione tymi wartościami, gdy flaga INITIALIZE_TEXTS == 1 zostanie ustawiona w a_def_hard.h (w wierszu 62) 
+  // na etapie inicjalizacji, gdy oprogramowanie sprzętowe jest po raz pierwszy uruchamiane na mikrokontrolerze. 
+  // Te przykłady zawierają przykłady użycia makr w działającym wierszu. 
   
   #if (INITIALIZE_TEXTS == 1)
   static const char textLine_0[] PROGMEM = "##";
@@ -1481,7 +1481,7 @@
   static const char textLine_7[] PROGMEM = "";
   static const char textLine_8[] PROGMEM = "Trzymajcie się, ludzie - Wkrótce{C#FF0300}lato!{S01.01.****#10.04.****}";
   static const char textLine_9[] PROGMEM = "";
-  static const char textLine_A[] PROGMEM = "{C#000001}Raz! Dwa!! Trzy!!!!  {C#33C309}Świeć jodełkę{B#000000}{C#000001}!!!{C#FFFFFF}";
+  static const char textLine_A[] PROGMEM = "{C#000001}Raz! Dwa!! Trzy!!!!  {C#33C309}Świeć choinkoB#000000}{C#000001}!!!{C#FFFFFF}";
   static const char textLine_B[] PROGMEM = "";
   static const char textLine_C[] PROGMEM = "Szczęśliwego Nowego {C#00C911}{D:yyy+}{C#FFFFFF} roku!{S01.12.****#31.12.****}";
   static const char textLine_D[] PROGMEM = "Dbaj o siebie i tych, którzy są ci bliscy!";
@@ -1508,9 +1508,9 @@
   static const char textLine_Y[] PROGMEM = "Wstań po {P7:30#Z#60#60#12345}!";
   static const char textLine_Z[] PROGMEM = "-Dzień dobry!";
   #endif
-  
-  // Строки результатов выполнения операций и некоторых других сообщений, передаваемых
-  // из прошивки в Web-приложение для отображения
+   
+  // Wyniki wierszy operacji i kilka innych wiadomości,przeniesiono 
+  // z oprogramowania sprzętowego do aplikacji internetowej w celu wyświetlenia 
   
   static const char MSG_FILE_DELETED[] PROGMEM       = "Plik usunięty";
   static const char MSG_FILE_DELETE_ERROR[] PROGMEM  = "Błąd usuwania pliku";
@@ -1534,14 +1534,14 @@
 
   static const char MODE_NIGHT_CLOCK[] PROGMEM       = "Zegar nocny";
   static const char MODE_CLOCK[] PROGMEM             = "Zegar";
-  static const char MODE_RUNNING_TEXT[] PROGMEM      = "Biegnący tekst";
+  static const char MODE_RUNNING_TEXT[] PROGMEM      = "Przewijanie tekstu";
   static const char MODE_LOAD_PICTURE[] PROGMEM      = "Ładowanie obrazu";
   static const char MODE_DRAW[] PROGMEM              = "Rysowanie";
   static const char MODE_DAWN[] PROGMEM              = "Wschód";
 
-  static const char WTR_LANG_YA[]                    = "pl";      // Яндекс.Погода - кажется понимает только "ru" и "en"
-  static const char WTR_LANG_OWM[]                   = "pl";      // OpenWeatherMap = 2-[ бкувенный код языка - ru,en,de,fr,it и так далее. Если язык не знает - возвращает как для en
-  
+  static const char WTR_LANG_YA[] = "pl"; // Yandex.Weather - najwyraźniej rozumie tylko „ru” i „en” 
+  static const char WTR_LANG_OWM[] = "pl"; // OpenWeatherMap = 2-[literowy kod języka - ru,en,de,fr,it itd. Jeżeli nie zna języka, zwraca to samo co dla en 
+    
 #endif
 
 
