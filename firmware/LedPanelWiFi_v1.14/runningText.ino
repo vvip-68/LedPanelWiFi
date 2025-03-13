@@ -752,7 +752,7 @@ int8_t getDiasOffset(uint8_t font, uint8_t modif) {
           case 115: return  1; //ē 196   115
           case 101: return -1; //ą 196   101
           case 130: return -1; //Ģ 196   130
-          case 131: return  2; //ģ 196   131
+          case 131: return  1; //ģ 196   131
           case 150: return -1; //Ķ 196   150
           case 151: return -1; //ķ 196   151
           case 155: return -1; //Ļ 196   155
