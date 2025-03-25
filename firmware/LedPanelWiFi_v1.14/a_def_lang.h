@@ -1481,7 +1481,7 @@
   static const char textLine_7[] PROGMEM = "";
   static const char textLine_8[] PROGMEM = "Trzymajcie się, ludzie - Wkrótce{C#FF0300}lato!{S01.01.****#10.04.****}";
   static const char textLine_9[] PROGMEM = "";
-  static const char textLine_A[] PROGMEM = "{C#000001}Raz! Dwa!! Trzy!!!!  {C#33C309}Świeć choinkoB#000000}{C#000001}!!!{C#FFFFFF}";
+  static const char textLine_A[] PROGMEM = "{C#000001}Raz! Dwa!! Trzy!!!!  {C#33C309}Świeć choinko{B#000000}{C#000001}!!!{C#FFFFFF}";
   static const char textLine_B[] PROGMEM = "";
   static const char textLine_C[] PROGMEM = "Szczęśliwego Nowego {C#00C911}{D:yyy+}{C#FFFFFF} roku!{S01.12.****#31.12.****}";
   static const char textLine_D[] PROGMEM = "Dbaj o siebie i tych, którzy są ci bliscy!";
