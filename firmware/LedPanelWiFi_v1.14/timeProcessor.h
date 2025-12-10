@@ -14,7 +14,7 @@
  * 
  */
 #if !defined NTP1ADDRESS && !defined NTP2ADDRESS
-#ifdef CONTRY
+#ifdef COUNTRY
     #define NTP1ADDRESS        COUNTRY ".pool.ntp.org"      // пул серверов времени для NTP
     #define NTP2ADDRESS        "ntp3.vniiftri.ru"           // https://vniiftri.ru/catalog/services/sinkhronizatsiya-vremeni-cherez-ntp-servera/
 #else

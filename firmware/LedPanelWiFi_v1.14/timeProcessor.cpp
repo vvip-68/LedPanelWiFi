@@ -263,7 +263,7 @@ void TimeProcessor::setcustomntp(const char* ntp){
     #ifdef ESP8266
       sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
     #endif
-    #ifdef ESPESP32
+    #ifdef ESP32
       #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)        
         esp_sntp_setservername(CUSTOM_NTP_INDEX, userntp.c_str());
       #else 

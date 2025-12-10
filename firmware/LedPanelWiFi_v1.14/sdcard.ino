@@ -331,11 +331,11 @@ void sdcardRoutine() {
      else
        currentFile = getEffectScaleParamValue2(MC_SDCARD) - 2; // Указанный выбранный файл эффектов
 
-     if (currentFile < 0 || currentFile >= countFiles) {
+      if (currentFile < 0 || currentFile >= countFiles) {
         if (countFiles == 1) {
           file_idx = 0;
         } else if (countFiles == 2) {
-          file_idx = (file_idx != 1) ? 0 : 1;
+          file_idx = (file_idx != 0) ? 0 : 1;   
         } else if (currentFile == -1) {
           // Последовательный перебор файлов с SD-карты
           if (sf_file_idx < 0) sf_file_idx = 0;
@@ -349,6 +349,7 @@ void sdcardRoutine() {
       } else {
         file_idx = currentFile;
       }
+
     }
 
     // При загрузке имен файлов с SD-карты в nameFiles только имя файла внутри выбранной папки -- чтобы получить полное имя файла для загрузки  нужно к имени файла добавить имя папки
