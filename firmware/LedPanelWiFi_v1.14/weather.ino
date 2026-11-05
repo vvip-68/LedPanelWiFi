@@ -89,7 +89,7 @@ bool getWeather() {
           // Добрый человек Сотнег поделился скриптом для шлюза http2https 
           // Добрый человек Zordog, предоставил доступ к своему серверу, на который установил скрипит http2https от Сотнег
           // Погода от Яндекс по http снова работает!
-          request  = F("http://194.58.103.72/http2https.php?https://yandex.com/time/sync.json?geo="); request += String(regionID); 
+          request  = F("http://95.163.236.70/http2https.php?https://yandex.com/time/sync.json?geo="); request += String(regionID); 
           request += F("&lang="); request += WTR_LANG_YA; 
         } else if (useWeather == 2) {    
           request  = F("http://api.openweathermap.org/data/2.5/weather?id="); request += String(regionID2); 
